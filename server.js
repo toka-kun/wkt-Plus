@@ -37,3 +37,4 @@ app.get("/tst/:id", (req, res) => {
 });
 
 app.use("/tools", require("./routes/tools"));
+app.use("/blog", require("./routes/blog"));

@@ -8,7 +8,8 @@
     "ejs": "^3.1.10",
     "express-rate-limit": "^7.5.0",
     "axios": "^1.8.1",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "node-cache": "^5.1.2"
   },
   "narflinger": {
     "basenames": [
