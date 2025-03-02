@@ -21,11 +21,14 @@ if (cluster.isMaster) {
   });
 }
 
+const path = require("path");
+const bodyParser = require("body-parser");
+
+app.set("views", path.join(__dirname, "views"));
+app.use(bodyParser.urlencoded({ extended: true }));
+
 app.get('/', (req, res) => {
-  res.end(JSON.stringify(process.versions, null, 2));
+  res.render("home/index");
 });
 
-app.get('/tst/:id', (req, res) => {
-  const id = req.params.id;
-  res.render(`../tst/${id}.ejs`, { id: id });
-});
+app.use("/tools", require("./routes/tools"));

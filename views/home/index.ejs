@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .hero-section {
-            background-image: url('https://via.placeholder.com/1920x1080'); /* ここに背景画像を指定 */
+            background-image: url('https://cdn.glitch.global/21c63086-ffc1-4d28-8e9a-e2c12f51b431/IMG_2880.jpeg');
             background-position: center;
             background-size: cover;
             height: 60vh;
@@ -29,15 +29,13 @@
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
-    <!-- 背景画像セクション -->
     <div class="hero-section fade-out-on-scroll" id="heroSection">
         <div class="flex flex-col items-center justify-center h-full bg-black bg-opacity-50">
-            <h1 class="text-5xl font-bold text-white header-text">🚀 ホームへようこそ！</h1>
-            <p class="text-lg text-white mt-2">便利な機能が満載のウェブアプリ</p>
+            <h1 class="text-5xl font-bold text-white header-text">🧸Rewrite🧸</h1>
+            <p class="text-lg text-white mt-2">わかめくんのサイトらしい</p>
         </div>
     </div>
 
-    <!-- ツールセクション（スクロール後表示） -->
     <div class="tool-section px-6 py-10">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
             <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md text-center">
@@ -61,7 +59,6 @@
     </div>
     <script>
         const heroSection = document.getElementById('heroSection');
-
         window.addEventListener('scroll', () => {
             const scrollPosition = window.scrollY;
             if (scrollPosition > 100) {
