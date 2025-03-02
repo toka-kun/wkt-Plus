@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APIチェッカー</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+    <div class="min-h-screen flex items-center justify-center">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg">
+            <h1 class="text-2xl font-semibold text-center mb-4">APIチェックツール</h1>
+            <form id="apiForm" class="space-y-4">
+                <label for="urls" class="block text-gray-700 dark:text-gray-300">試すAPIのURL（改行区切り）:</label>
+                <textarea name="urls" id="urls" rows="5" class="w-full p-2 border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"></textarea>
+                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition">チェック開始</button>
+            </form>
+            <p id="errorMessage" class="text-red-500 mt-2 hidden text-center"></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("apiForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+            const errorMessage = document.getElementById("errorMessage");
+            errorMessage.classList.add("hidden");
+
+            try {
+                const response = await fetch("/check", { method: "POST", body: new FormData(this) });
+                if (!response.ok) {
+                    throw new Error(await response.text());
+                }
+                window.location.href = response.url;
+            } catch (error) {
+                errorMessage.textContent = error.message;
+                errorMessage.classList.remove("hidden");
+            }
+        });
+    </script>
+</body>
+</html>

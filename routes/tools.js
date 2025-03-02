@@ -10,4 +10,6 @@ router.get("/tool/:id", (req, res) => {
   res.render(`tools/tool/${req.params.id}`);
 });
 
+router.use("/inv", require("../controllers/tool/src/inv"));
+
 module.exports = router;

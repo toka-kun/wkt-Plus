@@ -5,7 +5,9 @@
   "dependencies": {
     "express": "^4.21.2",
     "compression": "^1.8.0",
-    "ejs": "^3.1.10"
+    "ejs": "^3.1.10",
+    "express-rate-limit": "^7.5.0",
+    "axios": "^1.8.1"
   },
   "narflinger": {
     "basenames": [
