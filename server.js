@@ -21,12 +21,8 @@ if (cluster.isMaster) {
   });
 }
 
-const path = require("path");
-
-app.set("views", path.join(__dirname, "views"));
-
 app.get('/', (req, res) => {
-  res.render("home/index");
+  res.end(JSON.stringify(process.versions, null, 2));
 });
 
 app.get('/tst/:id', (req, res) => {

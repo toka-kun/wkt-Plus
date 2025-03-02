@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ホームへようこそ！</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hero-section {
+            background-image: url('https://via.placeholder.com/1920x1080'); /* ここに背景画像を指定 */
+            background-position: center;
+            background-size: cover;
+            height: 60vh;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .fade-out-on-scroll {
+            position: relative;
+            z-index: 10;
+        }
+        .fade-out-on-scroll.scrolled {
+            opacity: 0;
+        }
+        .header-text {
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+        }
+        .tool-section {
+            margin-top: -20px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+    <!-- 背景画像セクション -->
+    <div class="hero-section fade-out-on-scroll" id="heroSection">
+        <div class="flex flex-col items-center justify-center h-full bg-black bg-opacity-50">
+            <h1 class="text-5xl font-bold text-white header-text">🚀 ホームへようこそ！</h1>
+            <p class="text-lg text-white mt-2">便利な機能が満載のウェブアプリ</p>
+        </div>
+    </div>
+
+    <!-- ツールセクション（スクロール後表示） -->
+    <div class="tool-section px-6 py-10">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md text-center">
+                <h2 class="text-xl font-semibold">🔍 検索ツール</h2>
+                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">便利な検索機能</p>
+                <a href="#" class="mt-3 inline-block bg-blue-500 text-white py-2 px-4 rounded">開く</a>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md text-center">
+                <h2 class="text-xl font-semibold">📂 ファイル管理</h2>
+                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">オンラインでファイルを管理</p>
+                <a href="#" class="mt-3 inline-block bg-blue-500 text-white py-2 px-4 rounded">開く</a>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md text-center">
+                <h2 class="text-xl font-semibold">📅 スケジュール</h2>
+                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">予定を簡単に管理</p>
+                <a href="#" class="mt-3 inline-block bg-blue-500 text-white py-2 px-4 rounded">開く</a>
+            </div>
+        </div>
+    </div>
+    <script>
+        const heroSection = document.getElementById('heroSection');
+
+        window.addEventListener('scroll', () => {
+            const scrollPosition = window.scrollY;
+            if (scrollPosition > 100) {
+                heroSection.classList.add('scrolled');
+            } else {
+                heroSection.classList.remove('scrolled');
+            }
+        });
+    </script>
+</body>
+</html>
