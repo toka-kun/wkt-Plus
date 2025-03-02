@@ -10,9 +10,9 @@ const PORT = 3000;
 const MAX_API_WAIT_TIME = 5000;
 const videoId = "beFiVQcwVY8";
 
-router.use(bodyParser.urlencoded({ extended: true }));
 router.use(express.urlencoded({ extended: true }));
 router.use(cors());
+router.use(express.json());
 
 const limiter = rateLimit({
   windowMs: 60 * 1000,
