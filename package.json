@@ -1,10 +1,11 @@
 {
   "scripts": {
-    "start": "node index.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.21.2",
-    "compression": "^1.8.0"
+    "compression": "^1.8.0",
+    "ejs": "^3.1.10"
   },
   "narflinger": {
     "basenames": [

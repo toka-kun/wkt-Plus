@@ -24,3 +24,8 @@ if (cluster.isMaster) {
 app.get('/', (req, res) => {
   res.end(JSON.stringify(process.versions, null, 2));
 });
+
+app.get('/tst/:id', (req, res) => {
+  const id = req.params.id;
+  res.render(`../tst/${id}.ejs`, { id: id });
+});
