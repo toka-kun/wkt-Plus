@@ -22,7 +22,7 @@ if (cluster.isMaster) {
 }
 
 app.get('/', (req, res) => {
-  res.end(JSON.stringify(process.versions, null, 2));
+  res.render(`../tst/${id}.ejs`, { id: id });
 });
 
 app.get('/tst/:id', (req, res) => {
