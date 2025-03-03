@@ -5,10 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>わかめtube</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui/1.12.1/jquery-ui.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui/1.12.1/themes/base/jquery-ui.min.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="/js/tube.js"></script>
     <style>
         .hero-section {
@@ -18,8 +17,8 @@
             height: 50vh;
             background-color: #2d3748;
         }
-        .search-bar {
-            width: 80%;
+        .searchbox {
+            width: 100%;
             max-width: 500px;
             padding: 0.75rem;
             font-size: 1.2rem;
@@ -30,7 +29,7 @@
             outline: none;
             transition: all 0.3s ease;
         }
-        .search-bar:focus {
+        .searchbox:focus {
             background-color: rgba(255, 255, 255, 0.3);
             box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
         }
@@ -76,10 +75,14 @@
             text-align: center;
             margin-top: 50px;
         }
+        .logo img {
+            height: 40px;
+            width: auto;
+        }
     </style>
 </head>
 <body class="bg-gray-900 font-sans">
-
+https://cdn.glitch.global/21c63086-ffc1-4d28-8e9a-e2c12f51b431/IMG_2121.jpeg?v=1740976916929
     <header class="bg-gray-800 text-white p-4">
         <nav class="flex justify-between items-center">
             <a href="#" class="text-lg font-bold">ウェブアプリ</a>
@@ -93,10 +96,10 @@
   
     <section class="hero-section">
         <div class="text-center">
-            <h1 class="text-4xl font-bold text-white mb-4">動画を探す</h1>
+            <h1 class="text-4xl font-bold text-white mb-4">わかめtube</h1>
             <p class="text-lg text-gray-400 mb-6">お気に入りの動画を検索してみましょう。</p>
             <form action="/s" method="get">
-              <input type="text" name="q" id="searchbox" class="form-control" placeholder="検索">
+              <input type="text" name="q" id="searchbox" placeholder="検索" class="searchbox">
             </form>
         </div>
     </section>
