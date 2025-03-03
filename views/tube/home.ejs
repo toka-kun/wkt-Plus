@@ -19,7 +19,7 @@
         }
         .searchbox {
             width: 100%;
-            max-width: 500px;
+            max-width: 700px;
             padding: 0.75rem;
             font-size: 1.2rem;
             border-radius: 25px;
@@ -76,20 +76,22 @@
             margin-top: 50px;
         }
         .logo img {
-            height: 40px;
+            height: 30px;
             width: auto;
         }
     </style>
 </head>
 <body class="bg-gray-900 font-sans">
-https://cdn.glitch.global/21c63086-ffc1-4d28-8e9a-e2c12f51b431/IMG_2121.jpeg?v=1740976916929
+
     <header class="bg-gray-800 text-white p-4">
         <nav class="flex justify-between items-center">
-            <a href="#" class="text-lg font-bold">ウェブアプリ</a>
+            <a href="/" class="logo">
+                <img src="https://cdn.glitch.global/21c63086-ffc1-4d28-8e9a-e2c12f51b431/IMG_2121.jpeg">
+            </a>
             <div class="space-x-6">
-                <a href="#" class="hover:text-gray-300">ホーム</a>
-                <a href="#" class="hover:text-gray-300">トレンド</a>
-                <a href="#" class="hover:text-gray-300">マイページ</a>
+                <a href="/wkt/setting" class="hover:text-gray-300">⚙️設定</a>
+                <a href="/wkt/trend" class="hover:text-gray-300">🎩トレンド</a>
+                <a href="https://ja.wikipedia.org/wiki/メインページ" class="hover:text-gray-300">Wikipedia</a>
             </div>
         </nav>
     </header>
@@ -97,7 +99,7 @@ https://cdn.glitch.global/21c63086-ffc1-4d28-8e9a-e2c12f51b431/IMG_2121.jpeg?v=1
     <section class="hero-section">
         <div class="text-center">
             <h1 class="text-4xl font-bold text-white mb-4">わかめtube</h1>
-            <p class="text-lg text-gray-400 mb-6">お気に入りの動画を検索してみましょう。</p>
+            <p class="text-lg text-gray-400 mb-6">好きな動画を検索してみましょう！</p>
             <form action="/s" method="get">
               <input type="text" name="q" id="searchbox" placeholder="検索" class="searchbox">
             </form>
@@ -105,7 +107,6 @@ https://cdn.glitch.global/21c63086-ffc1-4d28-8e9a-e2c12f51b431/IMG_2121.jpeg?v=1
     </section>
 
     <section class="py-10 px-4 bg-gray-800">
-        <h2 class="text-3xl font-bold text-white text-center mb-8">おすすめアプリ</h2>
 
         <div class="app-card-container">
             <div class="app-card">
