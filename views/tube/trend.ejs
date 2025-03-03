@@ -13,22 +13,17 @@
   <link rel="shortcut icon" href="https://cdn.glitch.global/5b8b419f-e61e-4533-9e15-5b2805b88d0e/IMG_1111_Original.jpeg">
   <link rel="icon" href="https://cdn.glitch.global/5b8b419f-e61e-4533-9e15-5b2805b88d0e/IMG_1111_Original.jpeg" type="image/x-icon">
   <meta name="author" content="わかめtube | まっしろ">
-  <link rel="stylesheet" href="/css/wakastyles.css">
   <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
   <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 
 <body>
   <header>
     <div class="banner">
-      <button class="btn btn-link" onclick="window.location.href='/'">ホーム<br>🏠</button>
-      <button class="btn btn-link" onclick="window.location.href='/setting'">設定<br>⚙️</button>
-      <button class="btn btn-link" onclick="window.location.href='/send'">問い合わせ<br>✉️</button>
-      <button class="btn btn-link" onclick="window.location.href='/wakams'">曲を聴く<br>🎶</button>
-      <form action="/logout" method="post">
-        <button type="submit" class="btn btn-link">ログアウト<br>🚪</button>
-      </form>
+      <button class="btn btn-link" onclick="window.location.href='/wkt'">ホーム<br>🏠</button>
     </div>
   </header>
 
@@ -46,18 +41,17 @@
     ようこそ！
   </h2>
   <p>
-    好きな動画を検索してみましょう！<br>
-    ゲーム等はページ下部に移動しました。
+    好きな動画を検索してみましょう！
   </p>
   
   <div class="results">
   <% if (topVideos && topVideos.length > 0) { %>
     <% topVideos.forEach(([videoId, { count, videoTitle, channelName, channelId }], index) => { %>
       <div class="result-item">
-        <a href="/w/<%= videoId %>">
-          <img loading="lazy" src="/vi/<%= videoId %>/mqdefault.jpg" alt="<%= videoTitle %>">
+        <a href="/wkt/w/<%= videoId %>">
+          <img loading="lazy" src="/wkt/back/vi/<%= videoId %>/mqdefault.jpg" alt="<%= videoTitle %>">
         </a>
-        <p class="channel-name"><a href="/c/<%= channelId %>"><%= channelName %></a></p>
+        <p class="channel-name"><a href="/wkt/c/<%= channelId %>"><%= channelName %></a></p>
         <p class="video-title"><%= videoTitle %></p>
       </div>
     <% }); %>
@@ -65,36 +59,33 @@
     <p></p>
   <% } %>
         <div class="result-item">
-          <a href="/w/M7FH1dL51oU">
-            <img loading="lazy" src="/vi/M7FH1dL51oU/mqdefault.jpg" alt="泥の分際で">
+          <a href="/wkt/w/M7FH1dL51oU">
+            <img loading="lazy" src="/wkt/back/vi/M7FH1dL51oU/mqdefault.jpg" alt="泥の分際で">
           </a>
-          <p class="channel-name"><a href="/c/UCB2tP2QfRG7hTra0KTOtTBg">ツユ</a></p>
+          <p class="channel-name"><a href="/wkt/c/UCB2tP2QfRG7hTra0KTOtTBg">ツユ</a></p>
           <p class="video-title">ツユ - 泥の分際で私だけの大切を奪おうだなんて MV</p>
         </div>
         <div class="result-item">
-          <a href="/w/JQRMzxvhruM">
-            <img loading="lazy" src="/vi/JQRMzxvhruM/mqdefault.jpg" alt="絶気曲">
+          <a href="/wkt/w/JQRMzxvhruM">
+            <img loading="lazy" src="/wkt/vi/JQRMzxvhruM/mqdefault.jpg" alt="絶気曲">
           </a>
-          <p class="channel-name"><a href="c/UCrReAWkZTd21k2g3CCTdHxQ">春雨</a></p>
+          <p class="channel-name"><a href="/wkt/c/UCrReAWkZTd21k2g3CCTdHxQ">春雨</a></p>
           <p class="video-title">絶妙に気持ち悪い曲</p>
         </div>
         <div class="result-item">
-          <a href="/w/0exu2wsrCQs">
-            <img loading="lazy" src="/vi/0exu2wsrCQs/mqdefault.jpg" alt="通知オン">
+          <a href="/wkt/w/0exu2wsrCQs">
+            <img loading="lazy" src="/wkt/back/vi/0exu2wsrCQs/mqdefault.jpg" alt="通知オン">
           </a>
-          <p class="channel-name"><a href="/c/UCIet5zQbQiRR64Sq7NYTxAg">Kiju</a></p>
+          <p class="channel-name"><a href="/wkt/c/UCIet5zQbQiRR64Sq7NYTxAg">Kiju</a></p>
           <p class="video-title">Discordの通知音</p>
         </div>
   </div>
   
   <br><br>
   <footer class="text-center">
-    <a href="/edu"><span class="mt-5 mb-3 text-muted">わかめedu</span></a><br><br><br>
-    <a href="/proxy"><span class="mt-5 mb-3 text-muted">WAO (プロキシ)</span></a><br><br><br>
     <a href="/app"><span class="mt-5 mb-3 text-muted">app🎮</span></a><br><br><br>
     <a href="/wakams"><span class="mt-5 mb-3 text-muted">わかめMusic🎶</span></a><br><br><br>
-    <a href="/tool"><span class="mt-5 mb-3 text-muted">ツール🧰</span></a><br><br><br>
-    <a href="/blog/help"><span class="mt-5 mb-3 text-muted">ヘルプ</span></a><br><br><br>
+    <a href="/tools"><span class="mt-5 mb-3 text-muted">ツール🧰</span></a><br><br><br>
   </footer>
 <br><br>
   <style>
@@ -175,13 +166,201 @@
       font-size: 1em;
       color: #666;
     }
+body {
+  font-family: 'Helvetica Neue', sans-serif;
+  background-color: #fffafb;
+  height: 70%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+}
+
+a {
+    color: #ff69b4;
+}
+
+a:hover {
+    color: #FFA6C9;
+}
+
+header {
+  width: 100%;
+  background-color: #333;
+  padding: 10px 0;
+  text-align: left;
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: 15px;
+}
+
+.banner .btn {
+  color: #ffffff;
+  text-decoration: none;
+  margin-right: 20px;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.search-bar {
+    display: flex;
+    justify-content: center;
+    margin-top: 50px;
+}
+
+.search-bar .form-control {
+   padding: 10px;
+   width: 300px;
+   border: 1px solid #cccccc;
+   border-radius: 4px;
+}
+.search-bar .btn-search {
+   padding: 10px;
+   background-color: #333333;
+   color: white;
+   border: none;
+   border-radius: 4px;
+   margin-left: 10px;
+}
+
+footer {
+  width: 100%;
+  text-align: center;
+  padding: 10px 0;
+}
+
+.navbar {
+  border-bottom: 2px solid #333;
+  padding: 10px 20px;
+}
+
+.navbar-brand img {
+  width: 30px;
+}
+
+.form-control {
+  width: 300px;
+  display: inline-block;
+  margin-left: 20px;
+}
+
+.results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  padding: 20px;
+}
+
+.result-item {
+  width: 160px;
+  border: 1px solid #cccccc;
+  border-radius: 10px;
+  padding: 10px;
+  background-color: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+.result-item:hover {
+  transform: scale(1.50);
+}
+
+.result-item img {
+  width: 100%;
+  height: 90px; /* Adjusted height */
+  border-bottom: 1px solid #cccccc;
+  margin-bottom: 10px;
+  border-radius: 10px 10px 0 0;
+}
+
+.result-item video {
+  width: 100%;
+  height: 90px; /* Adjusted height */
+  border-bottom: 1px solid #cccccc;
+  margin-bottom: 10px;
+  border-radius: 10px 10px 0 0;
+}
+
+.result-item .channel-name {
+  font-size: 7px;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+.result-item .video-title {
+  font-size: 8px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.result-item .video-description {
+  font-size: 6px;
+  color: #777;
+}
+
+.result-item .video-meta {
+  font-size: 6px;
+  color: #aaa;
+  margin-top: 5px;
+}
+
+.btn {
+  background-color: #ff8181;
+  color: white;
+}
+.playresult-item {
+  width: 160px;
+  border: 1px solid #ee7800;
+  border-radius: 10px;
+  padding: 10px;
+  background-color: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.playresult-item img {
+  width: 100%;
+  height: 90px;
+  border-bottom: 1px solid #cccccc;
+  margin-bottom: 10px;
+  border-radius: 10px 10px 0 0;
+}
+
+.playresult-item .channel-name {
+  font-size: 7px;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+.playresult-item .video-title {
+  font-size: 8px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+}
+.small-iframe {
+  display: none;
+}
   </style>
 <script>
 $(function () {
     $('#searchbox').autocomplete({
         source: function (request, response) {
             $.ajax({
-                url: '/suggest',
+                url: '/wkt/back/suggest',
                 data: { keyword: request.term },
                 success: function (data) {
                     response(data);
