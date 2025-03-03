@@ -148,51 +148,32 @@
             document.getElementById("dougaBox").classList.remove("open");
         });
       
-    async function fetchComments() {
-        const commentContainers = [document.getElementById("commentsList1"), document.getElementById("commentsList2")];
-        const errorContainers = [document.getElementById("commentError1"), document.getElementById("commentError2")];
-        const retryButton = document.getElementById("retryButton");
+async function fetchComments() {
+    const commentContainers = [document.getElementById("commentsList1"), document.getElementById("commentsList2")];
+    const errorContainers = [document.getElementById("commentError1"), document.getElementById("commentError2")];
+    const retryButton = document.getElementById("retryButton");
 
-        commentContainers.forEach(container => container.innerHTML = "<p>コメントを取得中...</p>");
-        errorContainers.forEach(error => error.style.display = "none");
-        retryButton.style.display = "none";
+    commentContainers.forEach(container => container.innerHTML = "<p>コメントを取得中...</p>");
+    errorContainers.forEach(error => error.style.display = "none");
+    retryButton.style.display = "none";
 
- try {
-    const response = await fetch("/wkt/back/comment/<%= videoData.videoId %>");
-    if (!response.ok) throw new Error("サーバーエラー");
+    try {
+        const response = await fetch("/wkt/back/comment/<%= videoData.videoId %>");
+        if (!response.ok) throw new Error("サーバーエラー");
 
-    const data = await response.json();
-    commentContainers.forEach(container => container.innerHTML = "");
+        const responseText = await response.text();
 
-    if (!data.comments || !Array.isArray(data.comments.contents)) {
-        throw new Error("コメントが見つかりません");
+        commentContainers.forEach(container => {
+            container.innerHTML = responseText;
+        });
+    } catch (error) {
+        console.error("エラー:", error);
+        errorContainers.forEach(errorContainer => {
+            errorContainer.textContent = "コメントの取得に失敗しました: " + error.message;
+            errorContainer.style.display = "block";
+        });
+        retryButton.style.display = "block";
     }
-
-    data.comments.contents.forEach(CommentThread => {
-        if (CommentThread.comment) {
-            const commentElement = document.createElement("div");
-            commentElement.classList.add("flex", "items-center", "bg-gray-700", "p-2", "rounded");
-
-            commentElement.innerHTML = `
-                <img src="${CommentThread.comment.author.thumbnails[0].url}" alt="アイコン" class="w-8 h-8 rounded-full">
-                <div class="ml-2">
-                    <p class="text-sm font-bold">${CommentThread.comment.author.name || "(Unable to parse author name)"}</p>
-                    <p class="text-gray-300">${CommentThread.comment.content.text || "(Unable to parse comment)"}</p>
-                </div>
-            `;
-            commentContainers.forEach(container => container.appendChild(commentElement));
-        }
-    });
-
-} catch (error) {
-    console.error("エラー:", error);
-    alert(error);
-    commentContainers.forEach(container => container.innerHTML = "");
-    errorContainers.forEach(error => {
-        error.innerText = "コメントの取得中にエラーが発生しました";
-        error.style.display = "block";
-    });
-    retryButton.style.display = "block";
 }
 
     document.getElementById("retryButton").addEventListener("click", fetchComments);

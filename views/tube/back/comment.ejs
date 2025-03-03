@@ -1,0 +1,7 @@
+<% cm.comments.contents.filter(c => c.comment).forEach(CommentThread => { %>   
+  <img loading="lazy" src="<%= CommentThread.comment?.author.thumbnails[0].url %>" class="w-8 h-8 rounded-full">
+    <div class="ml-2">
+      <p class="text-sm font-bold"><h4><a href="/c/<%= CommentThread.comment?.author.id %>" target="_blank"><%= CommentThread.comment?.author.name || "(Unable to parse author name)" %></a></p>
+      <p class="text-gray-300"><%= CommentThread.comment?.content.text || "(Unable to parse comment)" %></p>
+    </div>
+<% }); %>
