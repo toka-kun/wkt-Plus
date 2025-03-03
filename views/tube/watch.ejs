@@ -159,15 +159,14 @@
 
         try {
             const response = await fetch("/wkt/back/comment/<%= videoData.videoId %>");
-            alert("<%= videoData.videoId %>")
             alert(response.cm);
             alert(response.cm.id)
             if (!response.ok) throw new Error("サーバーエラー");
 
-            const data = await response.cm;
+            const data = await response.json();
             commentContainers.forEach(container => container.innerHTML = "");
 
-            data.comments.forEach(comment => {
+            data.cm.comments.forEach(comment => {
                 const commentElement = document.createElement("div");
                 commentElement.classList.add("flex", "items-center", "bg-gray-700", "p-2", "rounded");
 
