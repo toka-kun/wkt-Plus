@@ -24,8 +24,12 @@
       <% if (video.type === 'video') { %>
             <div class="bg-gray-800 p-4 rounded">
               <a href="/wkt/w/<%= video.id %>">
-                <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title %>" class="w-full h-40 rounded">
+                <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title %>" class="w-full h-52 rounded">
               </a>
+                <div class="mt-2 flex items-center">
+                    <img src="icon1.jpg" alt="アイコン" class="w-8 h-8 rounded-full mr-2">
+                    <p class="text-sm text-gray-400">作者名</p>
+                </div>
                 <div class="mt-2">
                     <p class="text-sm text-gray-400"><a href="/wkt/c/<%= video.author.channelID %>"><%= video.author.name %></a></p>
                     <p class="text-lg font-bold"><%= video.title %></p>
@@ -35,8 +39,12 @@
       <% } else if (video.type === 'playlist') { %>
             <div class="bg-gray-600 p-4 rounded">
               <a href="/wkt/p/<%= video.playlistID %>">
-                <img src="<%= video.firstVideo.bestThumbnail.url.slice(19) %>" alt="<%= video.title %>" class="w-full h-40 rounded">
+                <img src="<%= video.firstVideo.bestThumbnail.url.slice(19) %>" alt="<%= video.title %>" class="w-full h-52 rounded">
               </a>
+                <div class="mt-2 flex items-center">
+                    <img src="icon1.jpg" alt="アイコン" class="w-8 h-8 rounded-full mr-2">
+                    <p class="text-sm text-gray-400">作者名</p>
+                </div>
                 <div class="mt-2">
                     <p class="text-sm text-gray-400"><a href="/wkt/u/<%= video.owner.id %>"><%= video.owner.name %></a></p>
                     <p class="text-lg font-bold">プレイリスト(<%= video.length %>本以上の動画)</p>
@@ -45,7 +53,7 @@
       <% } else if (video.type === 'channel') { %>
             <div class="bg-gray-800 p-4 rounded">
               <a href="/wkt/c/<%= video.channelID %>">
-                <img src="https://wakamecomment.glitch.me/ytc/<%= video.id %>" alt="<%= video.name %>" class="w-full h-40 rounded">
+                <img src="https://wakamecomment.glitch.me/ytc/<%= video.id %>" alt="<%= video.name %>" class="w-full h-52 rounded">
               </a>
                 <div class="mt-2">
                     <p class="text-sm text-gray-400"><%= video.name %></p>
