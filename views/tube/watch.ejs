@@ -159,9 +159,12 @@
 
         try {
             const response = await fetch("/wkt/back/comment/<%= videoData.videoId %>");
+            alert("<%= videoData.videoId %>")
+            alert(response.cm);
+            alert(response.cm.id)
             if (!response.ok) throw new Error("サーバーエラー");
 
-            const data = await response.json();
+            const data = await response.cm;
             commentContainers.forEach(container => container.innerHTML = "");
 
             data.comments.forEach(comment => {
@@ -180,6 +183,7 @@
 
         } catch (error) {
             console.error("エラー:", error);
+            alert(error);
             commentContainers.forEach(container => container.innerHTML = "");
             errorContainers.forEach(error => {
                 error.innerText = "コメントの取得中にエラーが発生しました";
