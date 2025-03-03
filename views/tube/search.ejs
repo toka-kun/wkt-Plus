@@ -18,24 +18,20 @@
     
     <div class="container mx-auto p-4">
         <h2 class="text-xl font-bold mb-4">検索結果</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    <% res.items.forEach(video => { %>
-      <% if (video.type === 'video') { %>
-            <div class="bg-gray-800 p-4 rounded">
-              <a href="/wkt/w/<%= video.id %>">
-                <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title %>" class="w-full h-52 rounded">
-              </a>
-                <div class="mt-2 flex items-center">
-                    <img src="icon1.jpg" alt="アイコン" class="w-8 h-8 rounded-full mr-2">
-                    <p class="text-sm text-gray-400">作者名</p>
-                </div>
-                <div class="mt-2">
-                    <p class="text-sm text-gray-400"><a href="/wkt/c/<%= video.author.channelID %>"><%= video.author.name %></a></p>
+
+                <div class="bg-gray-800 p-4 rounded">
+                    <a href="/wkt/watch/<%= video.id %>">
+                        <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title %>" class="w-full h-60 rounded">
+                    </a>
+                    <div class="mt-2 flex items-center">
+                        <a href="/wkt/c/<%= video.author.channelID %>" class="flex items-center">
+                            <img src="icon1.jpg" alt="アイコン" class="w-8 h-8 rounded-full mr-2">
+                            <p class="text-sm text-gray-400"><%= video.author.name %></p>
+                        </a>
+                    </div>
                     <p class="text-lg font-bold"><%= video.title %></p>
-                    <p class="text-xs text-gray-500"><%= video.uploadedAt %> - <%= video.duration %></p>
+                    <p class="text-xs text-gray-500"><%= video.uploadedAt %> - <%= video.duration %> ・ <%= video.views %> 回再生</p>
                 </div>
-            </div>
       <% } else if (video.type === 'playlist') { %>
             <div class="bg-gray-600 p-4 rounded">
               <a href="/wkt/p/<%= video.playlistID %>">
@@ -64,6 +60,7 @@
       <% } %>
     <% }); %>
         </div>
+      
     </div>
 </body>
 </html>
