@@ -43,3 +43,24 @@ app.get("/tst/:id", (req, res) => {
 app.use("/tools", require("./routes/tools"));
 app.use("/blog", require("./routes/blog"));
 app.use("/wkt", require("./routes/wakametube"));
+
+app.get('/watch', (req, res) => {
+  const videoId = req.query.v;
+  if (videoId) {
+    res.redirect(`/wkt/watch/${videoId}`);
+  } else {
+    res.redirect(`/`);
+  }
+});
+app.get('/channel/:id', (req, res) => {
+  const id = req.params.id;
+    res.redirect(`/wkt/c/${id}`);
+});
+app.get('/channel/:id/join', (req, res) => {
+  const id = req.params.id;
+  res.redirect(`/wkt/c/${id}`);
+});
+app.get('/hashtag/:des', (req, res) => {
+  const des = req.params.des;
+  res.redirect(`/wkt/s?q=${des}`);
+});

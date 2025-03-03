@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>わかめtube</title>
+  <meta name="description" content="まっしろになってゆく">
+  <meta property="og:title" content="わかめtube">
+  <meta property="og:description" content="まっしろになってゆく">
+  <meta property="og:site_name" content="わかめtube | まっしろになっていく">
+  <meta property="og:image" content="https://cdn.glitch.global/5b8b419f-e61e-4533-9e15-5b2805b88d0e/IMG_1111_Original.jpeg">
+  <meta name="theme-color" content="#ff8181">
+  <link rel="shortcut icon" href="https://cdn.glitch.global/5b8b419f-e61e-4533-9e15-5b2805b88d0e/IMG_1111_Original.jpeg">
+  <link rel="icon" href="https://cdn.glitch.global/5b8b419f-e61e-4533-9e15-5b2805b88d0e/IMG_1111_Original.jpeg" type="image/x-icon">
+  <meta name="author" content="わかめtube | まっしろ">
+  <link rel="stylesheet" href="/css/wakastyles.css">
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+</head>
+
+<body>
+  <header>
+    <div class="banner">
+      <button class="btn btn-link" onclick="window.location.href='/'">ホーム<br>🏠</button>
+      <button class="btn btn-link" onclick="window.location.href='/setting'">設定<br>⚙️</button>
+      <button class="btn btn-link" onclick="window.location.href='/send'">問い合わせ<br>✉️</button>
+      <button class="btn btn-link" onclick="window.location.href='/wakams'">曲を聴く<br>🎶</button>
+      <form action="/logout" method="post">
+        <button type="submit" class="btn btn-link">ログアウト<br>🚪</button>
+      </form>
+    </div>
+  </header>
+
+  <main class="container text-center">
+    <div class="search-bar">
+      <form action="/s" method="get">
+        <input type="text" name="q" id="searchbox" class="form-control" placeholder="キーワードを入力..." required>
+        <button type="submit" class="btn btn-search">検索(けんさく)</button>
+      </form>
+    </div>
+  </main>
+  <br>
+  
+  <h2>
+    ようこそ！
+  </h2>
+  <p>
+    好きな動画を検索してみましょう！<br>
+    ゲーム等はページ下部に移動しました。
+  </p>
+  
+  <div class="results">
+  <% if (topVideos && topVideos.length > 0) { %>
+    <% topVideos.forEach(([videoId, { count, videoTitle, channelName, channelId }], index) => { %>
+      <div class="result-item">
+        <a href="/w/<%= videoId %>">
+          <img loading="lazy" src="/vi/<%= videoId %>/mqdefault.jpg" alt="<%= videoTitle %>">
+        </a>
+        <p class="channel-name"><a href="/c/<%= channelId %>"><%= channelName %></a></p>
+        <p class="video-title"><%= videoTitle %></p>
+      </div>
+    <% }); %>
+  <% } else { %>
+    <p></p>
+  <% } %>
+        <div class="result-item">
+          <a href="/w/M7FH1dL51oU">
+            <img loading="lazy" src="/vi/M7FH1dL51oU/mqdefault.jpg" alt="泥の分際で">
+          </a>
+          <p class="channel-name"><a href="/c/UCB2tP2QfRG7hTra0KTOtTBg">ツユ</a></p>
+          <p class="video-title">ツユ - 泥の分際で私だけの大切を奪おうだなんて MV</p>
+        </div>
+        <div class="result-item">
+          <a href="/w/JQRMzxvhruM">
+            <img loading="lazy" src="/vi/JQRMzxvhruM/mqdefault.jpg" alt="絶気曲">
+          </a>
+          <p class="channel-name"><a href="c/UCrReAWkZTd21k2g3CCTdHxQ">春雨</a></p>
+          <p class="video-title">絶妙に気持ち悪い曲</p>
+        </div>
+        <div class="result-item">
+          <a href="/w/0exu2wsrCQs">
+            <img loading="lazy" src="/vi/0exu2wsrCQs/mqdefault.jpg" alt="通知オン">
+          </a>
+          <p class="channel-name"><a href="/c/UCIet5zQbQiRR64Sq7NYTxAg">Kiju</a></p>
+          <p class="video-title">Discordの通知音</p>
+        </div>
+  </div>
+  
+  <br><br>
+  <footer class="text-center">
+    <a href="/edu"><span class="mt-5 mb-3 text-muted">わかめedu</span></a><br><br><br>
+    <a href="/proxy"><span class="mt-5 mb-3 text-muted">WAO (プロキシ)</span></a><br><br><br>
+    <a href="/app"><span class="mt-5 mb-3 text-muted">app🎮</span></a><br><br><br>
+    <a href="/wakams"><span class="mt-5 mb-3 text-muted">わかめMusic🎶</span></a><br><br><br>
+    <a href="/tool"><span class="mt-5 mb-3 text-muted">ツール🧰</span></a><br><br><br>
+    <a href="/blog/help"><span class="mt-5 mb-3 text-muted">ヘルプ</span></a><br><br><br>
+  </footer>
+<br><br>
+  <style>
+    header {
+      background-color: #333;
+      color: white;
+      padding: 10px 0;
+      text-align: center;
+    }
+
+    .banner {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn {
+      background: none;
+      background-color: #333;
+      border: none;
+      color: white;
+      cursor: pointer;
+      padding: 10px 15px;
+      transition: background 0.3s, transform 0.3s;
+      border-radius: 5px;
+    }
+
+    .container {
+      margin-top: 50px;
+    }
+
+    .search-bar {
+      position: relative;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+   .form-control {
+      padding-right: 80px;
+    }
+    .btn-search {
+      position: absolute;
+      right: 0;
+      top: 0;
+      height: 100%;
+      border-radius: 0;
+    }
+
+    .hover-target {
+      display: inline-block;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .profile-card {
+      display: none;
+      left: 50%;
+      border-radius: 10px;
+      max-width: 300px;
+      text-align: center;
+    }
+
+    .hover-target:hover .profile-card {
+      display: block;
+    }
+
+    .profile-card img {
+      border-radius: 50%;
+      width: 100px;
+      height: 100px;
+    }
+
+    .profile-card .name {
+      font-size: 1.5em;
+      margin: 10px 0;
+    }
+
+    .profile-card .description {
+      font-size: 1em;
+      color: #666;
+    }
+  </style>
+<script>
+$(function () {
+    $('#searchbox').autocomplete({
+        source: function (request, response) {
+            $.ajax({
+                url: '/suggest',
+                data: { keyword: request.term },
+                success: function (data) {
+                    response(data);
+                }
+            });
+        },
+        delay: 1,
+        select: function (event, ui) {
+            $('#searchbox').val(ui.item.value);
+            $('form').submit();
+        }
+    });
+});
+</script>
+</body>
+</html>
