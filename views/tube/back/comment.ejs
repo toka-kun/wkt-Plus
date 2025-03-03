@@ -8,10 +8,10 @@
         <div class="flex items-start bg-gray-700 p-4 rounded-lg transition-transform transform hover:scale-105">
           <img loading="lazy" src="<%= CommentThread.comment?.author.thumbnails[0].url %>" class="w-10 h-10 rounded-full">
           <div class="ml-3">
-            <p class="text-sm font-semibold">
+            <p class="text-lg font-semibold">
               <a href="/c/<%= CommentThread.comment?.author.id %>" target="_blank" class="text-blue-400 hover:underline"><%= CommentThread.comment?.author.name || "(Unable to parse author name)" %></a>
             </p>
-            <p class="text-gray-300 text-sm mt-1">
+            <p class="text-gray-300 text-lg mt-1">
               <%- (CommentThread.comment?.content.text || "(Unable to parse comment)").replace(/\n/g, "<br>") %>
             </p>
           </div>
