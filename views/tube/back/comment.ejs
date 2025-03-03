@@ -1,56 +1,23 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/css/page.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script src="/js/tube.js"></script>
-    <style>
-        .comment-box, .related-box {
-            transform: translateX(100%);
-            transition: transform 0.3s ease-in-out;
-        }
-        .comment-box.open, .related-box.open {
-            transform: translateX(0);
-        }
-    </style>
-</head>
+<html>
+<script src="https://cdn.tailwindcss.com"></script>
+
 <body class="bg-gray-900 text-white">
-
-              <div class="mt-4 p-4 bg-gray-800 rounded">
-                <h3 class="text-lg font-bold">コメント</h3>
-                <div class="mt-2 space-y-2">
-                    <div class="flex items-center bg-gray-700 p-2 rounded">
-                        <img src="user1.jpg" alt="アイコン" class="w-8 h-8 rounded-full">
-                        <div class="ml-2">
-                            <p class="text-sm font-bold">ユーザー1</p>
-                            <p class="text-gray-300">すごい動画ですね！</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center bg-gray-700 p-2 rounded">
-                        <img src="user2.jpg" alt="アイコン" class="w-8 h-8 rounded-full">
-                        <div class="ml-2">
-                            <p class="text-sm font-bold">ユーザー2</p>
-                            <p class="text-gray-300">参考になりました。</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-<% cm.comments.contents.filter(c => c.comment).forEach(CommentThread => { %>   
-  <div class="flex items-center bg-gray-700 p-2 rounded">
-  <img loading="lazy" src="<%= CommentThread.comment?.author.thumbnails[0].url %>" class="w-8 h-8 rounded-full">
-    <div class="ml-2">
-      <p class="text-sm font-bold"><h4><a href="/c/<%= CommentThread.comment?.author.id %>" target="_blank"><%= CommentThread.comment?.author.name || "(Unable to parse author name)" %></a></p>
-      <p class="text-gray-300"><%= CommentThread.comment?.content.text || "(Unable to parse comment)" %></p>
+  <div class="mt-4 p-4 bg-gray-800 rounded-lg shadow-lg">
+    <div class="mt-2 space-y-4">
+      <% cm.comments.contents.filter(c => c.comment).forEach(CommentThread => { %>   
+        <div class="flex items-start bg-gray-700 p-4 rounded-lg transition-transform transform hover:scale-105">
+          <img loading="lazy" src="<%= CommentThread.comment?.author.thumbnails[0].url %>" class="w-10 h-10 rounded-full">
+          <div class="ml-3">
+            <p class="text-sm font-semibold">
+              <a href="/c/<%= CommentThread.comment?.author.id %>" target="_blank" class="text-blue-400 hover:underline"><%= CommentThread.comment?.author.name || "(Unable to parse author name)" %></a>
+            </p>
+            <p class="text-gray-300 text-sm mt-1">
+              <%- (CommentThread.comment?.content.text || "(Unable to parse comment)").replace(/\n/g, "<br>") %>
+            </p>
+          </div>
+        </div>
+      <% }); %>
     </div>
   </div>
-<% }); %>
-  
-  </body>
+</body>
 </html>
