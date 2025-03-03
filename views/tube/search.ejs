@@ -43,42 +43,18 @@
                 </div>
             </div>
       <% } else if (video.type === 'channel') { %>
-        <div class="result-item">
-          <a href="/c/<%= video.channelID %>">
-            <img src="https://wakamecomment.glitch.me/ytc/<%= video.id %>" alt="<%= video.name %>">
-          </a>
-          <p class="video-title"><%= video.name %></p>
-          <p class="video-description"><%= video.description || video.descriptionShort %></p>
-          <p class="video-meta"><%= video.subscribers %> subscribers</p>
-        </div>
             <div class="bg-gray-800 p-4 rounded">
-              <a href="/c/<%= video.channelID %>">
-                <img src="thumb1.jpg" alt="サムネ" class="w-full h-40 rounded">
-              
+              <a href="/wkt/c/<%= video.channelID %>">
+                <img src="https://wakamecomment.glitch.me/ytc/<%= video.id %>" alt="<%= video.name %>" class="w-full h-40 rounded">
+              </a>
                 <div class="mt-2">
-                    <p class="text-sm text-gray-400">作者名</p>
-                    <p class="text-lg font-bold">動画タイトル</p>
-                    <p class="text-xs text-gray-500">投稿日: 2024年3月1日 | 再生時間: 10:23</p>
+                    <p class="text-sm text-gray-400"><%= video.name %></p>
+                    <p class="text-lg font-bold"><%= video.description || video.descriptionShort %></p>
+                    <p class="text-xs text-gray-500"><%= video.subscribers %> 登録</p>
                 </div>
             </div>
       <% } %>
     <% }); %>
-            <div class="bg-gray-800 p-4 rounded">
-                <img src="thumb2.jpg" alt="サムネ" class="w-full h-40 rounded">
-                <div class="mt-2">
-                    <p class="text-sm text-gray-400">作者名</p>
-                    <p class="text-lg font-bold">動画タイトル</p>
-                    <p class="text-xs text-gray-500">投稿日: 2024年3月2日 | 再生時間: 8:45</p>
-                </div>
-            </div>
-            <div class="bg-gray-800 p-4 rounded">
-                <img src="thumb3.jpg" alt="サムネ" class="w-full h-40 rounded">
-                <div class="mt-2">
-                    <p class="text-sm text-gray-400">作者名</p>
-                    <p class="text-lg font-bold">動画タイトル</p>
-                    <p class="text-xs text-gray-500">投稿日: 2024年3月3日 | 再生時間: 12:10</p>
-                </div>
-            </div>
         </div>
     </div>
 </body>

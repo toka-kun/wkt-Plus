@@ -10,7 +10,8 @@
     "axios": "^1.8.1",
     "cors": "^2.8.5",
     "node-cache": "^5.1.2",
-    "ytsr": "^3.8.4"
+    "ytsr": "^3.8.4",
+    "miniget": "^4.2.3"
   },
   "narflinger": {
     "basenames": [
