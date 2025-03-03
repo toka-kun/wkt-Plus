@@ -61,45 +61,27 @@
             <div class="mt-4 p-4 bg-gray-800 rounded">
                 <h3 class="text-lg font-bold">コメント</h3>
                 <div class="mt-2 space-y-2">
-                    <div class="flex items-center bg-gray-700 p-2 rounded">
-                        <img src="user1.jpg" alt="アイコン" class="w-8 h-8 rounded-full">
-                        <div class="ml-2">
-                            <p class="text-sm font-bold">ユーザー1</p>
-                            <p class="text-gray-300">すごい動画ですね！</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center bg-gray-700 p-2 rounded">
-                        <img src="user2.jpg" alt="アイコン" class="w-8 h-8 rounded-full">
-                        <div class="ml-2">
-                            <p class="text-sm font-bold">ユーザー2</p>
-                            <p class="text-gray-300">参考になりました。</p>
-                        </div>
-                    </div>
+                <h3 class="text-lg font-bold">コメント一覧</h3>
+                <div id="commentError2" class="text-red-500 hidden"></div>
+                <div id="commentsList2" class="mt-2 space-y-2">
+                   <p>コメントを取得中...</p>
                 </div>
+                </div>
+
+               <button id="retryButton" class="w-full bg-gray-700 py-2 rounded mt-2 hidden">再取得</button>
             </div>
         </div>
         
         <div class="w-1/4 ml-4">
             <div id="commentBox" class="fixed top-0 right-0 w-1/3 h-full bg-gray-800 p-4 shadow-lg comment-box">
-                <button id="closeComments" class="w-full bg-gray-700 py-2 rounded mb-2">閉じる</button>
-                <h3 class="text-lg font-bold">コメント</h3>
-                <div class="mt-2 space-y-2">
-                    <div class="flex items-center bg-gray-700 p-2 rounded">
-                        <img src="userA.jpg" alt="アイコン" class="w-8 h-8 rounded-full">
-                        <div class="ml-2">
-                            <p class="text-sm font-bold">ユーザーA</p>
-                            <p class="text-gray-300">すごい！</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center bg-gray-700 p-2 rounded">
-                        <img src="userB.jpg" alt="アイコン" class="w-8 h-8 rounded-full">
-                        <div class="ml-2">
-                            <p class="text-sm font-bold">ユーザーB</p>
-                            <p class="text-gray-300">面白かった！</p>
-                        </div>
-                    </div>
-                </div>
+              <button id="closeComments" class="w-full bg-gray-700 py-2 rounded mb-2">閉じる</button>
+              <h3 class="text-lg font-bold">コメント</h3>
+              <div id="commentError1" class="text-red-500 hidden"></div>
+              <div id="commentsList1" class="mt-2 space-y-2">
+                  <p>コメントを取得中...</p>
+              </div>
             </div>
+
             <div id="dougaBox" class="fixed top-0 right-0 w-1/2 h-full bg-gray-800 p-4 shadow-lg related-box">
                 <button id="closedouga" class="w-full bg-gray-700 py-2 rounded mb-2">閉じる</button>
                 <h3 class="text-lg font-bold">関連動画</h3>
@@ -167,12 +149,12 @@
         });
       
     async function fetchComments() {
-        const commentContainer = document.getElementById("commentsList");
-        const errorContainer = document.getElementById("commentError");
+        const commentContainers = [document.getElementById("commentsList1"), document.getElementById("commentsList2")];
+        const errorContainers = [document.getElementById("commentError1"), document.getElementById("commentError2")];
         const retryButton = document.getElementById("retryButton");
 
-        commentContainer.innerHTML = "<p>コメントを取得中...</p>";
-        errorContainer.style.display = "none";
+        commentContainers.forEach(container => container.innerHTML = "<p>コメントを取得中...</p>");
+        errorContainers.forEach(error => error.style.display = "none");
         retryButton.style.display = "none";
 
         try {
@@ -180,7 +162,7 @@
             if (!response.ok) throw new Error("サーバーエラー");
 
             const data = await response.json();
-            commentContainer.innerHTML = "";
+            commentContainers.forEach(container => container.innerHTML = "");
 
             data.comments.forEach(comment => {
                 const commentElement = document.createElement("div");
@@ -193,14 +175,16 @@
                         <p class="text-gray-300">${comment.content.text}</p>
                     </div>
                 `;
-                commentContainer.appendChild(commentElement);
+                commentContainers.forEach(container => container.appendChild(commentElement));
             });
 
         } catch (error) {
             console.error("エラー:", error);
-            commentContainer.innerHTML = "";
-            errorContainer.innerText = "コメントの取得中にエラーが発生しました";
-            errorContainer.style.display = "block";
+            commentContainers.forEach(container => container.innerHTML = "");
+            errorContainers.forEach(error => {
+                error.innerText = "コメントの取得中にエラーが発生しました";
+                error.style.display = "block";
+            });
             retryButton.style.display = "block";
         }
     }
@@ -208,6 +192,7 @@
     document.getElementById("retryButton").addEventListener("click", fetchComments);
 
     fetchComments();
-    </script>
+</script>
+
 </body>
 </html>
