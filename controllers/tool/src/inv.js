@@ -4,14 +4,12 @@ const express = require("express");
 const router = express.Router();
 const path = require("path");
 const bodyParser = require("body-parser");
-const cors = require('cors');
 
 const PORT = 3000;
 const MAX_API_WAIT_TIME = 5000;
 const videoId = "beFiVQcwVY8";
 
 router.use(express.urlencoded({ extended: true }));
-router.use(cors());
 router.use(express.json());
 
 const limiter = rateLimit({

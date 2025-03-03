@@ -5,10 +5,8 @@ const path = require("path");
 const http = require('http');
 const miniget = require('miniget');
 const bodyParser = require("body-parser");
-const cors = require('cors');
 
 router.use(express.urlencoded({ extended: true }));
-router.use(cors());
 router.use(express.json());
 
 const user_agent = process.env.USER_AGENT || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36";
@@ -62,13 +60,13 @@ router.get("/vi*", (req, res) => {
 	stream.pipe(res);
 });
 
-router.get('/comment/:id', async (req, res) => {
+router.app.get('/comment/:id', async (req, res) => {
   const videoId = req.params.id;
     try {
         const response = await axios.get(`https://wakamecomment.glitch.me/api/wakame/${videoId}`);
         const cm = response.data;
 
-        res.json({ cm });
+        res.render('comment', { cm });
    } catch (error) {
         res.status(500).render('error', { 
       videoId, 
