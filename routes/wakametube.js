@@ -6,6 +6,6 @@ router.get("/", (req, res) => {
   res.render("tube/home");
 });
 
-router.use("/n", require("../controllers/blog/getblog"));
+router.use("/back", require("../controllers/tube/back"));
 
 module.exports = router;

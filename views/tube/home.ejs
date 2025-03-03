@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>わかめtube</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui/1.12.1/themes/base/jquery-ui.min.css">
+    <script src="/js/tube.js"></script>
+    <style>
+        .hero-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 50vh;
+            background-color: #2d3748;
+        }
+        .search-bar {
+            width: 80%;
+            max-width: 500px;
+            padding: 0.75rem;
+            font-size: 1.2rem;
+            border-radius: 25px;
+            border: none;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        .search-bar:focus {
+            background-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+        }
+        .app-card-container {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        .app-card {
+            background-color: #1a202c;
+            border-radius: 25px;
+            padding: 15px;
+            width: 180px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid #4a5568;
+        }
+        .app-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 4px 10px rgba(255, 255, 255, 0.1);
+        }
+        .app-card img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .app-card h3 {
+            color: white;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+        .app-card p {
+            color: #cbd5e0;
+            font-size: 0.875rem;
+        }
+        footer {
+            background-color: #2d3748;
+            color: #cbd5e0;
+            padding: 1rem;
+            text-align: center;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 font-sans">
+
+    <header class="bg-gray-800 text-white p-4">
+        <nav class="flex justify-between items-center">
+            <a href="#" class="text-lg font-bold">ウェブアプリ</a>
+            <div class="space-x-6">
+                <a href="#" class="hover:text-gray-300">ホーム</a>
+                <a href="#" class="hover:text-gray-300">トレンド</a>
+                <a href="#" class="hover:text-gray-300">マイページ</a>
+            </div>
+        </nav>
+    </header>
+  
+    <section class="hero-section">
+        <div class="text-center">
+            <h1 class="text-4xl font-bold text-white mb-4">動画を探す</h1>
+            <p class="text-lg text-gray-400 mb-6">お気に入りの動画を検索してみましょう。</p>
+            <form action="/s" method="get">
+              <input type="text" name="q" id="searchbox" class="form-control" placeholder="検索">
+            </form>
+        </div>
+    </section>
+
+    <section class="py-10 px-4 bg-gray-800">
+        <h2 class="text-3xl font-bold text-white text-center mb-8">おすすめアプリ</h2>
+
+        <div class="app-card-container">
+            <div class="app-card">
+                <img src="app-image1.jpg" alt="アプリ1">
+                <h3>アプリタイトル1</h3>
+                <p>アプリの簡単な説明文がここに入ります。</p>
+            </div>
+            <div class="app-card">
+                <img src="app-image2.jpg" alt="アプリ2">
+                <h3>アプリタイトル2</h3>
+                <p>アプリの簡単な説明文がここに入ります。</p>
+            </div>
+            <div class="app-card">
+                <img src="app-image3.jpg" alt="アプリ3">
+                <h3>アプリタイトル3</h3>
+                <p>アプリの簡単な説明文がここに入ります。</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>♪( ´▽｀)</p>
+    </footer>
+
+</body>
+</html>
