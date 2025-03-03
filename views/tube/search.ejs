@@ -33,7 +33,7 @@
     </style>
 </head>
 <body class="bg-gray-900 text-white">
-    <header class="bg-gray-800 p-4 flex justify-between items-center">
+    <header class="bg-gray-800 flex p-4 justify-between items-center">
         <input type="text" placeholder="Welcome" class="w-full p-2 rounded bg-gray-700 text-white">
         <nav class="space-x-4">
             <p class="text-gray-300 hover:text-white">わかめtube</p>
@@ -57,9 +57,9 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             <% res.items.forEach(video => { %>
               <% if (video.type === 'video') { %>
-                <div class="result-item bg-gray-800 p-4 rounded">
+                <div class="result-item w-auto bg-gray-800 p-4 rounded">
                     <a href="/wkt/watch/<%= video.id %>" class="thumbnail">
-                        <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title %>" class="w-full h-36 rounded">
+                        <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title %>" class="w-auto h-48 rounded">
                         <span class="video-duration"><%= video.duration %></span>
                     </a>
                     <div class="mt-2 flex items-center">
@@ -74,7 +74,7 @@
               <% } else if (video.type === 'playlist') { %>
                 <div class="bg-gray-600 p-4 rounded">
                   <a href="/wkt/p/<%= video.playlistID %>">
-                    <img src="<%= video.firstVideo.bestThumbnail.url.slice(19) %>" alt="<%= video.title %>" class="w-full h-36 rounded">
+                    <img src="<%= video.firstVideo.bestThumbnail.url.slice(19) %>" alt="<%= video.title %>" class="w-full h-48 rounded">
                   </a>
                     <div class="mt-2">
                         <p class="text-sm text-gray-400"><a href="/wkt/u/<%= video.owner.id %>"><%= video.owner.name %></a></p>
@@ -84,7 +84,7 @@
               <% } else if (video.type === 'channel') { %>
                 <div class="bg-gray-500 p-4 rounded">
                   <a href="/wkt/c/<%= video.channelID %>">
-                    <img src="<%= video.bestAvatar.url %>" alt="<%= video.name %>" class="w-full h-36 rounded">
+                    <img src="<%= video.bestAvatar.url %>" alt="<%= video.name %>" class="w-full h-30 rounded">
                   </a>
                     <div class="mt-2">
                         <p class="text-sm text-gray-400"><%= video.name %></p>
