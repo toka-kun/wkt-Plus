@@ -56,4 +56,20 @@ router.get("/vi*", (req, res) => {
 	stream.pipe(res);
 });
 
+router.get('/comment/:id', async (req, res) => {
+  const videoId = req.params.id;
+    try {
+        const response = await axios.get(`https://wakamecomment.glitch.me/api/wakame/${videoId}`);
+        const cm = response.data;
+
+        res.json({ cm });
+   } catch (error) {
+        res.status(500).render('error', { 
+      videoId, 
+      error: 'コメントを取得できません', 
+      details: error.message 
+    });
+  }
+});
+
 module.exports = router;

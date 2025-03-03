@@ -57,6 +57,7 @@
                 <h3 class="text-lg font-bold"><%= videoData.videoTitle %></h3>
                 <p class="text-gray-400"><%- (videoData.videoDes || "").replace(/\n/g, "<br>") %></p>
             </div>
+              
             <div class="mt-4 p-4 bg-gray-800 rounded">
                 <h3 class="text-lg font-bold">コメント</h3>
                 <div class="mt-2 space-y-2">
@@ -164,6 +165,49 @@
         document.getElementById("closedouga").addEventListener("click", function() {
             document.getElementById("dougaBox").classList.remove("open");
         });
+      
+    async function fetchComments() {
+        const commentContainer = document.getElementById("commentsList");
+        const errorContainer = document.getElementById("commentError");
+        const retryButton = document.getElementById("retryButton");
+
+        commentContainer.innerHTML = "<p>コメントを取得中...</p>";
+        errorContainer.style.display = "none";
+        retryButton.style.display = "none";
+
+        try {
+            const response = await fetch("/wkt/back/comment/<%= videoData.videoId %>");
+            if (!response.ok) throw new Error("サーバーエラー");
+
+            const data = await response.json();
+            commentContainer.innerHTML = "";
+
+            data.comments.forEach(comment => {
+                const commentElement = document.createElement("div");
+                commentElement.classList.add("flex", "items-center", "bg-gray-700", "p-2", "rounded");
+
+                commentElement.innerHTML = `
+                    <img src="${comment.author.thumbnails[0].url}" alt="アイコン" class="w-8 h-8 rounded-full">
+                    <div class="ml-2">
+                        <p class="text-sm font-bold">${comment.author.name}</p>
+                        <p class="text-gray-300">${comment.content.text}</p>
+                    </div>
+                `;
+                commentContainer.appendChild(commentElement);
+            });
+
+        } catch (error) {
+            console.error("エラー:", error);
+            commentContainer.innerHTML = "";
+            errorContainer.innerText = "コメントの取得中にエラーが発生しました";
+            errorContainer.style.display = "block";
+            retryButton.style.display = "block";
+        }
+    }
+
+    document.getElementById("retryButton").addEventListener("click", fetchComments);
+
+    fetchComments();
     </script>
 </body>
 </html>
