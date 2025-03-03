@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>動画再生ページ</title>
+    <title><%= videoData.videoTitle %></title>
     <link rel="stylesheet" href="/css/page.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
@@ -21,42 +21,41 @@
     </style>
 </head>
 <body class="bg-gray-900 text-white">
-    <!-- ヘッダー -->
     <header class="bg-gray-800 p-4 flex justify-between items-center">
         <input type="text" placeholder="検索" class="w-1/2 p-2 rounded bg-gray-700 text-white">
         <nav class="space-x-4">
-            <a href="#" class="text-gray-300 hover:text-white">ホーム</a>
-            <a href="#" class="text-gray-300 hover:text-white">トレンド</a>
-            <a href="#" class="text-gray-300 hover:text-white">マイページ</a>
+            <a href="/wkt" class="text-gray-300 hover:text-white">ホーム</a>
+            <a href="/wkt/trend" class="text-gray-300 hover:text-white">トレンド</a>
+            <a href="/wkt/history" class="text-gray-300 hover:text-white">再生履歴</a>
         </nav>
     </header>
     
     <div class="max-w-6xl mx-auto p-4 flex">
-        <!-- メイン動画エリア -->
         <div class="w-3/4">
             <div class="relative">
-                <video class="w-full" controls>
-                    <source src="https://cdn.glitch.me/5b8b419f-e61e-4533-9e15-5b2805b88d0e/Henceforth%20_%20%E7%B5%90%E5%9F%8E%E3%81%95%E3%81%8F%E3%81%AA(Cover)%20-%20Sakuna%20Ch.%20%E7%B5%90%E5%9F%8E%E3%81%95%E3%81%8F%E3%81%AA%20(1080p%2C%20h264%2C%20youtube).mp4?v=1731296837239" type="video/mp4">
+                <video class="w-full" controls autoplay poster="/wkt/back/vi/<%= videoData.videoId %>/maxresdefault.jpg">
+                    <source src="<%= videoData.stream_url %>" type="video/mp4">
                     お使いのブラウザは動画タグをサポートしていません。
                 </video>
             </div>
-            <!-- 動画情報 -->
             <div class="mt-2 text-gray-400">
-                <p>再生数: 12,345回</p>
-                <p>投稿日: 2024年3月1日</p>
+                <p>再生数: <%= videoData.videoViews %></p>
+                <p>いいね: <%= videoData.likeCount %></p>
             </div>
             <!-- 作者情報 -->
             <div class="flex items-center mt-4 p-4 bg-gray-800 rounded">
-                <img src="avatar.jpg" alt="作者アイコン" class="w-12 h-12 rounded-full">
+              <a href ="wkt/c/<%= videoData.channelId %>">
+                <img src="<%= videoData.channelImage %>" alt="アイコン" class="w-12 h-12 rounded-full">
+              </a>
                 <div class="ml-4">
-                    <h2 class="text-lg font-bold">作者名</h2>
+                    <h2 class="text-lg font-bold"><a href ="wkt/c/<%= videoData.channelId %>"><%= videoData.channelName %></h2>
                     <p class="text-sm text-gray-400">軽い自己紹介テキスト</p>
                 </div>
             </div>
             <!-- 動画概要 -->
             <div class="mt-4 p-4 bg-gray-800 rounded">
-                <h3 class="text-lg font-bold">動画タイトル</h3>
-                <p class="text-gray-400">動画の説明や詳細情報をここに記述</p>
+                <h3 class="text-lg font-bold"><%= videoData.videoTitle %></h3>
+                <p class="text-gray-400"><%- (videoData.videoDes || "").replace(/\n/g, "<br>") %></p>
             </div>
             <!-- コメント一覧 -->
             <div class="mt-4 p-4 bg-gray-800 rounded">

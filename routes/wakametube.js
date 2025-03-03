@@ -50,5 +50,6 @@ router.get("/ss", async (req, res) => {
 });
 
 router.use("/back", require("../controllers/tube/back"));
+router.use("/watch", require("../controllers/tube/getvideo"));
 
 module.exports = router;
