@@ -10,6 +10,7 @@
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="/js/tube.js"></script>
+    <script src="/js/watch.js"></script>
     <style>
         .comment-box, .related-box {
             transform: translateX(100%);
@@ -54,14 +55,18 @@
                 </div>
             </div>
             <div class="mt-4 p-4 bg-gray-800 rounded">
-                <h3 class="text-lg font-bold"><%= videoData.videoTitle %></h3>
+              <h3 class="text-lg font-bold"> 
+                  <%= videoData.videoTitle %><button class="ml-2 text-blue-500 hover:text-blue-300 text-sm" onclick="toggleDescription(this)">
+        折りたたむ</button>
+              </h3>
+           <div class="description">
                 <p class="text-gray-400"><%- (videoData.videoDes || "").replace(/\n/g, "<br>") %></p>
-            </div>
+           </div>
+           </div>
               
             <div class="mt-4 p-4 bg-gray-800 rounded">
                 <h3 class="text-lg font-bold">コメント</h3>
                 <div class="mt-2 space-y-2">
-                <h3 class="text-lg font-bold">コメント一覧</h3>
                 <div id="commentError2" class="text-red-500 hidden"></div>
                 <div id="commentsList2" class="mt-2 space-y-2">
                    <p>コメントを取得中...</p>
@@ -75,11 +80,11 @@
         <div class="w-1/4 ml-4">
             <div id="commentBox" class="fixed top-0 right-0 w-1/2 h-full bg-gray-800 p-4 shadow-lg overflow-y-auto comment-box">
               <button id="closeComments" class="w-full bg-gray-700 py-2 rounded mb-2">閉じる</button>
-              <h3 class="text-lg font-bold">コメント</h3>
               <div id="commentError1" class="text-red-500 hidden"></div>
               <div id="commentsList1" class="mt-2 space-y-2">
                   <p>コメントを取得中...</p>
               </div>
+              <button id="closeComments2" class="w-full bg-gray-700 py-2 rounded mb-2">閉じる</button>
             </div>
 
             <div id="dougaBox" class="fixed top-0 right-0 w-1/2 h-full bg-gray-800 p-4 shadow-lg related-box">
@@ -141,6 +146,9 @@
         document.getElementById("closeComments").addEventListener("click", function() {
             document.getElementById("commentBox").classList.remove("open");
         });
+        document.getElementById("closeComments2").addEventListener("click", function() {
+            document.getElementById("commentBox").classList.remove("open");
+        });
         document.getElementById("toggledouga").addEventListener("click", function() {
             document.getElementById("dougaBox").classList.toggle("open");
         });
@@ -176,9 +184,63 @@ async function fetchComments() {
     }
 }
 
-    document.getElementById("retryButton").addEventListener("click", fetchComments);
+document.getElementById("retryButton").addEventListener("click", fetchComments);
 
-    fetchComments();
+fetchComments();
+      
+const videoId = "<%= videoData.videoId %>";
+const channelId = "<%= videoData.channelId %>";
+const channelName = "<%= videoData.channelName %>";
+const videoTitle = "<%= videoData.videoTitle %>";
+
+
+function saveToHistory(videoId, channelId, channelName, videoTitle) {
+    let history = getHistoryFromCookies();
+
+    const historyIndex = history.findIndex(track => track.videoId === videoId);
+
+    if (historyIndex !== -1) {
+        history.splice(historyIndex, 1);
+    }
+
+    if (history.length >= 10) {
+        history.shift();
+    }
+
+    history.push({ videoId, channelId, channelName, videoTitle });
+
+    document.cookie = `wakametubehistory=${encodeURIComponent(JSON.stringify(history))}; path=/; max-age=31536000`;
+}
+
+function getHistoryFromCookies() {
+    const historyCookie = document.cookie.split('; ').find(row => row.startsWith('wakametubehistory='));
+    if (historyCookie) {
+        const cookieValue = historyCookie.split('=')[1];
+        try {
+            return JSON.parse(decodeURIComponent(cookieValue));
+        } catch (error) {
+            console.error('Error parsing history cookie:', error);
+            return [];
+        }
+    }
+    return [];
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    saveToHistory(videoId, channelId, channelName, videoTitle);
+});
+      
+function toggleDescription(button) {
+    const description = button.previousElementSibling;
+
+    if (description.classList.contains('hidden')) {
+        description.classList.remove('hidden');
+        button.textContent = '折りたたむ';
+    } else {
+        description.classList.add('hidden');
+        button.textContent = '表示する';
+    }
+}
 </script>
 
 </body>

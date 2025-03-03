@@ -16,3 +16,6 @@
 .result-item:hover {
   transform: scale(1.10);
 }
+.hidden {
+    display: none;
+}
