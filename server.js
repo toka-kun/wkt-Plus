@@ -43,6 +43,7 @@ app.get("/tst/:id", (req, res) => {
 app.use("/tools", require("./routes/tools"));
 app.use("/blog", require("./routes/blog"));
 app.use("/wkt", require("./routes/wakametube"));
+app.use("/game", require("./routes/game"));
 
 app.get('/watch', (req, res) => {
   const videoId = req.query.v;
