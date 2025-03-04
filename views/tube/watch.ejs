@@ -19,6 +19,38 @@
         .comment-box.open, .related-box.open {
             transform: translateX(0);
         }
+        .main-container {
+            display: flex;
+            transition: width 0.3s ease-in-out;
+        }
+        .video-container {
+            width: 75%;
+            transition: width 0.3s ease-in-out;
+        }
+        .video-container.full {
+            width: 100%;
+        }
+        .sidebar {
+            width: 25%;
+            transition: transform 0.3s ease-in-out;
+        }
+        .sidebar.hidden {
+            transform: translateX(100%);
+        }
+        .expand-sidebar-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 10px;
+            background: #444;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none;
+        }
+        .expand-sidebar-btn.visible {
+            display: block;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white">
@@ -33,10 +65,10 @@
         </nav>
     </header>
     
-    <div class="max-w-6xl mx-auto p-4 flex">
-        <div class="w-3/4">
+    <div class="max-w-6xl mx-auto p-4 main-container" id="mainContainer">
+        <div class="video-container" id="videoContainer">
             <div class="relative">
-                <video class="w-full" controls autoplay poster="/wkt/back/vi/<%= videoData.videoId %>/maxresdefault.jpg">
+                <video class="w-full h-auto" controls autoplay poster="/wkt/back/vi/<%= videoData.videoId %>/maxresdefault.jpg">
                     <source src="<%= videoData.stream_url %>" type="video/mp4">
                     お使いのブラウザは動画タグをサポートしていません。
                 </video>
@@ -51,7 +83,7 @@
                 </div>
             </div>
 
-            <div class="mt-4 p-4 bg-gray-800 rounded">
+    <div class="mt-4 p-4 bg-gray-800 rounded">
       <div class="mt-2 text-gray-400 text-sm">
           <p>再生数: <%= videoData.videoViews %> ・ いいね: <%= videoData.likeCount %></p>
       </div>
@@ -66,7 +98,7 @@
     <div class="description mt-2">
         <p class="text-gray-400 text-base"><%- (videoData.videoDes || "").replace(/\n/g, "<br>") %></p>
     </div>
-</div>
+   </div>
               
             <div class="mt-4 p-4 bg-gray-800 rounded">
                 <h3 class="text-lg font-bold">コメント</h3>
@@ -81,7 +113,7 @@
             </div>
         </div>
         
-        <div class="w-1/4 ml-4">
+        <div class="sidebar w-1/4 ml-4" id="sidebar">
             <div id="commentBox" class="fixed top-0 right-0 w-1/2 h-full bg-gray-800 p-4 shadow-lg overflow-y-auto comment-box">
               <button id="closeComments" class="w-full bg-gray-700 py-2 rounded mb-2">閉じる</button>
               <div id="commentError1" class="text-red-500 hidden"></div>
@@ -115,6 +147,7 @@
                     </div>
                 </div>
             </div>
+            <button id="hideSidebar" class="w-full bg-gray-700 py-2 rounded">▶ サイドバーを隠す</button>
             <button id="toggleComments" class="mt-4 w-full bg-gray-700 py-2 rounded">コメントを開く</button>
             <button id="toggledouga" class="mt-4 w-full bg-gray-700 py-2 rounded">関連動画を開く</button>
             <div class="mt-4">
@@ -141,6 +174,8 @@
             </div>
         </div>
     </div>
+              
+    <button id="expandSidebar" class="expand-sidebar-btn">◀ サイドバーを開く</button>
           
 <script>
 document.getElementById("toggleComments").addEventListener("click", function() {
@@ -158,6 +193,17 @@ document.getElementById("toggleComments").addEventListener("click", function() {
         document.getElementById("closedouga").addEventListener("click", function() {
             document.getElementById("dougaBox").classList.remove("open");
 });
+        document.getElementById("hideSidebar").addEventListener("click", function() {
+            document.getElementById("sidebar").classList.add("hidden");
+            document.getElementById("videoContainer").classList.add("w-full");
+            document.getElementById("expandSidebar").classList.add("visible");
+        });
+        
+        document.getElementById("expandSidebar").addEventListener("click", function() {
+            document.getElementById("sidebar").classList.remove("hidden");
+            document.getElementById("videoContainer").classList.remove("w-full");
+            this.classList.remove("visible");
+        });
 
 async function fetchComments() {
     const commentContainers = [document.getElementById("commentsList1"), document.getElementById("commentsList2")];
