@@ -9,7 +9,8 @@
     "express-rate-limit": "^7.5.0",
     "axios": "^1.8.1",
     "ytsr": "^3.8.4",
-    "miniget": "^4.2.3"
+    "miniget": "^4.2.3",
+    "youtubei.js": "latest"
   },
   "narflinger": {
     "basenames": [
