@@ -40,6 +40,14 @@ app.get("/tst/:id", (req, res) => {
   res.render(`tst/${req.params.id}`);
 });
 
+
+const mentionWebhook = require('./server/youtube');
+app.get("/tstr/:id", async (req, res) => {
+  const p = await mentionWebhook.getInfo();
+  console.log(p)
+  res.render(`tst/${req.params.id}`);
+});
+
 app.use("/tools", require("./routes/tools"));
 app.use("/blog", require("./routes/blog"));
 app.use("/wkt", require("./routes/wakametube"));
