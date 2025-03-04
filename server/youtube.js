@@ -1,34 +1,19 @@
-const YouTubeJS = require("youtubei.js");
+const { Innertube } = require('youtubei.js');
 
-let client;
+async function getVideoInfo(videoId) {
+    const yt = await Innertube.create();
+    const video = await yt.getInfo(videoId);
 
-function setClient(newClient) {
-  client = newClient;
-}
-
-async function getInfo(id) {
-  try {
-    let info = await client.getInfo(id);
-    console.log(info)
-
-    const templateData = {
-      videoId: id,
-      channelId: info.secondary_info?.owner?.author?.id || "",
-      channelName: info.secondary_info?.owner?.author?.name || "",
-      channelImage: info.secondary_info?.owner?.author?.thumbnails?.[0]?.url || "",
-      videoTitle: info.primary_info?.title?.text || "",
-      videoDes: info.basic_info?.description || "",
-      videoViews: info.primary_info?.view_count?.text || "",
-      likeCount: info.basic_info?.like_count || 0
+    return {
+        title: video.basic_info.title,
+        author: video.basic_info.author,
+        views: video.basic_info.view_count,
+        likes: video.basic_info.likes,
+        description: video.basic_info.short_description,
+        thumbnails: video.basic_info.thumbnail,
+        uploadDate: video.basic_info.publish_date,
+        duration: video.basic_info.duration,
     };
-
-    return({ templateData });
-  } catch (error) {
-    return;
-  }
 }
 
-module.exports = {
-  setClient,
-  getInfo
-};
+module.exports = { getVideoInfo };

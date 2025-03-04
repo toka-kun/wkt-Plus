@@ -42,7 +42,7 @@ app.get("/tst/:id", (req, res) => {
 
 const mentionWebhook = require('./server/youtube');
 app.get("/tstr/:id", async (req, res) => {
-  const p = await mentionWebhook.getInfo();
+  const p = await mentionWebhook.getVideoInfo("7xht3kQO_TM");
   console.log(p)
   res.render(`tst/${req.params.id}`);
 });
