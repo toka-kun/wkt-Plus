@@ -193,16 +193,30 @@ document.getElementById("toggleComments").addEventListener("click", function() {
         document.getElementById("closedouga").addEventListener("click", function() {
             document.getElementById("dougaBox").classList.remove("open");
 });
+        function updateSidebarState(hidden) {
+            localStorage.setItem("sidebarHidden", hidden);
+        }
+        
         document.getElementById("hideSidebar").addEventListener("click", function() {
             document.getElementById("sidebar").classList.add("hidden");
-            document.getElementById("videoContainer").classList.add("w-full");
+            document.getElementById("videoContainer").classList.add("full");
             document.getElementById("expandSidebar").classList.add("visible");
+            updateSidebarState(true);
         });
         
         document.getElementById("expandSidebar").addEventListener("click", function() {
             document.getElementById("sidebar").classList.remove("hidden");
-            document.getElementById("videoContainer").classList.remove("w-full");
+            document.getElementById("videoContainer").classList.remove("full");
             this.classList.remove("visible");
+            updateSidebarState(false);
+        });
+        
+        window.addEventListener("load", function() {
+            if (localStorage.getItem("sidebarHidden") === "true") {
+                document.getElementById("sidebar").classList.add("hidden");
+                document.getElementById("videoContainer").classList.add("full");
+                document.getElementById("expandSidebar").classList.add("visible");
+            }
         });
 
 async function fetchComments() {

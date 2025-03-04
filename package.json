@@ -6,11 +6,13 @@
     "express": "^4.21.2",
     "compression": "^1.8.0",
     "ejs": "^3.1.10",
-    "express-rate-limit": "^7.5.0",
     "axios": "^1.8.1",
     "ytsr": "^3.8.4",
     "miniget": "^4.2.3",
-    "youtubei.js": "latest"
+    "youtubei.js": "latest",
+    "ytpl": "^2.3.0",
+    "cookie-parser": "^1.4.7",
+    "soundcloud-downloader": "^1.0.0"
   },
   "narflinger": {
     "basenames": [

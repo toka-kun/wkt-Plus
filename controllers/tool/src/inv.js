@@ -1,5 +1,4 @@
 const axios = require("axios");
-const rateLimit = require("express-rate-limit");
 const express = require("express");
 const router = express.Router();
 const path = require("path");
@@ -11,12 +10,6 @@ const videoId = "beFiVQcwVY8";
 
 router.use(express.urlencoded({ extended: true }));
 router.use(express.json());
-
-const limiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 3,
-  message: "リクエスト間隔が短すぎます。1分間待ってからお試しください。"
-});
 
 async function fetchStreamUrls(videoId, invidiousapis) {
   let successUrls = [];
@@ -43,7 +36,7 @@ async function fetchStreamUrls(videoId, invidiousapis) {
   return { successUrls, errorUrls };
 }
 
-router.post("/check", limiter, async (req, res) => {
+router.post("/check", async (req, res) => {
   const urls = req.body.urls;
   if (!urls || !Array.isArray(urls)) {
     return res.status(400).json({ error: "APIのURLを入力してください。" });
