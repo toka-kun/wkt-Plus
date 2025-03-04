@@ -36,10 +36,6 @@ app.get('/app', (req, res) => {
   res.render("app/list");
 });
 
-app.get("/tst/:id", (req, res) => {
-  res.render(`tst/${req.params.id}`);
-});
-
 app.use("/tools", require("./routes/tools"));
 app.use("/blog", require("./routes/blog"));
 app.use("/wkt", require("./routes/wakametube"));
@@ -65,7 +61,4 @@ app.get('/hashtag/:des', (req, res) => {
   const des = req.params.des;
   res.redirect(`/wkt/s?q=${des}`);
 });
-
-app.get("/sandbox/:id", (req, res) => {
-  res.render(`tst/${req.params.id}`);
-});
+app.use("/sandbox", require("./routes/sandbox"));
