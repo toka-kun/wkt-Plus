@@ -10,7 +10,7 @@
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="/js/tube.js"></script>
-    <style>
+<style>
 .result-item {
   position: relative;
 }
@@ -30,7 +30,7 @@
   border-radius: 2px;
   font-size: 12px;
 }
-    </style>
+</style>
 </head>
 <body class="bg-gray-900 text-white">
     <header class="bg-gray-800 flex p-4 justify-between items-center">
@@ -59,7 +59,7 @@
               <% if (video.type === 'video') { %>
                 <div class="result-item w-auto bg-gray-800 p-4 rounded">
                     <a href="/wkt/watch/<%= video.id %>" class="thumbnail">
-                        <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/sddefault.jpg" alt="<%= video.title %>" class="w-auto h-auto rounded">
+                        <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title %>" class="w-auto h-48 rounded">
                         <span class="video-duration"><%= video.duration %></span>
                     </a>
                     <div class="mt-2 flex items-center">
