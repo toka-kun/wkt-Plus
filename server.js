@@ -41,13 +41,8 @@ if (cluster.isPrimary) {
   
 
 app.get("/info", async (req, res) => {
-  const videoId = "beFiVQcwVY8";
-  if (!videoId) {
-    return res.status(400).json({ error: "Missing videoId parameter" });
-  }
-
   try {
-    const info = await getVideoInfo(videoId);
+    const info = await getVideoInfo("dQw4w9WgXcQ");
     res.json(info);
   } catch (err) {
     res.status(500).json({ error: err.message });
