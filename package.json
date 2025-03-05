@@ -11,7 +11,9 @@
     "miniget": "^4.2.3",
     "ytpl": "^2.3.0",
     "cookie-parser": "^1.4.7",
-    "soundcloud-downloader": "^1.0.0"
+    "soundcloud-downloader": "^1.0.0",
+    "youtubei.js": "^13.1.0",
+    "undici": "^7.4.0"
   },
   "narflinger": {
     "basenames": [
