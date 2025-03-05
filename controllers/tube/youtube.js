@@ -26,8 +26,7 @@ router.get('/nocookie/:id', async (req, res) => {
   const videoId = req.params.id;
   try {
     const videoData = await serverYt.infoGet(videoId);
-    const ytinfo = await axios.get("https://wktedutube.glitch.me");
-    const videosrc = `https://www.youtubeeducation.com/embed/${videoId}${ytinfo.data}`;
+    const videosrc = `https://www.youtube-nocookie.com/embed/${videoId}`;
           
     res.render('tube/umekomi.ejs', {videosrc, videoData});
   } catch (error) {
