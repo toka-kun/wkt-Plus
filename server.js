@@ -1,29 +1,32 @@
 "use strict";
-const express = require("express");
-let app = express();
 const cluster = require("cluster");
 const os = require("os");
-const compression = require("compression");
-const numClusters = os.cpus().length;
-if (cluster.isMaster) {
+
+if (!process.env.NO_CLUSTERS && cluster.isPrimary) {
+  const numClusters = process.env.CLUSTERS || (os.availableParallelism ? os.availableParallelism() : (os.cpus().length || 2))
+
+  console.log(`Primary ${process.pid} is running. Will fork ${numClusters} clusters.`);
+
   for (let i = 0; i < numClusters; i++) {
     cluster.fork();
   }
-  cluster.on("exit", (worker, code, signal) => {
+
+  cluster.on('exit', (worker, code, signal) => {
+    console.log(`Worker ${worker.process.pid} died. Forking another one....`);
     cluster.fork();
   });
-} else {
-  app.use(compression());
-  app.use(express.static(__dirname + "/public"));
-  app.set("view engine", "ejs");
-  app.listen(3000, () => {
-    console.log(`Worker ${process.pid} started`);
-  });
+  
+  return true;
 }
 
+const express = require("express");
 const path = require("path");
+const compression = require("compression");
 const bodyParser = require("body-parser");
 
+app.use(compression());
+app.use(express.static(__dirname + "/public"));
+app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("trust proxy", 1);
