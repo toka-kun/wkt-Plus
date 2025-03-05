@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const path = require("path");
-const ytsr = require("ytsr");
+const serverYt = require("../server/youtube.js");
 
 const limit = process.env.LIMIT || 50;
 
@@ -17,7 +17,7 @@ router.get("/s", async (req, res) => {
 	let page = Number(req.query.p || 2);
     try {
 		res.render("tube/search.ejs", {
-			res: await ytsr(query, { limit, pages: page }),
+			res: await serverYt.search(query, limit, page ),
 			query: query,
 			page
 		});

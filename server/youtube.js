@@ -14,7 +14,17 @@ async function infoGet(id) {
   }
 }
 
+async function search(q, page, limit) {
+  if (!q) return;
+  try {
+    return(await client.search(q, { limit, pages: page }));
+  } catch (error) {
+    return null;
+  }
+}
+
 module.exports = { 
   infoGet, 
-  setClient 
+  setClient,
+  search
 };

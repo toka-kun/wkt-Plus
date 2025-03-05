@@ -50,10 +50,9 @@ router.get('/suggest', (req, res) => {
 router.get("/vi*", async (req, res) => {
   let headersForwarded = false;
   let errLength = 0;
-  if (req.url.startsWith("/yt3/")) req.url = req.url.slice(4)
   const range = req.headers.range;
   try {
-    const request = await undici.request("https://yt3.ggpht.com" + req.url, {
+    const request = await undici.request("https://i.ytimg.com" + req.url, {
       headers: {
         "User-Agent": user_agent,
         range
