@@ -1,6 +1,7 @@
 "use strict";
 const cluster = require("cluster");
 const os = require("os");
+
 if (!process.env.NO_CLUSTERS && cluster.isPrimary) {
   const numClusters = process.env.CLUSTERS || (os.availableParallelism ? os.availableParallelism() : (os.cpus().length || 2))
   console.log(`Primary ${process.pid} is running.${numClusters} clusters.`);
@@ -11,6 +12,7 @@ if (!process.env.NO_CLUSTERS && cluster.isPrimary) {
     console.log(`Worker ${worker.process.pid} died.`);
     cluster.fork();
   });
+  return true;
 }
 
 const express = require("express");
@@ -97,6 +99,9 @@ async function initInnerTube() {
   try {
     client = await YouTubeJS.Innertube.create({ lang: "ja", location: "JP"});
     serverYt.setClient(client);
+    const listener = app.listen(process.env.PORT || 3000, () => {
+      console.log(process.pid, "-- Ready.", listener.address().port);
+    });
   } catch (e) {
     console.error(e);
     setTimeout(initInnerTube, 10000);
