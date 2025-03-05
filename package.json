@@ -8,7 +8,6 @@
     "ejs": "^3.1.10",
     "axios": "^1.8.1",
     "ytsr": "^3.8.4",
-    "miniget": "^4.2.3",
     "ytpl": "^2.3.0",
     "cookie-parser": "^1.4.7",
     "soundcloud-downloader": "^1.0.0",

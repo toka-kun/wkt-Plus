@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 const path = require("path");
 const http = require('http');
-const miniget = require('miniget');
+const { fetch } = require("undici");
 const bodyParser = require("body-parser");
 
 router.use(express.urlencoded({ extended: true }));
@@ -47,17 +47,24 @@ router.get('/suggest', (req, res) => {
     request.end();
 });
 
-router.get("/vi*", (req, res) => {
-	let stream = miniget(`https://i.ytimg.com/${req.url.split("?")[0]}`, {
-		headers: {
-			"user-agent": user_agent
-		}
-	});
-	stream.on('error', err => {
-		console.log(err);
-		res.status(500).send(err.toString());
-	});
-	stream.pipe(res);
+router.get("/vi*", async (req, res) => {
+  try {
+    const url = `https://i.ytimg.com/${req.url.split("?")[0]}`;
+    const response = await fetch(url, {
+      headers: {
+        "user-agent": user_agent
+      }
+    });
+    if (!response.ok) {
+      return res.status(response.status).send(`Error: ${response.statusText}`);
+    }
+    res.setHeader("Content-Type", response.headers.get("content-type") || "application/octet-stream");
+    res.setHeader("Cache-Control", response.headers.get("cache-control") || "public, max-age=3600");
+    response.body.pipe(res);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err.toString());
+  }
 });
 
 router.get('/comment/:id', async (req, res) => {

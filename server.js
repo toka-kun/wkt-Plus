@@ -1,22 +1,16 @@
 "use strict";
 const cluster = require("cluster");
 const os = require("os");
-
 if (!process.env.NO_CLUSTERS && cluster.isPrimary) {
   const numClusters = process.env.CLUSTERS || (os.availableParallelism ? os.availableParallelism() : (os.cpus().length || 2))
-
-  console.log(`Primary ${process.pid} is running. Will fork ${numClusters} clusters.`);
-
+  console.log(`Primary ${process.pid} is running.${numClusters} clusters.`);
   for (let i = 0; i < numClusters; i++) {
     cluster.fork();
   }
-
   cluster.on('exit', (worker, code, signal) => {
-    console.log(`Worker ${worker.process.pid} died. Forking another one....`);
+    console.log(`Worker ${worker.process.pid} died.`);
     cluster.fork();
   });
-  
-  return true;
 }
 
 const express = require("express");
@@ -24,6 +18,7 @@ const path = require("path");
 const compression = require("compression");
 const bodyParser = require("body-parser");
 const YouTubeJS = require("youtubei.js");
+const serverYt = require("./server/youtube.js");
 
 let app = express();
 let client;
@@ -85,7 +80,7 @@ app.get("/umekomiapi/:id", async (req, res) => {
       likeCount: info.basic_info.like_count || 0
     });
   } catch (error) {
-    util.sendError(res, error);
+    res.json(error);
   }
 });
 
@@ -101,6 +96,7 @@ app.on("error", console.error);
 async function initInnerTube() {
   try {
     client = await YouTubeJS.Innertube.create({ lang: "ja", location: "JP"});
+    serverYt.setClient(client);
   } catch (e) {
     console.error(e);
     setTimeout(initInnerTube, 10000);
