@@ -4,19 +4,28 @@ let yt;
 
 async function initInnerTube() {
   try {
-    yt = await Innertube.create({ location: process.env.GEOLOCATION || "US", cache: new UniversalCache(true, process.env.CACHE_DIR || "./.cache") });
-    
+    console.log("Initializing Innertube...");
+    yt = await Innertube.create({ 
+      location: process.env.GEOLOCATION || "JP"
+    });
+    console.log("Innertube initialized successfully.");
   } catch (e) {
+    yt = null;
     console.error(process.pid, "--- Failed to initialize InnerTube. Trying again in 10 seconds....");
     console.error(e);
-
     setTimeout(initInnerTube, 10000);
-  };
-};
+  }
+}
 
 async function getVideoInfo(videoId) {
-  console.log(videoId)
-  if (!yt) await initInnerTube();
+  console.log(videoId);
+  
+  if (!yt) {
+    await initInnerTube();
+    if (!yt) {
+      throw new Error("InnerTube failed to initialize.");
+    }
+  }
 
   try {
     const info = await yt.getInfo(videoId);
@@ -35,5 +44,7 @@ async function getVideoInfo(videoId) {
     throw new Error("Failed to fetch video information.");
   }
 }
+
+process.on("unhandledRejection", console.error);
 
 export { getVideoInfo };
