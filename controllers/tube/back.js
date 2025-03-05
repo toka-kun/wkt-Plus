@@ -74,12 +74,17 @@ router.get("/vi*", async (req, res) => {
 });
 
 router.get(["/yt3/*", "/ytc/*"], async (req, res) => {
-  if (req.url.startsWith("/yt3/")) req.url = req.url.slice(4)
+  let url = null;
+  if (req.url.startsWith("/yt3/")){
+    url = req.url.slice(4);
+  }else{
+    url = req.url;
+  }
   let headersForwarded = false;
   let errLength = 0;
   const range = req.headers.range;
   try {
-    const request = await undici.request("https://yt3.ggpht.com" + req.url, {
+    const request = await undici.request("https://yt3.ggpht.com" + url, {
       headers: {
         "User-Agent": user_agent,
         range
