@@ -14,7 +14,7 @@
   transition: transform 0.2s;
 }
 .result-item:hover {
-  transform: scale(1.10);
+  transform: scale(1.03);
 }
 .hidden {
     display: none;

@@ -51,9 +51,8 @@
     </header>
     
     <div class="container mx-auto p-4">
-        <h2 class="text-xl font-bold mb-4">検索結果: <%= res.correctedQuery %></h2>
-        <p class="text-sm text-gray-500 mb-4"><%= res.results %>件のヒット</p>
-        
+        <h2 class="text-xl font-bold mb-4">検索結果: <%= query %></h2>
+  
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             <% res.results.forEach(video => { %>
               <% if (video.type.endsWith("Video")) { %>
@@ -82,9 +81,9 @@
                     </div>
                 </div>
               <% } else if (video.type.endsWith("Channel")) { %>
-                <div class="bg-gray-500 p-4 rounded">
+                <div class="bg-gray-600 p-4 rounded">
                   <a href="/wkt/c/<%= video.author.id %>">
-                    <img src="/yt3<%- (new URL(video.author.thumbnails[0].url.startsWith("http") ? video.author.thumbnails[0].url : "https:" + video.author.thumbnails[0].url)).pathname %>" alt="<%= video.author.name %>" class="w-full h-30 rounded">
+                    <img src="<%= video.author.thumbnails[0].url %>" alt="<%= video.author.name %>" class="w-full h-30 rounded">
                   </a>
                     <div class="mt-2">
                         <p class="text-lg font-bold"><%= video.author.name %></p>
