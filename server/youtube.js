@@ -1,19 +1,22 @@
-import { Innertube } from "youtubei.js";
+import { Innertube, UniversalCache } from "youtubei.js";
 
 let yt;
 
-async function initInnertube() {
-  if (!yt) {
-    yt = await Innertube.create({
-      lang: "ja",
-      location: "JP",
-    });
-    console.log("Innertube initialized!");
-  }
-}
+async function initInnerTube() {
+  try {
+    yt = await Innertube.create({ location: process.env.GEOLOCATION || "US", cache: new UniversalCache(true, process.env.CACHE_DIR || "./.cache") });
+    
+  } catch (e) {
+    console.error(process.pid, "--- Failed to initialize InnerTube. Trying again in 10 seconds....");
+    console.error(e);
+
+    setTimeout(initInnerTube, 10000);
+  };
+};
 
 async function getVideoInfo(videoId) {
-  if (!yt) await initInnertube(); 
+  console.log(videoId)
+  if (!yt) await initInnerTube();
 
   try {
     const info = await yt.getInfo(videoId);

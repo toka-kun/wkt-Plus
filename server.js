@@ -11,7 +11,7 @@ import wktRouter from "./routes/wakametube.js";
 import gameRouter from "./routes/game.js";
 import sandboxRouter from "./routes/sandbox.js";
 
-import { getVideoInfo } from "./server/youtube";
+import { getVideoInfo } from "./server/youtube.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,7 +47,7 @@ app.get("/info", async (req, res) => {
   }
 
   try {
-    const info = await getVideoInfo.getVideoInfo(videoId);
+    const info = await getVideoInfo(videoId);
     res.json(info);
   } catch (err) {
     res.status(500).json({ error: err.message });
