@@ -11,6 +11,8 @@ import wktRouter from "./routes/wakametube.js";
 import gameRouter from "./routes/game.js";
 import sandboxRouter from "./routes/sandbox.js";
 
+import { getVideoInfo } from "./server/youtube";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -36,6 +38,23 @@ if (cluster.isPrimary) {
   app.get("/", (req, res) => {
     res.render("home/index");
   });
+  
+
+app.get("/info", async (req, res) => {
+  const videoId = "beFiVQcwVY8";
+  if (!videoId) {
+    return res.status(400).json({ error: "Missing videoId parameter" });
+  }
+
+  try {
+    const info = await getVideoInfo.getVideoInfo(videoId);
+    res.json(info);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});  
+  
+  
 
   app.get("/app", (req, res) => {
     res.render("app/list");
