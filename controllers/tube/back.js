@@ -73,6 +73,33 @@ router.get("/vi*", async (req, res) => {
   }
 });
 
+router.get(["/yt3/*", "/ytc/*"], async (req, res) => {
+  if (req.url.startsWith("/yt3/")) req.url = req.url.slice(4)
+  let headersForwarded = false;
+  let errLength = 0;
+  const range = req.headers.range;
+  try {
+    const request = await undici.request("https://yt3.ggpht.com" + req.url, {
+      headers: {
+        "User-Agent": user_agent,
+        range
+      },
+      maxRedirections: 4
+    })
+    if (!headersForwarded) {
+      res.status(request.statusCode);
+      for (const h of ["Accept-Ranges", "Content-Type", "Content-Range", "Content-Length", "Cache-Control"]) {
+        const headerValue = request.headers[h.toLowerCase()];
+        if (headerValue) res.setHeader(h, headerValue);
+      }
+    }
+    errLength = 0;
+    request.body.pipe(res);
+  } catch (err) {
+    res.destroy();
+  }
+});
+
 router.get('/comment/:id', async (req, res) => {
   const videoId = req.params.id;
     try {

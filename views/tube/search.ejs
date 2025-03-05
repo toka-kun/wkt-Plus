@@ -59,36 +59,36 @@
               <% if (video.type.endsWith("Video")) { %>
                 <div class="result-item w-auto bg-gray-800 p-4 rounded">
                     <a href="/wkt/watch/<%= video.id %>" class="thumbnail">
-                        <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title %>" class="w-auto h-48 rounded">
+                        <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title.text %>" class="w-auto h-48 rounded">
                         <span class="video-duration"><%= video.duration.text %></span>
                     </a>
                     <div class="mt-2 flex items-center">
                         <a href="/wkt/c/<%= video.author.id %>" class="flex items-center">
-                            <img src="<%= video.author.bestAvatar.url %>" alt="アイコン" class="w-8 h-8 rounded-full mr-2">
+                            <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="アイコン" class="w-8 h-8 rounded-full mr-2">
                             <p class="text-sm text-gray-400"><%= video.author.name %></p>
                         </a>
                     </div>
-                    <p class="text-lg font-bold"><%= video.title %></p>
-                    <p class="text-xs text-gray-500"><%= video.uploadedAt %> - <%= video.views %> 回再生</p>
+                    <p class="text-lg font-bold"><%= video.title.text %></p>
+                    <p class="text-xs text-gray-500"><%= video.view_count?.text || video.short_view_count?.text %> - <%= video.published.text %></p>
                 </div>
-              <% } else if (video.type === 'playlist') { %>
+              <% } else if (video.type.endsWith("Playlist")) { %>
                 <div class="bg-gray-600 p-4 rounded">
-                  <a href="/wkt/p/<%= video.playlistID %>">
-                    <img src="<%= video.firstVideo.bestThumbnail.url.slice(19) %>" alt="<%= video.title %>" class="w-full h-48 rounded">
+                  <a href="/wkt/p/<%= video.id %>">
+                    <img src="/vi/<%= video?.endpoint?.payload?.videoId || video.first_videos[0]?.id %>/mqdefault.jpg" alt="<%= video.title.text %>" class="w-full h-48 rounded">
                   </a>
                     <div class="mt-2">
-                        <p class="text-sm text-gray-400"><a href="/wkt/u/<%= video.owner.id %>"><%= video.owner.name %></a></p>
-                        <p class="text-lg font-bold">プレイリスト(<%= video.length %>本以上の動画)</p>
+                        <p class="text-sm text-gray-400"><a href="/wkt/u/<%= video.author.id %>"><%= video.author.name %></a></p>
+                        <p class="text-lg font-bold">プレイリスト(<%= video.video_count?.text %>本以上の動画)</p>
                     </div>
                 </div>
-              <% } else if (video.type === 'channel') { %>
+              <% } else if (video.type.endsWith("Channel")) { %>
                 <div class="bg-gray-500 p-4 rounded">
-                  <a href="/wkt/c/<%= video.channelID %>">
-                    <img src="<%= video.bestAvatar.url %>" alt="<%= video.name %>" class="w-full h-30 rounded">
+                  <a href="/wkt/c/<%= video.author.id %>">
+                    <img src="/yt3<%- (new URL(video.author.thumbnails[0].url.startsWith("http") ? video.author.thumbnails[0].url : "https:" + video.author.thumbnails[0].url)).pathname %>" alt="<%= video.author.name %>" class="w-full h-30 rounded">
                   </a>
                     <div class="mt-2">
-                        <p class="text-lg font-bold"><%= video.name %></p>
-                        <p class="text-sm text-gray-400"><%= video.description || video.descriptionShort %></p>
+                        <p class="text-lg font-bold"><%= video.author.name %></p>
+                        <p class="text-sm text-gray-400"><%= video.description_snippet?.text %></p>
                         <p class="text-xs text-gray-500"><%= video.subscribers %> 登録</p>
                     </div>
                 </div>
