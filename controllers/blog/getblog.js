@@ -1,8 +1,7 @@
-import axios from 'axios';
-import express from 'express';
-import path from 'path';
-
+const axios = require("axios");
+const express = require("express");
 const router = express.Router();
+const path = require("path");
 
 async function Getblog(blogId, part) {
   try {
@@ -42,4 +41,4 @@ router.get('/l/:id', async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;

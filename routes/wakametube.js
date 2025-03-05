@@ -1,42 +1,40 @@
-import express from "express";
-import ytsr from "ytsr";
-import getVideo from "../controllers/tube/getvideo.js";
-import backController from "../controllers/tube/back.js";
-import trendController from "../controllers/tube/trend.js";
-
+const express = require("express");
 const router = express.Router();
+const path = require("path");
+const ytsr = require("ytsr");
+
 const limit = process.env.LIMIT || 50;
 
-router.use("/watch", getVideo);
-router.use("/w", getVideo);
+router.use("/watch", require("../controllers/tube/getvideo"));
+router.use("/w", require("../controllers/tube/getvideo"));
 
 router.get("/", (req, res) => {
   res.render("tube/home");
 });
 
 router.get("/s", async (req, res) => {
-  let query = req.query.q;
-  let page = Number(req.query.p || 2);
-  try {
-    res.render("tube/search.ejs", {
-      res: await ytsr(query, { limit, pages: page }),
-      query: query,
-      page
-    });
-  } catch (error) {
-    console.error(error);
+	let query = req.query.q;
+	let page = Number(req.query.p || 2);
     try {
-      res.status(500).render("error.ejs", {
-        title: "ytsr Error",
-        content: error
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  }
+		res.render("tube/search.ejs", {
+			res: await ytsr(query, { limit, pages: page }),
+			query: query,
+			page
+		});
+	} catch (error) {
+		console.error(error);
+		try {
+			res.status(500).render("error.ejs", {
+				title: "ytsr Error",
+				content: error
+			});
+		} catch (error) {
+			console.error(error);
+		}
+	}
 });
 
-router.use("/back", backController);
-router.use("/trend", trendController);
+router.use("/back", require("../controllers/tube/back"));
+router.use("/trend", require("../controllers/tube/trend"));
 
-export default router;
+module.exports = router;

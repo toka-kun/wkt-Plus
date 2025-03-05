@@ -1,5 +1,4 @@
 {
-  "type": "module",
   "scripts": {
     "start": "node server.js"
   },
@@ -12,9 +11,7 @@
     "miniget": "^4.2.3",
     "ytpl": "^2.3.0",
     "cookie-parser": "^1.4.7",
-    "soundcloud-downloader": "^1.0.0",
-    "undici": "^7.4.0",
-    "youtubei.js": "latest"
+    "soundcloud-downloader": "^1.0.0"
   },
   "narflinger": {
     "basenames": [

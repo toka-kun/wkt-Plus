@@ -1,13 +1,11 @@
-import express from "express";
-import path from "path";
-import getBlog from "../controllers/blog/getblog.js";
-
+const express = require("express");
 const router = express.Router();
+const path = require("path");
 
 router.get("/", (req, res) => {
   res.render("tools/home");
 });
 
-router.use("/n", getBlog);
+router.use("/n", require("../controllers/blog/getblog"));
 
-export default router;
+module.exports = router;

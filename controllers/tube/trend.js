@@ -1,13 +1,12 @@
-import axios from 'axios';
-import express from 'express';
-import path from 'path';
-import http from 'http';
-
+const axios = require("axios");
+const express = require("express");
 const router = express.Router();
+const path = require("path");
+const http = require('http');
 
 router.get("/", async (req, res) => {
   try {
-    const response = await axios.get(`https://wataamee.glitch.me/topvideos/apiv2`, { timeout: 5000 });
+    const response = await axios.get(`https://wataamee.glitch.me/topvideos/apiv2`, {timeout: 5000});
     const topVideos = response.data;
     res.render("tube/trend.ejs", { topVideos });
   } catch (error) {
@@ -16,4 +15,4 @@ router.get("/", async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;
