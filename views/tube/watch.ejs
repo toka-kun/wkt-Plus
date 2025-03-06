@@ -163,6 +163,7 @@
             <div id="dougaBox" class="fixed top-0 right-0 w-1/2 h-full bg-gray-800 p-4 shadow-lg overflow-y-auto related-box">
                 <button id="closedouga" class="w-full bg-gray-700 py-2 rounded mb-2">閉じる</button>
                 <h3 class="text-lg font-bold">関連動画</h3>
+<% if (videoInfo.watch_next_feed?.length) { %>
 <% videoInfo.watch_next_feed.forEach(video => { %>
 <div class="mt-2 space-y-4">
   <% if (!video) return; %>
@@ -173,7 +174,7 @@
       </a>
       <div class="flex items-center mt-2">
         <% if (video.author?.thumbnails.length) { %>
-          <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="アイコン" class="w-6 h-6 rounded-full">
+          <a href="/wkt/c/<%= video.author.id %>"><img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="アイコン" class="w-6 h-6 rounded-full"></a>
         <% } %>
         <p class="text-sm text-gray-400 ml-2">
           <a href="/wkt/c/<%= video.author.id %>"><%= video.author.name %></a>
@@ -210,33 +211,67 @@
     </div>
   <% } %>
 </div>
-<% }); %>
+<% }); %><% } %>
 <button id="closedouga2" class="w-full bg-gray-700 py-2 rounded mb-2">閉じる</button>
             </div>
             <button id="hideSidebar" class="w-full bg-gray-700 py-2 rounded">▶ サイドバーを隠す</button>
             <button id="toggleComments" class="mt-4 w-full bg-gray-700 py-2 rounded">コメントを開く</button>
             <button id="toggledouga" class="mt-4 w-full bg-gray-700 py-2 rounded">関連動画を開く</button>
+            <button id="togglecontrol" class="mt-4 w-full bg-gray-700 py-2 rounded"><%= baseUrl.replace('https://', '').replace('.glitch.me', '') %></button>
             <div class="mt-4">
-                <div class="mt-2 space-y-2">
-                    <div class="bg-gray-800 p-2 rounded">
-                        <img src="thumb1.jpg" alt="サムネ" class="w-full h-24 rounded">
-                        <div class="flex items-center mt-2">
-                            <img src="avatar1.jpg" alt="アイコン" class="w-6 h-6 rounded-full">
-                            <p class="text-sm text-gray-400 ml-2">作者名</p>
-                        </div>
-                        <p class="text-sm font-bold mt-1">動画タイトル</p>
-                        <p class="text-xs text-gray-400">視聴回数: 5,678回</p>
-                    </div>
-                    <div class="bg-gray-800 p-2 rounded">
-                        <img src="thumb2.jpg" alt="サムネ" class="w-full h-24 rounded">
-                        <div class="flex items-center mt-2">
-                            <img src="avatar2.jpg" alt="アイコン" class="w-6 h-6 rounded-full">
-                            <p class="text-sm text-gray-400 ml-2">作者名2</p>
-                        </div>
-                        <p class="text-sm font-bold mt-1">別の動画タイトル</p>
-                        <p class="text-xs text-gray-400">視聴回数: 8,234回</p>
-                    </div>
-                </div>
+<% if (videoInfo.watch_next_feed?.length) { %>
+<div class="mt-2 space-y-2">
+  <% videoInfo.watch_next_feed.forEach(video => { %>
+    <% if (!video) return; %>
+    <% if (video.type.endsWith("Video")) { %>
+      <div class="bg-gray-800 p-2 rounded">
+        <a href="/wkt/watch/<%= video.id %>">
+          <img src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title.text %> のサムネイル" class="w-full h-24 rounded">
+        </a>
+        <div class="flex items-center mt-2">
+          <% if (video.author?.thumbnails.length) { %>
+            <a href="/wkt/c/<%= video.author.id %>">
+              <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="<%= video.author.name %> のアイコン" class="w-6 h-6 rounded-full">
+            </a>
+          <% } %>
+          <p class="text-sm text-gray-400 ml-2">
+            <a href="/wkt/c/<%= video.author.id %>"><%= video.author.name %></a>
+          </p>
+        </div>
+        <p class="text-sm font-bold mt-1">
+          <a href="/wkt/watch/<%= video.id %>"><%= video.title.text %></a>
+        </p>
+        <p class="text-xs text-gray-400">
+          <%= video.short_view_count?.text || video.view_count?.text || '不明' %>
+        </p>
+      </div>
+    <% } else if (video.type.endsWith("Playlist")) { %>
+      <div class="bg-gray-800 p-2 rounded">
+        <a href="/wkt/p/<%= video.id %>">
+          <img src="/wkt/back/vi/<%= video?.endpoint?.payload?.videoId || video.first_videos?.[0]?.id || 'default' %>/mqdefault.jpg" alt="<%= video.title.text %> のサムネイル" class="w-full h-24 rounded">
+        </a>
+        <p class="text-sm font-bold mt-1">
+          <a href="/wkt/p/<%= video.id %>"><%= video.title.text %></a>
+        </p>
+        <p class="text-xs text-gray-400">動画数: <%= video.video_count?.text || '不明' %></p>
+      </div>
+    <% } else if (video.type.endsWith("Channel")) { %>
+      <div class="bg-gray-800 p-2 rounded">
+        <a href="/wkt/c/<%= video.author.id %>">
+          <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="<%= video.author.name %> のチャンネルアイコン" class="w-16 h-16 rounded-full mx-auto">
+        </a>
+        <p class="text-sm font-bold mt-1 text-center">
+          <a href="/wkt/c/<%= video.author.id %>"><%= video.author.name %></a>
+        </p>
+        <p class="text-xs text-gray-400 text-center">
+          登録者数: <%= video.subscriber_count?.text || '非公開' %>
+        </p>
+      </div>
+    <% } %>
+  <% }); %>
+</div>
+<% } %>
+
             </div>
         </div>
     </div>
