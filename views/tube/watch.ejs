@@ -116,13 +116,13 @@
               </a>
                 <div class="ml-4">
                   <h2 class="text-lg font-bold"><a href ="wkt/c/<%= videoData.channelId %>"><%= videoData.channelName %></a></h2>
-                    <p class="text-sm text-gray-400">登録者数</p>
+                    <p class="text-sm text-gray-400"><%= videoInfo.secondary_info.owner.subscriber_count.text || "" %></p>
                 </div>
             </div>
 
     <div class="mt-4 p-4 bg-gray-800 rounded">
       <div class="mt-2 text-gray-400 text-sm">
-          <p><%= videoInfo.primary_info.view_count.short_view_count || videoInfo.primary_info.view_count.short_view_count %>回再生  ・  👍<%= videoData.likeCount %></p>
+          <p><%= videoInfo.primary_info.view_count.short_view_count || videoInfo.primary_info.view_count.view_count %>  ・  <%= videoData.likeCount %>👍  ・  <%= videoInfo.primary_info.published %></p>
       </div>
     <div class="flex items-center justify-between">
         <h3 class="text-2xl font-bold"> 
