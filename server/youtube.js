@@ -39,8 +39,9 @@ async function getChannel(id) {
     const videos = await channel.getVideos();
 
     return({channel, about, videos});
-  } catch (err) {
+  } catch (error) {
     return null;
+  }
 }
 
 module.exports = {

@@ -290,8 +290,8 @@ fetchComments();
                 const audio = document.getElementById('audio');
                 
                 if (this.checked) {
-                    $('#videoSrc').attr('src', '<%= videoData.stream_url %>.webm').attr('type', 'video/webm');
-                    audio.src = '<%= videoData.audio_url %>';
+                    $('#videoSrc').attr('src', '<%= videoData.highstreamUrl %>').attr('type', 'video/webm');
+                    audio.src = '<%= videoData.stream_url %>';
                     video.load();
                     
                     video.addEventListener('loadedmetadata', () => {

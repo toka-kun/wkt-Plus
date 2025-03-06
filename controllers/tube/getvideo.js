@@ -52,7 +52,7 @@ router.get('/:id', async (req, res) => {
         videoData = response.data;
       }
       const videoInfo = await serverYt.infoGet(videoId);
-      res.render('tube/watch', { videoData, videoInfo, videoId, baseUrl });
+      res.render('tube/watch.ejs', { videoData, videoInfo, videoId, baseUrl });
   } catch (error) {
       res.status(500).render('mattev', { 
       videoId, baseUrl,
