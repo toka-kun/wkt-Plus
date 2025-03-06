@@ -58,7 +58,7 @@
             <% res.items.forEach(video => { %>
                <% if (video.type === 'video') { %>
                 <div class="result-item w-auto bg-gray-800 p-4 rounded">
-                    <a href="/wkt/watch/<%= video.id %>" class="thumbnail">
+                    <a href="/wkt/watch/<%= video.id %>#mainContainer" class="thumbnail">
                         <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title %>" class="w-auto h-48 rounded">
                         <span class="video-duration"><%= video.duration.text %></span>
                     </a>
