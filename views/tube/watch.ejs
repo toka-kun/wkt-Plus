@@ -122,7 +122,7 @@
 
     <div class="mt-4 p-4 bg-gray-800 rounded">
       <div class="mt-2 text-gray-400 text-sm">
-          <p><%= videoInfo.primary_info.view_count.short_view_count || videoInfo.primary_info.view_count.view_count %>  ・  <%= videoInfo.short_like_count %>いいね  ・  <%= videoInfo.primary_info.published %></p>
+          <p><%= videoInfo.primary_info.view_count.short_view_count || videoInfo.primary_info.view_count.view_count %>  ・  <%= videoInfo.primary_info.menu.top_level_buttons.short_like_count || videoInfo.primary_info.menu.top_level_buttons.like_count || videoData.likeCount %>いいね  ・  <%= videoInfo.primary_info.published %></p>
       </div>
     <div class="flex items-center justify-between">
         <h3 class="text-2xl font-bold"> 
