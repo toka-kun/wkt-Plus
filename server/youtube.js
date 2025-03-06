@@ -32,9 +32,21 @@ async function getComments(id) {
   }
 }
 
-module.exports = { 
+async function getChannel(id) {
+  try {
+    const channel = await client.getChannel(id);
+    const about = await channel.getAbout();
+    const videos = await channel.getVideos();
+
+    return({channel, about, videos});
+  } catch (err) {
+    return null;
+}
+
+module.exports = {
   infoGet, 
   setClient,
   search,
-  getComments
+  getComments,
+  getChannel
 };
