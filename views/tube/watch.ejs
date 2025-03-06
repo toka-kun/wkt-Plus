@@ -291,10 +291,11 @@ fetchComments();
                 const videoSrc = document.getElementById('videoSrc');
                 
                 if (this.checked) {
-                    videoSrc.src = '<%= videoData.stream_url %>.webm';
+                    videoSrc.src = '<%= videoData.highstreamUrl %>';
                     videoSrc.type = 'video/webm';
                     audio.src = '<%= videoData.audio_url %>';
                     video.load();
+                    audio.load();
                     
                     video.addEventListener('loadedmetadata', () => {
                         video.play().catch(error => console.error("動画の再生エラー:", error));
