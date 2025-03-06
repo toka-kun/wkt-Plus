@@ -151,7 +151,7 @@
         </div>
         
         <div class="sidebar w-1/4 ml-4" id="sidebar">
-<div id="commentBox" class="fixed top-0 right-0 w-1/2 h-full bg-gray-800 p-4 shadow-lg comment-box">
+<div id="commentBox" class="fixed top-0 right-0 w-1/2 h-full bg-gray-800 p-4 shadow-lg flex flex-col hidden">
     <div class="sticky top-0 bg-gray-800 p-0 z-10">
         <button id="closeComments" class="w-full bg-gray-700 py-2 rounded mb-2">閉じる</button>
     </div>
@@ -161,11 +161,12 @@
             <p>コメントを取得中...</p>
         </div>
         <button id="closeComments2" class="w-full bg-gray-700 py-2 rounded mt-2">閉じる</button>
-  </div>
+    </div>
 </div>
 
-  <div id="dougaBox" class="fixed top-0 right-0 w-1/2 h-full bg-gray-800 p-4 shadow-lg 
-                            related-box">
+
+
+  <div id="dougaBox" class="fixed top-0 right-0 w-1/2 h-full bg-gray-800 p-4 shadow-lg overflow-y-auto related-box">
      <div class="sticky top-0 bg-gray-800 p-0 z-10">
         <button id="closedouga" class="w-full bg-gray-700 py-2 rounded mb-2">閉じる</button>
     </div>
@@ -280,7 +281,6 @@
   <% }); %>
 </div>
 <% } %>
-
             </div>
         </div>
     </div>
@@ -288,15 +288,15 @@
     <button id="expandSidebar" class="expand-sidebar-btn">◀ サイドバーを開く</button>
           
 <script>
+document.getElementById("closeComments").addEventListener("click", function() {
+    document.getElementById("commentBox").classList.add("hidden");
+});
+document.getElementById("closeComments2").addEventListener("click", function() {
+    document.getElementById("commentBox").classList.add("hidden");
+});
 document.getElementById("toggleComments").addEventListener("click", function() {
-            document.getElementById("commentBox").classList.toggle("open");
-        });
-        document.getElementById("closeComments").addEventListener("click", function() {
-            document.getElementById("commentBox").classList.remove("open");
-        });
-        document.getElementById("closeComments2").addEventListener("click", function() {
-            document.getElementById("commentBox").classList.remove("open");
-        });
+    document.getElementById("commentBox").classList.remove("hidden");
+});
         document.getElementById("toggledouga").addEventListener("click", function() {
             document.getElementById("dougaBox").classList.toggle("open");
         });
