@@ -11,8 +11,7 @@ if (!process.env.NO_CLUSTERS && cluster.isPrimary) {
     console.log(`Worker ${worker.process.pid} died.`);
     cluster.fork();
   });
-  return true;
-}
+} else {
 
 const express = require("express");
 const path = require("path");
@@ -88,3 +87,5 @@ async function initInnerTube() {
 };
 process.on("unhandledRejection", console.error);
 initInnerTube();
+  
+}
