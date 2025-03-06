@@ -29,7 +29,7 @@ router.get('/:id', async (req, res) => {
     };
 
     let baseUrl;
-    if (server === '0') {
+    if (server == 0) {
         const randomIndex = Math.floor(Math.random() * serverUrls['0'].length);
         baseUrl = serverUrls['0'][randomIndex];
     } else {
@@ -44,9 +44,13 @@ router.get('/:id', async (req, res) => {
         return res.redirect(`/wkt/umekomi/${videoId}`);
     }
     try {
-      
+      let videoData;
+      if(server == "direct"){
+        
+      }else{
         const response = await axios.get(`${baseUrl}/api/${videoId}`);
-        const videoData = response.data;
+        videoData = response.data;
+      }
         res.render('tube/watch', { videoData, videoId, baseUrl });
   } catch (error) {
         res.status(500).render('mattev', { 
