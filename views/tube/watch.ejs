@@ -175,8 +175,8 @@
             
         <div id="controlPanel" class="control-panel">
             <div class="tab-header">
-                <div id="tabControl" class="tab-button active">コントロール</div>
-                <div id="tabSettings" class="tab-button">設定</div>
+                <div id="tabControl" class="tab-button active" data-target="controlTab">コントロール</div>
+                <div id="tabSettings" class="tab-button" data-target="settingsTab">設定</div>
             </div>
             <div id="controlTab" class="tab-content active">
                 <div class="control-section">
@@ -187,10 +187,11 @@
                     <label>画質選択:
                         <select id="qualitySelect">
                             <% videoData.streamUrls.forEach(stream => { %>
-                                <option value="<%= stream.url %>"><%= stream.resolution %></option>
+                                <option value="<%= stream.url %>" data-resolution="<%= stream.resolution %>"><%= stream.resolution %></option>
                             <% }); %>
                         </select>
                     </label>
+                  <button id="qualityReset" class="control-button">🔃 サーバーを変更</button>
                 </div>
                 <div class="control-section">
                     <label>サーバー選択:
@@ -349,111 +350,24 @@
     <button id="expandSidebar" class="expand-sidebar-btn">◀ サイドバーを開く</button>
           
 <script>
-document.getElementById("closeComments").addEventListener("click", function() {
-    document.getElementById("commentBox").classList.add("hidden");
-});
-document.getElementById("closeComments2").addEventListener("click", function() {
-    document.getElementById("commentBox").classList.add("hidden");
-});
-document.getElementById("toggleComments").addEventListener("click", function() {
-    document.getElementById("commentBox").classList.remove("hidden");
-});
-        document.getElementById("toggledouga").addEventListener("click", function() {
-            document.getElementById("dougaBox").classList.toggle("open");
-        });
-        document.getElementById("closedouga").addEventListener("click", function() {
-            document.getElementById("dougaBox").classList.remove("open");
-});
-document.getElementById("closedouga2").addEventListener("click", function() {
-            document.getElementById("dougaBox").classList.remove("open");
-});
+// コメント関連の処理
+const commentContainers = [document.getElementById("commentsList1"), document.getElementById("commentsList2")];
+const errorContainers = [document.getElementById("commentError1"), document.getElementById("commentError2")];
+const retryButton = document.getElementById("retryButton");
 
-        function updateSidebarState(hidden) {
-            localStorage.setItem("sidebarHidden", hidden);
-        }
-        
-        document.getElementById("hideSidebar").addEventListener("click", function() {
-            document.getElementById("sidebar").classList.add("hidden");
-            document.getElementById("videoContainer").classList.add("full");
-            document.getElementById("expandSidebar").classList.add("visible");
-            updateSidebarState(true);
-        });
-        
-        document.getElementById("expandSidebar").addEventListener("click", function() {
-            document.getElementById("sidebar").classList.remove("hidden");
-            document.getElementById("videoContainer").classList.remove("full");
-            this.classList.remove("visible");
-            updateSidebarState(false);
-        });
-        $(document).ready(function() {
-            $('#toggleControlPanel').click(() => $('#controlPanel').toggleClass('open'));
-            $('.tab-button').click(function() {
-                $('.tab-button').removeClass('active');
-                $(this).addClass('active');
-                $('.tab-content').removeClass('active');
-                $('#' + this.id.replace('tab', '') + 'Tab').addClass('active');
-            });
-            $('#qualitySelect').change(function() {
-                const selectedOption = $(this).find(':selected');
-                const resolution = selectedOption.attr('data-resolution');
-                const video = document.getElementById('video');
-                const audio = document.getElementById('audio');
-                const videoSrc = document.getElementById('videoSrc');
-                
-                    videoSrc.type = "video/webm";
-                    videoSrc.src = selectedOption.val();
-                    audio.src = "<%- videoData.stream_url %>";
-                    video.load();
-                    audio.load();
-                
-                video.addEventListener('loadedmetadata', () => {
-                    video.play().catch(error => console.error("動画の再生エラー:", error));
-                });
-                
-                video.addEventListener('play', () => {
-                    audio.play().catch(error => console.error("オーディオの再生エラー:", error));
-                });
-                
-                video.addEventListener('pause', () => {
-                    audio.pause();
-                    audio.currentTime = video.currentTime;
-                });
-                
-                video.addEventListener('ended', () => {
-                    audio.pause();
-                    audio.currentTime = 0;
-                });
-                
-                video.addEventListener('seeked', () => {
-                    video.pause();
-                    audio.pause();
-                    audio.currentTime = video.currentTime;
-                    video.play();
-                    audio.play();
-                });
-                
-                video.addEventListener('timeupdate', () => {
-                    if (Math.abs(video.currentTime - audio.currentTime) > 0.5) {
-                        audio.currentTime = video.currentTime;
-                    }
-                });
-            });
-            $('#changeServer').click(function() {
-                const server = $('#serverSelect').val();
-                window.location.href = `/wkt/watch/<%= videoData.videoId %>?server=${server}`;
-            });
-            $('#saveSettings').click(function() {
-                const mode = $('input[name="playbackMode"]:checked').val();
-                document.cookie = `playbackMode=${mode}; path=/; max-age=31536000`;
-                window.location.href = `/wkt/watch/<%= videoData.videoId %>?mode=${mode}`;
-            });
-        });
+document.getElementById("closeComments").addEventListener("click", closeComments);
+document.getElementById("closeComments2").addEventListener("click", closeComments);
+document.getElementById("toggleComments").addEventListener("click", toggleComments);
+
+function closeComments() {
+    document.getElementById("commentBox").classList.add("hidden");
+}
+
+function toggleComments() {
+    document.getElementById("commentBox").classList.remove("hidden");
+}
 
 async function fetchComments() {
-    const commentContainers = [document.getElementById("commentsList1"), document.getElementById("commentsList2")];
-    const errorContainers = [document.getElementById("commentError1"), document.getElementById("commentError2")];
-    const retryButton = document.getElementById("retryButton");
-
     commentContainers.forEach(container => container.innerHTML = "<p>コメントを取得中...</p>");
     errorContainers.forEach(error => error.style.display = "none");
     retryButton.style.display = "none";
@@ -463,10 +377,7 @@ async function fetchComments() {
         if (!response.ok) throw new Error("サーバーエラー");
 
         const responseText = await response.text();
-
-        commentContainers.forEach(container => {
-            container.innerHTML = responseText;
-        });
+        commentContainers.forEach(container => container.innerHTML = responseText);
     } catch (error) {
         console.error("エラー:", error);
         errorContainers.forEach(errorContainer => {
@@ -476,73 +387,172 @@ async function fetchComments() {
         retryButton.style.display = "block";
     }
 }
-document.getElementById("retryButton").addEventListener("click", fetchComments);
 
+document.getElementById("retryButton").addEventListener("click", fetchComments);
 fetchComments();
-  
-        $(document).ready(function() {
-            $('#toggleToolbar').click(() => $('#toolbar').addClass('open'));
-            $('#closeToolbar').click(() => $('#toolbar').removeClass('open'));
-            
-            $('#hdToggle').change(function() {
-                const video = document.getElementById('video');
-                const audio = document.getElementById('audio');
-                const videoSrc = document.getElementById('videoSrc');
-                
-                if (this.checked) {
-                    videoSrc.type = "video/webm";
-                    videoSrc.src = "<%- videoData.highstreamUrl %>";
-                    audio.src = "<%- videoData.stream_url %>";
-                    video.load();
-                    audio.load();
-                    
-                    video.addEventListener('loadedmetadata', () => {
-                        video.play().catch(error => console.error("動画の再生エラー:", error));
-                    });
-                    
-                    video.addEventListener('play', () => {
-                        audio.play().catch(error => console.error("オーディオの再生エラー:", error));
-                    });
-                    
-                    video.addEventListener('pause', () => {
-                        audio.pause();
-                        audio.currentTime = video.currentTime;
-                    });
-                    
-                    video.addEventListener('ended', () => {
-                        audio.pause();
-                        audio.currentTime = 0;
-                    });
-                    
-                    video.addEventListener('seeked', () => {
-                        video.pause();
-                        audio.pause();
-                        audio.currentTime = video.currentTime;
-                        video.play();
-                        audio.play();
-                    });
-                    
-                    video.addEventListener('timeupdate', () => {
-                        if (Math.abs(video.currentTime - audio.currentTime) > 0.5) {
-                            audio.currentTime = video.currentTime;
-                        }
-                    });
-                } else {
-                    videoSrc.type = "video/mp4";
-                    videoSrc.src = "<%- videoData.stream_url %>";
-                    audio.pause();
-                    audio.src = '';
-                    video.load();
-                    video.play().catch(error => console.error("動画の再生エラー:", error));
-                }
-            });
+
+// サイドバーの表示・非表示
+function updateSidebarState(hidden) {
+    localStorage.setItem("sidebarHidden", hidden);
+}
+
+document.getElementById("hideSidebar").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.add("hidden");
+    document.getElementById("videoContainer").classList.add("full");
+    document.getElementById("expandSidebar").classList.add("visible");
+    updateSidebarState(true);
+});
+
+document.getElementById("expandSidebar").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.remove("hidden");
+    document.getElementById("videoContainer").classList.remove("full");
+    this.classList.remove("visible");
+    updateSidebarState(false);
+});
+
+// 動画のコントロールパネル
+$(document).ready(function() {
+    $('#toggleControlPanel').click(() => $('#controlPanel').toggleClass('open'));
+
+    $('.tab-button').click(function() {
+        $('.tab-button').removeClass('active');
+        $(this).addClass('active');
+        $('.tab-content').removeClass('active');
+        $('#' + $(this).data('target')).addClass('active');
+    });
+
+    $('#qualitySelect').change(function() {
+        const selectedOption = $(this).find(':selected');
+        const resolution = selectedOption.attr('data-resolution');
+        const video = document.getElementById('video');
+        const audio = document.getElementById('audio');
+        const videoSrc = document.getElementById('videoSrc');
+
+        videoSrc.type = "video/webm";
+        videoSrc.src = selectedOption.val();
+        audio.src = "<%- videoData.stream_url %>";
+        video.load();
+        audio.load();
+
+        video.addEventListener('loadedmetadata', () => {
+            video.play().catch(error => console.error("動画の再生エラー:", error));
         });
 
+        video.addEventListener('play', () => {
+            audio.play().catch(error => console.error("オーディオの再生エラー:", error));
+        });
+
+        video.addEventListener('pause', () => {
+            audio.pause();
+            audio.currentTime = video.currentTime;
+        });
+
+        video.addEventListener('ended', () => {
+            audio.pause();
+            audio.currentTime = 0;
+        });
+
+        video.addEventListener('seeked', () => {
+            video.pause();
+            audio.pause();
+            audio.currentTime = video.currentTime;
+            video.play();
+            audio.play();
+        });
+
+        video.addEventListener('timeupdate', () => {
+            if (Math.abs(video.currentTime - audio.currentTime) > 0.5) {
+                audio.currentTime = video.currentTime;
+            }
+        });
+    });
+  
+    $('#qualityReset').click(function() {
+        const video = document.getElementById('video');
+        const audio = document.getElementById('audio');
+        const videoSrc = document.getElementById('videoSrc');
+
+        videoSrc.type = "video/mp4";
+        videoSrc.src = "<%- videoData.stream_url %>";
+        audio.src = "";
+        video.load();
+    });
+
+    $('#changeServer').click(function() {
+        const server = $('#serverSelect').val();
+        window.location.href = `/wkt/watch/<%= videoData.videoId %>?server=${server}`;
+    });
+
+    $('#saveSettings').click(function() {
+        const mode = $('input[name="playbackMode"]:checked').val();
+        document.cookie = `playbackMode=${mode}; path=/; max-age=31536000`;
+        window.location.href = `/wkt/redirect/<%= videoData.videoId %>?mode=${mode}`;
+    });
+});
+
+// ツールバーの表示・非表示
+$('#toggleToolbar').click(() => $('#toolbar').addClass('open'));
+$('#closeToolbar').click(() => $('#toolbar').removeClass('open'));
+
+// 高画質の切り替え
+$('#hdToggle').change(function() {
+    const video = document.getElementById('video');
+    const audio = document.getElementById('audio');
+    const videoSrc = document.getElementById('videoSrc');
+
+    if (this.checked) {
+        videoSrc.type = "video/webm";
+        videoSrc.src = "<%- videoData.highstreamUrl %>";
+        audio.src = "<%- videoData.stream_url %>";
+        video.load();
+        audio.load();
+
+        video.addEventListener('loadedmetadata', () => {
+            video.play().catch(error => console.error("動画の再生エラー:", error));
+        });
+
+        video.addEventListener('play', () => {
+            audio.play().catch(error => console.error("オーディオの再生エラー:", error));
+        });
+
+        video.addEventListener('pause', () => {
+            audio.pause();
+            audio.currentTime = video.currentTime;
+        });
+
+        video.addEventListener('ended', () => {
+            audio.pause();
+            audio.currentTime = 0;
+        });
+
+        video.addEventListener('seeked', () => {
+            video.pause();
+            audio.pause();
+            audio.currentTime = video.currentTime;
+            video.play();
+            audio.play();
+        });
+
+        video.addEventListener('timeupdate', () => {
+            if (Math.abs(video.currentTime - audio.currentTime) > 0.5) {
+                audio.currentTime = video.currentTime;
+            }
+        });
+    } else {
+        videoSrc.type = "video/mp4";
+        videoSrc.src = "<%- videoData.stream_url %>";
+        audio.pause();
+        audio.src = '';
+        video.load();
+        video.play().catch(error => console.error("動画の再生エラー:", error));
+    }
+});
+
+// 履歴管理
 const videoId = "<%= videoData.videoId %>";
 const channelId = "<%= videoData.channelId %>";
 const channelName = "<%= videoData.channelName %>";
 const videoTitle = "<%= videoData.videoTitle %>";
-
 
 function saveToHistory(videoId, channelId, channelName, videoTitle) {
     let history = getHistoryFromCookies();
@@ -575,7 +585,8 @@ function getHistoryFromCookies() {
     }
     return [];
 }
-  
+
+// 説明文の表示・非表示
 function toggleDescription(button) {
     const description = button.closest('div').nextElementSibling;
 
@@ -587,10 +598,12 @@ function toggleDescription(button) {
         button.textContent = '表示する';
     }
 }
-  
+
+// ページ読み込み時に履歴を保存
 window.addEventListener("load", function() {
     saveToHistory(videoId, channelId, channelName, videoTitle);
 });
+
 </script>
 </body>
 </html>
