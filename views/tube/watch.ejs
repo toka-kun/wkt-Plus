@@ -191,7 +191,7 @@
                             <% }); %>
                         </select>
                     </label>
-                  <button id="qualityReset" class="control-button">🔃 サーバーを変更</button>
+                  <button id="qualityReset" class="control-button">画質をリセット</button>
                 </div>
                 <div class="control-section">
                     <label>サーバー選択:
@@ -486,7 +486,7 @@ $(document).ready(function() {
     $('#saveSettings').click(function() {
         const mode = $('input[name="playbackMode"]:checked').val();
         document.cookie = `playbackMode=${mode}; path=/; max-age=31536000`;
-        window.location.href = `/wkt/redirect/<%= videoData.videoId %>?mode=${mode}`;
+        window.location.href = `/wkt/redirect/mode/<%= videoData.videoId %>?mode=${mode}`;
     });
 });
 
