@@ -177,7 +177,7 @@
   <% if (video.type.endsWith("Video")) { %>
     <div class="bg-gray-800 p-2 rounded">
       <a href="/wkt/watch/<%= video.id %>">
-        <img src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="サムネ" class="w-auto h-auto rounded">
+        <img src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="サムネ" class="w-full h-auto rounded">
       </a>
       <div class="flex items-center mt-2">
         <% if (video.author?.thumbnails.length) { %>
@@ -234,7 +234,7 @@
     <% if (video.type.endsWith("Video")) { %>
       <div class="bg-gray-800 p-2 rounded">
         <a href="/wkt/watch/<%= video.id %>">
-          <img src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title.text %> のサムネイル" class="w-full h-24 rounded">
+          <img src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title.text %> のサムネイル" class="w-full h-auto rounded">
         </a>
         <div class="flex items-center mt-2">
           <% if (video.author?.thumbnails.length) { %>
