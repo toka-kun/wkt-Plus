@@ -184,7 +184,8 @@
                 <div class="control-section">
                     <button id="reloadVideo" class="control-button">🔄 再読み込み</button>
                     <button id="toggleLoop" class="control-button">🔁 ループ再生: OFF</button>
-                </div>
+              </div>
+              <% if (videoData.streamUrls && videoData.streamUrls.length > 0) { %>
                 <div class="control-section">
                     <label>画質選択:
                         <select id="qualitySelect">
@@ -195,12 +196,15 @@
                     </label>
                   <button id="qualityReset" class="control-button">画質をリセット</button>
                 </div>
+              <% } else { %>
+                 <p>他の画質が見つかりません</p>
+               <% } %>
                 <div class="control-section">
                     <label>サーバー選択:
                         <select id="serverSelect">
                             <option value="watawata8">watawata8</option>
                             <option value="watawata37">watawata37</option>
-                            <option value="wtserver3">wtserver3</option>
+                            <option value="direct">direct</option>
                         </select>
                     </label>
                     <button id="changeServer" class="control-button">🔃 サーバーを変更</button>
