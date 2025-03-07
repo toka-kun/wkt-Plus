@@ -118,10 +118,12 @@
                 <label for="loopToggle" class="ml-2">ループ再生</label>
                 <input type="checkbox" id="loopToggle" class="form-checkbox text-green-500">
             </div>
+            <% if (videoData.highstreamUrl) { %>
             <div class="checkbox-container mt-2 w-full bg-gray-700 py-2 hover:text-white rounded mb-2">
                 <label for="hdToggle" class="ml-2">高画質化</label>
                 <input type="checkbox" id="hdToggle" class="form-checkbox text-green-500">
             </div>
+            <% } %>
         </div>
     </div>
     
