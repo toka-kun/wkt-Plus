@@ -396,23 +396,52 @@ document.getElementById("closedouga2").addEventListener("click", function() {
             $('#qualitySelect').change(function() {
                 const selectedOption = $(this).find(':selected');
                 const resolution = selectedOption.data('resolution');
-                const videoSrc = $('#videoSrc');
-                const video = $('#video')[0];
+                const video = document.getElementById('video');
                 const audio = document.getElementById('audio');
+                const videoSrc = document.getElementById('videoSrc');
                 
                 if (resolution === '360p') {
-                    videoSrc.type = "video/mp4";
-                    videoSrc.src = "<%- videoData.stream_url %>";
-                    audio.pause();
-                    audio.src = '';
+                    videoSrc.src = '<%- videoData.stream_url %>';
+                    video.load();
                 } else {
-                    videoSrc.src('type', 'video/webm');
-                    videoSrc.src('src', selectedOption.val());
+                    videoSrc.type = "video/webm";
+                    videoSrc.src = selectedOption.val();
                     audio.src = "<%- videoData.stream_url %>";
-                }
+                    video.load();
+                    audio.load();
                 
-                video.load();
-                audio.load();
+                video.addEventListener('loadedmetadata', () => {
+                    video.play().catch(error => console.error("動画の再生エラー:", error));
+                });
+                
+                video.addEventListener('play', () => {
+                    audio.play().catch(error => console.error("オーディオの再生エラー:", error));
+                });
+                
+                video.addEventListener('pause', () => {
+                    audio.pause();
+                    audio.currentTime = video.currentTime;
+                });
+                
+                video.addEventListener('ended', () => {
+                    audio.pause();
+                    audio.currentTime = 0;
+                });
+                
+                video.addEventListener('seeked', () => {
+                    video.pause();
+                    audio.pause();
+                    audio.currentTime = video.currentTime;
+                    video.play();
+                    audio.play();
+                });
+              }
+                
+                video.addEventListener('timeupdate', () => {
+                    if (Math.abs(video.currentTime - audio.currentTime) > 0.5) {
+                        audio.currentTime = video.currentTime;
+                    }
+                });
             });
             $('#changeServer').click(function() {
                 const server = $('#serverSelect').val();
