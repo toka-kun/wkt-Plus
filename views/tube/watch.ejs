@@ -634,32 +634,29 @@ document.addEventListener('keydown', function(event) {
     }
 });
   
-        function toggleFullScreen() {
-            const videoElement = document.getElementById('videoElement'); // ビデオ要素のIDを指定
-            if (!document.fullscreenElement) {
-  
-                if (videoElement.requestFullscreen) {
-                    videoElement.requestFullscreen();
-                } else if (videoElement.mozRequestFullScreen) { // Firefox
-                    videoElement.mozRequestFullScreen();
-                } else if (videoElement.webkitRequestFullscreen) { // Chrome, Safari and Opera
-                    videoElement.webkitRequestFullscreen();
-                } else if (videoElement.msRequestFullscreen) { // IE/Edge
-                    videoElement.msRequestFullscreen();
-                }
-            } else {
-                // 全画面表示から出る
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.mozCancelFullScreen) { // Firefox
-                    document.mozCancelFullScreen();
-                } else if (document.webkitExitFullscreen) { // Chrome, Safari and Opera
-                    document.webkitExitFullscreen();
-                } else if (document.msExitFullscreen) { // IE/Edge
-                    document.msExitFullscreen();
-                }
-            }
+function toggleFullScreen() {
+    if (!document.fullscreenElement) {
+        if (video.requestFullscreen) {
+            video.requestFullscreen();
+        } else if (video.mozRequestFullScreen) {
+            video.mozRequestFullScreen();
+        } else if (video.webkitRequestFullscreen) {
+            video.webkitRequestFullscreen();
+        } else if (video.msRequestFullscreen) {
+            video.msRequestFullscreen();
         }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+    }
+}
 
 // ページ読み込み
 window.addEventListener("load", function() {
