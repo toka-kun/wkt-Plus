@@ -16,19 +16,3 @@ $(function () {
         }
     });
 });
-
-document.addEventListener('DOMContentLoaded', function () {
-    const clickableElements = document.querySelectorAll('.clickable');
-
-    clickableElements.forEach(function (element) {
-        element.addEventListener('click', function () {
-            const overlay = element.querySelector('::after'); // HTML内の::afterにはJavaScriptからアクセスできないため、クラスを利用して制御します。
-            if (overlay) {
-                overlay.style.opacity = '1';
-                setTimeout(function () {
-                    overlay.style.opacity = '0'; // 一定時間後にオーバーレイを非表示
-                }, 200);
-            }
-        });
-    });
-});

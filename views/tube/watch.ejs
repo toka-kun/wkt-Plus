@@ -111,7 +111,7 @@
             <button onclick="window.location.href='/wkt'" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">ホーム</button>
             <button onclick="window.location.href='/wkt/trend'" class="w-full bg-gray-700 py-2 hover:text-white rounded mb-2">トレンド</button>
             <button onclick="window.location.href='/wkt/cl/history'" class="w-full bg-gray-700 py-2 hover:text-white rounded mb-2">履歴</button>
-            <button onclick="window.location.href='<%- videoData.stream_url %>'" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2" target="_blank">ストリームURLに移動</button>
+            <button onclick="window.open('<%- videoData.stream_url %>', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">ストリームURLに移動</button>
         </nav>
         <div class="mt-4">
             <div class="checkbox-container w-full bg-gray-700 py-2 hover:text-white rounded mb-2">
@@ -245,7 +245,7 @@
 <div class="mt-2 space-y-4">
   <% if (!video) return; %>
   <% if (video.type.endsWith("Video")) { %>
-    <div class="bg-gray-800 p-2 rounded">
+    <div class="bg-gray-800 p-2 rounded result-item">
       <a href="/wkt/watch/<%= video.id %>">
         <img src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="サムネ" class="w-full h-auto rounded">
       </a>
@@ -302,7 +302,7 @@
   <% videoInfo.watch_next_feed.forEach(video => { %>
     <% if (!video) return; %>
     <% if (video.type.endsWith("Video")) { %>
-      <div class="bg-gray-800 p-2 rounded">
+      <div class="bg-gray-800 p-2 rounded result-item">
         <a href="/wkt/watch/<%= video.id %>">
           <img src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title.text %> のサムネイル" class="w-full h-auto rounded">
         </a>

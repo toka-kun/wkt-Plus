@@ -31,18 +31,3 @@ body, html {
     color: #4a77a8;
     text-decoration: none;
 }
-.clickable {
-    position: relative;
-    cursor: pointer;
-}
-.clickable::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(255, 255, 255, 0.3);
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
