@@ -61,17 +61,14 @@
             display: block;
         }
         .toolbar {
-            position: fixed;
-            top: 0;
-            right: -250px;
-            width: 250px;
+            transform: translateX(100%);
+            transition: transform 0.3s ease-in-out;
             height: 100%;
             background: rgba(51, 51, 51, 0.95);
-            transition: right 0.3s;
             padding: 20px;
             z-index: 10;
         }
-        .toolbar.open { right: 0; }
+        .toolbar.open { transform: translateX(0); }
         .toggle-btn { cursor: pointer; padding: 10px; background: #444; color: white; border: none; border-radius: 5px; }
         .checkbox-container { display: flex; align-items: center; }
         .control-panel {
@@ -106,7 +103,7 @@
         <button id="toggleToolbar" class="toggle-btn w-1/5">ツール</button>
     </header>
   
-    <div class="toolbar w-1/2" id="toolbar">
+    <div class="toolbar w-1/2 ml-4" id="toolbar">
         <button id="closeToolbar" class="toggle-btn w-2/3 bg-gray-700 py-2 hover:text-white p-2 rounded mb-2 absolute top-4 right-4">閉じる</button>
         <nav class="mt-12">
             <button onclick="window.location.href='/wkt'" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">ホーム</button>
