@@ -396,6 +396,13 @@ async function fetchComments() {
 document.getElementById("retryButton").addEventListener("click", fetchComments);
 fetchComments();
   
+//ループ
+const loopToggle = document.getElementById('loopToggle');
+const video = document.getElementById('video');
+loopToggle.addEventListener('change', function() {
+    video.loop = this.checked;
+});
+
 //関連動画
 document.getElementById("toggledouga").addEventListener("click", function() {
     document.getElementById("dougaBox").classList.toggle("open");
@@ -437,7 +444,6 @@ $(document).ready(function() {
     $('#qualitySelect').change(function() {
         const selectedOption = $(this).find(':selected');
         const resolution = selectedOption.attr('data-resolution');
-        const video = document.getElementById('video');
         const audio = document.getElementById('audio');
         const videoSrc = document.getElementById('videoSrc');
 
