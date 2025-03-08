@@ -96,6 +96,18 @@
         .tab-button.active { background: #666; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        .loading-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            z-index: 10;
+        }
+        .loading-indicator img {
+            width: 75px;
+            height: 75px;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white">
@@ -132,12 +144,15 @@
     
     <div class="max-w-6xl mx-auto p-4 main-container" id="mainContainer">
         <div class="video-container" id="videoContainer">
-            <div class="relative">
-        <video id="video" class="w-full h-auto max-h-screen" controls autoplay preload="auto" poster="/wkt/back/vi/<%= videoId %>/maxresdefault.jpg">
-            <source id="videoSrc" src="<%- videoData.stream_url %>" type="video/mp4">
-        </video>
+        <div class="relative">
+        <div class="loading-indicator">
+          <img src="https://cdn.glitch.global/3128bf45-3a23-4695-81ba-3aba21b8585b/IMG_1966.gif?v=1729824394361" alt="Loading...">
+        </div>
+          <video id="video" class="w-full h-auto max-h-screen" controls autoplay preload="auto" poster="/wkt/back/vi/<%= videoId %>/maxresdefault.jpg">
+              <source id="videoSrc" src="<%- videoData.stream_url %>" type="video/mp4">
+          </video>
         <audio id="audio" style="display: none;"></audio>
-            </div>
+        </div>
             <div class="flex items-center mt-4 p-4 bg-gray-800 rounded">
               <a href ="wkt/c/<%= videoData.channelId %>">
                 <img src="<%= videoData.channelImage %>" alt="アイコン" class="w-12 h-12 rounded-full">
@@ -420,6 +435,30 @@ video.addEventListener('error', function() {
         video.currentTime = lastCurrentTime;
         video.play();
     }, { once: true });
+});
+  
+document.addEventListener('DOMContentLoaded', function () {
+    const loadingIndicator = document.querySelector('.loading-indicator');
+    const showLoadingIndicator = () => {
+        loadingIndicator.style.display = 'block';
+    };
+    const hideLoadingIndicator = () => {
+        loadingIndicator.style.display = 'none';
+    };
+    video.addEventListener('waiting', showLoadingIndicator);
+    video.addEventListener('playing', hideLoadingIndicator);
+    video.addEventListener('canplay', hideLoadingIndicator);
+    video.addEventListener('seeking', showLoadingIndicator);
+    video.addEventListener('seeked', () => {
+        if (video.readyState < 3) {
+            showLoadingIndicator();
+        } else {
+            hideLoadingIndicator();
+        }
+    });
+    video.addEventListener('error', () => {
+        console.error('動画の再生中にエラーが発生しました:', video.error);
+    });
 });
 
 //関連動画
