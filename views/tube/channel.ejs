@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/css/page.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+
 </head>
 <body class="bg-gray-900 text-white">
     <div class="container mx-auto p-4 pt-24">
@@ -24,18 +25,28 @@
                 </div>
             </div>
         </div>
-        
+      
         <!-- タブナビゲーション -->
 <div class="mt-6">
-    <label for="shelfSelector" class="block text-white text-lg font-bold mb-2">カテゴリを選択:</label>
-    <select id="shelfSelector" class="bg-gray-800 text-white p-2 rounded w-full">
-        <% channel.shelves?.forEach((shelf, index) => { %>
-            <option value="shelf-<%= index %>"><%= shelf.title.text %></option>
-        <% }); %>
-    </select>
-
+    <!-- プルダウンメニュー -->
+    <div class="relative inline-block w-full">
+        <label for="shelfSelector" class="block text-white text-lg font-bold mb-2">カテゴリを選択:</label>
+        <button id="dropdownButton" class="bg-gray-800 text-white px-4 py-2 rounded w-full text-left" onclick="toggleDropdown()">
+            <span id="selectedTab"><%= channel.shelves[0].title.text %></span>
+            <span class="float-right">▼</span>
+        </button>
+        <ul id="dropdownMenu" class="absolute w-full bg-gray-800 text-white mt-2 rounded hidden z-10">
+            <% channel.shelves?.forEach((shelf, index) => { %>
+                <li class="p-2 hover:bg-gray-700 cursor-pointer" onclick="selectTab('<%= shelf.title.text %>', <%= index %>)">
+                    <%= shelf.title.text %>
+                </li>
+            <% }); %>
+        </ul>
+    </div>
+    
+    <!-- 動画リスト -->
     <% channel.shelves?.forEach((shelf, index) => { %>
-        <div id="shelf-<%= index %>" class="shelf-content mt-4 bg-gray-800 p-4 rounded-lg" style="display: none;">
+        <div class="shelf-content mt-4 <%= index === 0 ? '' : 'hidden' %>" id="shelf-<%= index %>" data-tab-index="<%= index %>">
             <h2 class="text-xl font-bold text-white mb-2"><%= shelf.title.text %></h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 <% shelf.content?.items?.forEach(video => { %>
@@ -53,23 +64,31 @@
     <% }); %>
 </div>
 
-    </div>
+     </div>
+
     
     <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const selector = document.getElementById("shelfSelector");
-        const contents = document.querySelectorAll(".shelf-content");
-        
-        function showSelectedShelf() {
-            contents.forEach(el => el.style.display = "none");
-            const selectedShelf = document.getElementById(selector.value);
-            if (selectedShelf) {
-                selectedShelf.style.display = "block";
-            }
+    const dropdownButton = document.getElementById("dropdownButton");
+    const dropdownMenu = document.getElementById("dropdownMenu");
+    const selectedTab = document.getElementById("selectedTab");
+    const shelves = document.querySelectorAll(".shelf-content");
+
+    dropdownButton.addEventListener("click", () => {
+        dropdownMenu.classList.toggle("hidden");
+    });
+
+    function selectTab(title, index) {
+        selectedTab.textContent = title;
+        dropdownMenu.classList.add("hidden");
+        shelves.forEach((shelf, i) => {
+            shelf.classList.toggle("hidden", i !== index);
+        });
+    }
+
+    document.addEventListener("click", (event) => {
+        if (!dropdownButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
+            dropdownMenu.classList.add("hidden");
         }
-        
-        selector.addEventListener("change", showSelectedShelf);
-        showSelectedShelf();
     });
 </script>
 
