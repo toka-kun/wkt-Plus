@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= channel.name %> - チャンネル</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+  <div class="max-w-5xl mx-auto">
+    <!-- カバー画像 -->
+    <div class="relative w-full h-56 bg-gray-300">
+      <img src="あ" alt="チャンネルカバー" class="w-full h-full object-cover">
+    </div>
+    
+    <!-- チャンネル情報 -->
+    <div class="flex items-center p-4 bg-white shadow-md -mt-12 rounded-lg">
+      <img src="あ" alt="アイコン" class="w-20 h-20 rounded-full border-4 border-white shadow-md">
+      <div class="ml-4">
+        <h1 class="text-xl font-bold">チャンネル</h1>
+        <p class="text-gray-600">ガイヨ</p>
+      </div>
+    </div>
+    
+    <!-- 動画カテゴリー選択 -->
+    <div class="mt-6 p-4 bg-white shadow-md rounded-lg">
+      <label for="videoCategory" class="block text-sm font-medium text-gray-700">動画カテゴリー</label>
+      <select id="videoCategory" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+        <% videoCategories.forEach(category => { %>
+          <option value="<%= category.value %>"><%= category.label %></option>
+        <% }); %>
+      </select>
+    </div>
+    
+    <!-- 動画リスト -->
+    <div id="videoList" class="mt-6">
+      <% videos.forEach(video => { %>
+        <% if (video.type === "Shelf") { %>
+          <details class="border rounded-lg bg-white p-4 mt-4" open>
+            <summary class="font-semibold text-lg cursor-pointer"><%= video.title.text %></summary>
+            <div class="mt-2">
+              <% video.content?.items?.forEach(videoItem => { %>
+                <%- include("comp/videolist.ejs", { video: videoItem }); %>
+              <% }); %>
+            </div>
+          </details>
+        <% } else { %>
+          <%- include("comp/videolist.ejs", { video }); %>
+        <% } %>
+      <% }); %>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('videoCategory').addEventListener('change', function() {
+      const selectedCategory = this.value;
+      const allVideos = document.querySelectorAll('#videoList > *');
+      allVideos.forEach(video => {
+        video.style.display = video.dataset.category === selectedCategory || selectedCategory === 'all' ? 'block' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>
