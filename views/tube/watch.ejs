@@ -631,8 +631,8 @@ $('#hdToggle').change(function() {
         });
 
         video.addEventListener('timeupdate', () => {
-            if (Math.abs(video.currentTime - audio.currentTime) > 0.5) {
-                audio.currentTime = video.currentTime;
+            if (Math.abs(video.currentTime - audio.currentTime) > 0.4) {
+                audio.currentTime = video.currentTime + 0.1;
             }
         });
     } else {
@@ -644,21 +644,6 @@ $('#hdToggle').change(function() {
         video.play().catch(error => console.error("動画の再生エラー:", error));
     }
 });
-  
-  function syncAudioWithVideo() {
-    if (!video.paused && !audio.paused) {
-      const diff = Math.abs(video.currentTime - audio.currentTime);
-      if (diff > 0.1) { // 100ms以上ズレたら補正
-        audio.currentTime = video.currentTime;
-      }
-    }
-    requestAnimationFrame(syncAudioWithVideo);
-  }
-
-  video.addEventListener("play", () => {
-    audio.play();
-    requestAnimationFrame(syncAudioWithVideo);
-  });
 
 // 履歴
 const videoId = "<%= videoData.videoId %>";
