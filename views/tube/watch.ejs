@@ -421,8 +421,12 @@ fetchComments();
 //ループ
 const loopToggle = document.getElementById('loopToggle');
 const video = document.getElementById('video');
+const isLoop = localStorage.getItem('videoLoop') === 'true';
+loopToggle.checked = isLoop;
+video.loop = isLoop;
 loopToggle.addEventListener('change', function() {
     video.loop = this.checked;
+    localStorage.setItem('videoLoop', this.checked);
 });
   
 //動画再読み込み
