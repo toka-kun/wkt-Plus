@@ -224,18 +224,28 @@
     <p class="mb-4 text-gray-600">動画のデフォルトの再生方法を設定できます。埋め込みで見れるなら埋め込みで見た方が良いですよ。</p>
     
     <div class="control-section mb-4">
-        <label class="block py-1">
-            <input type="radio" name="playbackMode" value="normal" class="mr-2">
-            通常 - ストリームURLを用いて再生します。最初のデフォルト設定で、ほとんどの人が使用できます。
-        </label>
-        <label class="block py-1">
-            <input type="radio" name="playbackMode" value="edu" class="mr-2">
-            education - youtubeeducationを埋め込んで再生を行います。一部の人が利用できます。<a href="/yt/edu/" class="text-blue-500 underline">利用できるか確かめる</a>。
-        </label>
-        <label class="block py-1">
-            <input type="radio" name="playbackMode" value="nocookie" class="mr-2">
-            nocookie - Cookieを使用しない再生方法です。プライバシー重視の方におすすめです。詳細については<a href="/wkt/yt/nocookie" class="text-blue-500 underline">こちら</a>をご覧ください。
-        </label>
+        <div class="flex flex-col">
+            <label class="flex items-start mb-2">
+                <input type="radio" name="playbackMode" value="normal" class="mr-2 mt-1">
+                <div>
+                    <strong>通常</strong> - ストリームURLを用いて再生します。最初のデフォルト設定で、ほとんどの人が使用できます。
+                </div>
+            </label>
+            <label class="flex items-start mb-2">
+                <input type="radio" name="playbackMode" value="edu" class="mr-2 mt-1">
+                <div>
+                    <strong>education</strong> - youtubeeducationを埋め込んで再生を行います。一部の人が使用できます。
+                    <a href="/wkt/yt/edu/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
+                </div>
+            </label>
+            <label class="flex items-start mb-2">
+                <input type="radio" name="playbackMode" value="nocookie" class="mr-2 mt-1">
+                <div>
+                    <strong>nocookie</strong> - youtubenocookieを埋め込んで再生を行います。こちらも一部の人が使用できます。
+                    <a href="/wkt/yt/nocookie/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
+                </div>
+            </label>
+        </div>
     </div>
     
     <button id="saveSettings" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">💾 設定を保存</button>
