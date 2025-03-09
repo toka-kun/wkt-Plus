@@ -11,7 +11,7 @@
 <body class="bg-gray-900 text-white">
     <div class="container mx-auto p-4 pt-24">
         <!-- カバー画像 -->
-        <div class="w-full h-48 bg-gray-700 flex items-center justify-center text-xl">カバー画像</div>
+        <div class="w-full h-auto bg-gray-700 flex items-center justify-center text-xl">カバー画像</div>
         
         <!-- チャンネル情報 -->
         <div class="bg-gray-800 p-8 rounded-lg shadow-lg mt-4">
@@ -26,47 +26,78 @@
         </div>
         
         <!-- タブナビゲーション -->
-<div class="tabber">
-  <div class="tab-buttons flex space-x-4 border-b">
-    <% shelves.forEach((shelf, index) => { %>
-      <button class="tab-button px-4 py-2 text-white bg-gray-700 hover:bg-gray-600" data-tab="tab-<%= index %>">
-        <%= shelf.title.text %>
-      </button>
-    <% }); %>
-  </div>
+<div class="tabs-container">
+    <div class="tabs">
+        <% channel.shelves?.forEach((shelf, index) => { %>
+            <button class="tab-btn" data-tab="tab-<%= index %>"><%= shelf.title.text %></button>
+        <% }); %>
+    </div>
 
-  <div class="tab-contents">
-    <% shelves.forEach((shelf, index) => { %>
-      <div class="tab-content p-4 <%= index === 0 ? '' : 'hidden' %>" id="tab-<%= index %>">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <% shelf.content?.items?.forEach(video => { %>
-            <div class="video-item bg-gray-800 p-4 rounded">
-              <a href="/wkt/watch/<%= video.id %>">
-                <img loading="lazy" src="<%= video.thumbnail %>" alt="<%= video.title %>" class="w-full h-48 rounded">
-                <span class="video-duration"><%= video.duration %></span>
-              </a>
-              <p class="text-lg font-bold mt-2"><%= video.title %></p>
-              <p class="text-xs text-gray-500"><%= video.views %>回視聴 - <%= video.published %></p>
+    <% channel.shelves?.forEach((shelf, index) => { %>
+        <div class="tab-content" id="tab-<%= index %>" style="display: none;">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-4">
+                <% shelf.content?.items?.forEach(video => { %>
+                    <div class="result-item w-auto bg-gray-700 p-4 rounded">
+                        <a href="/wkt/watch/<%= video.videoId %>" class="thumbnail">
+                            <img loading="lazy" src="<%= video.thumbnail %>" alt="<%= video.title %>" class="w-auto h-48 rounded">
+                            <span class="video-duration"><%= video.duration %></span>
+                        </a>
+                        <p class="text-lg font-bold mt-2 text-white"><%= video.title %></p>
+                        <p class="text-xs text-gray-400"><%= video.views %>回視聴 - <%= video.uploaded %></p>
+                    </div>
+                <% }); %>
             </div>
-          <% }); %>
         </div>
-      </div>
     <% }); %>
-  </div>
 </div>
+
     </div>
     
     <script>
-        $(document).ready(function() {
-            $('.tab-button').click(function() {
-                $('.tab-button').removeClass('text-white border-blue-500').addClass('text-gray-400');
-                $(this).addClass('text-white border-blue-500');
-                let tab = $(this).data('tab');
-                $.get(`/api/channel/videos?tab=${tab}`, function(data) {
-                    $('#video-container').html(data.html);
-                });
+    document.addEventListener("DOMContentLoaded", function () {
+        const tabs = document.querySelectorAll(".tab-btn");
+        const contents = document.querySelectorAll(".tab-content");
+
+        if (tabs.length > 0) {
+            tabs[0].classList.add("active");
+            contents[0].style.display = "block";
+        }
+
+        tabs.forEach((tab, index) => {
+            tab.addEventListener("click", () => {
+                tabs.forEach(t => t.classList.remove("active"));
+                contents.forEach(c => c.style.display = "none");
+                
+                tab.classList.add("active");
+                document.getElementById("tab-" + index).style.display = "block";
             });
         });
-    </script>
+    });
+</script>
+
+<style>
+    .tabs {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding: 10px 0;
+        border-bottom: 2px solid #444;
+    }
+    .tab-btn {
+        background: #333;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .tab-btn.active {
+        background: red;
+    }
+    .tab-btn:hover {
+        background: #555;
+    }
+</style>
+
 </body>
 </html>
