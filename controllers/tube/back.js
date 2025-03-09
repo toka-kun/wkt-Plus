@@ -4,6 +4,7 @@ const router = express.Router();
 const path = require("path");
 const http = require('http');
 const undici = require("undici");
+const miniget = require("miniget");
 const bodyParser = require("body-parser");
 const serverYt = require("/app/server/youtube.js");
 const wakamess = require("/app/server/wakame.js");
@@ -51,29 +52,43 @@ router.get('/suggest', (req, res) => {
 
 router.get("/vi*", async (req, res) => {
   let headersForwarded = false;
-  let errLength = 0;
   const range = req.headers.range;
   try {
     const request = await undici.request("https://i.ytimg.com" + req.url, {
       headers: {
         "User-Agent": user_agent,
-        range
+        ...(range && { range })
       },
       maxRedirections: 4
-    })
+    });
+    res.status(request.statusCode);
     if (!headersForwarded) {
-      res.status(request.statusCode);
       for (const h of ["Accept-Ranges", "Content-Type", "Content-Range", "Content-Length", "Cache-Control"]) {
         const headerValue = request.headers[h.toLowerCase()];
         if (headerValue) res.setHeader(h, headerValue);
       }
+      headersForwarded = true;
     }
-    errLength = 0;
     request.body.pipe(res);
+    request.body.on('error', err => {
+      console.error(err);
+      res.status(500).send(err.toString());
+    });
   } catch (err) {
-    res.destroy();
+    const stream = miniget(`https://i.ytimg.com${req.url.split("?")[0]}`, {
+      headers: {
+        "User-Agent": user_agent
+      }
+    });
+    stream.on('error', err => {
+      console.error("minigetエラー:", err);
+      res.status(500).send(err.toString());
+    });
+    stream.pipe(res);
   }
 });
+
+module.exports = router;
 
 router.get(["/yt3/*", "/ytc/*"], async (req, res) => {
   let url = null;
