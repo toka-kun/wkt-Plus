@@ -12,7 +12,7 @@ $(function () {
         delay: 1,
         select: function (event, ui) {
             $('#searchbox').val(ui.item.value);
-            $('form').submit();
+            $('#searchForm').submit();
         }
     });
 });
