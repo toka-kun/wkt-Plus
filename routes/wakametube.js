@@ -72,20 +72,6 @@ router.get("/c/:id", async (req, res) => {
   }
 });
 
-router.get("/cb/:id", async (req, res) => {
-  try {
-    const channel = await serverYt.getChannel(req.params.id);
-    
-    res.json(channel);
-  } catch (err) {
-    console.error("Failed to fetch channel", req.params.id, err);
-    res.status(500).render("error.ejs", {
-      title: "Sorry. Something went wrong",
-      content: "Failed to fetch channel information:\n" + err.toString()
-    });
-  }
-});
-
 router.use("/back", require("../controllers/tube/back"));
 router.use("/redirect", require("../controllers/tube/redirect"));
 router.use("/trend", require("../controllers/tube/trend"));
