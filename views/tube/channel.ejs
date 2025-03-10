@@ -35,7 +35,7 @@
                 <div>
                     <h1 class="text-3xl font-bold"><%- channel.metadata.title %></h1>
                     <p class="text-gray-400 text-sm">@MIMI</p>
-                    <p class="text-gray-500 text-sm mt-2">登録者数</p>
+                    <p class="text-gray-500 text-sm mt-2"><%- channel.header.content.metadata.metadata_rows[0].metadata_parts[0].text.runs.text %></p>
                 </div>
             </div>
           <p class="text-gray-400 mt-4"><%- channel.metadata.description %></p>
