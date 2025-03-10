@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= videoData.videoTitle %></title>
+    <title><%= videoInfo.primary_info.title.text %></title>
     <link rel="stylesheet" href="/css/page.css">
     <script src="/js/tailwindcss.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
@@ -22,6 +22,19 @@
         });
     </script>
     <style>
+.iframe-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+}
+
+.iframe-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
         .comment-box, .related-box {
             transform: translateX(100%);
             transition: transform 0.3s ease-in-out;
@@ -116,58 +129,40 @@
             <button onclick="window.location.href='/wkt/trend'" class="w-full bg-gray-700 py-2 hover:text-white rounded mb-2">トレンド</button>
             <button onclick="window.location.href='/wkt/cl/history'" class="w-full bg-gray-700 py-2 hover:text-white rounded mb-2">履歴</button>
             <button onclick="window.open('/wkt/back/vi/<%= videoId %>/maxresdefault.jpg', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">サムネをダウンロード</button>
-            <button onclick="window.open('<%- videoData.stream_url %>', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">ストリームURLに移動</button>
         </nav>
-        <div class="mt-4">
-            <button id="reloadButton" class="w-full bg-gray-700 py-2 hover:text-white rounded mb-2">動画を再読み込み</button>
-            <div class="checkbox-container w-full bg-gray-700 py-2 hover:text-white rounded mb-2">
-                <label for="loopToggle" class="ml-2">ループ再生</label>
-                <input type="checkbox" id="loopToggle" class="form-checkbox text-green-500">
-            </div>
-            <% if (videoData.highstreamUrl) { %>
-            <div class="checkbox-container mt-2 w-full bg-gray-700 py-2 hover:text-white rounded mb-2">
-                <label for="hdToggle" class="ml-2">高画質化</label>
-                <input type="checkbox" id="hdToggle" class="form-checkbox text-green-500">
-            </div>
-            <% } %>
-        </div>
     </div>
     
     <div class="max-w-6xl mx-auto p-4 main-container" id="mainContainer">
         <div class="video-container" id="videoContainer">
         <div class="relative">
-        <div class="loading-indicator">
-          <img src="https://cdn.glitch.global/3128bf45-3a23-4695-81ba-3aba21b8585b/IMG_1966.gif?v=1729824394361" alt="Loading...">
-        </div>
-          <video id="video" class="w-full h-auto max-h-screen" controls autoplay preload="auto" playsinline poster="/wkt/back/vi/<%= videoId %>/maxresdefault.jpg">
-              <source id="videoSrc" src="<%- videoData.stream_url %>" type="video/mp4">
-          </video>
-        <audio id="audio" style="display: none;"></audio>
+          <div class="iframe-container">
+            <iframe src="<%= videosrc %>" frameborder="0" allowfullscreen></iframe>
+　　　　　　</div>
         </div>
             <div class="flex items-center mt-4 p-4 bg-gray-800 rounded">
-              <a href ="/wkt/c/<%= videoData.channelId %>">
-                <img src="<%= videoData.channelImage %>" alt="アイコン" class="w-12 h-12 rounded-full">
+              <a href ="/wkt/c/<%= videoInfo.secondary_info.owner.author.id %>">
+                <img src="<%= videoInfo.secondary_info.owner.author.thumbnails[0].url || '' %>" alt="アイコン" class="w-12 h-12 rounded-full">
               </a>
                 <div class="ml-4">
-                  <h2 class="text-lg font-bold"><a href ="/wkt/c/<%= videoData.channelId %>"><%= videoData.channelName %></a></h2>
+                  <h2 class="text-lg font-bold"><a href ="/wkt/c/<%= videoInfo.secondary_info.owner.author.id %>"><%= videoInfo.secondary_info.owner.author.name %></a></h2>
                     <p class="text-sm text-gray-400"><%= videoInfo.secondary_info.owner.subscriber_count.text || "" %></p>
                 </div>
             </div>
 
     <div class="mt-4 p-4 bg-gray-800 rounded">
       <div class="mt-2 text-gray-400 text-sm">
-          <p><%= videoInfo.primary_info.view_count.short_view_count?.text || videoInfo.primary_info.view_count.view_count?.text %>  ・  <%= videoInfo.primary_info.menu.top_level_buttons.short_like_count || videoInfo.primary_info.menu.top_level_buttons.like_count || videoData.likeCount %>いいね  ・  <%= videoInfo.primary_info.published %></p>
+          <p><%= videoInfo.primary_info.view_count.short_view_count?.text || videoInfo.primary_info.view_count.view_count?.text %>  ・  <%= videoInfo.primary_info.menu.top_level_buttons.short_like_count || videoInfo.primary_info.menu.top_level_buttons.like_count || videoInfo.basic_info.like_count %>いいね  ・  <%= videoInfo.primary_info.published %></p>
       </div>
     <div class="flex items-center justify-between">
         <h3 class="text-2xl font-bold"> 
-            <%= videoData.videoTitle %> 
+            <%= videoInfo.primary_info.title.text %> 
         </h3>
         <button class="ml-2 text-blue-500 hover:text-blue-300 text-sm" onclick="toggleDescription(this)">
             折りたたむ
         </button>
     </div>
     <div class="description mt-2">
-        <p class="text-base text-gray-300 mt-1"><%- (videoData.videoDes || "").replace(/\n/g, "<br>") %></p>
+        <p class="text-base text-gray-300 mt-1"><%- (videoInfo.secondary_info.description.text || "").replace(/\n/g, "<br>") %></p>
     </div>
    </div>
               
@@ -186,43 +181,9 @@
             
 <div id="controlPanel" class="controlPanel bg-gray-900 text-white p-6 rounded-lg shadow-lg w-96 fixed bottom-10 right-10 border border-gray-700">
     <button id="closeControlPanel" class="absolute top-2 right-2 text-gray-400 hover:text-white text-2xl">×</button>
-    <div class="tab-header flex border-b border-gray-700 mb-4">
-        <div id="tabControl" class="tab-button active px-4 py-2 cursor-pointer text-white bg-gray-800 rounded-t-lg" data-target="controlTab">コントロール</div>
-        <div id="tabSettings" class="tab-button px-4 py-2 cursor-pointer text-gray-400 hover:text-white rounded-t-lg" data-target="settingsTab">設定</div>
-    </div>
-    <div id="controlTab" class="tab-content active">
-        <div class="control-section mb-4">
-            <button id="reloadVideo" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">🔄 再読み込み</button>
-        </div>
-        <% if (videoData.streamUrls && videoData.streamUrls.length > 0) { %>
-        <div class="control-section mb-4">
-            <label class="block mb-2">画質選択:
-                <select id="qualitySelect" class="w-full bg-gray-800 text-white p-2 rounded">
-                    <% videoData.streamUrls.forEach(stream => { %>
-                    <option value="<%= stream.url %>" data-resolution="<%= stream.resolution %>"><%= stream.resolution %></option>
-                    <% }); %>
-                </select>
-            </label>
-            <button id="qualityReset" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">画質をリセット</button>
-        </div>
-        <% } else { %>
-        <p class="text-gray-400">他の画質が見つかりません</p>
-        <% } %>
-        <div class="control-section mb-4">
-            <label class="block mb-2">サーバー選択:
-                <select id="serverSelect" class="w-full bg-gray-800 text-white p-2 rounded">
-                    <option value="watawata8">watawata8</option>
-                    <option value="watawata37">watawata37</option>
-                    <option value="direct">direct</option>
-                </select>
-            </label>
-            <button id="changeServer" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">🔃 サーバーを変更</button>
-        </div>
-    </div>
-<div id="settingsTab" class="tab-content hidden">
     <h2 class="text-lg font-semibold mb-3">再生方法の変更</h2>
     <p class="mb-4 text-gray-600">動画のデフォルトの再生方法を設定できます。埋め込みで見れるなら埋め込みで見た方が良いですよ。</p>
-    <p class="mb-4 text-gray-600">現在の再生方法: 通常</p>
+    <p class="mb-4 text-gray-600">現在の再生方法: nocookie</p>
     <div class="control-section mb-4">
         <div class="flex flex-col">
             <label class="flex items-start mb-2">
@@ -249,7 +210,6 @@
     </div>
     
     <button id="saveSettings" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">💾 設定を保存</button>
-</div>
 </div>
 
         <div class="sidebar w-1/4 ml-4" id="sidebar">
@@ -330,7 +290,7 @@
             <button id="hideSidebar" class="w-full bg-gray-700 py-2 rounded">▶ サイドバーを隠す</button>
             <button id="toggleComments" class="mt-4 w-full bg-gray-700 py-2 rounded">コメントを開く</button>
             <button id="toggledouga" class="mt-4 w-full bg-gray-700 py-2 rounded">関連動画を開く</button>
-            <button id="toggleControlPanel" class="mt-4 w-full bg-gray-700 py-2 rounded"><%= baseUrl.replace('https://', '').replace('.glitch.me', '') %></button>
+            <button id="toggleControlPanel" class="mt-4 w-full bg-gray-700 py-2 rounded">設定</button>
             <div class="mt-4">
 <% if (videoInfo.watch_next_feed?.length) { %>
 <div class="mt-2 space-y-2">
@@ -414,7 +374,7 @@ async function fetchComments() {
     retryButton.style.display = "none";
 
     try {
-        const response = await fetch("/wkt/back/comment/<%= videoData.videoId %>");
+        const response = await fetch("/wkt/back/comment/<%= videoId %>");
         if (!response.ok) throw new Error("サーバーエラー");
 
         const responseText = await response.text();
@@ -431,58 +391,6 @@ async function fetchComments() {
 
 document.getElementById("retryButton").addEventListener("click", fetchComments);
 fetchComments();
-  
-//ループ
-const loopToggle = document.getElementById('loopToggle');
-const video = document.getElementById('video');
-const isLoop = localStorage.getItem('videoLoop') === 'true';
-loopToggle.checked = isLoop;
-video.loop = isLoop;
-loopToggle.addEventListener('change', function() {
-    video.loop = this.checked;
-    localStorage.setItem('videoLoop', this.checked);
-});
-  
-//動画再読み込み
-document.getElementById('reloadButton').addEventListener('click', function() {
-  video.load();
-});
-document.getElementById('reloadVideo').addEventListener('click', function() {
-  video.load();
-});
-  
-//エラー処理
-video.addEventListener('error', function() {
-    let lastCurrentTime = video.currentTime;
-    video.load();
-    video.addEventListener('loadedmetadata', function() {
-        video.currentTime = lastCurrentTime;
-        video.play();
-    }, { once: true });
-});
-
-document.addEventListener('DOMContentLoaded', function () {
-    const loadingIndicator = document.querySelector('.loading-indicator');
-    const showLoadingIndicator = () => {
-        loadingIndicator.style.display = 'block';
-    };
-    const hideLoadingIndicator = () => {
-        loadingIndicator.style.display = 'none';
-    };
-    video.addEventListener('waiting', showLoadingIndicator);
-    video.addEventListener('playing', hideLoadingIndicator);
-    video.addEventListener('canplay', hideLoadingIndicator);
-    video.addEventListener('seeked', () => {
-        if (video.readyState < 3) {
-            showLoadingIndicator();
-        } else {
-            hideLoadingIndicator();
-        }
-    });
-    video.addEventListener('error', () => {
-        console.error('動画の再生中にエラーが発生しました:', video.error);
-    });
-});
 
 //関連動画
 document.getElementById("toggledouga").addEventListener("click", function() {
@@ -532,81 +440,11 @@ $(document).ready(function() {
     $('#toggleControlPanel').click(() => $('#controlPanel').toggleClass('open'));
     $('#closeControlPanel').click(() => $('#controlPanel').toggleClass('open'));
 
-    $('.tab-button').click(function() {
-        $('.tab-button').removeClass('active');
-        $(this).addClass('active');
-        $('.tab-content').removeClass('active');
-        $('#' + $(this).data('target')).addClass('active');
-    });
-
-    $('#qualitySelect').change(function() {
-        const selectedOption = $(this).find(':selected');
-        const resolution = selectedOption.attr('data-resolution');
-        const audio = document.getElementById('audio');
-        const videoSrc = document.getElementById('videoSrc');
-
-        videoSrc.type = "video/webm";
-        videoSrc.src = selectedOption.val();
-        audio.src = "<%- videoData.stream_url %>";
-        $('#controlPanel').toggleClass('open');
-        video.load();
-        audio.load();
-
-        video.addEventListener('loadedmetadata', () => {
-            video.play().catch(error => console.error("動画の再生エラー:", error));
-        });
-
-        video.addEventListener('play', () => {
-            audio.play().catch(error => console.error("オーディオの再生エラー:", error));
-        });
-
-        video.addEventListener('pause', () => {
-            audio.pause();
-            audio.currentTime = video.currentTime;
-        });
-
-        video.addEventListener('ended', () => {
-            audio.pause();
-            audio.currentTime = 0;
-        });
-
-        video.addEventListener('seeked', () => {
-            video.pause();
-            audio.pause();
-            audio.currentTime = video.currentTime;
-            audio.play();
-            video.play();
-        });
-
-        video.addEventListener('timeupdate', () => {
-            if (Math.abs(video.currentTime - audio.currentTime) > 0.5) {
-                audio.currentTime = video.currentTime;
-            }
-        });
-    });
-  
-    $('#qualityReset').click(function() {
-        const audio = document.getElementById('audio');
-        const videoSrc = document.getElementById('videoSrc');
-
-        videoSrc.type = "video/mp4";
-        videoSrc.src = "<%- videoData.stream_url %>";
-        audio.src = "";
-        $('#controlPanel').toggleClass('open');
-        video.load();
-    });
-
-    $('#changeServer').click(function() {
-        const server = $('#serverSelect').val();
-        $('#controlPanel').toggleClass('open');
-        window.location.href = `/wkt/watch/<%= videoData.videoId %>?server=${server}`;
-    });
-
     $('#saveSettings').click(function() {
         $('#controlPanel').toggleClass('open');
         const mode = $('input[name="playbackMode"]:checked').val();
         document.cookie = `playbackMode=${mode}; path=/; max-age=31536000`;
-        window.location.href = `/wkt/redirect/mode/<%= videoData.videoId %>?mode=${mode}`;
+        window.location.href = `/wkt/redirect/mode/<%= videoId %>?mode=${mode}`;
     });
 });
 
@@ -614,64 +452,11 @@ $(document).ready(function() {
 $('#toggleToolbar').click(() => $('#toolbar').addClass('open'));
 $('#closeToolbar').click(() => $('#toolbar').removeClass('open'));
 
-// 高画質
-$('#hdToggle').change(function() {
-    const audio = document.getElementById('audio');
-    const videoSrc = document.getElementById('videoSrc');
-
-    if (this.checked) {
-        videoSrc.type = "video/webm";
-        videoSrc.src = "<%- videoData.highstreamUrl %>";
-        audio.src = "<%- videoData.stream_url %>";
-        video.load();
-        audio.load();
-
-        video.addEventListener('loadedmetadata', () => {
-            video.play().catch(error => console.error("動画の再生エラー:", error));
-        });
-
-        video.addEventListener('play', () => {
-            audio.play().catch(error => console.error("オーディオの再生エラー:", error));
-        });
-
-        video.addEventListener('pause', () => {
-            audio.pause();
-            audio.currentTime = video.currentTime;
-        });
-
-        video.addEventListener('ended', () => {
-            audio.pause();
-            audio.currentTime = 0;
-        });
-
-        video.addEventListener('seeked', () => {
-            video.pause();
-            audio.pause();
-            audio.currentTime = video.currentTime;
-            video.play();
-            audio.play();
-        });
-
-        video.addEventListener('timeupdate', () => {
-            if (Math.abs(video.currentTime - audio.currentTime) > 0.4) {
-                audio.currentTime = video.currentTime + 0.1;
-            }
-        });
-    } else {
-        videoSrc.type = "video/mp4";
-        videoSrc.src = "<%- videoData.stream_url %>";
-        audio.pause();
-        audio.src = '';
-        video.load();
-        video.play().catch(error => console.error("動画の再生エラー:", error));
-    }
-});
-
 // 履歴
-const videoId = "<%= videoData.videoId %>";
-const channelId = "<%= videoData.channelId %>";
-const channelName = "<%= videoData.channelName %>";
-const videoTitle = "<%= videoData.videoTitle %>";
+const videoId = "<%= videoId %>";
+const channelId = "<%= videoInfo.secondary_info.owner.author.id %>";
+const channelName = "<%= videoInfo.secondary_info.owner.author.name %>";
+const videoTitle = "<%= videoInfo.primary_info.title.text %>";
 
 function saveToHistory(videoId, channelId, channelName, videoTitle) {
     let history = getHistoryFromCookies();
@@ -710,58 +495,6 @@ function toggleDescription(button) {
     } else {
         description.classList.add('hidden');
         button.textContent = '表示する';
-    }
-}
-  
-//ショトカ
-document.addEventListener('keydown', function(event) {
-    const activeElement = document.activeElement;
-    if (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA') {
-        return;
-    }
-
-    if (event.code === 'Space') {
-        event.preventDefault();
-        if (video.paused) {
-            video.play();
-        } else {
-            video.pause();
-        }
-    }
-
-    if (event.key === 'f' || event.key === 'F') {
-        event.preventDefault();
-        toggleFullScreen();
-    }
-  
-    if (event.key === 'ArrowRight') {
-        video.currentTime += 10;
-    } else if (event.key === 'ArrowLeft') {
-        video.currentTime -= 10;
-    }
-});
-  
-function toggleFullScreen() {
-    if (!document.fullscreenElement) {
-        if (video.requestFullscreen) {
-            video.requestFullscreen();
-        } else if (video.mozRequestFullScreen) {
-            video.mozRequestFullScreen();
-        } else if (video.webkitRequestFullscreen) {
-            video.webkitRequestFullscreen();
-        } else if (video.msRequestFullscreen) {
-            video.msRequestFullscreen();
-        }
-    } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.mozCancelFullScreen) {
-            document.mozCancelFullScreen();
-        } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) {
-            document.msExitFullscreen();
-        }
     }
 }
 
