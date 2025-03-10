@@ -1,5 +1,6 @@
 "use strict";
 let client = null;
+const ytpl = require("ytpl");
 
 function setClient(newClient) {
   client = newClient;
@@ -35,10 +36,9 @@ async function getComments(id) {
 async function getChannel(id) {
   try {
     const channel = await client.getChannel(id);
-    const about = await channel.getAbout();
-    const videos = await channel.getVideos();
+    const recentVideos = await ytpl(id, { pages: 1 });
 
-    return({channel});
+    return({channel, recentVideos});
   } catch (error) {
     return null;
   }

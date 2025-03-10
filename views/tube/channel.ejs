@@ -24,9 +24,7 @@
     </header>
   
     <div class="container mx-auto p-3 pt-2">
-        
       　<img src="<%- channel.header.content.banner.image[0].url || ""  %>" class="w-full h-auto mr-4">
-        
         <div class="bg-gray-800 p-8 rounded-lg shadow-lg mt-4">
             <div class="flex items-center mb-6">
                 <img src="<%- channel.metadata.avatar[0].url || ""  %>" class="w-20 h-20 rounded-full mr-4">
@@ -41,17 +39,37 @@
 
 <div class="mt-6">
     <div class="relative inline-block w-full">
-        <button id="dropdownButton" class="bg-gray-800 text-white px-4 py-2 rounded w-full text-left" onclick="toggleDropdown()">
-            <span id="selectedTab"><%= channel.shelves[0].title.text %></span>
+        <label for="shelfSelector" class="block text-white text-lg font-bold mb-2">カテゴリを選択:</label>
+        <button id="dropdownButton" class="bg-gray-800 text-white px-4 py-2 rounded w-full text-left">
+            <span id="selectedTab">最近の動画</span>
             <span class="float-right">▼</span>
         </button>
         <ul id="dropdownMenu" class="absolute w-full bg-gray-800 text-white mt-2 rounded hidden z-10">
+            <li class="p-2 hover:bg-gray-700 cursor-pointer" onclick="selectRecentVideos()">
+                最近の動画
+            </li>
             <% channel.shelves?.forEach((shelf, index) => { %>
                 <li class="p-2 hover:bg-gray-700 cursor-pointer" onclick="selectTab('<%= shelf.title.text %>', <%= index %>)">
                     <%= shelf.title.text %>
                 </li>
             <% }); %>
         </ul>
+    </div>
+    
+    <div class="recent-videos mt-4" id="recentVideos">
+        <h2 class="text-xl font-bold text-white mb-2">最近の動画</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <% recentVideos.forEach(video => { %>
+                <div class="result-item bg-gray-700 p-4 rounded">
+                    <a href="/wkt/watch/<%= video.videoId %>" class="thumbnail">
+                        <img loading="lazy" src="<%= video.thumbnail %>" alt="<%= video.title %>" class="w-auto h-48 rounded">
+                        <span class="video-duration"><%= video.duration %></span>
+                    </a>
+                    <p class="text-lg font-bold mt-2 text-white"><%= video.title %></p>
+                    <p class="text-xs text-gray-400"><%= video.views %>回視聴 - <%= video.uploaded %></p>
+                </div>
+            <% }); %>
+        </div>
     </div>
     
     <% channel.shelves?.forEach((shelf, index) => { %>
@@ -96,19 +114,41 @@
 </div>
 
 <script>
-function toggleDropdown() {
-    const dropdownMenu = document.getElementById('dropdownMenu');
-    dropdownMenu.classList.toggle('hidden');
+const dropdownButton = document.getElementById("dropdownButton");
+const dropdownMenu = document.getElementById("dropdownMenu");
+const selectedTab = document.getElementById("selectedTab");
+const shelves = document.querySelectorAll(".shelf-content");
+const recentVideosContainer = document.getElementById("recentVideos");
+
+// ドロップダウンメニューのトグル
+dropdownButton.addEventListener("click", () => {
+    dropdownMenu.classList.toggle("hidden");
+});
+
+// タブを選択する関数
+function selectTab(title, index) {
+    selectedTab.textContent = title;
+    dropdownMenu.classList.add("hidden");
+    shelves.forEach((shelf, i) => {
+        shelf.classList.toggle("hidden", i !== index);
+    });
+    recentVideosContainer.classList.add("hidden");
 }
 
-function selectTab(title, index) {
-    document.getElementById('selectedTab').innerText = title;
-    const shelves = document.querySelectorAll('.shelf-content');
-    shelves.forEach((shelf, idx) => {
-        shelf.classList.toggle('hidden', idx !== index);
-    });
-    toggleDropdown();
+// 最近の動画を選択する関数
+function selectRecentVideos() {
+    selectedTab.textContent = '最近の動画';
+    dropdownMenu.classList.add("hidden");
+    shelves.forEach(shelf => shelf.classList.add("hidden"));
+    recentVideosContainer.classList.remove("hidden");
 }
+
+// ドキュメント全体をクリックしてドロップダウンを閉じる
+document.addEventListener("click", (event) => {
+    if (!dropdownButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
+        dropdownMenu.classList.add("hidden");
+    }
+});
 </script>
                       
 </body>
