@@ -469,7 +469,7 @@ function saveToHistory(videoId, channelId, channelName, videoTitle) {
     history.push({ videoId, channelId, channelName, videoTitle });
     document.cookie = `wakametubehistory=${encodeURIComponent(JSON.stringify(history))}; path=/; max-age=31536000`;
 }
- 
+
 function getHistoryFromCookies() {
     const historyCookie = document.cookie.split('; ').find(row => row.startsWith('wakametubehistory='));
     if (historyCookie) {
@@ -498,7 +498,7 @@ function toggleDescription(button) {
 }
 
 // ページ読み込み
-document.addEventListener('DOMContentLoaded', () => {
+window.addEventListener("load", function() {
     saveToHistory(videoId, channelId, channelName, videoTitle);
 });
 </script>
