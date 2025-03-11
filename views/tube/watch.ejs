@@ -668,7 +668,39 @@ $('#hdToggle').change(function() {
         video.play().catch(error => console.error("動画の再生エラー:", error));
     }
 });
-
+  
+//wakelock
+let wakeLock = null;
+async function requestWakeLock() {
+    try {
+        if (!wakeLock) {
+            wakeLock = await navigator.wakeLock.request('screen');
+            wakeLock.addEventListener('release', () => {
+               wakeLock = null;
+            });
+        }
+    } catch (err) {
+        console.error(`${err.name}, ${err.message}`);
+    }
+}
+video.addEventListener('play', async () => {
+    await requestWakeLock();
+});
+video.addEventListener('pause', () => {
+    if (wakeLock) {
+        wakeLock.release().then(() => {
+            wakeLock = null;
+        });
+    }
+});
+video.addEventListener('ended', () => {
+    if (wakeLock) {
+        wakeLock.release().then(() => {
+            wakeLock = null;
+        });
+    }
+});
+  
 // 履歴
 const videoId = "<%= videoData.videoId %>";
 const channelId = "<%= videoData.channelId %>";
