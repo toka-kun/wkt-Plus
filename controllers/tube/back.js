@@ -51,20 +51,9 @@ router.get('/suggest', (req, res) => {
 });
 
 router.get("/vi*", async (req, res) => {
-  try {
-  const stream = miniget(`https://i.ytimg.com${req.url.split("?")[0]}`, {
-      headers: {
-        "User-Agent": user_agent
-      }
-    });
-    stream.on('error', err => {
-      console.error("minigetエラー:", err);
-      res.status(500).send(err.toString());
-    });
-    stream.pipe(res);
-  } catch (err) {
   let headersForwarded = false;
   const range = req.headers.range;
+  try {
     const request = await undici.request("https://i.ytimg.com" + req.url, {
       headers: {
         "User-Agent": user_agent,
@@ -85,10 +74,19 @@ router.get("/vi*", async (req, res) => {
       console.error(err);
       res.status(500).send(err.toString());
     });
+  } catch (err) {
+    const stream = miniget(`https://i.ytimg.com${req.url.split("?")[0]}`, {
+      headers: {
+        "User-Agent": user_agent
+      }
+    });
+    stream.on('error', err => {
+      console.error("minigetエラー:", err);
+      res.status(500).send(err.toString());
+    });
+    stream.pipe(res);
   }
 });
-
-module.exports = router;
 
 router.get(["/yt3/*", "/ytc/*"], async (req, res) => {
   let url = null;
