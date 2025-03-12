@@ -31,11 +31,10 @@ router.get('/gethtml/:Url', async (req, res) => {
                 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/prettify.css">
                 <style>
                     body {
-                        background-color: #1e1e1e;
                         color: #d4d4d4;
                         font-family: monospace;
                         margin: 0;
-                        padding: 20px;
+                        padding: 8px;
                     }
                     pre {
                         background-color: #252526;
