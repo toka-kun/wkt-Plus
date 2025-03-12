@@ -29,18 +29,34 @@ router.get('/gethtml/:Url', async (req, res) => {
                 <meta name="viewport" content="width=device-width, initial-scale=1">
                 <title>View Source: ${url}</title>
                 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/prettify.css">
+                <style>
+                    body {
+                        background-color: #1e1e1e;
+                        color: #d4d4d4;
+                        font-family: monospace;
+                        margin: 0;
+                        padding: 20px;
+                    }
+                    pre {
+                        background-color: #252526;
+                        padding: 10px;
+                        border-radius: 5px;
+                        overflow: auto;
+                        white-space: pre-wrap;
+                        word-break: break-word;
+                        font-size: 12px;
+                    }
+                </style>
             </head>
             <body onload="PR.prettyPrint()">
-                <pre class="prettyprint lang-html linenums" style="overflow:auto; white-space:pre-wrap; word-break:break-all; font-size:11px;">
-                    ${escapeHTML(html)}
-                </pre>
-                <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+                <pre class="prettyprint lang-html linenums">${escapeHTML(response.data)}</pre>
+                <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?skin=sons-of-obsidian"></script>
             </body>
             </html>
         `);
-  } catch (error) {
-    res.status(500).send(`エラーです。${error.message}`);
-  }
+    } catch (error) {
+        res.status(500).send(`<h1>エラー: ${error.message}</h1>`);
+    }
 });
 
 function escapeHTML(html) {
