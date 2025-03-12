@@ -21,10 +21,32 @@ router.get('/gethtml/:Url', async (req, res) => {
       }
     });
     const html = response.data;
-    res.setHeader('Content-Type', 'text/plain');
-    res.send(html);
+    const escapedHtml = response.data
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
+    const outputHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>ViewSource:${url}</title>
+          <meta name="viewport" content="width=device-width,initial-scale=1">
+          <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/skins/sons-of-obsidian.css">
+          <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/loader.js"></script>
+        </head>
+        <body>
+          <pre class="prettyprint lang-html linenums" style="overflow: auto; white-space: pre-wrap; word-break: break-all; font-size: 11px;">
+            ${escapedHtml}
+          </pre>
+        </body>
+      </html>`;
+    res.setHeader('Content-Type', 'text/html');
+    res.send(outputHtml);
   } catch (error) {
-    res.status(500).send('URLの取得に失敗しました');
+    res.status(500).send(`エラーです。${error.message}`);
   }
 });
 
