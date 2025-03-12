@@ -21,33 +21,34 @@ router.get('/gethtml/:Url', async (req, res) => {
       }
     });
     const html = response.data;
-    const escapedHtml = response.data
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-
-    const outputHtml = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>ViewSource:${url}</title>
-          <meta name="viewport" content="width=device-width,initial-scale=1">
-          <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/skins/sons-of-obsidian.css">
-          <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/loader.js"></script>
-        </head>
-        <body>
-          <pre class="prettyprint lang-html linenums" style="overflow: auto; white-space: pre-wrap; word-break: break-all; font-size: 11px;">
-            ${escapedHtml}
-          </pre>
-        </body>
-      </html>`;
-    res.setHeader('Content-Type', 'text/html');
-    res.send(outputHtml);
+    res.send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <title>View Source: ${url}</title>
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/prettify.css">
+            </head>
+            <body onload="PR.prettyPrint()">
+                <pre class="prettyprint lang-html linenums" style="overflow:auto; white-space:pre-wrap; word-break:break-all; font-size:11px;">
+                    ${escapeHTML(html)}
+                </pre>
+                <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+            </body>
+            </html>
+        `);
   } catch (error) {
     res.status(500).send(`エラーです。${error.message}`);
   }
 });
+
+function escapeHTML(html) {
+    return html.replace(/&/g, "&amp;")
+               .replace(/</g, "&lt;")
+               .replace(/>/g, "&gt;")
+               .replace(/"/g, "&quot;")
+               .replace(/'/g, "&#039;");
+}
 
 module.exports = router;
