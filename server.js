@@ -33,7 +33,11 @@ app.use(cors());
 app.set("trust proxy", 1);
 
 app.get('/', (req, res) => {
-  res.render("home/index");
+  if (req.query.r === 'y') {
+    res.render("home/index");
+  } else {
+    res.redirect('/wkt');
+  }
 });
 
 app.get('/app', (req, res) => {
