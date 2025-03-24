@@ -66,4 +66,27 @@ function escapeHTML(html) {
                .replace(/'/g, "&#039;");
 }
 
+router.get('/get/:Url', async (req, res) => {
+  const { Url } = req.params;
+  const replacedUrl = decodeURIComponent(Url);
+  const url = replacedUrl.replace(/\.wakame02\./g, '.');
+  if (!url) {
+    return res.status(400).send('URLが入力されていません');
+  }
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        'User-Agent': user_agent,
+        'Accept-Language': 'ja;q=1.0,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+      }
+    });
+    const html = response.data;
+    res.send(`${response.data}`);
+    } catch (error) {
+        res.status(500).send(`<h1>エラー: ${error.message}</h1>`);
+    }
+});
+
 module.exports = router;
