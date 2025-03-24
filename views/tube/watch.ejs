@@ -799,7 +799,7 @@ window.addEventListener("load", function() {
     saveToHistory(videoId, channelId, channelName, videoTitle);
 });
   
-function showPlaybackSettings(iframeurl, mode) {
+async function showPlaybackSettings(iframeurl, mode) {
     const settingsOverlay = document.createElement('div');
     settingsOverlay.id = "settingsOverlay";
     settingsOverlay.style.position = 'fixed';
@@ -832,11 +832,13 @@ function showPlaybackSettings(iframeurl, mode) {
         document.cookie = `playbackMode=${mode}; path=/; max-age=31536000`;
         window.location.href = `/wkt/redirect/mode/<%= videoData.videoId %>?mode=${mode}`;
     });
-    document.getElementById('cannotPlayBtn').addEventListener('click', function() {
+    document.getElementById('cannotPlayBtn').addEventListener('click',async function() {
         if (mode == "nocookie"){
+          settingsOverlay.remove();
           const ytinfo3 = await fetch('/wkt/yt/edurl', { method: 'POST' });
-          const ytinfo = await ytinfo3.data;
-          showPlaybackSettings();
+          const ytinfo = ytinfo3.data;
+          alert(`https://www.youtubeeducation.com/embed/<%= videoData.videoId %>${ytinfo}`)
+          showPlaybackSettings(`https://www.youtubeeducation.com/embed/<%= videoData.videoId %>${ytinfo}`, "edu");
         } else {
           localStorage.setItem('tutorialCompleted', 'true');
           settingsOverlay.remove();
