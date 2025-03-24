@@ -794,10 +794,36 @@ function toggleFullScreen() {
 // ページ読み込み
 window.addEventListener("load", function() {
     if (!localStorage.getItem('tutorialCompleted')) {
-      showPlaybackSettings("https://www.youtube-nocookie.com/embed/<%= videoId %>", "nocookie");
+      showTutorial();
     }
     saveToHistory(videoId, channelId, channelName, videoTitle);
 });
+  
+function showTutorial() {
+    const tutorialOverlay = document.createElement('div');
+    tutorialOverlay.id = "tutorialOverlay";
+    tutorialOverlay.style.position = 'fixed';
+    tutorialOverlay.style.top = '0';
+    tutorialOverlay.style.left = '0';
+    tutorialOverlay.style.width = '100vw';
+    tutorialOverlay.style.height = '100vh';
+    tutorialOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    tutorialOverlay.style.display = 'flex';
+    tutorialOverlay.style.justifyContent = 'center';
+    tutorialOverlay.style.alignItems = 'center';
+    tutorialOverlay.style.zIndex = '1000';
+    tutorialOverlay.innerHTML = `
+        <div class="bg-gray-800 text-white p-6 rounded-lg shadow-xl w-3/4 md:w-1/2 lg:w-1/3 text-center">
+            <p class="text-lg mb-6">あなたに最適な再生方法を設定するために、次のステップに進んでください。</p>
+            <button id="startTutorialBtn" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600">開始</button>
+        </div>
+    `;
+    document.body.appendChild(tutorialOverlay);
+    document.getElementById('startTutorialBtn').addEventListener('click', function() {
+        tutorialOverlay.remove();
+        showPlaybackSettings("https://www.youtube-nocookie.com/embed/<%= videoId %>", "nocookie");
+    });
+}
   
 async function showPlaybackSettings(iframeurl, mode) {
     const settingsOverlay = document.createElement('div');
@@ -830,13 +856,17 @@ async function showPlaybackSettings(iframeurl, mode) {
     document.getElementById('canPlayBtn').addEventListener('click', function() {
         localStorage.setItem('tutorialCompleted', 'true');
         document.cookie = `playbackMode=${mode}; path=/; max-age=31536000`;
-        window.location.href = `/wkt/redirect/mode/<%= videoData.videoId %>?mode=${mode}`;
+        if(mode == "nocookie"){
+          window.location.href = `/wkt/yt/nocookie/<%= videoData.videoId %>?mode=${mode}`;
+        } else{
+          window.location.href = `/wkt/yt/edu/<%= videoData.videoId %>
+        }
     });
     document.getElementById('cannotPlayBtn').addEventListener('click',async function() {
         if (mode == "nocookie"){
           settingsOverlay.remove();
           const ytinfo3 = await fetch('/wkt/yt/edurl', { method: 'GET' });
-          const ytinfo = ytinfo3.data;
+          const ytinfo = await ytinfo3.text();
           alert(`https://www.youtubeeducation.com/embed/<%= videoData.videoId %>${ytinfo}`)
           showPlaybackSettings(`https://www.youtubeeducation.com/embed/<%= videoData.videoId %>${ytinfo}`, "edu");
         } else {
