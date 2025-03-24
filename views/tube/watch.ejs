@@ -835,7 +835,7 @@ async function showPlaybackSettings(iframeurl, mode) {
     document.getElementById('cannotPlayBtn').addEventListener('click',async function() {
         if (mode == "nocookie"){
           settingsOverlay.remove();
-          const ytinfo3 = await fetch('/wkt/yt/edurl', { method: 'POST' });
+          const ytinfo3 = await fetch('/wkt/yt/edurl', { method: 'GET' });
           const ytinfo = ytinfo3.data;
           alert(`https://www.youtubeeducation.com/embed/<%= videoData.videoId %>${ytinfo}`)
           showPlaybackSettings(`https://www.youtubeeducation.com/embed/<%= videoData.videoId %>${ytinfo}`, "edu");

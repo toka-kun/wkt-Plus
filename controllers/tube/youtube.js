@@ -22,7 +22,7 @@ router.get('/edu/:id', async (req, res) => {
   }
 });
 
-router.post('/edurl', async (req, res) => {
+router.get('/edurl', async (req, res) => {
   try {
     const ytinfo = await axios.get("https://wktedutube.glitch.me");  
     res.send(`${ytinfo.data}`);
