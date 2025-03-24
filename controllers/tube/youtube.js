@@ -22,6 +22,15 @@ router.get('/edu/:id', async (req, res) => {
   }
 });
 
+router.post('/edurl', async (req, res) => {
+  try {
+    const ytinfo = await axios.get("https://wktedutube.glitch.me");  
+    res.send(`${ytinfo.data}`);
+  } catch (error) {
+     res.status(500).send(error);
+  }
+});
+
 router.get('/nocookie/:id', async (req, res) => {
   const videoId = req.params.id;
   try {

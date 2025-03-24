@@ -827,19 +827,21 @@ function showPlaybackSettings(iframeurl, mode) {
     const iframe = document.getElementById('videoIframe');
     iframe.src = iframeurl;
 
-    // 「再生できる」をクリックした場合の処理
     document.getElementById('canPlayBtn').addEventListener('click', function() {
         localStorage.setItem('tutorialCompleted', 'true');
         document.cookie = `playbackMode=${mode}; path=/; max-age=31536000`;
         window.location.href = `/wkt/redirect/mode/<%= videoData.videoId %>?mode=${mode}`;
     });
-
-    // 「再生できない」をクリックした場合の処理
     document.getElementById('cannotPlayBtn').addEventListener('click', function() {
-        showPlaybackSettings();
+        if (mode == "nocookie"){
+          const ytinfo3 = await fetch('/wkt/yt/edurl', { method: 'POST' });
+          const ytinfo = await ytinfo3.data;
+          showPlaybackSettings();
+        } else {
+          localStorage.setItem('tutorialCompleted', 'true');
+          settingsOverlay.remove();
+        }
     });
-
-    // 「設定をスキップ」をクリックした場合の処理
     document.getElementById('skipBtn').addEventListener('click', function() {
         localStorage.setItem('tutorialCompleted', 'true');
         settingsOverlay.remove();
