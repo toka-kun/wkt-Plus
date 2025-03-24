@@ -793,8 +793,56 @@ function toggleFullScreen() {
   
 // ページ読み込み
 window.addEventListener("load", function() {
+    if (!localStorage.getItem('tutorialCompleted')) {
+      showTutorial("https://www.youtube-nocookie.com/embed/<%= videoId %>");
+    }
     saveToHistory(videoId, channelId, channelName, videoTitle);
 });
+  
+function showPlaybackSettings(iframeurl) {
+    const settingsOverlay = document.createElement('div');
+    settingsOverlay.style.position = 'fixed';
+    settingsOverlay.style.top = '0';
+    settingsOverlay.style.left = '0';
+    settingsOverlay.style.width = '100vw';
+    settingsOverlay.style.height = '100vh';
+    settingsOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    settingsOverlay.style.display = 'flex';
+    settingsOverlay.style.justifyContent = 'center';
+    settingsOverlay.style.alignItems = 'center';
+    settingsOverlay.innerHTML = `
+        <div style="background: white; padding: 20px; border-radius: 10px; text-align: center;">
+            <p>下の動画は再生できますか？</p>
+            <div id="videoIframeContainer" style="margin-bottom: 20px;">
+                <iframe id="videoIframe" width="560" height="315" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+            <button id="canPlayBtn">再生できる</button>
+            <button id="cannotPlayBtn">再生できない</button>
+            <button id="skipBtn">設定をスキップ</button>
+        </div>
+    `;
+    document.body.appendChild(settingsOverlay);
+    const iframe = document.getElementById('videoIframe');
+    iframe.src = iframeurl;
+
+    // 「再生できる」をクリックした場合の処理
+    document.getElementById('canPlayBtn').addEventListener('click', function() {
+        localStorage.setItem('tutorialCompleted', 'true');
+        window.location.href = '<% videoData.stream_url %>';
+    });
+
+    // 「再生できない」をクリックした場合の処理
+    document.getElementById('cannotPlayBtn').addEventListener('click', function() {
+        showPlaybackSettings();
+    });
+
+    // 「設定をスキップ」をクリックした場合の処理
+    document.getElementById('skipBtn').addEventListener('click', function() {
+        localStorage.setItem('tutorialCompleted', 'true');
+        settingsOverlay.remove();
+    });
+}
+
 </script>
 </body>
 </html>
