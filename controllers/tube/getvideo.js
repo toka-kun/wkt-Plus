@@ -16,13 +16,15 @@ router.get('/:id', async (req, res) => {
     if (wakames == "nocookie") {
         return res.redirect(`/wkt/yt/nocookie/${videoId}`);
     }
-    const server = req.query.server || '0';
+    let server = req.query.server || '0';
     const serverUrls = [
 	      'https://watawata8.glitch.me',
 	      'https://watawata37.glitch.me',
         'https://watawatawata.glitch.me'
         ];
-
+    if (wakames == "direct") {
+        server = "direct";
+    }
     let baseUrl;
     if (server == "0") {
         const randomIndex = Math.floor(Math.random() * serverUrls.length);
