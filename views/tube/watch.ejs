@@ -607,7 +607,7 @@ $(document).ready(function() {
     $('#changeServer').click(function() {
         const server = $('#serverSelect').val();
         $('#controlPanel').toggleClass('open');
-        showMessage(`${server}に移動します☑️`);
+        showMessage(`サーバーを「${server}」に移動します☑️`);
         window.location.href = `/wkt/watch/<%= videoId %>?server=${server}`;
     });
 
