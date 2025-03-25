@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>わかめproxy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors duration-500">
+  <div class="background p-4">
+    <div class="container mx-auto text-center">
+      <h1 class="text-3xl font-bold mb-4">わかめproxy</h1>
+
+      <!-- 検索バー -->
+      <div class="mb-4">
+        <input type="text" id="searchBar" placeholder="URLを検索" class="p-2 w-1/2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400">
+      </div>
+
+      <!-- URL入力ボタン -->
+      <button id="redirectButton" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
+        URLを入力！
+      </button>
+
+      <p class="mt-4">URLをコピーできたら、上のボタンを押して下さい。</p>
+      <p>ウェブサイトからファイルを拾ってきます。サイトによってはUIがぶち壊れますが、「何が書いてあるか」を迅速に確認できます！</p>
+      <p>対象となるウェブサイトがX-Frame-Optionsヘッダー、またはCSPを設定している場合、取得できない場合の方が多いです。</p>
+    </div>
+  </div>
+
+  <script>
+    // URLをリダイレクトするボタンの動作
+    document.getElementById('redirectButton').addEventListener('click', () => {
+      const url = prompt('URLを入力して下さい');
+ 
+      if (!url) {
+        alert('URLが提供されていません');
+        return;
+      }
+ 
+      const replacedUrl = url.replace(/\./g, '.wakame02.');
+      const redirectUrl = `/getpage/${encodeURIComponent(replacedUrl)}`;
+      window.location.href = redirectUrl;
+    });
+
+    // 検索バーの入力値でURLを処理（動作は任意）
+    document.getElementById('searchBar').addEventListener('input', (event) => {
+      const query = event.target.value;
+      console.log('検索バーの入力:', query);
+    });
+  </script>
+</body>
+</html>
