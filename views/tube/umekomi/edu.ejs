@@ -499,6 +499,10 @@ function toggleDescription(button) {
 
 // ページ読み込み
 window.addEventListener("load", function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('tu') === 'true') {
+     showMessage("再生方法をeduに変更しました☑️");
+  }
   saveToHistory(videoId, channelId, channelName, videoTitle);
 });
   
