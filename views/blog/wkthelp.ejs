@@ -3,21 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>説明ページ</title>
+  <title>ヘルプ</title>
   <script src="/js/tailwindcss.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body class="bg-gray-900 text-white font-sans">
+    <header class="bg-gray-800 flex p-4 justify-between items-center top-0 left-0 w-full z-10">
+        <form action="/wkt/s" method="get" class="w-1/2" id="searchForm">
+            <input type="text" name="q" id="searchbox" placeholder="検索" class="searchbox w-full p-2 rounded bg-gray-700 text-white">
+        </form>
+        <nav class="space-x-4">
+            <a href="/wkt" class="text-gray-300 hover:text-white">ホーム</a>
+            <a href="/wkt/trend" class="text-gray-300 hover:text-white">トレンド</a>
+            <a href="/wkt/cl/history" class="text-gray-300 hover:text-white">履歴</a>
+        </nav>
+    </header>
 
   <div class="max-w-4xl mx-auto py-12 px-6">
-    <h1 class="text-4xl font-bold mb-6 text-center">サイトの説明</h1>
-
-    <!-- FAQ Section -->
-    <div class="space-y-4">
-      <!-- FAQ Item Template -->
+    <h1 class="text-4xl font-bold mb-4 text-center">ヘルプページ</h1>
+    <p class="text-center text-gray-400 text-lg mb-8">
+      なんか、ヘルプ的な。使い方を書いてるよ。
+    </p>
+  <div class="mt-6">
+      <input type="text" id="search" placeholder="ヘルプを検索..." class="w-full max-w-md p-2 border rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+  </div>
+  
+    
+    <div class="space-y-4" id="app-list">
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">サイトの特徴について</span>
+          <span class="faq-title"></span>
           <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
           </svg>
@@ -26,8 +41,7 @@
           <p>このサイトはシンプルで効率的に情報を取得できるよう設計されています。ユーザーが直感的に操作できるUI/UXを提供します。</p>
         </div>
       </div>
-      
-      <!-- FAQ Item Template -->
+
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
           <span class="faq-title">利用方法について</span>
@@ -40,7 +54,6 @@
         </div>
       </div>
       
-      <!-- FAQ Item Template -->
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
           <span class="faq-title">サポートについて</span>
@@ -57,18 +70,29 @@
   </div>
 
   <script>
-    // アコーディオン機能を動的に設定
     $(document).ready(function() {
-      // すべてのfaq-btnにクリックイベントを設定
       $('.faq-btn').click(function() {
-        // 対応するfaq-contentを取得
         const content = $(this).next('.faq-content');
         const icon = $(this).find('.faq-icon');
-
-        // クリックされたアイテムが開いていれば閉じ、閉じていれば開く
         content.toggleClass('hidden');
-        icon.toggleClass('rotate-180');  // アイコンの回転をトグル
+        icon.toggleClass('rotate-180');
       });
+    });
+    const searchInput = document.getElementById('search');
+    const toolList = document.getElementById('app-list');
+    const tools = document.querySelectorAll('.faq-item');
+
+    searchInput.addEventListener('input', function() {
+        const searchText = searchInput.value.toLowerCase();
+        tools.forEach(tool => {
+            const title = tool.querySelector('.faq-title').textContent.toLowerCase();
+            const description = tool.querySelector('.faq-content').textContent.toLowerCase();
+            if (title.includes(searchText) || description.includes(searchText)) {
+                tool.style.display = '';
+            } else {
+                tool.style.display = 'none';
+            }
+        });
     });
   </script>
 
