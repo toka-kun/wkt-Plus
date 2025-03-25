@@ -47,8 +47,10 @@ router.get('/:id', async (req, res) => {
       const videoInfo = await serverYt.infoGet(videoId);
       res.render('tube/watch.ejs', { videoData, videoInfo, videoId, baseUrl });
   } catch (error) {
+      const shufServerUrls = shuffleArray([...serverUrls]);
       res.status(500).render('tube/mattev.ejs', { 
-      videoId, baseUrl, serverUrls,
+      videoId, baseUrl, 
+      serverUrls: shufServerUrls,
       error: '動画を取得できません', 
       details: error.message 
     });
@@ -68,5 +70,14 @@ function parseCookies(request) {
 
     return list;
 }
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
 
 module.exports = router;
