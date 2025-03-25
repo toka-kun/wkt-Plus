@@ -6,6 +6,17 @@
   <title>ヘルプ</title>
   <script src="/js/tailwindcss.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<style>
+    .faq-content a {
+      color: #1d4ed8;
+      text-decoration: underline;
+      transition: color 0.3s;
+    }
+
+    .faq-content a:hover {
+      color: #2563eb;
+    }
+</style>
 </head>
 <body class="bg-gray-900 text-white font-sans">
     <header class="bg-gray-800 flex p-4 justify-between items-center top-0 left-0 w-full z-10">
@@ -21,24 +32,26 @@
 
   <div class="max-w-4xl mx-auto py-12 px-6">
     <h1 class="text-4xl font-bold mb-4 text-center">ヘルプページ</h1>
-    <p class="text-center text-gray-400 text-lg mb-8">
-      なんか、ヘルプ的な。使い方を書いてるよ。
-    </p>
-  <div class="mt-6">
-      <input type="text" id="search" placeholder="ヘルプを検索..." class="w-full max-w-md p-2 border rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+  <div class="flex justify-center mt-6">
+    <input type="text" id="search" placeholder="ヘルプを検索..."
+      class="w-full max-w-md p-2 border rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
   </div>
-  
+    <p class="text-center text-gray-400 text-lg mb-8">
+      使い方を書いてるよ。
+    </p>
     
     <div class="space-y-4" id="app-list">
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title"></span>
+          <span class="faq-title">基本的な使い方について</span>
           <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
           </svg>
         </button>
         <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>このサイトはシンプルで効率的に情報を取得できるよう設計されています。ユーザーが直感的に操作できるUI/UXを提供します。</p>
+          <p>まずは<a href="/wkt">ホーム</a>に移動してみて。それで、検索バーにキーワードを入力して検索！<br>
+          動画が出てくるから、見たい動画のサムネイル(画像)を押してね。再生ページに移動するよ。
+          </p>
         </div>
       </div>
 
