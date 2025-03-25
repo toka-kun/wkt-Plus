@@ -419,7 +419,7 @@ async function fetchComments() {
     retryButton.style.display = "none";
 
     try {
-        const response = await fetch("/wkt/back/comment/<%= videoData.videoId %>");
+        const response = await fetch("/wkt/back/comment/<%= videoId %>");
         if (!response.ok) throw new Error("サーバーエラー");
 
         const responseText = await response.text();
@@ -607,7 +607,7 @@ $(document).ready(function() {
         const server = $('#serverSelect').val();
         $('#controlPanel').toggleClass('open');
         showMessage(`${server}に移動します☑️`);
-        window.location.href = `/wkt/watch/<%= videoData.videoId %>?server=${server}`;
+        window.location.href = `/wkt/watch/<%= videoId %>?server=${server}`;
     });
 
     $('#saveSettings').click(function() {
@@ -615,7 +615,7 @@ $(document).ready(function() {
         const mode = $('input[name="playbackMode"]:checked').val();
         document.cookie = `playbackMode=${mode}; path=/; max-age=31536000`;
         showMessage(`再生方法を${mode}に変更します☑️`);
-        window.location.href = `/wkt/redirect/mode/<%= videoData.videoId %>?mode=${mode}`;
+        window.location.href = `/wkt/redirect/mode/<%= videoId %>?mode=${mode}`;
     });
 });
 
@@ -709,7 +709,7 @@ video.addEventListener('ended', () => {
 });
   
 // 履歴
-const videoId = "<%= videoData.videoId %>";
+const videoId = "<%= videoId %>";
 const channelId = "<%= videoData.channelId %>";
 const channelName = "<%= videoData.channelName %>";
 const videoTitle = "<%= videoData.videoTitle %>";
@@ -874,10 +874,10 @@ async function showPlaybackSettings(iframeurl, mode) {
         document.cookie = `playbackMode=${mode}; path=/; max-age=31536000`;
         if(mode == "nocookie"){
           showMessage("再生方法をnocookieに設定しました。");
-          window.location.href = `/wkt/yt/nocookie/<%= videoData.videoId %>?tu=true`;
+          window.location.href = `/wkt/yt/nocookie/<%= videoId %>?tu=true`;
         } else{
           showMessage("再生方法をeduに設定しました。");
-          window.location.href = `/wkt/yt/edu/<%= videoData.videoId %>?tu=true`;
+          window.location.href = `/wkt/yt/edu/<%= videoId %>?tu=true`;
         }
     });
     document.getElementById('cannotPlayBtn').addEventListener('click',async function() {
@@ -886,7 +886,7 @@ async function showPlaybackSettings(iframeurl, mode) {
           showMessage("必要なデータを取得中です");
           const ytinfo3 = await fetch('/wkt/yt/edurl', { method: 'GET' });
           const ytinfo = await ytinfo3.text();
-          showPlaybackSettings(`https://www.youtubeeducation.com/embed/<%= videoData.videoId %>${ytinfo}`, "edu");
+          showPlaybackSettings(`https://www.youtubeeducation.com/embed/<%= videoId %>${ytinfo}`, "edu");
         } else {
           localStorage.setItem('tutorialCompleted', 'true');
           settingsOverlay.remove();
