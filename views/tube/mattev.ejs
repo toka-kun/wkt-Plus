@@ -10,7 +10,80 @@
             display: none;
         }
         .controlPanel.open { display: block; }
+        .tab-button.active {
+            background-color: #4a5568;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+　　     }
 </style>
+</head>
+  
+<body class="bg-gray-900 text-white">
+    <header class="bg-gray-800 p-4 flex justify-between items-center fixed top-0 left-0 w-full z-10">
+        <form action="/wkt/s" method="get" class="w-1/2" id="searchForm">
+            <input type="text" name="q" id="searchbox" placeholder="検索" class="searchbox w-full p-2 rounded bg-gray-700 text-white">
+        </form>
+        <nav class="space-x-4">
+            <a href="/wkt" class="text-gray-300 hover:text-white">ホーム</a>
+            <a href="/wkt/trend" class="text-gray-300 hover:text-white">トレンド</a>
+            <a href="/wkt/cl/history" class="text-gray-300 hover:text-white">履歴</a>
+        </nav>
+    </header>
+    <div class="max-w-4xl mx-auto p-6 bg-gray-800 rounded-lg shadow-lg mt-20">
+        <h1 class="text-3xl font-bold text-center mb-6">動画を取得できません</h1>
+        <p class="text-center text-lg mb-6">エラー: <%= details %></p>
+        <div class="flex w-full justify-center mb-6">
+            <img src="/wkt/back/vi/<%= videoId %>/mqdefault.jpg" alt="動画のサムネイル" class="rounded-lg shadow-md max-w-full">
+        </div>
+        <p class="text-center text-lg mb-6">現在のサーバー: <strong><%= baseUrl.replace('https://', '').replace('.glitch.me', '') %></strong></p>
+        <div class="text-center">
+            <label for="serverSelect" class="text-xl">サーバーを変更:</label>
+            <select id="serverSelect" class="mt-2 p-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <% serverUrls.forEach(server => { %>
+                    <option value="<%= server.replace('https://', '').replace('.glitch.me', '') %>" class="bg-gray-800 hover:bg-gray-700"><%= server.replace('https://', '').replace('.glitch.me', '') %></option>
+                <% }); %>
+                <option value="direct" class="bg-gray-800 hover:bg-gray-700">direct</option>
+            </select>
+            <button onclick="changeServer()" class="mt-4 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">変更</button>
+          </div><br>
+        <p class="text-center text-lg mb-6">サーバーを変えたり、再読み込みしたりしてみてね。</p>
+        <button id="toggleControlPanel" class="toggleControlPanel mt-4 w-full bg-gray-700 py-2 rounded">設定をひらく</button>
+    </div>
+<div id="controlPanel" class="controlPanel bg-gray-900 text-white p-6 rounded-lg shadow-lg w-96 fixed bottom-10 right-10 border border-gray-700">
+    <button id="closeControlPanel" class="absolute top-2 right-2 text-gray-400 hover:text-white text-2xl">×</button>
+    <h2 class="text-lg font-semibold mb-3">再生方法の変更</h2>
+    <p class="mb-4 text-gray-600">動画のデフォルトの再生方法を設定できます。埋め込みで見れるなら埋め込みで見た方が良いですよ。</p>
+    <p class="mb-4 text-gray-600">現在の再生方法: 通常</p>
+    <div class="control-section mb-4">
+        <div class="flex flex-col">
+            <label class="flex items-start mb-2">
+                <input type="radio" name="playbackMode" value="normal" class="mr-2 mt-1">
+                <div>
+                    <strong>通常</strong> - ストリームURLを用いて再生します。最初のデフォルト設定で、ほとんどの人が使用できます。
+                </div>
+            </label>
+            <label class="flex items-start mb-2">
+                <input type="radio" name="playbackMode" value="edu" class="mr-2 mt-1">
+                <div>
+                    <strong>education</strong> - youtubeeducationを埋め込んで再生を行います。一部の人が使用できます。
+                    <a href="/wkt/yt/edu/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
+                </div>
+            </label>
+            <label class="flex items-start mb-2">
+                <input type="radio" name="playbackMode" value="nocookie" class="mr-2 mt-1">
+                <div>
+                    <strong>nocookie</strong> - youtubenocookieを埋め込んで再生を行います。こちらも一部の人が使用できます。
+                    <a href="/wkt/yt/nocookie/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
+                </div>
+            </label>
+        </div>
+    </div>
+    <button id="saveSettings" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">💾 設定を保存</button>
+</div>
     <script>
 function changeServer() {
     const server = document.getElementById('serverSelect').value;
@@ -52,70 +125,5 @@ $(document).ready(function() {
     });
 });
     </script>
-</head>
-  
-<body class="bg-gray-900 text-white">
-    <header class="bg-gray-800 p-4 flex justify-between items-center fixed top-0 left-0 w-full z-10">
-        <form action="/wkt/s" method="get" class="w-1/2" id="searchForm">
-            <input type="text" name="q" id="searchbox" placeholder="検索" class="searchbox w-full p-2 rounded bg-gray-700 text-white">
-        </form>
-        <nav class="space-x-4">
-            <a href="/wkt" class="text-gray-300 hover:text-white">ホーム</a>
-            <a href="/wkt/trend" class="text-gray-300 hover:text-white">トレンド</a>
-            <a href="/wkt/cl/history" class="text-gray-300 hover:text-white">履歴</a>
-        </nav>
-    </header>
-    <div class="max-w-4xl mx-auto p-6 bg-gray-800 rounded-lg shadow-lg mt-20">
-        <h1 class="text-3xl font-bold text-center mb-6">動画を取得できません</h1>
-        <p class="text-center text-lg mb-6">エラー: <%= details %></p>
-        <div class="flex w-full justify-center mb-6">
-            <img src="/wkt/back/vi/<%= videoId %>/mqdefault.jpg" alt="動画のサムネイル" class="rounded-lg shadow-md max-w-full">
-        </div>
-        <p class="text-center text-lg mb-6">現在のサーバー: <strong><%= baseUrl.replace('https://', '').replace('.glitch.me', '') %></strong></p>
-        <div class="text-center">
-            <label for="serverSelect" class="text-xl">サーバーを変更:</label>
-            <select id="serverSelect" class="mt-2 p-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <% serverUrls.forEach(server => { %>
-                    <option value="<%= server.replace('https://', '').replace('.glitch.me', '') %>" class="bg-gray-800 hover:bg-gray-700"><%= server.replace('https://', '').replace('.glitch.me', '') %></option>
-                <% }); %>
-                <option value="direct" class="bg-gray-800 hover:bg-gray-700">direct</option>
-            </select>
-            <button onclick="changeServer()" class="mt-4 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">変更</button>
-          </div><br>
-        <p class="text-center text-lg mb-6">サーバーを変えたり、再読み込みしたりしてみてね。</p>
-        <button id="toggleControlPanel" class="mt-4 w-full bg-gray-700 py-2 rounded">設定をひらく</button>
-    </div>
-<div id="controlPanel" class="controlPanel bg-gray-900 text-white p-6 rounded-lg shadow-lg w-96 fixed bottom-10 right-10 border border-gray-700">
-    <button id="closeControlPanel" class="absolute top-2 right-2 text-gray-400 hover:text-white text-2xl">×</button>
-    <h2 class="text-lg font-semibold mb-3">再生方法の変更</h2>
-    <p class="mb-4 text-gray-600">動画のデフォルトの再生方法を設定できます。埋め込みで見れるなら埋め込みで見た方が良いですよ。</p>
-    <p class="mb-4 text-gray-600">現在の再生方法: education</p>
-    <div class="control-section mb-4">
-        <div class="flex flex-col">
-            <label class="flex items-start mb-2">
-                <input type="radio" name="playbackMode" value="normal" class="mr-2 mt-1">
-                <div>
-                    <strong>通常</strong> - ストリームURLを用いて再生します。最初のデフォルト設定で、ほとんどの人が使用できます。
-                </div>
-            </label>
-            <label class="flex items-start mb-2">
-                <input type="radio" name="playbackMode" value="edu" class="mr-2 mt-1">
-                <div>
-                    <strong>education</strong> - youtubeeducationを埋め込んで再生を行います。一部の人が使用できます。
-                    <a href="/wkt/yt/edu/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
-                </div>
-            </label>
-            <label class="flex items-start mb-2">
-                <input type="radio" name="playbackMode" value="nocookie" class="mr-2 mt-1">
-                <div>
-                    <strong>nocookie</strong> - youtubenocookieを埋め込んで再生を行います。こちらも一部の人が使用できます。
-                    <a href="/wkt/yt/nocookie/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
-                </div>
-            </label>
-        </div>
-    </div>
-    
-    <button id="saveSettings" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">💾 設定を保存</button>
-</div>
 </body>
 </html>
