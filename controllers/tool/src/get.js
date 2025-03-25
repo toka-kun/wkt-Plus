@@ -38,7 +38,7 @@ router.get('/gethtml/:Url', async (req, res) => {
                     }
                     pre {
                         background-color: #252526;
-                        padding: 10px;
+                        padding: 5px;
                         border-radius: 5px;
                         overflow: auto;
                         white-space: pre-wrap;

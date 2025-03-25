@@ -21,19 +21,14 @@
 
   <script>
     document.getElementById('redirectButton').addEventListener('click', () => {
-      const url = prompt('URLを入力して下さい');
+      const url = document.getElementById('searchBar').value.trim(); // サーチバーからURLを取得
       if (!url) {
-        alert('URLが入力されていません');
+        alert('URLを入力してください');
         return;
       }
       const replacedUrl = url.replace(/\./g, '.wakame02.');
-      const redirectUrl = `/tool/html/gethtml/${encodeURIComponent(replacedUrl)}`;
+      const redirectUrl = `/tools/html/gethtml/${encodeURIComponent(replacedUrl)}`;
       window.location.href = redirectUrl;
-    });
-
-    document.getElementById('searchBar').addEventListener('input', (event) => {
-      const query = event.target.value;
-      console.log('検索バーの入力:', query);
     });
   </script>
 </body>
