@@ -383,6 +383,7 @@ async function fetchComments() {
         commentContainers.forEach(container => container.innerHTML = responseText);
     } catch (error) {
         console.error("エラー:", error);
+        showerrorMessage("コメントの取得に失敗しました");
         errorContainers.forEach(errorContainer => {
             errorContainer.textContent = "コメントの取得に失敗しました: " + error.message;
             errorContainer.style.display = "block";
