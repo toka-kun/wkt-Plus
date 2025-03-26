@@ -10,8 +10,13 @@ router.get('/edu/:id', async (req, res) => {
   const videoId = req.params.id;
   try {
     const videoInfo = await serverYt.infoGet(videoId);
-    const ytinfo = await get("https://wktedutube.glitch.me");
-    const videosrc = `https://www.youtubeeducation.com/embed/${videoId}${ytinfo.data}`;
+    const { statusCode, ytinfo3 } = await get("https://wktedutube.glitch.me");
+    
+    if (statusCode !== 200) {
+      throw new Error(`Request failed with status ${statusCode}`);
+    }
+    const ytinfo = await ytinfo3.body.text(); 
+    const videosrc = `https://www.youtubeeducation.com/embed/${videoId}${ytinfo}`;
           
     res.render('tube/umekomi/edu.ejs', {videosrc, videoInfo, videoId});
   } catch (error) {
