@@ -23,7 +23,8 @@ router.get('/:id', async (req, res) => {
         'https://watawatawata.glitch.me',
         'https://manawa.glitch.me',
         'https://wakeupe.glitch.me',
-        'https://hortensia.glitch.me'
+        'https://hortensia.glitch.me',
+        'https://wata27.glitch.me'
         ];
     if (wakames == "direct") {
         server = "direct";
