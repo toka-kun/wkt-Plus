@@ -156,7 +156,7 @@
       <form id="settingsForm" class="space-y-4">
         <label class="block p-4 border rounded-lg cursor-pointer dark:border-gray-700">
           <input type="radio" name="playbackMode" value="normal" class="mr-2"> 
-          <span class="font-semibold">Normal</span>
+          <span class="font-semibold">通常</span>
           <p class="text-sm text-gray-600 dark:text-gray-400">通常の YouTube 埋め込みを使用します。</p>
         </label>
         
@@ -181,27 +181,11 @@
         <button type="button" id="saveButton" class="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 transition-colors">保存</button>
       </form>
 
-      <button id="closeButton" class="absolute top-4 right-4 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+      <button id="closeSettings" class="absolute top-4 right-4 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-4xl font-bold w-12 h-12 flex items-center justify-center rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
         ×
       </button>
     </div>
 </div>
-
-<script>
-  // 閉じるボタンのイベントリスナー
-  document.getElementById('closeButton').addEventListener('click', function() {
-    document.getElementById('settingsPanel').classList.add('-translate-y-full');
-  });
-</script>
-
-    
-    <button id="saveButton" class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg shadow-md transition duration-200">
-      設定を保存
-    </button>
-    
-    <p id="status" class="mt-4 text-sm text-gray-400"></p>
-  </div>
-  </div>
 
     <footer>
         <p>♪( ´▽｀)</p>
@@ -246,12 +230,11 @@ document.getElementById('openSettings').addEventListener('click', () => {
       document.getElementById('settingsPanel').classList.add('-translate-y-full');
     });
     
-    document.getElementById('settingsForm').addEventListener('submit', (event) => {
-      event.preventDefault();
-      const selectedMode = document.querySelector('input[name="playbackMode"]:checked').value;
-      document.cookie = `playbackMode=${selectedMode}; path=/; max-age=${60 * 60 * 24 * 365}`;
-      alert(`再生方法を「${selectedMode}」に設定しました！`);
+    document.getElementById('saveButton').addEventListener('click', () => {
+      const mode = document.querySelector('input[name=playbackMode]:checked').value;
+      document.cookie = `playbackMode=${mode}; path=/; max-age=31536000`;
       document.getElementById('settingsPanel').classList.add('-translate-y-full');
+      showMessage(`再生方法を${mode}に変更しました☑️`);
     });
     
     window.addEventListener('DOMContentLoaded', () => {
