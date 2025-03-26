@@ -92,7 +92,7 @@
                 <img src="https://cdn.glitch.global/21c63086-ffc1-4d28-8e9a-e2c12f51b431/IMG_2121.jpeg">
             </a>
             <div class="space-x-6">
-                <a href="/wkt/cl/setting" class="hover:text-gray-300">⚙️設定</a>
+                <button id="openSettings" class="hover:text-gray-300">⚙️設定</button>
                 <a href="/wkt/trend" class="hover:text-gray-300">🎩トレンド</a>
                 <a href="/wkt/cl/history" class="hover:text-gray-300">再生履歴</a>
             </div>
@@ -148,27 +148,59 @@
         </div>
     </section>
 
-  <div id="settingsPanel" class="fixed top-0 left-0 w-full bg-white dark:bg-gray-800 shadow-md p-6 transform -translate-y-full transition-transform duration-300">
-    <div class="flex justify-between items-center">
-      <h2 class="text-xl font-bold">再生設定</h2>
-      <button id="closeSettings" class="text-red-500 text-lg">×</button>
+<div id="settingsPanel" class="fixed top-0 left-0 w-full bg-white dark:bg-gray-900 shadow-lg p-6 transform -translate-y-full transition-transform duration-300">
+    <div class="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white max-w-2xl mx-auto bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md">
+      <h1 class="text-2xl font-bold mb-4">再生方法の設定</h1>
+      <p class="mb-4 text-gray-700 dark:text-gray-300">再生方法を選択してください。設定は Cookie に保存されます。</p>
+      
+      <form id="settingsForm" class="space-y-4">
+        <label class="block p-4 border rounded-lg cursor-pointer dark:border-gray-700">
+          <input type="radio" name="playbackMode" value="normal" class="mr-2"> 
+          <span class="font-semibold">Normal</span>
+          <p class="text-sm text-gray-600 dark:text-gray-400">通常の YouTube 埋め込みを使用します。</p>
+        </label>
+        
+        <label class="block p-4 border rounded-lg cursor-pointer dark:border-gray-700">
+          <input type="radio" name="playbackMode" value="edu" class="mr-2"> 
+          <span class="font-semibold">Edu</span>
+          <p class="text-sm text-gray-600 dark:text-gray-400">教育機関向けの YouTube 埋め込みを使用します。</p>
+        </label>
+        
+        <label class="block p-4 border rounded-lg cursor-pointer dark:border-gray-700">
+          <input type="radio" name="playbackMode" value="nocookie" class="mr-2"> 
+          <span class="font-semibold">NoCookie</span>
+          <p class="text-sm text-gray-600 dark:text-gray-400">YouTube の Cookie を使用しないモードです。</p>
+        </label>
+        
+        <label class="block p-4 border rounded-lg cursor-pointer dark:border-gray-700">
+          <input type="radio" name="playbackMode" value="direct" class="mr-2"> 
+          <span class="font-semibold">Direct</span>
+          <p class="text-sm text-gray-600 dark:text-gray-400">デフォルトでサーバー「direct」を使用します。</p>
+        </label>
+        
+        <button type="button" id="saveButton" class="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 transition-colors">保存</button>
+      </form>
+
+      <button id="closeButton" class="absolute top-4 right-4 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+        ×
+      </button>
     </div>
-    <p class="text-gray-700 dark:text-gray-300 text-sm mb-4">再生方法を選択してください。</p>
-    <form id="settingsForm">
-      <label class="block mb-2">
-        <input type="radio" name="playbackMode" value="normal" class="mr-2"> 通常 (normal)
-      </label>
-      <label class="block mb-2">
-        <input type="radio" name="playbackMode" value="edu" class="mr-2"> 教育用 (edu)
-      </label>
-      <label class="block mb-2">
-        <input type="radio" name="playbackMode" value="nocookie" class="mr-2"> プライバシー重視 (nocookie)
-      </label>
-      <label class="block mb-4">
-        <input type="radio" name="playbackMode" value="direct" class="mr-2"> 直接再生 (direct, サーバー使用)
-      </label>
-      <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">保存</button>
-    </form>
+</div>
+
+<script>
+  // 閉じるボタンのイベントリスナー
+  document.getElementById('closeButton').addEventListener('click', function() {
+    document.getElementById('settingsPanel').classList.add('-translate-y-full');
+  });
+</script>
+
+    
+    <button id="saveButton" class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg shadow-md transition duration-200">
+      設定を保存
+    </button>
+    
+    <p id="status" class="mt-4 text-sm text-gray-400"></p>
+  </div>
   </div>
 
     <footer>
@@ -206,7 +238,7 @@ function showMessage(text) {
     }, 5000);
 }
   
-document.getElementById('settingsButton').addEventListener('click', () => {
+document.getElementById('openSettings').addEventListener('click', () => {
       document.getElementById('settingsPanel').classList.remove('-translate-y-full');
     });
     
