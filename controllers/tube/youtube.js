@@ -1,5 +1,5 @@
 const axios = require("axios");
-const { get } = require('undici');
+const { fetch } = require('undici');
 const express = require("express");
 const router = express.Router();
 const path = require("path");
@@ -10,17 +10,15 @@ router.get('/edu/:id', async (req, res) => {
   const videoId = req.params.id;
   try {
     const videoInfo = await serverYt.infoGet(videoId);
-    const { statusCode, ytinfo3 } = await get("https://wktedutube.glitch.me");
+    const response = await fetch("https://wktedutube.glitch.me");
+    if (!response.ok) throw new Error(`Failed to fetch: ${response.statusText}`);
     
-    if (statusCode !== 200) {
-      throw new Error(`Request failed with status ${statusCode}`);
-    }
-    const ytinfo = await ytinfo3.body.text(); 
+    const ytinfo = await response.text();
     const videosrc = `https://www.youtubeeducation.com/embed/${videoId}${ytinfo}`;
           
     res.render('tube/umekomi/edu.ejs', {videosrc, videoInfo, videoId});
   } catch (error) {
-     res.status(500).render('matte', { 
+     res.status(500).render('tube/mattev', { 
       videoId, 
       error: '動画を取得できません', 
       details: error.message 
