@@ -1,4 +1,5 @@
 const axios = require("axios");
+const { get } = require('undici');
 const express = require("express");
 const router = express.Router();
 const path = require("path");
@@ -9,7 +10,7 @@ router.get('/edu/:id', async (req, res) => {
   const videoId = req.params.id;
   try {
     const videoInfo = await serverYt.infoGet(videoId);
-    const ytinfo = await axios.get("https://wktedutube.glitch.me");
+    const ytinfo = await get("https://wktedutube.glitch.me");
     const videosrc = `https://www.youtubeeducation.com/embed/${videoId}${ytinfo.data}`;
           
     res.render('tube/umekomi/edu.ejs', {videosrc, videoInfo, videoId});
