@@ -1,10 +1,13 @@
-const axios = require("axios");
+const { fetch } = require('undici');
 const express = require("express");
 const router = express.Router();
 const path = require("path");
 const http = require('http');
 const serverYt = require("/app/server/youtube.js");
 const wakamess = require("/app/server/wakame.js");
+
+const controller = new AbortController();
+const timeout = setTimeout(() => controller.abort(), 12500);
 
 router.get('/:id', async (req, res) => {
     const videoId = req.params.id;
@@ -45,8 +48,12 @@ router.get('/:id', async (req, res) => {
       if(server == "direct"){
         videoData = await wakamess.getYouTube(videoId);
       }else{
-        const response = await axios.get(`${baseUrl}/api/${videoId}`, { timeout: 12500 });
-        videoData = response.data;
+        const response = await fetch(`${baseUrl}/api/${videoId}`, { 
+          signal: controller.signal 
+        });
+        clearTimeout(timeout); 
+        if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+        videoData = await response.json();
       }
       const videoInfo = await serverYt.infoGet(videoId);
       res.render('tube/watch.ejs', { videoData, videoInfo, videoId, baseUrl });
