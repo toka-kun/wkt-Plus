@@ -151,31 +151,31 @@
 <div id="settingsPanel" class="fixed top-0 left-0 w-full bg-white dark:bg-gray-900 shadow-lg p-6 transform -translate-y-full transition-transform duration-300">
     <div class="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white max-w-2xl mx-auto bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md">
       <h1 class="text-2xl font-bold mb-4">再生方法の設定</h1>
-      <p class="mb-4 text-gray-700 dark:text-gray-300">再生方法を選択してください。設定は Cookie に保存されます。</p>
+      <p class="mb-4 text-gray-700 dark:text-gray-300">再生方法を選択してください。詳しくは<a href="/blog/b/wkthelp" style="color: #60a5fa; text-decoration: underline; transition: color 0.3s ease;">ヘルプ</a>をみてね</p>
       
       <form id="settingsForm" class="space-y-4">
         <label class="block p-4 border rounded-lg cursor-pointer dark:border-gray-700">
           <input type="radio" name="playbackMode" value="normal" class="mr-2"> 
           <span class="font-semibold">通常</span>
-          <p class="text-sm text-gray-600 dark:text-gray-400">通常の YouTube 埋め込みを使用します。</p>
+          <p class="text-sm text-gray-600 dark:text-gray-400">通常の再生方法で、ストリームを取得して再生を行います。</p>
         </label>
         
         <label class="block p-4 border rounded-lg cursor-pointer dark:border-gray-700">
           <input type="radio" name="playbackMode" value="edu" class="mr-2"> 
           <span class="font-semibold">Edu</span>
-          <p class="text-sm text-gray-600 dark:text-gray-400">教育機関向けの YouTube 埋め込みを使用します。</p>
+          <p class="text-sm text-gray-600 dark:text-gray-400">youtubeeducationを埋め込んで再生を行います。</p>
         </label>
         
         <label class="block p-4 border rounded-lg cursor-pointer dark:border-gray-700">
           <input type="radio" name="playbackMode" value="nocookie" class="mr-2"> 
           <span class="font-semibold">NoCookie</span>
-          <p class="text-sm text-gray-600 dark:text-gray-400">YouTube の Cookie を使用しないモードです。</p>
+          <p class="text-sm text-gray-600 dark:text-gray-400">youtubenocookieを埋め込んで再生を行います。</p>
         </label>
         
         <label class="block p-4 border rounded-lg cursor-pointer dark:border-gray-700">
           <input type="radio" name="playbackMode" value="direct" class="mr-2"> 
-          <span class="font-semibold">Direct</span>
-          <p class="text-sm text-gray-600 dark:text-gray-400">デフォルトでサーバー「direct」を使用します。</p>
+          <span class="font-semibold">デフォルトでDirectサーバーを利用する</span>
+          <p class="text-sm text-gray-600 dark:text-gray-400">再生方法としては「通常」に分類されます。動画取得サーバーを経由せず、このサイトから直接リクエストを送ってストリームを取得します。これをデフォルトで行います。</p>
         </label>
         
         <button type="button" id="saveButton" class="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 transition-colors">保存</button>
