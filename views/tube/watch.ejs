@@ -587,8 +587,8 @@ $(document).ready(function() {
         });
 
         video.addEventListener('timeupdate', () => {
-            if (Math.abs(video.currentTime - audio.currentTime) > 0.5) {
-                audio.currentTime = video.currentTime;
+            if (Math.abs(video.currentTime - audio.currentTime) > 0.4) {
+                audio.currentTime = video.currentTime + 0.1;
             }
         });
     });
