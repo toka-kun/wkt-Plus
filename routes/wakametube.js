@@ -10,19 +10,12 @@ router.use("/watch", require("../controllers/tube/getvideo"));
 router.use("/w", require("../controllers/tube/getvideo"));
 router.use("/yt", require("../controllers/tube/youtube"));
 
-const YOUTUBE_URL = /(?:https?:\/\/)?(?:www\.)?youtu(?:\.be\/|be\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([\w\-]+)/;
-
 router.get("/", (req, res) => {
   res.render("tube/home");
 });
 
 router.get("/s", async (req, res) => {
 	let query = req.query.q;
-  const ytUrlc = query.match(YOUTUBE_URL);
-  if (ytUrlc) {
-    const videoId3 = ytUrlc[1];
-    return res.redirect(`/wkt/w/${videoId3}`);
-  }
 	let page = Number(req.query.p || 1);
     try {
 		res.render("tube/search.ejs", {
@@ -45,11 +38,6 @@ router.get("/s", async (req, res) => {
 
 router.get("/ss", async (req, res) => {
 	let query = req.query.q;
-  const ytUrlc = query.match(YOUTUBE_URL);
-  if (ytUrlc) {
-    const videoId3 = ytUrlc[1];
-    return res.redirect(`/wkt/w/${videoId3}`);
-  }
 	let page = Number(req.query.p || 2);
     try {
 		res.render("tube/opu/search.ejs", {
