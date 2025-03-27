@@ -30,7 +30,7 @@
                 <img src="<%- channel.metadata.avatar[0].url || ""  %>" class="w-20 h-20 rounded-full mr-4">
                 <div>
                     <h1 class="text-3xl font-bold"><%- channel.metadata.title %></h1>
-                    <p class="text-gray-400 text-sm"><%- channel.header.content.metadata.metadata_rows[0]?.metadata_parts[0]?.text || ""  %>  -  <%- channel.header.content.metadata.metadata_rows[1].metadata_parts[1].text || ""  %></p>
+                    <p class="text-gray-400 text-sm"><%- channel.header.content.metadata.metadata_rows[0].metadata_parts[0].text || ""  %>  -  <%- channel.header.content.metadata.metadata_rows[1].metadata_parts[1].text || ""  %></p>
                     <p class="text-gray-500 text-sm mt-2"><%- channel.header.content.metadata.metadata_rows[1].metadata_parts[0].text || ""  %></p>
                 </div>
             </div>
