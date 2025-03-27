@@ -344,7 +344,7 @@
             <button id="toggledouga" class="mt-4 w-full bg-gray-700 py-2 rounded">関連動画を開く</button>
             <button id="toggleControlPanel" class="mt-4 w-full bg-gray-700 py-2 rounded">コントロール</button>
             <div class="mt-4">
-<% if (videoInfo.watch_next_feed?) { %>
+<% if (videoInfo.watch_next_feed) { %>
 <div class="mt-2 space-y-2">
   <% videoInfo.watch_next_feed.forEach(video => { %>
     <% if (!video) return; %>
