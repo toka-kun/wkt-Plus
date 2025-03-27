@@ -6,9 +6,6 @@ const http = require('http');
 const serverYt = require("/app/server/youtube.js");
 const wakamess = require("/app/server/wakame.js");
 
-const controller = new AbortController();
-const timeout = setTimeout(() => controller.abort(), 12500);
-
 router.get('/:id', async (req, res) => {
     const videoId = req.params.id;
     const cookies = parseCookies(req);
@@ -48,10 +45,7 @@ router.get('/:id', async (req, res) => {
       if(server == "direct"){
         videoData = await wakamess.getYouTube(videoId);
       }else{
-        const response = await fetch(`${baseUrl}/api/${videoId}`, { 
-          signal: controller.signal 
-        });
-        clearTimeout(timeout); 
+        const response = await fetch(`${baseUrl}/api/${videoId}`);
         if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
         videoData = await response.json();
       }
