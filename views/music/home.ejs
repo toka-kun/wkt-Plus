@@ -26,8 +26,10 @@
                         <p class="text-sm text-gray-400">by <%= track.username %></p>
                     </div>
                     <div class="flex gap-2">
-                        <button class="favorite-btn text-gray-400 hover:text-red-500 transition" data-id="<%= track.id %>" onclick="toggleFavorite('<%= track.artwork_url %>', '<%= track.title %>', '<%= track.id %>')">❤️</button>
-                        <button class="play-btn bg-green-500 p-2 rounded hover:bg-green-400 transition text-white" data-track-id="<%= track.id %>">▶️</button>
+                        <button class="play-btn p-3 bg-gray-500 hover:bg-gray-400 rounded-lg transition text-white text-xl" data-track-id="<%= track.id %>"><img src="https://cdn.glitch.global/44a02c72-aa32-4a7b-bb98-801035391fbc/IMG_3047.png?v=1743129550178" class="w-6 h-6"></button>
+                        <button class="play-btn bg-green-500 p-2 rounded hover:bg-green-400 transition text-white" data-track-id="<%= track.id %>" onclick="toggleFavorite('<%= track.artwork_url %>', '<%= track.title %>', '<%= track.id %>')">
+                            <img src="${isFavorite(<%= track.id %>) ? 'https://cdn.glitch.global/44a02c72-aa32-4a7b-bb98-801035391fbc/IMG_3046.png?v=1743129355035' : 'https://cdn.glitch.global/44a02c72-aa32-4a7b-bb98-801035391fbc/IMG_3045.png?v=1743129356031'}" alt="Favorite" class="w-6 h-6">
+                        </button>
                     </div>
                 </div>
             <% }) %>
@@ -87,6 +89,11 @@
     }
 
     updateFavoriteButtons();
+  
+    function isFavorite(trackId) {
+        const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+        return favorites.some(track => track.id === trackId);
+    }
   
 function showMessage(text) {
     const alertMessage = document.createElement('div');

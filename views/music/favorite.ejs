@@ -17,7 +17,7 @@
 </main>
 
 <div id="player-container" class="fixed bottom-0 left-0 w-full bg-gray-800 p-4 hidden flex items-center gap-4 shadow-lg">
-    <iframe id="player" class="w-full h-24"></iframe>
+    <iframe id="player" class="w-full h-1/10"></iframe>
 </div>
 
 <footer class="p-4 text-center text-gray-500">🎵 Wakamc Music Player 🎵</footer>
@@ -42,9 +42,9 @@
                     <p class="font-bold text-lg">${track.title}</p>
                 </div>
                 <div class="flex gap-2">
-                    <button class="play-btn bg-green-500 p-3 rounded-lg hover:bg-green-400 transition text-white text-xl" data-track-id="${track.id}">▶️</button>
+                    <button class="play-btn p-3 bg-gray-500 hover:bg-gray-400 rounded-lg transition text-white text-xl" data-track-id="${track.id}"><img src="https://cdn.glitch.global/44a02c72-aa32-4a7b-bb98-801035391fbc/IMG_3047.png?v=1743129550178" class="w-6 h-6"></button>
                     <button class="favorite-btn text-xl" data-id="${track.id}">
-                        <img src="${isFavorite(track.id) ? 'heart_filled.png' : 'heart_empty.png'}" alt="Favorite" class="w-6 h-6">
+                        <img src="${isFavorite(track.id) ? 'https://cdn.glitch.global/44a02c72-aa32-4a7b-bb98-801035391fbc/IMG_3046.png?v=1743129355035' : 'https://cdn.glitch.global/44a02c72-aa32-4a7b-bb98-801035391fbc/IMG_3045.png?v=1743129356031'}" alt="Favorite" class="w-6 h-6">
                     </button>
                 </div>
             `;
