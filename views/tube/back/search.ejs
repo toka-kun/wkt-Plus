@@ -76,5 +76,23 @@
     </a>
 </div>
     </div>
+<script>
+window.addEventListener("load", function() {
+  const query = '<%= query %>';
+  if (query) {
+      updateSearchHistory(query);
+  }
+});
+  
+function updateSearchHistory(query) {
+    let history = JSON.parse(localStorage.getItem('searchHistory')) || [];
+    history = history.filter(item => item !== query);
+    history.unshift(query);
+    if (history.length > 16) {
+        history = history.slice(0, 16);
+   }
+   localStorage.setItem('searchHistory', JSON.stringify(history));
+}
+</script>
 </body>
 </html>

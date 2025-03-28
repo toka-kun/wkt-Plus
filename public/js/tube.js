@@ -8,9 +8,6 @@ $(function () {
                     data: { keyword: searchTerm },
                     success: function (data) {
                         response(data.length > 0 ? data : getSearchHistory());
-                    },
-                    error: function () {
-                        response(getSearchHistory());
                     }
                 });
             } else {
@@ -29,6 +26,11 @@ $(function () {
         return history;
     }
     $('#searchbox').on('focus', function () {
-        $(this).autocomplete('search', '');
+        const q = document.getElementById('searchbox').value;
+        if(q){
+          $(this).autocomplete('search', q);
+        }else{
+          $(this).autocomplete('search', '');
+        }
     });
 });
