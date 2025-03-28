@@ -209,9 +209,12 @@ document.getElementById("searchForm").addEventListener("submit", function(event)
 });
 
 window.addEventListener("load", function() {
-    if (!localStorage.getItem('homec')) {
+    const hometut = localStorage.getItem('homec');
+    if (!hometut) {
       showMessage("ようこそ！もし何か知りたい場合<a href='/blog/b/wkthelp' style='color: #60a5fa;'>ヘルプページ</a>を見てみて下さい。");
       localStorage.setItem('homec', 'true');
+    } else if(hometut === "true"){
+      showMessage("このサイトは誰でも作ることができます！詳しくは<a href='/blog/b/wkthelp' style='color: #60a5fa;'>わかめtubeを作ってみる</a>を見てみて下さい！");
     }
 });
 

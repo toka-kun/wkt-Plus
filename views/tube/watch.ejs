@@ -822,8 +822,7 @@ window.addEventListener("load", function() {
     const tutorialok = localStorage.getItem('tutorialCompleted');
     if (!tutorialok) {
       showTutorial();
-    }
-    if (tutorialok === "true"){
+    } else if (tutorialok === "true"){
       showMessage("ヒント:<br>右側のコントロールボタンから画質を変更できます！");
       localStorage.setItem('tutorialCompleted', 'ok');
     }
