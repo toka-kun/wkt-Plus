@@ -9,11 +9,11 @@
 <body class="bg-gray-900 text-white flex flex-col items-center">
 <header class="p-4 w-full flex justify-between items-center bg-gray-800 shadow-lg">
     <h1 class="text-xl font-bold">⭐ お気に入り曲</h1>
-    <button onclick="window.location.href='/'" class="p-3 bg-blue-600 rounded-lg hover:bg-blue-500 transition">🏠 ホーム</button>
+    <button onclick="window.location.href='/wakams'" class="p-3 bg-blue-600 rounded-lg hover:bg-blue-500 transition">🏠 ホーム</button>
 </header>
 
 <main id="favorites-list" class="p-4 w-full max-w-2xl flex flex-col gap-4">
-    <p class="text-center text-gray-400">お気に入りの曲を読み込んでいます...</p>
+    <p class="text-center text-gray-400">お気に入りの曲はまだないみたいです🪧</p>
 </main>
 
 <div id="player-container" class="fixed bottom-0 left-0 w-full bg-gray-800 p-4 hidden flex items-center gap-4 shadow-lg">
@@ -79,7 +79,10 @@
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
         const index = favorites.findIndex(track => track.id === trackId);
         if (index !== -1) {
+            if (confirm("本当にお気に入りを解除しますか？")) {
             favorites.splice(index, 1);
+            showMessage("1件のお気に入りを解除しました");
+            }
         } else {
             favorites.push({ id: trackId, artwork_url: '', title: 'Unknown' });
         }
@@ -88,6 +91,29 @@
     }
 
     loadFavorites();
+  
+function showMessage(text) {
+    const alertMessage = document.createElement('div');
+    alertMessage.classList.add(
+        'fixed', 'top-4', 'right-4', 'bg-gradient-to-r', 
+        'from-gray-800', 'to-gray-600', 'text-white', 
+        'p-5', 'rounded-lg', 'shadow-xl', 'opacity-90', 
+        'z-50', 'transform', 'scale-90', 'transition-transform', 
+        'border-2', 'border-indigo-500'
+    );
+    alertMessage.innerHTML = `
+        <span class="font-semibold">ℹ︎</span> <span>${text}</span>
+    `;
+    document.body.appendChild(alertMessage);
+    setTimeout(() => {
+        alertMessage.style.transform = 'translateX(0) scale(1)';
+    }, 0);
+    setTimeout(() => {
+        alertMessage.style.opacity = '0';
+        alertMessage.style.transform = 'translateX(100%) scale(1.1)';
+        setTimeout(() => alertMessage.remove(), 1000);
+    }, 3500);
+}
 </script>
 </body>
 </html>

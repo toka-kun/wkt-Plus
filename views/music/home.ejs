@@ -8,7 +8,7 @@
 </head>
 <body class="bg-gray-900 text-white flex flex-col items-center">
 <header class="p-4 w-full flex justify-between items-center bg-gray-800 shadow-lg">
-    <form action="/wakamc" method="get" class="flex gap-2 w-full max-w-lg">
+    <form action="/wakams/s" method="get" class="flex gap-2 w-full max-w-lg">
         <input type="text" name="q" placeholder="曲を探す" required value="<%= query %>" class="p-2 rounded bg-gray-700 text-white w-full">
         <button type="submit" class="p-2 bg-blue-600 rounded hover:bg-blue-500 transition">🔍</button>
     </form>
@@ -27,15 +27,19 @@
                     </div>
                     <div class="flex gap-2">
                         <button class="play-btn p-3 bg-gray-500 hover:bg-gray-400 rounded-lg transition text-white text-xl" data-track-id="<%= track.id %>"><img src="https://cdn.glitch.global/44a02c72-aa32-4a7b-bb98-801035391fbc/IMG_3047.png?v=1743129550178" class="w-6 h-6"></button>
-                        <button class="play-btn bg-green-500 p-2 rounded hover:bg-green-400 transition text-white" data-track-id="<%= track.id %>" onclick="toggleFavorite('<%= track.artwork_url %>', '<%= track.title %>', '<%= track.id %>')">
-                            <img src="${isFavorite(<%= track.id %>) ? 'https://cdn.glitch.global/44a02c72-aa32-4a7b-bb98-801035391fbc/IMG_3046.png?v=1743129355035' : 'https://cdn.glitch.global/44a02c72-aa32-4a7b-bb98-801035391fbc/IMG_3045.png?v=1743129356031'}" alt="Favorite" class="w-6 h-6">
+                        <button class="play-btn p-2 rounded transition text-white" data-track-id="<%= track.id %>" onclick="toggleFavorite('<%= track.artwork_url %>', '<%= track.title %>', '<%= track.id %>')">
+                            ❤️
                         </button>
                     </div>
                 </div>
             <% }) %>
         </div>
     <% } else { %>
+      <% if (query && query.length > 0) { %>
         <p class="text-center text-gray-400">曲が見つかりません。</p>
+      <% } else { %>
+        <p class="text-center text-gray-400">まずは検索してみましょう。</p>
+      <% } %>
     <% } %>
 </main>
       
