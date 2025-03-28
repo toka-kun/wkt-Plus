@@ -99,7 +99,7 @@ router.get('/get/:Url', async (req, res) => {
       }
       const replacedAbsoluteUrl = absoluteUrl.replace(/\./g, '.wakame02.');
       const encoded = encodeURIComponent(replacedAbsoluteUrl);
-      return `<a ${beforeHref}href="/tool/html/get/${encoded}"${afterHref}>${innerText}</a>`;
+      return `<a ${beforeHref}href="/tools/html/get/${encoded}"${afterHref}>${innerText}</a>`;
     });
     res.send(html);
     } catch (error) {
