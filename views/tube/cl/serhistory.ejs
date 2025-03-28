@@ -5,60 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>検索履歴</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
+    <style>
+        body { background-color: #1a202c; color: white; }
+    </style>
 </head>
-<body class="bg-gray-900 text-white">
-    <header class="bg-gray-800 p-4 flex justify-between items-center">
-            <form action="/wkt/s" method="get" class="w-1/2" id="searchForm">
-              <input type="text" name="q" id="searchbox" placeholder="検索" class="searchbox w-full p-2 rounded bg-gray-700 text-white">
-            </form>
-        <nav class="space-x-4">
-            <a href="/wkt" class="text-gray-300 hover:text-white">ホーム</a>
-            <a href="/wkt/trend" class="text-gray-300 hover:text-white">トレンド</a>
-            <a href="/wkt/cl/history" class="text-gray-300 hover:text-white">履歴</a>
-        </nav>
-    </header>
-    <div class="container mx-auto p-4 mt-4 relative">
-        <h1 class="text-2xl font-bold mb-4">検索履歴</h1>
-        <ul id="historyList" class="space-y-2"></ul>
-        <button id="clearAll" class="mt-4 bg-red-500 hover:bg-red-700 text-white px-4 py-2 rounded">全削除</button>
+<body class="p-6 flex justify-center items-center min-h-screen">
+    <div class="w-full max-w-4xl bg-gray-800 p-6 rounded-lg shadow-lg">
+        <h2 class="text-3xl font-bold mb-6 text-center">検索履歴</h2>
+        
+        <div class="mb-6 flex items-center justify-between bg-gray-700 p-4 rounded">
+            <span class="text-lg">再生履歴をサジェストに表示</span>
+            <label class="flex items-center">
+                <input type="checkbox" id="historySuggest" class="mr-2 w-5 h-5">
+            </label>
+        </div>
+        
+        <ul id="historyList" class="space-y-4 max-h-80 overflow-y-auto p-2"></ul>
+        
+        <button id="clearHistory" class="mt-6 bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 w-full text-lg">
+            履歴を全て削除
+        </button>
     </div>
-    
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const historyList = document.getElementById("historyList");
-            const clearAllButton = document.getElementById("clearAll");
-            let searchHistory = JSON.parse(localStorage.getItem("searchHistory")) || [];
 
-            function renderHistory() {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const historyList = document.getElementById("historyList");
+            const clearHistoryBtn = document.getElementById("clearHistory");
+            const historySuggest = document.getElementById("historySuggest");
+            
+            function loadHistory() {
                 historyList.innerHTML = "";
+                const searchHistory = JSON.parse(localStorage.getItem("searchHistory")) || [];
                 searchHistory.forEach((query, index) => {
                     const li = document.createElement("li");
-                    li.classList.add("flex", "justify-between", "bg-gray-800", "p-2", "rounded");
+                    li.className = "flex justify-between items-center bg-gray-700 p-3 rounded text-lg";
                     li.innerHTML = `
-                        <span>⠀${query}</span>
-                        <button class="bg-red-500 text-white px-2 py-1 rounded delete-btn" data-index="${index}">削除</button>
+                        <span class="truncate w-full">${query}</span>
+                        <button onclick="deleteHistory(${index})" class="text-red-400 hover:text-red-600 text-xl">×</button>
                     `;
                     historyList.appendChild(li);
                 });
             }
-
-            historyList.addEventListener("click", (event) => {
-                if (event.target.classList.contains("delete-btn")) {
-                    const index = event.target.dataset.index;
-                    searchHistory.splice(index, 1);
-                    localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
-                    renderHistory();
-                }
-            });
-
-            clearAllButton.addEventListener("click", () => {
-                searchHistory = [];
+            
+            function deleteHistory(index) {
+                let searchHistory = JSON.parse(localStorage.getItem("searchHistory")) || [];
+                searchHistory.splice(index, 1);
+                localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
+                loadHistory();
+            }
+            
+            clearHistoryBtn.addEventListener("click", function () {
                 localStorage.removeItem("searchHistory");
-                renderHistory();
+                loadHistory();
             });
-
-            renderHistory();
+            
+            historySuggest.checked = localStorage.getItem("historySuggest") === "true";
+            historySuggest.addEventListener("change", function () {
+                localStorage.setItem("historySuggest", historySuggest.checked);
+            });
+            
+            loadHistory();
         });
     </script>
 </body>
