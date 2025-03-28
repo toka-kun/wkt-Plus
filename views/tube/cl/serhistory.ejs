@@ -58,7 +58,7 @@
                     const div = document.createElement("div");
                     div.className = "flex justify-between items-center bg-gray-700 p-4 rounded-lg shadow-md w-full";
                     div.innerHTML = `
-                        <span class="truncate flex-1">${query}</span>
+                        <span class="truncate flex-1"><a href="/wkt/s?q=${query}">${query}</a></span>
                         <button class="text-red-400 hover:text-red-600 text-xl" data-index="${index}">×</button>
                     `;
                     historyList.appendChild(div);
