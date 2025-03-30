@@ -154,8 +154,8 @@
                     <p class="text-sm text-gray-400"><%= videoInfo.secondary_info.owner.subscriber_count.text || "" %></p>
                 </div>
                   <button id="favoriteBtn" class="ml-auto p-2 rounded-full bg-gray-700 hover:bg-gray-600">
-    ❤️
-  </button>
+                      <img id="favoriteIcon" src="https://cdn.glitch.global/44a02c72-aa32-4a7b-bb98-801035391fbc/IMG_3045.png" alt="お気に入り" class="w-8 h-8">
+                  </button>
             </div>
 
     <div class="mt-4 p-4 bg-gray-800 rounded">
@@ -357,6 +357,17 @@
     <button id="expandSidebar" class="expand-sidebar-btn">◀ サイドバーを開く</button>
           
 <script>
+//お気に入り読み込み
+function checkfav() {
+    const favBtn = document.getElementById("favoriteBtn");
+    const favIcon = document.getElementById("favoriteIcon");
+    let favorites = getFavoritesFromLocalStorage();
+    let isFavorited = favorites.some(track => track.videoId === "<%= videoId %>");
+    favIcon.src = isFavorited ? "https://cdn.glitch.global/44a02c72-aa32-4a7b-bb98-801035391fbc/IMG_3046.png" : "https://cdn.glitch.global/44a02c72-aa32-4a7b-bb98-801035391fbc/IMG_3045.png";
+}
+checkfav()
+  
+  
 // コメント
 const commentContainers = [document.getElementById("commentsList1"), document.getElementById("commentsList2")];
 const errorContainers = [document.getElementById("commentError1"), document.getElementById("commentError2")];
