@@ -72,21 +72,52 @@ function displayHistory() {
     } else {
         noHistoryMsg.classList.add("hidden");
     }
-    history.forEach(video => {
+    history.forEach((video, index) => {
         const item = document.createElement("div");
-        item.className = "result-item w-auto bg-gray-800 p-4 rounded";
+        item.className = "result-item w-auto bg-gray-800 p-4 rounded relative";
         item.innerHTML = `
             <a href="/wkt/watch/${video.videoId}" class="thumbnail">
                 <img loading="lazy" src="/wkt/back/vi/${video.videoId}/mqdefault.jpg" alt="${video.videoTitle}" class="w-full h-auto rounded">
             </a>
-            <div class="mt-2 flex items-center">
+            <div class="mt-2 flex items-center justify-between">
                 <a href="/wkt/c/${video.channelId}" class="flex items-center">
                     <p class="text-sm text-gray-400">${video.channelName}</p>
                 </a>
+                <button class="menu-btn text-white" data-index="${index}">︙</button>
             </div>
             <p class="text-lg font-bold">${video.videoTitle}</p>
+            <div class="menu hidden absolute bg-gray-700 text-white p-2 rounded shadow-lg right-0 mt-2">
+                <button class="delete-btn block w-full text-left p-1 hover:bg-gray-600" data-index="${index}">この履歴を削除</button>
+                <button class="move-top-btn block w-full text-left p-1 hover:bg-gray-600" data-index="${index}">これを一番上に移動</button>
+            </div>
         `;
         historyList.appendChild(item);
+    });
+
+    document.querySelectorAll(".menu-btn").forEach(btn => {
+        btn.addEventListener("click", function(event) {
+            event.stopPropagation();
+            document.querySelectorAll(".menu").forEach(menu => menu.classList.add("hidden"));
+            this.nextElementSibling.classList.toggle("hidden");
+        });
+    });
+
+    document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.addEventListener("click", function() {
+            const index = this.dataset.index;
+            removeHistoryItem(index);
+        });
+    });
+
+    document.querySelectorAll(".move-top-btn").forEach(btn => {
+        btn.addEventListener("click", function() {
+            const index = this.dataset.index;
+            moveHistoryToTop(index);
+        });
+    });
+
+    document.addEventListener("click", () => {
+        document.querySelectorAll(".menu").forEach(menu => menu.classList.add("hidden"));
     });
 }
 
@@ -96,6 +127,21 @@ function clearHistory() {
     showerrorMessage("履歴を削除しました");
     displayHistory();
   }
+}
+
+function removeHistoryItem(index) {
+    let history = getHistoryFromLocalStorage();
+    history.splice(index, 1);
+    localStorage.setItem("wakametubehistory", JSON.stringify(history));
+    displayHistory();
+}
+
+function moveHistoryToTop(index) {
+    let history = getHistoryFromLocalStorage();
+    const [selectedItem] = history.splice(index, 1);
+    history.unshift(selectedItem);
+    localStorage.setItem("wakametubehistory", JSON.stringify(history));
+    displayHistory();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
