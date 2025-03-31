@@ -1,4 +1,3 @@
-"use strict";
 let client = null;
 const ytpl = require("ytpl");
 
