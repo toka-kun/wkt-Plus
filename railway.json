@@ -1,0 +1,10 @@
+{
+  "build": {
+    "env": {
+      "NODE_VERSION": "20"
+    }
+  },
+  "start": {
+    "command": "node server.js"
+  }
+}
