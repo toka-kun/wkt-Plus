@@ -1,18 +1,4 @@
 "use strict";
-const cluster = require("cluster");
-const os = require("os");
-if (!process.env.NO_CLUSTERS && cluster.isPrimary) {
-  const numClusters = process.env.CLUSTERS || (os.availableParallelism ? os.availableParallelism() : (os.cpus().length || 2))
-  console.log(`Primary ${process.pid} is running.${numClusters} clusters.`);
-  for (let i = 0; i < numClusters; i++) {
-    cluster.fork();
-  }
-  cluster.on('exit', (worker, code, signal) => {
-    console.log(`Worker ${worker.process.pid} died.`);
-    cluster.fork();
-  });
-} else {
-
 const express = require("express");
 const path = require("path");
 const compression = require("compression");
@@ -96,4 +82,3 @@ initInnerTube();
 const listener = app.listen(process.env.PORT || 3000, () => {
 	console.log("listening on port", listener.address().port);
 });
-}
