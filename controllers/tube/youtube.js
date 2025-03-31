@@ -4,7 +4,7 @@ const express = require("express");
 const router = express.Router();
 const path = require("path");
 const http = require('http');
-const serverYt = require("/app/server/youtube.js");
+const serverYt = require("../../server/youtube.js");
 
 router.get('/edu/:id', async (req, res) => {
   const videoId = req.params.id;
