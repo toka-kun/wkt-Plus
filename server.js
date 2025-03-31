@@ -85,9 +85,6 @@ async function initInnerTube() {
   try {
     client = await YouTubeJS.Innertube.create({ lang: "ja", location: "JP"});
     serverYt.setClient(client);
-    const listener = app.listen(process.env.PORT || 3000, () => {
-      console.log(process.pid, "Ready.", listener.address().port);
-    });
   } catch (e) {
     console.error(e);
     setTimeout(initInnerTube, 10000);
@@ -96,4 +93,7 @@ async function initInnerTube() {
 process.on("unhandledRejection", console.error);
 initInnerTube();
 
+const listener = app.listen(process.env.PORT || 3000, () => {
+	console.log("listening on port", listener.address().port);
+});
 }
