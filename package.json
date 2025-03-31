@@ -1,5 +1,5 @@
 {
-  "name": "わかめtube",
+  "name": "wakametube",
   "version": "1.0.8",
   "main": "server.js",
   "license": "CC-BY-4.0",
@@ -17,7 +17,7 @@
     "miniget": "^4.2.3",
     "cors": "^2.8.5"
   },
-  "description": "わかめ",
+  "description": "wakame",
   "engines": {
     "node": "20.x"
   },
