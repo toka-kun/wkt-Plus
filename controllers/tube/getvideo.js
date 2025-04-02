@@ -1,4 +1,3 @@
-const { fetch } = require('undici');
 const express = require("express");
 const router = express.Router();
 const path = require("path");
@@ -45,9 +44,8 @@ router.get('/:id', async (req, res) => {
       if(server == "direct"){
         videoData = await wakamess.getYouTube(videoId);
       }else{
-        const response = await fetch(`${baseUrl}/api/${videoId}`);
-        if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-        videoData = await response.json();
+        const response = await axios.get(`${baseUrl}/api/${videoId}`);
+        videoData = await response.data;
       }
       const videoInfo = await serverYt.infoGet(videoId);
       res.render('tube/watch.ejs', { videoData, videoInfo, videoId, baseUrl });
