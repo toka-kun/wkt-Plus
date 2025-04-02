@@ -19,7 +19,7 @@ router.get("/s", async (req, res) => {
 	let page = Number(req.query.p || 1);
     try {
 		res.render("tube/search.ejs", {
-			res: await serverYt.search(query, limit, page),
+			res: await serverYt.search(query),
 			query: query,
 			page
 		});
