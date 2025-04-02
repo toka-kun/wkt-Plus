@@ -25,14 +25,10 @@ router.get("/s", async (req, res) => {
 		});
 	} catch (error) {
 		console.error(error);
-		try {
-			res.status(500).render("error.ejs", {
-				title: "ytsr Error",
-				content: error
-			});
-		} catch (error) {
-			console.error(error);
-		}
+		res.status(500).render("error.ejs", {
+			title: "youtube.js Error",
+			content: error
+		});
 	}
 });
 
@@ -47,14 +43,10 @@ router.get("/ss", async (req, res) => {
 		});
 	} catch (error) {
 		console.error(error);
-		try {
-			res.status(500).render("error.ejs", {
-				title: "ytsr Error",
-				content: error
-			});
-		} catch (error) {
-			console.error(error);
-		}
+		res.status(500).render("error.ejs", {
+			title: "ytsr Error",
+			content: error
+		});
 	}
 });
 
