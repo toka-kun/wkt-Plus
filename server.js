@@ -18,6 +18,18 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 app.set("trust proxy", 1);
 
+async function initInnerTube(callback) {
+  try {
+    client = await YouTubeJS.Innertube.create({ lang: "ja", location: "JP" });
+    serverYt.setClient(client);
+    callback();
+  } catch (e) {
+    console.error(e);
+    setTimeout(() => initInnerTube(callback), 10000);
+  }
+}
+initInnerTube();
+
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Server listening on port", listener.address().port);
 });
@@ -29,20 +41,7 @@ app.use((req, res) => {
   });
 });
 
-async function initInnerTube(callback) {
-  try {
-    client = await YouTubeJS.Innertube.create({ lang: "ja", location: "JP" });
-    serverYt.setClient(client);
-    callback();
-  } catch (e) {
-    console.error(e);
-    setTimeout(() => initInnerTube(callback), 10000);
-  }
-}
-
-initInnerTube(() => {
-  setupRoutes();
-});
+setupRoutes();
 
 function setupRoutes() {
 app.get('/', (req, res) => {
