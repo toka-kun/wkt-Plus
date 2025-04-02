@@ -1,5 +1,4 @@
 const axios = require('axios');
-const { fetch } = require('undici');
 const bodyParser = require('body-parser');
 
 let apis = null;
@@ -8,9 +7,8 @@ const MAX_TIME = 10000;
 
 async function getapis() {
     try {
-        const response = await fetch('https://wtserver.glitch.me/apis');
-        if (!response.ok) throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
-        apis = await response.json();
+        const response = await axios.get('https://wtserver.glitch.me/apis');
+        apis = await response.data;
         console.log('データを取得しました:', apis);
     } catch (error) {
         console.error('データの取得に失敗しました:', error);
