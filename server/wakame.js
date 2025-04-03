@@ -1,7 +1,41 @@
 const axios = require('axios');
 const bodyParser = require('body-parser');
 
-let apis = null;
+let apis = [
+  "https://lekker.gay",
+  "https://pol1.iv.ggtyler.dev",
+  "https://invidious.f5.si",
+  "https://cal1.iv.ggtyler.dev",
+  "https://invidious.lunivers.trade",
+  "https://invidious.reallyaweso.me",
+  "https://invidious.dhusch.de",
+  "https://yewtu.be",
+  "https://nyc1.iv.ggtyler.dev",
+  "https://usa-proxy2.poketube.fun",
+  "https://id.420129.xyz",
+  "https://invidious.materialio.us",
+  "https://eu-proxy.poketube.fun",
+  "https://iv.melmac.space",
+  "https://invidious.darkness.service",
+  "https://iv.datura.network",
+  "https://invidious.jing.rocks",
+  "https://invidious.private.coffee",
+  "https://youtube.mosesmang.com",
+  "https://invidious.projectsegfau.lt",
+  "https://invidious.perennialte.ch",
+  "https://invidious.einfachzocken.eu",
+  "https://invidious.adminforge.de",
+  "https://yt.artemislena.eu",
+  "https://iv.duti.dev",
+  "https://invid-api.poketube.fun",
+  "https://inv.nadeko.net",
+  "https://invidious.schenkel.eti.br",
+  "https://invidious.esmailelbob.xyz",
+  "https://invidious.0011.lt",
+  "https://invidious.ducks.party",
+  "https://invidious.privacyredirect.com",
+  "https://youtube.privacyplz.org",
+]; 
 const MAX_API_WAIT_TIME = 3000; 
 const MAX_TIME = 10000;
 
