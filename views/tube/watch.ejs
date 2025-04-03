@@ -885,7 +885,7 @@ window.addEventListener("load", function() {
       localStorage.setItem('tutorialCompleted', 'ok');
     }
     if ("<%= baseUrl.replace('https://', '').replace('.glitch.me', '') %>" === "directk") {
-      showerrorMessage("このサイトに高い負荷がかかっていてリクエストがキャンセルされたため、自動的にdirectサーバーを使用しました。")
+      showerrorMessage("現在、このサイトに高い負荷がかかっていてサーバーへのリクエストがキャンセルされたため、自動的にdirectサーバーを使用しました。")
     }
     saveToHistory(videoId, channelId, channelName, videoTitle);
 });
@@ -1025,7 +1025,7 @@ function showerrorMessage(text) {
         alertMessage.style.opacity = '0';
         alertMessage.style.transform = 'translateX(100%) scale(1.1)';
         setTimeout(() => alertMessage.remove(), 1000);
-    }, 4000);
+    }, 3500);
 }
 </script>
 </body>
