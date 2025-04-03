@@ -47,11 +47,17 @@ router.get('/:id', async (req, res) => {
       if(server == "direct"){
         videoData = await wakamess.getYouTube(videoId);
       }else{
-        const response = await axios.get(`${baseUrl}/api/${videoId}`, {
-           headers: {
-               'User-Agent': user_agent
-           }});
-        videoData = await response.data;
+	try{
+         const response = await axios.get(`${baseUrl}/api/${videoId}`, {
+            headers: {
+                'User-Agent': user_agent
+            }});
+         videoData = await response.data;
+	} catch (nestedError) {
+         console.log(nestedError.message);
+	 baseUrl = `https://directk.glitch.me`;
+         videoData = await wakamess.getYouTube(videoId);
+        }
       }
       const videoInfo = await serverYt.infoGet(videoId);
       res.render('tube/watch.ejs', { videoData, videoInfo, videoId, baseUrl });
