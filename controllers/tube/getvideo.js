@@ -6,6 +6,8 @@ const http = require('http');
 const serverYt = require("../../server/youtube.js");
 const wakamess = require("../../server/wakame.js");
 
+const user_agent = process.env.USER_AGENT || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36";
+
 router.get('/:id', async (req, res) => {
     const videoId = req.params.id;
     const cookies = parseCookies(req);
@@ -18,8 +20,8 @@ router.get('/:id', async (req, res) => {
     }
     let server = req.query.server || '0';
     const serverUrls = [
-	      'https://watawata8.glitch.me',
-	      'https://watawata37.glitch.me',
+	'https://watawata8.glitch.me',
+	'https://watawata37.glitch.me',
         'https://watawatawata.glitch.me',
         'https://manawa.glitch.me',
         'https://wakeupe.glitch.me',
@@ -45,7 +47,10 @@ router.get('/:id', async (req, res) => {
       if(server == "direct"){
         videoData = await wakamess.getYouTube(videoId);
       }else{
-        const response = await axios.get(`${baseUrl}/api/${videoId}`);
+        const response = await axios.get(`${baseUrl}/api/${videoId}`, {
+           headers: {
+               'User-Agent': user_agent
+           }});
         videoData = await response.data;
       }
       const videoInfo = await serverYt.infoGet(videoId);
