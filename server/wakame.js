@@ -1,47 +1,23 @@
 const axios = require('axios');
 const bodyParser = require('body-parser');
 
-let apis = [
-  "https://lekker.gay",
-  "https://pol1.iv.ggtyler.dev",
-  "https://cal1.iv.ggtyler.dev",
-  "https://nyc1.iv.ggtyler.dev",
-  "https://invidious.f5.si",
-  "https://invidious.dhusch.de",
-  "https://invidious.lunivers.trade",
-  "https://eu-proxy.poketube.fun",
-  "https://invidious.reallyaweso.me",
-  "https://yewtu.be",
-  "https://usa-proxy2.poketube.fun",
-  "https://id.420129.xyz",
-  "https://invidious.materialio.us",
-  "https://iv.melmac.space",
-  "https://invidious.darkness.service",
-  "https://iv.datura.network",
-  "https://invidious.jing.rocks",
-  "https://invidious.private.coffee",
-  "https://youtube.mosesmang.com",
-  "https://invidious.projectsegfau.lt",
-  "https://invidious.perennialte.ch",
-  "https://invidious.einfachzocken.eu",
-  "https://invidious.adminforge.de",
-  "https://iv.duti.dev",
-  "https://invid-api.poketube.fun",
-  "https://inv.nadeko.net",
-  "https://invidious.schenkel.eti.br",
-  "https://invidious.esmailelbob.xyz",
-  "https://invidious.0011.lt",
-  "https://invidious.ducks.party",
-  "https://invidious.privacyredirect.com",
-  "https://youtube.privacyplz.org",
-  "https://yt.artemislena.eu",
-]; 
+let apis = null;
 const MAX_API_WAIT_TIME = 3000; 
 const MAX_TIME = 10000;
 
 async function getapis() {
     try {
         const response = await axios.get('https://wtserver.glitch.me/apis');
+        apis = await response.data;
+        console.log('データを取得しました:', apis);
+    } catch (error) {
+        console.error('データの取得に失敗しました:', error);
+    }
+}
+
+async function getapisgit() {
+    try {
+        const response = await axios.get('https://raw.githubusercontent.com/wakame02/wktopu/refs/heads/main/inv.json');
         apis = await response.data;
         console.log('データを取得しました:', apis);
     } catch (error) {
@@ -58,7 +34,7 @@ async function ggvideo(videoId) {
     }
   }
   if(!apis){
-    await getapis();
+    await getapisgit();
   }
   for (const instance of apis) {
     try {
