@@ -27,15 +27,17 @@ router.get('/:id', async (req, res) => {
         'https://wakeupe.glitch.me',
         'https://hortensia.glitch.me',
         'https://wata27.glitch.me',
-        'https://wakameme.glitch.me'
+        'https://wakameme.glitch.me',
+	'direct'
         ];
-    if (wakames == "direct") {
-        server = "direct";
-    }
     let baseUrl;
     if (server == "0") {
-        const randomIndex = Math.floor(Math.random() * serverUrls.length);
-        baseUrl = serverUrls[randomIndex];
+	if (wakames == "direct") {
+           server = "direct";
+        } else {
+           const randomIndex = Math.floor(Math.random() * serverUrls.length);
+           baseUrl = serverUrls[randomIndex];
+	}
     } else {
         baseUrl = `https://${server}.glitch.me`;
     }
@@ -44,7 +46,7 @@ router.get('/:id', async (req, res) => {
     }
     try {
       let videoData;
-      if(server == "direct"){
+      if (server === "direct" || baseUrl === "direct") {
         videoData = await wakamess.getYouTube(videoId);
       }else{
 	try{
