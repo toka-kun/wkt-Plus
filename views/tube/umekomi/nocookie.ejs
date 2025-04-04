@@ -18,6 +18,7 @@
                 document.getElementById("sidebar").classList.add("hidden");
                 document.getElementById("videoContainer").classList.add("full");
                 document.getElementById("expandSidebar").classList.add("visible");
+                document.getElementById("related-sidenone").classList.add("hidden");
             }
         });
     </script>
@@ -59,6 +60,12 @@
         }
         .sidebar.hidden {
             transform: translateX(100%);
+        }
+        .related-sidenone {
+            display: none;
+        }
+        .related-sidenone.hidden {
+            display: block;
         }
         .expand-sidebar-btn {
             position: fixed;
@@ -186,6 +193,53 @@
                 </div>
 
                <button id="retryButton" class="w-full bg-gray-700 py-2 rounded mt-2 hidden">再取得</button>
+            </div>
+
+            <div class="related-sidenone mt-4 p-4 bg-gray-800 rounded" id="related-sidenone">
+            <h3 class="text-lg font-bold">関連動画</h3><br>
+<% if (videoInfo.watch_next_feed && videoInfo.watch_next_feed.length > 0) { %>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <% videoInfo.watch_next_feed.forEach(video => { %>
+              <% if (video.type.endsWith("Video")) { %>
+                <div class="result-item w-auto h-auto bg-gray-700 p-5 rounded">
+                    <a href="/wkt/watch/<%= video.id %>" class="thumbnail">
+                        <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title.text %>" class="w-full h-auto rounded">
+                        <span class="video-duration"><%= video.duration.text %></span>
+                    </a>
+                    <div class="mt-2 flex items-center">
+                        <a href="/wkt/c/<%= video.author.id %>" class="flex items-center">
+                            <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="アイコン" class="w-8 h-8 rounded-full mr-2">
+                            <p class="text-sm text-gray-400"><%= video.author.name %></p>
+                        </a>
+                    </div>
+                    <p class="text-lg font-bold"><%= video.title.text %></p>
+                    <p class="text-xs text-gray-500"><%= video.view_count?.text || video.short_view_count?.text %> - <%= video.published.text %></p>
+                </div>
+              <% } else if (video.type.endsWith("Playlist")) { %>
+                <div class="result-item bg-gray-600 p-4 rounded">
+                  <a href="/wkt/p/<%= video.id %>">
+                    <img src="/vi/<%= video?.endpoint?.payload?.videoId || video.first_videos[0]?.id %>/mqdefault.jpg" alt="<%= video.title.text %>" class="w-full h-auto rounded">
+                  </a>
+                    <div class="mt-2">
+                        <p class="text-sm text-gray-400"><a href="/wkt/u/<%= video.author.id %>"><%= video.author.name %></a></p>
+                        <p class="text-lg font-bold">プレイリスト(<%= video.video_count?.text %>本以上の動画)</p>
+                    </div>
+                </div>
+              <% } else if (video.type.endsWith("Channel")) { %>
+                <div class="result-item bg-gray-600 p-4 rounded">
+                  <a href="/wkt/c/<%= video.author.id %>">
+                    <img src="<%= video.author.thumbnails[0].url %>" alt="<%= video.author.name %>" class="w-full h-auto rounded">
+                  </a>
+                    <div class="mt-2">
+                        <p class="text-lg font-bold"><%= video.author.name %></p>
+                        <p class="text-sm text-gray-400"><%= video.description_snippet?.text %></p>
+                        <p class="text-xs text-gray-500"><%= video.subscriber_count?.text %> • <%= video.videos?.text || video.video_count?.text %></p>
+                    </div>
+                </div>
+              <% } %>
+            <% }); %>
+        </div>
+<% } %>
             </div>
         </div>
             
@@ -445,6 +499,7 @@ document.getElementById("hideSidebar").addEventListener("click", function() {
     document.getElementById("sidebar").classList.add("hidden");
     document.getElementById("videoContainer").classList.add("full");
     document.getElementById("expandSidebar").classList.add("visible");
+    document.getElementById("related-sidenone").classList.add("hidden");
     updateSidebarState(true);
 });
 
@@ -452,6 +507,7 @@ document.getElementById("expandSidebar").addEventListener("click", function() {
     document.getElementById("sidebar").classList.remove("hidden");
     document.getElementById("videoContainer").classList.remove("full");
     this.classList.remove("visible");
+    document.getElementById("related-sidenone").classList.remove("hidden");
     updateSidebarState(false);
 });
 
