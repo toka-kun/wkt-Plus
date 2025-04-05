@@ -547,6 +547,23 @@ video.addEventListener('error', function() {
     }, { once: true });
 });
 
+let readyZeroStart = null;
+let readyZerodone = null;
+setInterval(() => {
+  if (video.readyState === 0 && !readyZerodone) {
+    if (!readyZeroStart) {
+      readyZeroStart = Date.now();
+    } else if (Date.now() - readyZeroStart > 3000) {
+      showerrorMessage('動画読み込みエラー。自動的に再読み込みを行います。');
+      video.load();
+      readyZerodone = true
+      readyZeroStart = null;
+    }
+  } else {
+    readyZeroStart = null;
+  }
+}, 1000);
+
 document.addEventListener('DOMContentLoaded', function () {
     const loadingIndicator = document.querySelector('.loading-indicator');
     const showLoadingIndicator = () => {
