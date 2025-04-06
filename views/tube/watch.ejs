@@ -555,6 +555,9 @@ setInterval(() => {
       readyZeroStart = Date.now();
     } else if (Date.now() - readyZeroStart > 3000) {
       showerrorMessage('動画読み込みエラー。自動的に再読み込みを行います。');
+      videoSrc.src = "";
+      video.load();
+      videoSrc.src = "<%- videoData.stream_url %>";
       video.load();
       readyZerodone = true
       readyZeroStart = null;
