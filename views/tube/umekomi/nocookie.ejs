@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= videoInfo.primary_info.title.text %></title>
+    <title><%= videoInfo.title %></title>
     <link rel="stylesheet" href="/css/page.css">
     <script src="/js/tailwindcss.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
@@ -154,12 +154,12 @@
 　　　　　　</div>
         </div>
             <div class="flex items-center mt-4 p-4 bg-gray-800 rounded">
-              <a href ="/wkt/c/<%= videoInfo.secondary_info.owner.author.id %>">
-                <img src="<%= videoInfo.secondary_info.owner.author.thumbnails[0].url || '' %>" alt="アイコン" class="w-12 h-12 rounded-full">
+              <a href ="/wkt/c/<%= videoInfo.channelId %>">
+                <img src="<%= videoInfo.channelIcon %>" alt="アイコン" class="w-12 h-12 rounded-full">
               </a>
                 <div class="ml-4">
-                  <h2 class="text-lg font-bold"><a href ="/wkt/c/<%= videoInfo.secondary_info.owner.author.id %>"><%= videoInfo.secondary_info.owner.author.name %></a></h2>
-                    <p class="text-sm text-gray-400"><%= videoInfo.secondary_info.owner.subscriber_count.text || "" %></p>
+                  <h2 class="text-lg font-bold"><a href ="/wkt/c/<%= videoInfo.channelId %>"><%= videoInfo.channelName %></a></h2>
+                    <p class="text-sm text-gray-400"><%= videoInfo.channelSubsc %></p>
                 </div>
                   <button id="favoriteBtn" class="ml-auto p-2 rounded-full bg-gray-500">
                       <img id="favoriteIcon" src="https://cdn.glitch.global/44a02c72-aa32-4a7b-bb98-801035391fbc/IMG_3045.png" alt="お気に入り" class="w-8 h-8">
@@ -168,18 +168,18 @@
 
     <div class="mt-4 p-4 bg-gray-800 rounded">
       <div class="mt-2 text-gray-400 text-sm">
-          <p><%= videoInfo.primary_info.view_count.short_view_count?.text || videoInfo.primary_info.view_count.view_count?.text %>  ・  <%= videoInfo.primary_info.menu.top_level_buttons.short_like_count || videoInfo.primary_info.menu.top_level_buttons.like_count || videoInfo.basic_info.like_count %>いいね  ・  <%= videoInfo.primary_info.published %></p>
+          <p><%= videoInfo.viewCount %>  ・  <%= videoInfo.likeCount %>いいね  ・  <%= videoInfo.published %></p>
       </div>
     <div class="flex items-center justify-between">
         <h3 class="text-2xl font-bold"> 
-          <a href="#mainContainer"><%= videoInfo.primary_info.title.text %></a>
+          <a href="#mainContainer"><%= videoInfo.title %></a>
         </h3>
         <button class="ml-2 text-blue-500 hover:text-blue-300 text-sm" onclick="toggleDescription(this)">
             折りたたむ
         </button>
     </div>
     <div class="description mt-2">
-        <p class="text-base text-gray-300 mt-1"><%- (videoInfo.secondary_info.description.text || "").replace(/\n/g, "<br>") %></p>
+        <p class="text-base text-gray-300 mt-1"><%- (videoInfo.description || "").replace(/\n/g, "<br>") %></p>
     </div>
    </div>
               
@@ -531,9 +531,9 @@ $('#closeToolbar').click(() => $('#toolbar').removeClass('open'));
 
 // 履歴
 const videoId = "<%= videoId %>";
-const channelId = "<%= videoInfo.secondary_info.owner.author.id %>";
-const channelName = "<%= videoInfo.secondary_info.owner.author.name %>";
-const videoTitle = "<%= videoInfo.primary_info.title.text %>";
+const channelId = "<%= videoInfo.channelId %>";
+const channelName = "<%= videoInfo.channelName %>";
+const videoTitle = "<%= videoInfo.title %>";
 
 function saveToHistory(videoId, channelId, channelName, videoTitle) {
     let history = getHistoryFromLocalStorage();
