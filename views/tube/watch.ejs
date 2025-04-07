@@ -157,6 +157,7 @@
               <source id="videoSrc" src="<%- videoData.stream_url %>" type="video/mp4">
           </video>
         <audio id="audio" style="display: none;"></audio>
+        <button id="erroreloadButton" class="hidden absolute top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl shadow-lg hover:bg-blue-700 transition">🔄 動画を再読み込み</button>
         </div>
             <div class="flex items-center mt-4 p-4 bg-gray-800 rounded">
               <a href ="/wkt/c/<%= videoInfo.channelId %>">
@@ -547,26 +548,37 @@ video.addEventListener('error', function() {
     }, { once: true });
 });
 
-async function reloadVideo(){
-    await video.load();
-}
+const erroreloadButton = document.getElementById("erroreloadButton");
 
 let readyZeroStart = null;
-let readyZerodone = null;
+let readyZerodone = false;
 setInterval(() => {
   if (video.readyState === 0 && !readyZerodone) {
     if (!readyZeroStart) {
       readyZeroStart = Date.now();
     } else if (Date.now() - readyZeroStart > 3000) {
-      showerrorMessage('動画読み込みエラー。自動的に再読み込みを行います。<br>それでも再生できない場合、ツール欄にある「動画を再読み込み」ボタンを押して下さい。');
-　　　　reloadVideo();
-      readyZerodone = true
+      showerrorMessage('動画読み込みエラー。');
+      erroreloadButton.classList.remove("hidden");
+      video.load();
+      readyZerodone = true;
       readyZeroStart = null;
     }
   } else {
     readyZeroStart = null;
   }
 }, 1000);
+erroreloadButton.addEventListener("click", () => {
+  erroreloadButton.classList.add("hidden");
+  readyZerodone = false;
+  video.load();
+  video.play().catch(err => {
+    console.warn("再生に失敗しました:", err);
+  });
+});
+video.addEventListener("canplay", () => {
+  erroreloadButton.classList.add("hidden");
+  readyZerodone = false;
+});
 
 document.addEventListener('DOMContentLoaded', function () {
     const loadingIndicator = document.querySelector('.loading-indicator');
@@ -1062,24 +1074,63 @@ async function showPlaybackSettings(iframeurl, mode) {
 function showMessage(text) {
     const alertMessage = document.createElement('div');
     alertMessage.classList.add(
-        'fixed', 'top-4', 'right-4', 'bg-gradient-to-r', 
-        'from-gray-800', 'to-gray-600', 'text-white', 
-        'p-5', 'rounded-lg', 'shadow-xl', 'opacity-90', 
-        'z-50', 'transform', 'scale-90', 'transition-transform', 
-        'border-2', 'border-indigo-500'
+        'fixed', 'top-4', 'right-4', 'bg-gradient-to-r',
+        'from-gray-800', 'to-gray-600', 'text-white',
+        'p-5', 'rounded-lg', 'shadow-xl', 'opacity-90',
+        'z-50', 'transform', 'scale-100', 'transition-all',
+        'border-2', 'border-indigo-500', 'cursor-pointer'
     );
+    alertMessage.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
     alertMessage.innerHTML = `
-        <span class="font-semibold">ℹ︎</span> <span>${text}</span>
+        <div class="flex items-center justify-between space-x-4">
+            <span class="font-semibold">ℹ︎ ${text}</span>
+            <button class="text-white hover:text-gray-300 focus:outline-none text-xl font-bold" aria-label="閉じる">&times;</button>
+        </div>
     `;
     document.body.appendChild(alertMessage);
-    setTimeout(() => {
-        alertMessage.style.transform = 'translateX(0) scale(1)';
-    }, 0);
-    setTimeout(() => {
-        alertMessage.style.opacity = '0';
-        alertMessage.style.transform = 'translateX(100%) scale(1.1)';
-        setTimeout(() => alertMessage.remove(), 1000);
+    const closeButton = alertMessage.querySelector('button');
+    const autoRemoveTimer = setTimeout(() => {
+        hideMessage(alertMessage);
     }, 3500);
+    closeButton.addEventListener('click', () => {
+        clearTimeout(autoRemoveTimer);
+        hideMessage(alertMessage);
+    });
+    let startX = null;
+    let currentX = 0;
+    let moved = false;
+    alertMessage.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        moved = false;
+        alertMessage.style.transition = 'none';
+    });
+    alertMessage.addEventListener('touchmove', (e) => {
+        if (startX === null) return;
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - startX;
+        if (Math.abs(deltaX) > 5) moved = true;
+        currentX = deltaX;
+        alertMessage.style.transform = `translateX(${deltaX}px) scale(1)`;
+    });
+    alertMessage.addEventListener('touchend', () => {
+        alertMessage.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+        if (moved && Math.abs(currentX) > 100) {
+            alertMessage.style.opacity = '0';
+            alertMessage.style.transform = `translateX(${currentX > 0 ? 500 : -500}px) scale(0.95)`;
+            setTimeout(() => alertMessage.remove(), 300);
+        } else {
+            alertMessage.style.transform = 'translateX(0) scale(1)';
+        }
+        startX = null;
+        currentX = 0;
+        moved = false;
+    });
+}
+function hideMessage(elem) {
+    elem.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+    elem.style.opacity = '0';
+    elem.style.transform = 'translateX(100%) scale(1.1)';
+    setTimeout(() => elem.remove(), 300);
 }
 function showerrorMessage(text) {
     const alertMessage = document.createElement('div');
@@ -1091,17 +1142,49 @@ function showerrorMessage(text) {
         'border-2', 'border-red-500'
     );
     alertMessage.innerHTML = `
-        <span class="font-semibold">⚠︎</span> <span>${text}</span>
+        <div class="flex items-center justify-between space-x-4">
+            <span class="font-semibold">⚠︎ ${text}</span>
+            <button class="text-white hover:text-gray-300 focus:outline-none text-xl font-bold" aria-label="閉じる">&times;</button>
+        </div>
     `;
     document.body.appendChild(alertMessage);
-    setTimeout(() => {
-        alertMessage.style.transform = 'translateX(0) scale(1)';
-    }, 0);
-    setTimeout(() => {
-        alertMessage.style.opacity = '0';
-        alertMessage.style.transform = 'translateX(100%) scale(1.1)';
-        setTimeout(() => alertMessage.remove(), 1000);
+    const closeButton = alertMessage.querySelector('button');
+    const autoRemoveTimer = setTimeout(() => {
+        hideMessage(alertMessage);
     }, 3500);
+    closeButton.addEventListener('click', () => {
+        clearTimeout(autoRemoveTimer);
+        hideMessage(alertMessage);
+    });
+    let startX = null;
+    let currentX = 0;
+    let moved = false;
+    alertMessage.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        moved = false;
+        alertMessage.style.transition = 'none';
+    });
+    alertMessage.addEventListener('touchmove', (e) => {
+        if (startX === null) return;
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - startX;
+        if (Math.abs(deltaX) > 5) moved = true;
+        currentX = deltaX;
+        alertMessage.style.transform = `translateX(${deltaX}px) scale(1)`;
+    });
+    alertMessage.addEventListener('touchend', () => {
+        alertMessage.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+        if (moved && Math.abs(currentX) > 100) {
+            alertMessage.style.opacity = '0';
+            alertMessage.style.transform = `translateX(${currentX > 0 ? 500 : -500}px) scale(0.95)`;
+            setTimeout(() => alertMessage.remove(), 300);
+        } else {
+            alertMessage.style.transform = 'translateX(0) scale(1)';
+        }
+        startX = null;
+        currentX = 0;
+        moved = false;
+    });
 }
 </script>
 </body>
