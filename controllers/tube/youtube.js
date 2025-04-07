@@ -25,9 +25,21 @@ async function getYtInfo() {
 router.get('/edu/:id', async (req, res) => {
   const videoId = req.params.id;
   try {
-    const videoInfo = await serverYt.infoGet(videoId);
     const ytinfo = await getYtInfo();
     const videosrc = `https://www.youtubeeducation.com/embed/${videoId}${ytinfo}`;
+    const Info = await serverYt.infoGet(videoId);
+    const videoInfo = {
+      title: Info.primary_info.title.text || "",
+      channelId: Info.secondary_info.owner.author.id || "",
+      channelIcon: Info.secondary_info.owner.author.thumbnails[0].url || '',
+      channelName: Info.secondary_info.owner.author.name || "",
+      channelSubsc: Info.secondary_info.owner.subscriber_count.text || "",
+      published: Info.primary_info.published,
+      viewCount: Info.primary_info.view_count.short_view_count?.text || Info.primary_info.view_count.view_count?.text || "",
+      likeCount: Info.primary_info.menu.top_level_buttons.short_like_count || Info.primary_info.menu.top_level_buttons.like_count || Info.basic_info.like_count || "",
+      description: Info.secondary_info.description.text || "",
+      watch_next_feed: Info.watch_next_feed || "",
+    };
           
     res.render('tube/umekomi/edu.ejs', {videosrc, videoInfo, videoId});
   } catch (error) {
@@ -51,8 +63,20 @@ router.get('/edurl', async (req, res) => {
 router.get('/nocookie/:id', async (req, res) => {
   const videoId = req.params.id;
   try {
-    const videoInfo = await serverYt.infoGet(videoId);
     const videosrc = `https://www.youtube-nocookie.com/embed/${videoId}`;
+    const Info = await serverYt.infoGet(videoId);
+    const videoInfo = {
+      title: Info.primary_info.title.text || "",
+      channelId: Info.secondary_info.owner.author.id || "",
+      channelIcon: Info.secondary_info.owner.author.thumbnails[0].url || '',
+      channelName: Info.secondary_info.owner.author.name || "",
+      channelSubsc: Info.secondary_info.owner.subscriber_count.text || "",
+      published: Info.primary_info.published,
+      viewCount: Info.primary_info.view_count.short_view_count?.text || Info.primary_info.view_count.view_count?.text || "",
+      likeCount: Info.primary_info.menu.top_level_buttons.short_like_count || Info.primary_info.menu.top_level_buttons.like_count || Info.basic_info.like_count || "",
+      description: Info.secondary_info.description.text || "",
+      watch_next_feed: Info.watch_next_feed || "",
+    };
           
     res.render('tube/umekomi/nocookie.ejs', {videosrc, videoInfo, videoId});
   } catch (error) {
