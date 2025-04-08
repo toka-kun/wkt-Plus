@@ -55,7 +55,12 @@ router.get('/:id', async (req, res) => {
             headers: {
                 'User-Agent': user_agent
             }});
-         videoData = await response.data;
+	 if(response.data && response.data.stream_url){
+		 videoData = await response.data;
+	 }else{
+		 baseUrl = `https://directk.glitch.me`;
+                 videoData = await wakamess.getYouTube(videoId);
+	 }
 	} catch (nestedError) {
          console.log(nestedError.message);
 	 baseUrl = `https://directk.glitch.me`;
