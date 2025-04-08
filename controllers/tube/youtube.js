@@ -14,7 +14,9 @@ async function getYtInfo() {
   for (const url of urls) {
     try {
       const response = await axios.get(url);
-      return response.data;
+      if (response.data) {
+         return response.data;
+      }
     } catch (error) {
       console.log(`ytinfo ${url}: ${error.message}`);
     }
