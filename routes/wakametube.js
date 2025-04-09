@@ -16,19 +16,23 @@ router.get("/", (req, res) => {
 
 router.get("/s", async (req, res) => {
 	let query = req.query.q;
-	let page = Number(req.query.p || 2);
+	let page = Number(req.query.p || 1);
     try {
-		res.render("tube/opu/search.ejs", {
-			res: await ytsr(query, {limit, pages: page}),
+		res.render("tube/search.ejs", {
+			res: await serverYt.search(query, limit, page),
 			query: query,
 			page
 		});
 	} catch (error) {
 		console.error(error);
-		res.status(500).render("error.ejs", {
-			title: "ytsr Error",
-			content: error
-		});
+		try {
+			res.status(500).render("error.ejs", {
+				title: "ytsr Error",
+				content: error
+			});
+		} catch (error) {
+			console.error(error);
+		}
 	}
 });
 
