@@ -4,7 +4,7 @@
   "main": "server.js",
   "license": "CC-BY-4.0",
   "dependencies": {
-    "express": "^4.21.2",
+    "express": "^5.1.0",
     "compression": "^1.8.0",
     "ejs": "^3.1.10",
     "axios": "^1.8.1",
