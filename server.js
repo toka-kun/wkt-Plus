@@ -18,6 +18,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors());
 
+app.use((req, res, next) => {
+    if (req.cookies.loginok !== 'ok' && !req.path.includes('login') && !req.path.includes('api')) {
+        req.session.redirectTo = req.path !== '/' ? req.path : null;
+        return res.redirect('/login');
+    } else {
+        next();
+    }
+});
+
 app.get('/', (req, res) => {
   if (req.query.r === 'y') {
     res.render("home/index");
@@ -36,6 +45,10 @@ app.use("/tools", require("./routes/tools"));
 app.use("/pp", require("./routes/proxy"));
 app.use("/wakams", require("./routes/music"));
 app.use("/blog", require("./routes/blog"));
+
+app.get('/login', (req, res) => {
+    res.render('home/login');
+});
 
 app.get('/watch', (req, res) => {
   const videoId = req.query.v;
