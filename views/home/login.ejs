@@ -65,8 +65,8 @@
         </div>
         <p id="errorMsg" class="text-red-600 text-sm mt-4 hidden">コードが違います。再確認してください。</p>
         <div id="touchIdFake" class="hidden mt-6 text-center text-sm text-gray-500">
-          <p>生体認証システム確認中...</p>
-          <p>Touch ID を確認しています...</p>
+          <p>システム確認中...</p>
+          <p>アカウントを確認しています...</p>
         </div>
         <p class="text-xs text-gray-400 mt-8 text-center">© 2025 waitkame</p>
         <div class="mt-4 text-center">
@@ -119,7 +119,7 @@
           touchId.classList.remove("hidden");
           spinner.classList.add("hidden");
           setTimeout(() => {
-            document.cookie = "loginok=true; path=/; max-age=31536000";
+            document.cookie = "loginok=ok; path=/; max-age=31536000";
             document.getElementById("loginCard").classList.add("opacity-0");
             setTimeout(() => {
               window.location.href = "/wkt";
@@ -157,7 +157,7 @@
         } else {
           touchId.innerHTML = "<p>ログイン処理中...</p>";
           setTimeout(() => {
-            document.cookie = "loginok=true; path=/; max-age=31536000";
+            document.cookie = "loginok=ok; path=/; max-age=31536000";
             loginCard.classList.add("opacity-0");
             setTimeout(() => {
               window.location.href = "/wkt";
