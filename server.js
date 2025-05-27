@@ -21,7 +21,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 app.use((req, res, next) => {
-    if (req.cookies.loginok !== 'ok' && !req.path.includes('login') && !req.path.includes('back')) 
+    if (req.cookies.loginok !== 'ok' && !req.path.includes('login') && !req.path.includes('back')){ 
         return res.redirect('/login');
     } else {
         next();
