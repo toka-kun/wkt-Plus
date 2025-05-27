@@ -33,14 +33,22 @@ async function getComments(id) {
 }
 
 async function getChannel(id) {
+  let channel = null;
+  let recentVideos = null;
   try {
-    const channel = await client.getChannel(id);
-    const recentVideos = await ytpl(id, { pages: 1 });
-
-    return({channel, recentVideos});
-  } catch (error) {
+    channel = await client.getChannel(id);
+  } catch (err) {
+    console.error("channel取得失敗:", err);
+  }
+  try {
+    recentVideos = await ytpl(id, { pages: 1 });
+  } catch (err) {
+    console.error("recentVideos取得失敗:", err);
+  }
+  if (!channel && !recentVideos) {
     return null;
   }
+  return({channel, recentVideos});
 }
 
 module.exports = {
