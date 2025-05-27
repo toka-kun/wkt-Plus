@@ -7,6 +7,7 @@ const serverYt = require("../../server/youtube.js");
 const wakamess = require("../../server/wakame.js");
 
 const user_agent = process.env.USER_AGENT || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36";
+const serverUrls = ['direct']
 
 router.get('/:id', async (req, res) => {
     const videoId = req.params.id;
@@ -18,55 +19,12 @@ router.get('/:id', async (req, res) => {
     if (wakames == "nocookie") {
         return res.redirect(`/wkt/yt/nocookie/${videoId}`);
     }
-    let server = req.query.server || '0';
-    const serverUrls = [
-	'https://watawata8.glitch.me',
-	'https://watawata37.glitch.me',
-        'https://watawatawata.glitch.me',
-        'https://manawa.glitch.me',
-        'https://wakeupe.glitch.me',
-        'https://hortensia.glitch.me',
-        'https://wata27.glitch.me',
-        'https://wakameme.glitch.me',
-	'direct'
-        ];
-    let baseUrl;
-    if (server == "0") {
-	if (wakames == "direct") {
-           server = "direct";
-        } else {
-           const randomIndex = Math.floor(Math.random() * serverUrls.length);
-           baseUrl = serverUrls[randomIndex];
-	}
-    } else {
-        baseUrl = `https://${server}.glitch.me`;
-    }
+    let baseUrl = 'direct';
     if (!/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
         return res.status(400).send('videoIDが正しくありません');
     }
     try {
-      let videoData;
-      if (server === "direct" || baseUrl === "direct") {
-        videoData = await wakamess.getYouTube(videoId);
-	baseUrl = `https://direct.glitch.me`;
-      }else{
-	try{
-         const response = await axios.get(`${baseUrl}/api/${videoId}`, {
-            headers: {
-                'User-Agent': user_agent
-            }});
-	 if(response.data && response.data.stream_url){
-		 videoData = await response.data;
-	 }else{
-		 baseUrl = `https://directk.glitch.me`;
-                 videoData = await wakamess.getYouTube(videoId);
-	 }
-	} catch (nestedError) {
-         console.log(nestedError.message);
-	 baseUrl = `https://directk.glitch.me`;
-         videoData = await wakamess.getYouTube(videoId);
-        }
-      }
+      const videoData = await wakamess.getYouTube(videoId);
       const Info = await serverYt.infoGet(videoId);
       const videoInfo = {
         title: Info.primary_info.title.text || "",
