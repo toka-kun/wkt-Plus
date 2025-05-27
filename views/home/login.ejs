@@ -1,0 +1,172 @@
+<!-- パスワードは「wakame」です。 -->
+<!DOCTYPE html>
+<html lang="ja" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>統合学習支援ポータル</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    }
+  </script>
+  <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/1/19/Google_Classroom_Logo.svg" />
+  <style>
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen">
+  <div class="grid grid-cols-1 md:grid-cols-2 min-h-screen">
+    <div class="hidden md:flex flex-col justify-center items-center bg-gradient-to-br from-blue-100 to-blue-300 dark:from-gray-800 dark:to-gray-700 p-10">
+      <h2 class="text-2xl font-bold mb-4">お知らせ</h2>
+      <ul class="text-sm space-y-2 text-left">
+        <li>・定期メンテナンスは毎週火曜0:00〜4:00に行われます。</li>
+        <li>・パスワード共有は厳禁です。</li>
+        <li>・不正アクセスが検出された場合、記録されます。</li>
+     </ul>
+    </div>
+    <div class="flex flex-col justify-center p-8 max-w-lg w-full mx-auto animate-fadeIn">
+      <div id="loginCard" class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 transition duration-300">
+        <div class="flex items-center space-x-3 mb-6">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/1/19/Google_Classroom_Logo.svg" alt="Logo" class="w-10 h-10">
+          <h1 class="text-xl font-semibold tracking-wide" id="titleText">統合学習支援ポータル</h1>
+        </div>
+        <form id="loginForm" class="space-y-5">
+          <div>
+            <label for="password" class="block text-sm font-medium mb-1" id="labelText">認証コード</label>
+            <input
+              type="password"
+              id="password"
+              placeholder="ここに入力..."
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+          <button
+            type="submit"
+            class="w-full bg-blue-600 text-white py-2 rounded-md font-semibold hover:bg-blue-700 transition"
+            id="submitButton"
+          >
+              サインイン
+          </button>
+        </form>
+        <div class="mt-4 text-center">
+          <button onclick="guestLogin()" class="text-blue-500 text-sm underline">ゲストとしてログイン</button>
+        </div>
+        <div id="loadingSpinner" class="hidden mt-4 flex justify-center">
+          <div class="w-6 h-6 border-4 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>
+        </div>
+        <p id="errorMsg" class="text-red-600 text-sm mt-4 hidden">コードが違います。再確認してください。</p>
+        <div id="touchIdFake" class="hidden mt-6 text-center text-sm text-gray-500">
+          <p>生体認証システム確認中...</p>
+          <p>Touch ID を確認しています...</p>
+        </div>
+        <p class="text-xs text-gray-400 mt-8 text-center">© 2025 waitkame</p>
+        <div class="mt-4 text-center">
+          <button onclick="switchLang()" class="text-blue-500 text-xs underline">English</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const correctPassword = "wakame";
+
+    const lang = {
+      ja: {
+        title: "統合学習支援ポータル",
+        label: "認証コード",
+        button: "サインイン",
+        error: "コードが違います。再確認してください。"
+      },
+      en: {
+        title: "Integrated Learning Portal",
+        label: "Access Code",
+        button: "Sign In",
+        error: "Invalid code. Please try again."
+      }
+    };
+
+    let currentLang = 'ja';
+
+    function switchLang() {
+      currentLang = currentLang === 'ja' ? 'en' : 'ja';
+      document.getElementById('titleText').textContent = lang[currentLang].title;
+      document.getElementById('labelText').textContent = lang[currentLang].label;
+      document.getElementById('submitButton').textContent = lang[currentLang].button;
+      document.getElementById('errorMsg').textContent = lang[currentLang].error;
+    }
+
+    document.getElementById("loginForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const enteredPassword = document.getElementById("password").value;
+      const spinner = document.getElementById("loadingSpinner");
+      const error = document.getElementById("errorMsg");
+      const touchId = document.getElementById("touchIdFake");
+
+      spinner.classList.remove("hidden");
+      error.classList.add("hidden");
+      touchId.classList.add("hidden");
+
+      setTimeout(() => {
+        if (enteredPassword === correctPassword) {
+          touchId.classList.remove("hidden");
+          spinner.classList.add("hidden");
+          setTimeout(() => {
+            document.cookie = "loginok=true; path=/; max-age=31536000";
+            document.getElementById("loginCard").classList.add("opacity-0");
+            setTimeout(() => {
+              window.location.href = "/wkt";
+            }, 500);
+          }, 1500);
+        } else {
+          spinner.classList.add("hidden");
+          error.classList.remove("hidden");
+        }
+      }, 1200);
+    });
+
+    function guestLogin() {
+      const steps = [
+        "訪問者IDを確認中...",
+        "ネットワーク環境をスキャン中...",
+        "一時セッションを生成中...",
+        "セキュリティポリシーに同意を確認..."
+      ];
+      let i = 0;
+      const error = document.getElementById("errorMsg");
+      error.classList.add("hidden");
+      const spinner = document.getElementById("loadingSpinner");
+      const touchId = document.getElementById("touchIdFake");
+      const loginCard = document.getElementById("loginCard");
+
+      spinner.classList.remove("hidden");
+      touchId.classList.remove("hidden");
+
+      function nextStep() {
+        if (i < steps.length) {
+          touchId.innerHTML = `<p>${steps[i]}</p>`;
+          i++;
+          setTimeout(nextStep, 1000);
+        } else {
+          touchId.innerHTML = "<p>ログイン処理中...</p>";
+          setTimeout(() => {
+            document.cookie = "loginok=true; path=/; max-age=31536000";
+            loginCard.classList.add("opacity-0");
+            setTimeout(() => {
+              window.location.href = "/wkt";
+            }, 500);
+          }, 1000);
+        }
+      }
+      nextStep();
+    }
+  </script>
+</body>
+</html>
