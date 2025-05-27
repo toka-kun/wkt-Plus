@@ -44,9 +44,9 @@
             <span class="float-right">▼</span>
         </button>
         <ul id="dropdownMenu" class="absolute w-full bg-gray-800 text-white mt-2 rounded hidden z-10">
-            <li class="p-2 hover:bg-gray-700 cursor-pointer" onclick="selectRecentVideos()">
+            <% if (recentVideos && recentVideos.items && recentVideos.items.length > 0) { %><li class="p-2 hover:bg-gray-700 cursor-pointer" onclick="selectRecentVideos()">
                 最近の動画
-            </li>
+            </li><% } %>
             <% channel.shelves?.forEach((shelf, index) => { %>
                 <li class="p-2 hover:bg-gray-700 cursor-pointer" onclick="selectTab('<%= shelf.title.text %>', <%= index %>)">
                     <%= shelf.title.text %>
