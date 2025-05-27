@@ -14,14 +14,14 @@ let client;
 app.use(compression());
 app.use(express.static(__dirname + "/public"));
 app.set("view engine", "ejs");
-app.use(cookieParser());
 app.set("views", path.join(__dirname, "views"));
-app.use(express.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
+app.set("trust proxy", 1);
+app.use(cookieParser());
 
 app.use((req, res, next) => {
-    if (req.cookies.loginok !== 'ok' && !req.path.includes('login') && !req.path.includes('back')){ 
+    if (req.cookies.loginok !== 'ok' && !req.path.includes('login') && !req.path.includes('back')) {
         return res.redirect('/login');
     } else {
         next();
