@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 const YouTubeJS = require("youtubei.js");
 const serverYt = require("./server/youtube.js");
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
 let app = express();
 let client;
@@ -17,10 +18,10 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors());
+app.use(cookieParser());
 
 app.use((req, res, next) => {
-    if (req.cookies.loginok !== 'ok' && !req.path.includes('login') && !req.path.includes('api')) {
-        req.session.redirectTo = req.path !== '/' ? req.path : null;
+    if (req.cookies.loginok !== 'ok' && !req.path.includes('login') && !req.path.includes('api')) 
         return res.redirect('/login');
     } else {
         next();
