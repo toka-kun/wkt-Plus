@@ -7,8 +7,8 @@ const serverYt = require("../../server/youtube.js");
 
 async function getYtInfo() {
   const urls = [
+    "https://raw.githubusercontent.com/wakame02/wktopu/refs/heads/main/edu.text",
     "https://gitlab.com/wer02/wktopu/-/raw/main/edu.text",
-    "https://raw.githubusercontent.com/wakame02/wktopu/refs/heads/main/edu.text"
   ];
   for (const url of urls) {
     try {
