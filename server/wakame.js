@@ -77,6 +77,9 @@ async function getYouTube (videoId) {
         url: stream.url,
         resolution: stream.resolution,
       }));
+      if (videoInfo.hlsUrl) {
+        streamUrl = `/wkt/live/s/${videoId}`;
+      }
     
     const templateData = {
       stream_url: streamUrl,
