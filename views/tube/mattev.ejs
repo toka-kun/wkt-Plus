@@ -187,7 +187,7 @@ async function showPlaybackSettings(iframeurl, mode) {
         if (mode == "nocookie"){
           settingsOverlay.remove();
           showMessage("必要なデータを取得中です");
-          const ytinfo3 = await fetch('https://html.cafe/xcb81a9d6', { method: 'GET' });
+          const ytinfo3 = await fetch('/wkt/yt/edurl', { method: 'GET' });
           const ytinfo = await ytinfo3.text();
           showPlaybackSettings(`https://www.youtubeeducation.com/embed/<%= videoId %>${ytinfo}`, "edu");
         } else {
