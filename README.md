@@ -22,8 +22,8 @@
 ## 対応しているデプロイサービス
 
 1. Render
-2. Vercel
-3. railway
+2. Vercel (現在は不可)
+3. Railway
 
 ---
 
