@@ -1,13 +1,6 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+# Node.js CI workflow with automatic package-lock.json generation
 
 name: Node.js CI
-
-# on:
-#  push:
- #   branches: [ "master" ]
-#  pull_request:
-#    branches: [ "master" ]
 
 jobs:
   build:
@@ -17,15 +10,29 @@ jobs:
     strategy:
       matrix:
         node-version: [20.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: npm ci
+
+    # npm install で依存関係をインストール
+    - name: Install dependencies
+      run: npm install
+
+    # package-lock.json が生成されたら自動でコミット
+    - name: Commit package-lock.json
+      run: |
+        git config --global user.name "github-actions"
+        git config --global user.email "actions@github.com"
+        git add package-lock.json
+        git commit -m "Add npm lockfile" || echo "No changes to commit"
+        git push
+
+    # ビルドとテスト
     - run: npm run build --if-present
     - run: npm test
