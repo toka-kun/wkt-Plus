@@ -22,7 +22,7 @@
 ## 対応しているデプロイサービス
 
 1. Render
-2. Vercel (現在は不可)
+2. Vercel
 3. Railway
 
 ---
