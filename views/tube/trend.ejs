@@ -161,7 +161,6 @@ a:hover {
 </style>
 
 <script>
-/* 🔥 trend.json を読み込む完全版関数 */
 async function loadTrends() {
     const url = "https://raw.githubusercontent.com/siawaseok3/wakame/refs/heads/master/trend.json";
 
@@ -178,6 +177,7 @@ async function loadTrends() {
             const title = item.title;
             const channel = item.channel;
             const channelId = item.channelId;
+
             const thumbnail = item.thumbnails.medium.url;
 
             const html = `
@@ -185,8 +185,17 @@ async function loadTrends() {
                     <a href="/wkt/w/${videoId}">
                         <img loading="lazy" src="${thumbnail}" alt="${title}">
                     </a>
-                    <p class="channel-name"><a href="/wkt/c/${channelId}">${channel}</a></p>
+                    <p class="channel-name">
+                        <a href="/wkt/c/${channelId}">${channel}</a>
+                    </p>
+
                     <p class="video-title">${title}</p>
+
+                    <p class="video-meta">
+                        ${Number(item.viewCount).toLocaleString()} 回再生<br>
+                        ${Number(item.likeCount).toLocaleString()} 高評価<br>
+                        ${Number(item.commentCount).toLocaleString()} コメント
+                    </p>
                 </div>
             `;
             container.innerHTML += html;
