@@ -52,31 +52,67 @@
 <br><br>
 
 <style>
+
+/* ▼ ホームボタン ▼ */
+#home-buttons {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.home-btn {
+    padding: 8px 14px;
+    background: #e0e0e0;
+    border-radius: 8px;
+    color: black;            /* ←全て黒文字 */
+    text-decoration: none;
+    font-weight: 600;
+    border: 1px solid #bfbfbf;
+    transition: 0.25s;
+}
+
+.home-btn:hover {
+    background: #cfcfcf;
+}
+
+/* ▼ 動画を中央寄せ ▼ */
+#video-wrapper {
+    display: flex;
+    justify-content: center;
+}
+
 #trend-container {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
+    justify-content: center;   /* ←これが中央揃えの本体 */
 }
 
-/* 1アイテムの枠 */
+/* ▼ 動画カード ▼ */
 .result-item {
-    width: 280px; /* ←サムネ大きめ */
+    width: 280px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-/* サムネイルを大きめに */
+/* ▼ ホバーで浮かせる */
+.result-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+}
+
+/* ▼ サムネイル ▼ */
 .thumb {
     width: 100%;
     border-radius: 10px;
 }
 
-/* チャンネルアイコン行 */
+/* ▼ チャンネル行 ▼ */
 .channel-row {
     display: flex;
     align-items: center;
     margin-top: 6px;
 }
 
-/* アイコン画像 */
 .channel-icon {
     width: 26px;
     height: 26px;
@@ -84,30 +120,38 @@
     margin-right: 8px;
 }
 
-/* ✔すべて統一フォントサイズ */
+/* ▼ 黒文字に変更（全部） ▼ */
 .channel-name,
 .video-title,
 .video-meta {
-    font-size: 12px;
-    line-height: 1.4em;
-    color: #eee;
+    font-size: 12px;     /* ←サイズはそのまま */
+    color: black;        /* ←黒文字指定 */
     text-decoration: none;
 }
 
-/* タイトルをわずかに強調 */
 .video-title {
     font-weight: 600;
     margin-top: 4px;
 }
 
-/* メタ情報（再生回数など） */
 .video-meta {
-    color: #aaa;
     margin-top: 4px;
 }
 </style>
 
 <div id="trend-container"></div>
+
+<!-- ホーム画面のボタン -->
+<div id="home-buttons">
+    <a class="home-btn" href="/wkt/">ホーム</a>
+    <a class="home-btn" href="/wkt/trend">トレンド</a>
+    <a class="home-btn" href="/wkt/search">検索</a>
+</div>
+
+<!-- 中央寄せのためのラッパー -->
+<div id="video-wrapper">
+    <div id="trend-container"></div>
+</div>
 
 <script>
 async function loadTrends() {
@@ -122,25 +166,18 @@ async function loadTrends() {
         container.innerHTML = "";
 
         trending.forEach(item => {
-            const videoId = item.id;
-            const title = item.title;
-            const channel = item.channel;
-            const channelId = item.channelId;
-            const icon = item.channelIcon || item.channelThumbnail;  // どちらでも対応
-            const thumbnail = item.thumbnails.high.url;
-
             const html = `
                 <div class="result-item">
-                    <a href="/wkt/w/${videoId}">
-                        <img loading="lazy" class="thumb" src="${thumbnail}" alt="${title}">
+                    <a href="/wkt/w/${item.id}">
+                        <img loading="lazy" class="thumb" src="${item.thumbnails.high.url}">
                     </a>
 
                     <div class="channel-row">
-                        <img class="channel-icon" src="${icon}">
-                        <a href="/wkt/c/${channelId}" class="channel-name">${channel}</a>
+                        <img class="channel-icon" src="${item.channelIcon}">
+                        <a href="/wkt/c/${item.channelId}" class="channel-name">${item.channel}</a>
                     </div>
 
-                    <p class="video-title">${title}</p>
+                    <p class="video-title">${item.title}</p>
 
                     <p class="video-meta">
                         ${Number(item.viewCount).toLocaleString()} 回再生 ・
