@@ -35,25 +35,16 @@
       </form>
     </div>
   </main>
+
   <br>
-  
   <h2>ようこそ！</h2>
   <p>好きな動画を検索してみましょう！</p>
-  
-  <!-- ★★★ トレンド動画を表示する部分 ★★★ -->
+
+  <!-- トレンド動画 -->
   <div class="results" id="trend-container"></div>
 
-  <br><br>
-  <footer class="text-center">
-    <a href="/app"><span class="mt-5 mb-3 text-muted">app🎮</span></a><br><br><br>
-    <a href="/wakams"><span class="mt-5 mb-3 text-muted">わかめMusic🎶</span></a><br><br><br>
-    <a href="/tools"><span class="mt-5 mb-3 text-muted">ツール🧰</span></a><br><br><br>
-  </footer>
-<br><br>
-
 <style>
-
-/* ▼ ホームボタン ▼ */
+/* ▼ ホームボタン */
 #home-buttons {
     display: flex;
     gap: 12px;
@@ -64,7 +55,7 @@
     padding: 8px 14px;
     background: #e0e0e0;
     border-radius: 8px;
-    color: black;            /* ←全て黒文字 */
+    color: black;
     text-decoration: none;
     font-weight: 600;
     border: 1px solid #bfbfbf;
@@ -75,7 +66,7 @@
     background: #cfcfcf;
 }
 
-/* ▼ 動画を中央寄せ ▼ */
+/* ▼ 動画を中央寄せ */
 #video-wrapper {
     display: flex;
     justify-content: center;
@@ -85,10 +76,10 @@
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
-    justify-content: center;   /* ←これが中央揃えの本体 */
+    justify-content: center;
 }
 
-/* ▼ 動画カード ▼ */
+/* ▼ 動画カード */
 .result-item {
     width: 280px;
     transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -100,46 +91,52 @@
     box-shadow: 0 6px 20px rgba(0,0,0,0.25);
 }
 
-/* ▼ サムネイル ▼ */
+/* ▼ サムネイル（角丸強化） */
 .thumb {
     width: 100%;
-    border-radius: 10px;
+    border-radius: 14px;
 }
 
-/* ▼ チャンネル行 ▼ */
+/* ▼ チャンネル行 */
 .channel-row {
     display: flex;
     align-items: center;
-    margin-top: 6px;
+    margin-top: 4px;
 }
 
 .channel-icon {
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     margin-right: 8px;
 }
 
-/* ▼ 黒文字に変更（全部） ▼ */
+/* ▼ 黒文字 */
 .channel-name,
 .video-title,
 .video-meta {
-    font-size: 12px;     /* ←サイズはそのまま */
-    color: black;        /* ←黒文字指定 */
+    font-size: 12px;
+    color: black;
     text-decoration: none;
 }
 
+/* ▼ タイトル（下にチャンネル名が来る） */
 .video-title {
     font-weight: 600;
-    margin-top: 4px;
+    margin-top: 6px;
+    margin-bottom: 6px;
 }
 
+/* ▼ 動画メタ */
 .video-meta {
     margin-top: 4px;
 }
-</style>
 
-<div id="trend-container"></div>
+/* ▼ 下の app や Music などは非表示 */
+footer {
+    display: none !important;
+}
+</style>
 
 <!-- ホーム画面のボタン -->
 <div id="home-buttons">
@@ -148,12 +145,26 @@
     <a class="home-btn" href="/wkt/search">検索</a>
 </div>
 
-<!-- 中央寄せのためのラッパー -->
+<!-- 中央寄せ -->
 <div id="video-wrapper">
     <div id="trend-container"></div>
 </div>
 
 <script>
+// ▼ 何時間前などを返す関数
+function timeAgo(iso) {
+    const now = new Date();
+    const past = new Date(iso);
+    const diff = (now - past) / 1000;
+
+    if (diff < 60) return "たった今";
+    if (diff < 3600) return Math.floor(diff / 60) + "分前";
+    if (diff < 86400) return Math.floor(diff / 3600) + "時間前";
+    if (diff < 2592000) return Math.floor(diff / 86400) + "日前";
+
+    return "かなり前";
+}
+
 async function loadTrends() {
     const url = "https://raw.githubusercontent.com/siawaseok3/wakame/refs/heads/master/trend.json";
 
@@ -172,15 +183,16 @@ async function loadTrends() {
                         <img loading="lazy" class="thumb" src="${item.thumbnails.high.url}">
                     </a>
 
+                    <p class="video-title">${item.title}</p>
+
                     <div class="channel-row">
                         <img class="channel-icon" src="${item.channelIcon}">
                         <a href="/wkt/c/${item.channelId}" class="channel-name">${item.channel}</a>
                     </div>
 
-                    <p class="video-title">${item.title}</p>
-
                     <p class="video-meta">
                         ${Number(item.viewCount).toLocaleString()} 回再生 ・
+                        ${timeAgo(item.publishedAt)} ・
                         ${Number(item.likeCount).toLocaleString()} 高評価 ・
                         ${Number(item.commentCount).toLocaleString()} コメント
                     </p>
@@ -198,7 +210,7 @@ loadTrends();
 </script>
 
 <script>
-/* オートコンプリート（元コードそのまま） */
+/* ▼ オートコンプリート機能（元のまま） */
 $(function () {
     $('#searchbox').autocomplete({
         source: function (request, response) {
