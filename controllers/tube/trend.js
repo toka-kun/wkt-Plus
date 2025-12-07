@@ -6,7 +6,7 @@ const http = require('http');
 
 router.get("/", async (req, res) => {
   try {
-    const response = await axios.get("https://wataamee.glitch.me/topvideos/apiv2");
+    const response = await axios.get("https://raw.githubusercontent.com/siawaseok3/wakame/refs/heads/master/trend.json");
     const topVideos = await response.data;
     res.render("tube/trend.ejs", { topVideos });
   } catch (error) {
