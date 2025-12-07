@@ -43,6 +43,45 @@
   <div class="results" id="trend-container"></div>
 
 <style>
+/* ▼ ページ全体の背景 & デフォルト文字色 */
+body {
+  background: #111827;
+  color: #ffffff;
+}
+
+/* ▼ ヘッダー背景 */
+header .banner {
+  background: #1F2937;
+  padding: 10px;
+}
+
+/* ▼ ヘッダーのボタン（文字白） */
+header .btn-link {
+  color: white !important;
+}
+
+/* ▼ 入力ボックス */
+#searchbox {
+  background: #374151;
+  color: white;
+  border: 1px solid #4B5563;
+}
+
+#searchbox::placeholder {
+  color: #d1d5db;
+}
+
+/* ▼ 検索ボタン */
+.btn-search {
+  background: #374151;
+  color: white;
+  border: 1px solid #4B5563;
+}
+
+.btn-search:hover {
+  background: #4B5563;
+}
+
 /* ▼ 動画中央寄せ */
 #trend-container {
   display: flex;
@@ -51,21 +90,22 @@
   justify-content: center;
 }
 
-/* ▼ 動画カード（背景を丸く） */
+/* ▼ 動画カード（背景を丸く・色変更） */
 .result-item {
   width: 280px;
   padding: 12px;
-  background: #f8f8f8;
-  border-radius: 18px; /* ★サムネではなく背景を丸くする */
+  background: #1F2937;          /* ←背景色変更 */
+  border-radius: 18px;           /* ←角丸 */
   transition: transform 0.25s ease, box-shadow 0.25s ease;
+  color: white;
 }
 
 .result-item:hover {
   transform: translateY(-5px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.45);
 }
 
-/* ▼ サムネイル画像（四角のまま） */
+/* ▼ サムネ */
 .thumb {
   width: 100%;
   border-radius: 8px;
@@ -78,6 +118,7 @@
   margin-top: 6px;
 }
 
+/* ▼ チャンネルアイコン */
 .channel-icon {
   width: 26px;
   height: 26px;
@@ -85,12 +126,12 @@
   margin-right: 8px;
 }
 
-/* ▼ テキスト黒 */
+/* ▼ テキスト（白） */
 .channel-name,
 .video-title,
 .video-meta {
   font-size: 12px;
-  color: black;
+  color: white !important;      /* ←白文字 */
   text-decoration: none;
 }
 
