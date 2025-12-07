@@ -21,26 +21,31 @@
 </head>
 
 <body>
-  <header>
-    <div class="banner">
-      <button class="btn btn-link" onclick="window.location.href='/wkt'">ホーム<br>🏠</button>
-      
-      <!-- ★ 検索ボックスをヘッダー内へ移動 ★ -->
-      <div class="search-bar" style="margin-top:10px;">
-        <form action="/wkt/s" method="get" id="searchForm" style="display:flex; gap:8px;">
-          <input type="text" name="q" id="searchbox" class="form-control" placeholder="検索" required>
-          <button type="submit" class="btn btn-search">検索(けんさく)</button>
-        </form>
-      </div>
+<header>
+  <div class="banner">
+
+    <!-- ▼ 検索バー（左） -->
+    <div class="search-bar">
+      <form action="/wkt/s" method="get" id="searchForm" style="display:flex; gap:8px;">
+        <input type="text" name="q" id="searchbox" class="form-control" placeholder="検索" required>
+        <button type="submit" class="btn btn-search">検索(けんさく)</button>
+      </form>
     </div>
+
+    <!-- ▼ リンク（右） -->
+    <div class="nav-links">
+      <a href="/wkt">ホーム</a>
+      <a href="/wkt/cl/history">視聴履歴</a>
+      <a href="/wkt/cl/shistory">検索履歴</a>
+    </div>
+
+  </div>
 </header>
 
-  
-  
-  <h2>ようこそ！</h2>
-  <p>好きな動画を検索してみましょう！</p>
+<!-- ▼ 中央タイトル -->
+<h1 class="headline">急上昇</h1>
 
-  <div class="results" id="trend-container"></div>
+<div class="results" id="trend-container"></div>
 
 <style>
 /* ▼ ページ背景 */
@@ -52,15 +57,26 @@ body {
 /* ▼ ヘッダー */
 header {
   background: #1F2937;
-  padding: 12px;
+  padding: 8px 12px;
   border-radius: 0 0 10px 10px;
 }
 
-/* ▼ 検索ボックス */
+.banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ▼ 検索バー */
 #searchbox {
   background: #374151 !important;
   color: #ffffff !important;
   border: none;
+}
+
+/* placeholder の色 */
+#searchbox::placeholder {
+  color: #9CA3AF !important;
 }
 
 .btn-search {
@@ -69,11 +85,29 @@ header {
   border: none;
 }
 
-.btn-link {
-  color: #ffffff !important;
+/* ▼ 右リンク */
+.nav-links a {
+  color: #D1D5DB;
+  margin-left: 18px;
+  text-decoration: none;
+  font-size: 14px;
 }
 
-/* ▼ 動画中央寄せ */
+.nav-links a:hover {
+  text-decoration: underline;
+}
+
+/* ▼ 中央タイトル */
+.headline {
+  text-align: center;
+  margin-top: 22px;
+  margin-bottom: 22px;
+  font-size: 26px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* ▼ 動画コンテナ */
 #trend-container {
   display: flex;
   flex-wrap: wrap;
@@ -81,7 +115,7 @@ header {
   justify-content: center;
 }
 
-/* ▼ 動画カード（背景を丸く & 色変更） */
+/* ▼ 動画カード */
 .result-item {
   width: 280px;
   padding: 12px;
@@ -95,7 +129,6 @@ header {
   box-shadow: 0 6px 20px rgba(0,0,0,0.25);
 }
 
-/* ▼ サムネイル画像 */
 .thumb {
   width: 100%;
   border-radius: 8px;
@@ -115,12 +148,9 @@ header {
   margin-right: 8px;
 }
 
-/* ▼ テキスト白 */
 .channel-name,
 .video-title,
-.video-meta,
-h2,
-p {
+.video-meta {
   font-size: 12px;
   color: #ffffff;
   text-decoration: none;
