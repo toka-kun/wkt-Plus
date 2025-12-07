@@ -8,7 +8,7 @@ const serverYt = require("../../server/youtube.js");
    ① video_config.json の params を取得
 --------------------------------------------------- */
 async function getYtInfo() {
-  const url = "https://raw.githubusercontent.com/siawaseok3/wkt/master/video_config.json";
+  const url = "https://raw.githubusercontent.com/siawaseok3/wakame/master/video_config.json";
   try {
     const response = await axios.get(url, {
       headers: { "User-Agent": "Mozilla/5.0" },
