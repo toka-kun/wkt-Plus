@@ -22,64 +22,38 @@
 
 <body>
   <header>
-    <div class="banner">
+    <div class="banner d-flex align-items-center justify-content-between">
       <button class="btn btn-link" onclick="window.location.href='/wkt'">ホーム<br>🏠</button>
+
+      <!-- ▼ 検索フォームをヘッダーへ移動 -->
+      <form action="/wkt/s" method="get" id="searchForm" class="d-flex header-search">
+        <input type="text" name="q" id="searchbox" class="form-control" placeholder="キーワードを入力..." required>
+        <button type="submit" class="btn btn-search ms-2">検索</button>
+      </form>
     </div>
   </header>
 
-  <main class="container text-center">
-    <div class="search-bar">
-      <form action="/wkt/s" method="get" id="searchForm">
-        <input type="text" name="q" id="searchbox" class="form-control" placeholder="キーワードを入力..." required>
-        <button type="submit" class="btn btn-search">検索(けんさく)</button>
-      </form>
-    </div>
+  <main class="container text-center mt-3">
+    <h2>ようこそ！</h2>
+    <p>好きな動画を検索してみましょう！</p>
   </main>
-  <br>
-  
-  <h2>ようこそ！</h2>
-  <p>好きな動画を検索してみましょう！</p>
 
   <div class="results" id="trend-container"></div>
 
 <style>
-/* ▼ ページ全体の背景 & デフォルト文字色 */
-body {
-  background: #111827;
-  color: #ffffff;
-}
-
-/* ▼ ヘッダー背景 */
+/* ▼ ヘッダーのデザイン調整 */
 header .banner {
-  background: #1F2937;
+  background: #f0f0f0;
   padding: 10px;
 }
 
-/* ▼ ヘッダーのボタン（文字白） */
-header .btn-link {
-  color: white !important;
+/* ヘッダー検索フォーム */
+.header-search {
+  width: 60%;
 }
 
-/* ▼ 入力ボックス */
-#searchbox {
-  background: #374151;
-  color: white;
-  border: 1px solid #4B5563;
-}
-
-#searchbox::placeholder {
-  color: #d1d5db;
-}
-
-/* ▼ 検索ボタン */
-.btn-search {
-  background: #374151;
-  color: white;
-  border: 1px solid #4B5563;
-}
-
-.btn-search:hover {
-  background: #4B5563;
+.header-search #searchbox {
+  flex-grow: 1;
 }
 
 /* ▼ 動画中央寄せ */
@@ -90,35 +64,32 @@ header .btn-link {
   justify-content: center;
 }
 
-/* ▼ 動画カード（背景を丸く・色変更） */
+/* ▼ 動画カード（背景を丸く） */
 .result-item {
   width: 280px;
   padding: 12px;
-  background: #1F2937;          /* ←背景色変更 */
-  border-radius: 18px;           /* ←角丸 */
+  background: #f8f8f8;
+  border-radius: 18px;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
-  color: white;
 }
 
 .result-item:hover {
   transform: translateY(-5px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
 }
 
-/* ▼ サムネ */
 .thumb {
   width: 100%;
   border-radius: 8px;
 }
 
-/* ▼ チャンネル行 */
+/* ▼ チャンネル欄 */
 .channel-row {
   display: flex;
   align-items: center;
   margin-top: 6px;
 }
 
-/* ▼ チャンネルアイコン */
 .channel-icon {
   width: 26px;
   height: 26px;
@@ -126,12 +97,11 @@ header .btn-link {
   margin-right: 8px;
 }
 
-/* ▼ テキスト（白） */
 .channel-name,
 .video-title,
 .video-meta {
   font-size: 12px;
-  color: white !important;      /* ←白文字 */
+  color: black;
   text-decoration: none;
 }
 
