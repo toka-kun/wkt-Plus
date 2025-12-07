@@ -22,38 +22,55 @@
 
 <body>
   <header>
-    <div class="banner d-flex align-items-center justify-content-between">
+    <div class="banner">
       <button class="btn btn-link" onclick="window.location.href='/wkt'">ホーム<br>🏠</button>
-
-      <!-- ▼ 検索フォームをヘッダーへ移動 -->
-      <form action="/wkt/s" method="get" id="searchForm" class="d-flex header-search">
-        <input type="text" name="q" id="searchbox" class="form-control" placeholder="キーワードを入力..." required>
-        <button type="submit" class="btn btn-search ms-2">検索</button>
-      </form>
+      
+      <!-- ★ 検索ボックスをヘッダー内へ移動 ★ -->
+      <div class="search-bar" style="margin-top:10px;">
+        <form action="/wkt/s" method="get" id="searchForm" style="display:flex; gap:8px;">
+          <input type="text" name="q" id="searchbox" class="form-control" placeholder="キーワードを入力..." required>
+          <button type="submit" class="btn btn-search">検索(けんさく)</button>
+        </form>
+      </div>
     </div>
-  </header>
+</header>
 
-  <main class="container text-center mt-3">
-    <h2>ようこそ！</h2>
-    <p>好きな動画を検索してみましょう！</p>
-  </main>
+  
+  
+  <h2>ようこそ！</h2>
+  <p>好きな動画を検索してみましょう！</p>
 
   <div class="results" id="trend-container"></div>
 
 <style>
-/* ▼ ヘッダーのデザイン調整 */
-header .banner {
-  background: #f0f0f0;
-  padding: 10px;
+/* ▼ ページ背景 */
+body {
+  background: #111827;
+  color: #ffffff;
 }
 
-/* ヘッダー検索フォーム */
-.header-search {
-  width: 60%;
+/* ▼ ヘッダー */
+header {
+  background: #1F2937;
+  padding: 12px;
+  border-radius: 0 0 10px 10px;
 }
 
-.header-search #searchbox {
-  flex-grow: 1;
+/* ▼ 検索ボックス */
+#searchbox {
+  background: #374151 !important;
+  color: #ffffff !important;
+  border: none;
+}
+
+.btn-search {
+  background: #374151;
+  color: #ffffff;
+  border: none;
+}
+
+.btn-link {
+  color: #ffffff !important;
 }
 
 /* ▼ 動画中央寄せ */
@@ -64,11 +81,11 @@ header .banner {
   justify-content: center;
 }
 
-/* ▼ 動画カード（背景を丸く） */
+/* ▼ 動画カード（背景を丸く & 色変更） */
 .result-item {
   width: 280px;
   padding: 12px;
-  background: #f8f8f8;
+  background: #1F2937;
   border-radius: 18px;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
@@ -78,12 +95,13 @@ header .banner {
   box-shadow: 0 6px 20px rgba(0,0,0,0.25);
 }
 
+/* ▼ サムネイル画像 */
 .thumb {
   width: 100%;
   border-radius: 8px;
 }
 
-/* ▼ チャンネル欄 */
+/* ▼ チャンネル行 */
 .channel-row {
   display: flex;
   align-items: center;
@@ -97,11 +115,14 @@ header .banner {
   margin-right: 8px;
 }
 
+/* ▼ テキスト白 */
 .channel-name,
 .video-title,
-.video-meta {
+.video-meta,
+h2,
+p {
   font-size: 12px;
-  color: black;
+  color: #ffffff;
   text-decoration: none;
 }
 
@@ -117,7 +138,7 @@ header .banner {
 
 <script>
 async function loadTrends() {
-    const url = "/wkt/yt/trend";
+    const url = "https://raw.githubusercontent.com/siawaseok3/wakame/refs/heads/master/trend.json";
 
     try {
         const res = await fetch(url);
