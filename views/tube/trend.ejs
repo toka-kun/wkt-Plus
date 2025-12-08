@@ -198,34 +198,28 @@ header {
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+
     const trending = <%- JSON.stringify(topVideos.trending) %>;
 
     const container = document.getElementById("trend-container");
     container.innerHTML = "";
 
-    // ▼ 経過時間を計算する関数
-    const formatRelativeTime = (isoDate) => {
+    // ▼ 時間差を計算するための関数
+    function timeAgo(publishedAt) {
         const now = new Date();
-        const published = new Date(isoDate);
+        const published = new Date(publishedAt);
         const diffMs = now - published;
+        const diffMin = Math.floor(diffMs / 60000);
+        const diffHr = Math.floor(diffMin / 60);
+        const diffDay = Math.floor(diffHr / 24);
 
-        const diffMin = Math.floor(diffMs / (1000 * 60));
-        if (diffMin < 60) {
-            return `${diffMin}分前`;
-        }
-
-        const diffHour = Math.floor(diffMin / 60);
-        if (diffHour < 24) {
-            return `${diffHour}時間前`;
-        }
-
-        const diffDay = Math.floor(diffHour / 24);
-        return `${diffDay}日前`;
-    };
-
+        if (diffMin < 60) return `${diffMin} 分前`;
+        if (diffHr < 24) return `${diffHr} 時間前`;
+        return `${diffDay} 日前`;
+    }
 
     trending.forEach(item => {
-        const publishedAgo = formatRelativeTime(item.publishedAt);
+        const ago = timeAgo(item.publishedAt);
 
         const html = `
             <div class="result-item">
@@ -234,16 +228,18 @@ document.addEventListener("DOMContentLoaded", () => {
                     <img loading="lazy" class="thumb" src="/wkt/back/vi/${item.id}/sddefault.jpg">
                 </a>
 
-                <!-- ▼ タイトルの下にチャンネル名（下線なし） -->
                 <p class="video-title">${item.title}</p>
-                <a href="/wkt/c/${item.channelId}" 
-                   class="channel-name" 
-                   style="text-decoration: none; color: inherit;">
-                    ${item.channel}
-                </a>
+
+                <!-- ▼ 動画タイトルの下にチャンネル情報を移動 -->
+                <div class="channel-row" style="text-decoration: none;">
+                    <img class="channel-icon" src="${item.channelIcon}">
+                    <span class="channel-name" style="text-decoration:none; cursor:default;">
+                        ${item.channel}
+                    </span>
+                </div>
 
                 <p class="video-meta">
-                    ${publishedAgo} ・
+                    ${ago} ・
                     ${Number(item.viewCount).toLocaleString()} 回再生 ・
                     ${Number(item.likeCount).toLocaleString()} 高評価 ・
                     ${Number(item.commentCount).toLocaleString()} コメント
@@ -251,6 +247,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             </div>
         `;
+
         container.innerHTML += html;
     });
 });
