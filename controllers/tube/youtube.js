@@ -16,7 +16,8 @@ async function getYtInfo() {
     });
 
     if (response.data && response.data.params) {
-      return JSON.stringify(response.data.params);
+      // ⭐ JSON.stringify をやめる（ここが重要）
+      return response.data.params;
     }
   } catch (error) {
     console.log(`ytinfo fetch error ${url}: ${error.message}`);
@@ -25,18 +26,14 @@ async function getYtInfo() {
 }
 
 /* -------------------------------------------------
-   ② 🔥 trend.json を取得して返す（修正版）
-   正しい raw URL を使用（キャッシュ付き）
-   エンドポイント: /wkt/yt/trend
+   ② trend.json（略、変更なし）
 --------------------------------------------------- */
-// 正しい raw URL（ご提示のもの）
+
 const TREND_URL = "https://raw.githubusercontent.com/siawaseok3/wakame/refs/heads/master/trend.json";
 
-// 簡易キャッシュ（メモリ）
 let trendCache = null;
 let trendCacheFetchedAt = 0;
-// キャッシュTTL（ミリ秒） — 必要なら変更
-const TREND_CACHE_TTL = 5 * 60 * 1000; // 5分
+const TREND_CACHE_TTL = 5 * 60 * 1000;
 
 async function getTrendJson() {
   const now = Date.now();
@@ -50,19 +47,15 @@ async function getTrendJson() {
       timeout: 8000
     });
 
-    // 正常取得したらキャッシュ更新
     trendCache = res.data;
     trendCacheFetchedAt = Date.now();
     return trendCache;
   } catch (error) {
     console.log(`trend.json fetch error: ${error.message}`);
-
-    // 取得失敗時にキャッシュがあればそれを返す（フォールバック）
     if (trendCache) {
       console.log("trend.json fetch failed — returning cached data");
       return trendCache;
     }
-
     throw new Error("trend.json を取得できませんでした");
   }
 }
@@ -80,13 +73,18 @@ router.get("/trend", async (req, res) => {
 });
 
 /* -------------------------------------------------
-   ③ /edu/:id（既存機能）
+   ③ /edu/:id
 --------------------------------------------------- */
+
 router.get('/edu/:id', async (req, res) => {
   const videoId = req.params.id;
   try {
     const ytinfo = await getYtInfo();
-    const videosrc = `https://www.youtubeeducation.com/embed/${videoId}?${ytinfo}`;
+
+    // ⭐ クエリパラメータに変換（&区切りの文字列を生成）
+    const query = new URLSearchParams(ytinfo).toString();
+
+    const videosrc = `https://www.youtubeeducation.com/embed/${videoId}?${query}`;
     
     const Info = await serverYt.infoGet(videoId);
     const videoInfo = {
@@ -118,20 +116,24 @@ router.get('/edu/:id', async (req, res) => {
 });
 
 /* -------------------------------------------------
-   ④ /edurl（既存機能）
+   ④ /edurl（既存機能・修正版）
 --------------------------------------------------- */
 router.get('/edurl', async (req, res) => {
   try {
     const ytinfo = await getYtInfo();
-    res.send(`${ytinfo}`);
+    const query = new URLSearchParams(ytinfo).toString();
+
+    // ⭐ ここも文字列そのまま返す
+    res.send(query);
   } catch (error) {
-     res.status(500).send(error);
+    res.status(500).send(error);
   }
 });
 
 /* -------------------------------------------------
-   ⑤ /nocookie/:id（既存機能）
+   ⑤ /nocookie/:id（変更なし）
 --------------------------------------------------- */
+
 router.get('/nocookie/:id', async (req, res) => {
   const videoId = req.params.id;
   try {
