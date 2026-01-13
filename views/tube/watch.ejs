@@ -1008,7 +1008,7 @@ function showTutorial() {
     document.getElementById('skipBtn0').addEventListener('click', function() {
         localStorage.setItem('tutorialCompleted', 'true');
         tutorialOverlay.remove();
-        showMessage("再生方法をnormalに設定しました。<br>再生方法の変更は「コントロール」ボタンからいつでも行えます。");
+        showMessage("再生方法をNormalに設定しました。<br>再生方法の変更は「コントロール」ボタンからいつでも行えます。");
     });
 }
   
@@ -1047,7 +1047,7 @@ async function showPlaybackSettings(iframeurl, mode) {
           showMessage("再生方法をNocookieに設定しました。");
           window.location.href = `/wkt/yt/nocookie/<%= videoId %>?tu=true`;
         } else{
-          showMessage("再生方法をeduに設定しました。");
+          showMessage("再生方法をEducationに設定しました。");
           window.location.href = `/wkt/yt/edu/<%= videoId %>?tu=true`;
         }
     });
@@ -1061,13 +1061,13 @@ async function showPlaybackSettings(iframeurl, mode) {
         } else {
           localStorage.setItem('tutorialCompleted', 'true');
           settingsOverlay.remove();
-          showMessage("再生方法をnormalに設定しました。<br>再生方法の変更は「コントロール」ボタンからいつでも行えます。");
+          showMessage("再生方法をNormalに設定しました。<br>再生方法の変更は「コントロール」ボタンからいつでも行えます。");
         }
     });
     document.getElementById('skipBtn').addEventListener('click', function() {
         localStorage.setItem('tutorialCompleted', 'true');
         settingsOverlay.remove();
-        showMessage("再生方法をnormalに設定しました。<br>再生方法の変更は「コントロール」ボタンからいつでも行えます。");
+        showMessage("再生方法をNormalに設定しました。<br>再生方法の変更は「コントロール」ボタンからいつでも行えます。");
     });
 }
 
