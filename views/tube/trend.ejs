@@ -20,8 +20,9 @@
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
   <style>
+    /* jQuery UIのサジェスト候補がTailwindより手前に来るように調整 */
     .ui-autocomplete { z-index: 1000 !important; }
-    /* Tailwindの読み込み待ちによるチラつき防止 */
+    /* ロード時のチラつき防止 */
     body { background-color: #111827; } 
   </style>
 </head>
@@ -29,8 +30,10 @@
 <body class="bg-gray-900 text-white font-sans antialiased">
 
   <header class="bg-gray-800 p-4 flex justify-between items-center fixed top-0 left-0 w-full z-50 shadow-md">
+      
       <form action="/wkt/s" method="get" class="w-full md:w-1/2 relative flex items-center" id="searchForm">
-          <input type="text" name="q" id="searchbox" placeholder="検索" class="w-full p-2 pr-10 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white border-none">
+          <input type="text" name="q" id="searchbox" placeholder="検索" 
+                 class="w-full p-2 pr-10 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white border-none transition-shadow">
           
           <button type="button" id="clearBtn" class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center h-6 w-6 rounded-full hover:bg-gray-600 text-gray-300 text-lg leading-none hidden">
             ×
@@ -38,12 +41,13 @@
       </form>
 
       <nav class="hidden md:flex space-x-6 ml-4">
-          <a href="/wkt" class="text-gray-300 hover:text-white transition">ホーム</a>
-          <a href="/wkt/cl/history" class="text-gray-300 hover:text-white transition">履歴</a>
-          <a href="/wkt/cl/shistory" class="text-gray-300 hover:text-white transition">検索履歴</a>
+          <a href="/wkt" class="text-gray-300 hover:text-white transition font-medium">ホーム</a>
+          <a href="/wkt/cl/history" class="text-gray-300 hover:text-white transition font-medium">視聴履歴</a>
+          <a href="/wkt/cl/shistory" class="text-gray-300 hover:text-white transition font-medium">検索履歴</a>
       </nav>
-      <div class="md:hidden ml-2 text-gray-300">
-        <a href="/wkt" class="text-sm">ホーム</a>
+      
+      <div class="md:hidden ml-2">
+        <a href="/wkt" class="text-gray-300 hover:text-white text-sm font-medium">ホーム</a>
       </div>
   </header>
   
@@ -51,6 +55,7 @@
 
       <div id="trend-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           </div>
+
   </div>
 
   <script>
@@ -61,16 +66,19 @@
   const clearBtn = document.getElementById('clearBtn');
 
   function toggleClearButton() {
+      // 入力がある時だけ「×」を表示
       clearBtn.style.display = searchBox.value ? 'block' : 'none';
   }
 
   searchBox.addEventListener('input', toggleClearButton);
+  
   clearBtn.addEventListener('click', () => {
       searchBox.value = '';
       searchBox.focus();
       toggleClearButton();
   });
-  // 初期チェック
+  
+  // 初期状態チェック
   toggleClearButton();
 
 
@@ -78,13 +86,16 @@
      2. データ描画: トレンド動画の生成
   ----------------------------------------------- */
   document.addEventListener("DOMContentLoaded", () => {
-      // サーバーサイド変数の埋め込み
+      
+      // EJS変数の展開 (サーバーから渡されたデータ)
       const trending = <%- JSON.stringify(topVideos.trending) %>;
       const container = document.getElementById("trend-container");
 
       container.innerHTML = "";
 
-      // 時間差計算関数 (既存維持)
+      /**
+       * 日時を「◯分前」「◯日前」に変換する関数
+       */
       function timeAgo(publishedAt) {
           const now = new Date();
           const published = new Date(publishedAt);
@@ -93,28 +104,64 @@
           const diffHr = Math.floor(diffMin / 60);
           const diffDay = Math.floor(diffHr / 24);
 
-          if (diffMin < 60) return `${diffMin} 分前`;
-          if (diffHr < 24) return `${diffHr} 時間前`;
-          return `${diffDay} 日前`;
+          if (diffMin < 60) return `${diffMin}分前`;
+          if (diffHr < 24) return `${diffHr}時間前`;
+          return `${diffDay}日前`;
       }
 
-      // カード生成ループ (Tailwind Classを適用したHTML構造に変更)
+      /**
+       * ISO 8601 Duration (例: PT3M38S) を "3:38" に変換する関数
+       */
+      function parseDuration(duration) {
+          if (!duration) return "";
+          // 正規表現で H, M, S を抽出
+          const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+          if (!match) return "";
+          
+          const hours = (match[1] || '').replace('H', '');
+          const minutes = (match[2] || '').replace('M', '');
+          const seconds = (match[3] || '').replace('S', '');
+
+          // 時間がある場合: H:MM:SS
+          if (hours) {
+              return `${hours}:${minutes.padStart(2, '0')}:${seconds.padStart(2, '0')}`;
+          } 
+          // 分のみの場合: M:SS (0分の場合は 0:SS)
+          else {
+              return `${minutes || '0'}:${seconds.padStart(2, '0')}`;
+          }
+      }
+
+      // データをループしてHTMLを生成
       trending.forEach(item => {
           const ago = timeAgo(item.publishedAt);
+          const durationText = parseDuration(item.duration);
           const viewCount = Number(item.viewCount).toLocaleString();
-          const likeCount = Number(item.likeCount).toLocaleString();
+          
+          // チャンネルIDがあればリンク化、なければ #
+          const channelUrl = item.channelId ? `/wkt/c/${item.channelId}` : '#';
+          
+          // サムネイル画像のURL (mqdefault推奨)
+          const thumbUrl = item.thumbnails?.medium?.url || `/wkt/back/vi/${item.id}/mqdefault.jpg`;
 
-          // 解析元UIのカードデザインを再現
+          // カードHTMLの組み立て
           const html = `
             <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
+                
                 <a href="/wkt/w/${item.id}" class="block relative group">
-                    <img loading="lazy" src="/wkt/back/vi/${item.id}/mqdefault.jpg" alt="${item.title}" class="w-full h-auto rounded aspect-video object-cover">
+                    <img loading="lazy" src="${thumbUrl}" alt="${item.title}" class="w-full h-auto rounded aspect-video object-cover">
+                    
+                    <span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium">
+                        ${durationText}
+                    </span>
+
                     <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
                 </a>
 
                 <div class="mt-3 flex items-start space-x-3">
-                    <a href="#" class="flex-shrink-0">
-                        <img src="${item.channelIcon}" alt="${item.channel}" class="w-9 h-9 rounded-full object-cover bg-gray-600">
+                    
+                    <a href="${channelUrl}" class="flex-shrink-0">
+                        <img src="${item.channelIcon}" alt="${item.channel}" class="w-9 h-9 rounded-full object-cover bg-gray-600 border border-gray-700">
                     </a>
                     
                     <div class="flex-1 min-w-0">
@@ -124,9 +171,9 @@
                             </p>
                         </a>
                         
-                        <p class="text-gray-400 text-xs hover:text-white transition mb-0.5">
+                        <a href="${channelUrl}" class="text-gray-400 text-xs hover:text-white transition mb-0.5 block truncate">
                             ${item.channel}
-                        </p>
+                        </a>
                         
                         <p class="text-gray-500 text-xs">
                            ${viewCount} 回視聴 • ${ago}
@@ -139,9 +186,8 @@
       });
   });
 
-
   /* -----------------------------------------------
-     3. 機能維持: jQuery Autocomplete
+     3. 機能維持: jQuery Autocomplete (サジェスト)
   ----------------------------------------------- */
   $(function () {
       $('#searchbox').autocomplete({
@@ -154,7 +200,7 @@
                   }
               });
           },
-          delay: 200, // 少しディレイを入れて負荷軽減
+          delay: 200, // サーバー負荷軽減のため少し待機
           select: function (event, ui) {
               $('#searchbox').val(ui.item.value);
               $('#searchForm').submit();
