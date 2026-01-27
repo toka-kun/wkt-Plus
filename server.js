@@ -81,17 +81,32 @@ app.use((req, res) => {
   });
 });
 app.on("error", console.error);
+// --- ここから下を server.js の末尾に上書きしてください ---
+
 async function initInnerTube() {
-  try {
-    client = await YouTubeJS.Innertube.create({ lang: "ja", location: "JP"});
-    serverYt.setClient(client);
-    const listener = app.listen(process.env.PORT || 3000, () => {
-      console.log(process.pid, "Ready.", listener.address().port);
-    });
-  } catch (e) {
-    console.error(e);
-    setTimeout(initInnerTube, 10000);
-  };
-};
+    try {
+        client = await YouTubeJS.Innertube.create({ lang: "ja", location: "JP" });
+        serverYt.setClient(client);
+        console.log("YouTube Client initialized.");
+    } catch (e) {
+        console.error("YouTube Client Init Error:", e);
+        // エラーでもリトライしつつサーバー自体は落とさないようにする
+        setTimeout(initInnerTube, 10000);
+    }
+}
+
 process.on("unhandledRejection", console.error);
+
+// サーバー起動処理
 initInnerTube();
+
+// Vercel等のServerless環境のためにappをエクスポートする（必須）
+module.exports = app;
+
+// ローカルやKoyeb（通常のサーバー）で実行された場合のみポートをリッスンする
+// Vercelではここは実行されず、module.exports = app が使われます
+if (require.main === module) {
+    const listener = app.listen(process.env.PORT || 3000, () => {
+        console.log(process.pid, "Ready.", listener.address().port);
+    });
+}
