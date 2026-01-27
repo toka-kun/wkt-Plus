@@ -11,7 +11,7 @@
 
 ## 🛠 Render でのデプロイ手順
 
-1. [Render](https://render.com/) にログインまたは新規登録
+1. [Render](https://dashboard.render.com/) にログインまたは新規登録
 2. 「New」 → 「Web Service」 を選択
 3. Remixしたわかめtubeのリポジトリの公開URLを入力
 4. プランをFREEにして一番下の完了ボタン的なとこを押す
@@ -21,10 +21,10 @@
 
 ## 対応しているデプロイサービス
 
-1. Render
-2. Vercel
-3. Railway
-4. Koyeb (Dockerfileを選択して下さい。)
+1. [Render](https://dashboard.render.com/)
+2. [Vercel](https://vercel.com/)
+3. [Railway](https://railway.com/dashboard)
+4. [Koyeb](https://app.koyeb.com/) (Dockerfileを選択して下さい。)
 
 ---
 
