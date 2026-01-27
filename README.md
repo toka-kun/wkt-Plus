@@ -13,9 +13,20 @@
 
 1. [Render](https://dashboard.render.com/) にログインまたは新規登録
 2. 「New」 → 「Web Service」 を選択
-3. Remixしたわかめtubeのリポジトリの公開URLを入力
+3. Remixしたわかめtubeのリポジトリを選択
 4. プランをFREEにして一番下の完了ボタン的なとこを押す
 5. 数分待つと完了です☑️
+
+---
+
+## 🛠 Koyeb でのデプロイ手順
+
+1. [Koyeb](https://app.koyeb.com/) にログインまたは新規登録
+2. 「Create Service」 → 「GitHub」 を選択
+3. Remixしたわかめtubeのレポジトリを選択
+4. Dockerfileを選択
+5. InstanceをFreeにしてそのまま進み、一番下の完了ボタン的なとこを押す
+6. 数分待つと完了です☑️
 
 ---
 
