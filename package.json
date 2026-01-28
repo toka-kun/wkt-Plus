@@ -15,7 +15,8 @@
     "youtubei.js": "latest",
     "undici": "latest",
     "miniget": "^4.2.3",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "body-parser": "^1.20.2"
   },
   "description": "wakame",
   "engines": {
