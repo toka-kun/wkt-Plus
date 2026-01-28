@@ -8,7 +8,7 @@
   "tasks": {
     "start-server": {
       "name": "Start Server",
-      "command": "npm install && npm start",
+      "command": "npm start",
       "runAtStart": true,
       "preview": {
         "port": 3000
