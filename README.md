@@ -28,6 +28,16 @@
 
 ---
 
+## 🛠 CodeSandbox でのデプロイ手順
+
+1. [CodeSandbox](https://codesandbox.io/dashboard) にログインまたは新規登録
+2. 「Import」を選択
+3. Remixしたわかめtubeのレポジトリを選択
+4. Runtimeを用途に合わせて選択し、一番下の完了ボタン的なとこを押す
+5. 数分待つと完了です☑️
+
+---
+
 ## 対応しているデプロイサービス
 
 1. [Render](https://dashboard.render.com/)
