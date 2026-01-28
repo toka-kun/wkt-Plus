@@ -34,7 +34,8 @@
 2. 「Import」を選択
 3. Remixしたわかめtubeのレポジトリを選択
 4. Runtimeを用途に合わせて選択し、一番下の完了ボタン的なとこを押す
-5. 数分待つと完了です☑️
+5. 右に出てきた画面から「Next」を押し続けて（途中Protect main branchってのが出てくるけどそこはオンにするのがおすすめ）そのまま「Apply」まで押す
+6. 右下にOpen Previewって出てくると完了です☑️
 
 ---
 
@@ -50,12 +51,12 @@
 
 ## 改善した箇所
 
-- 2025/10/24 - Education再生を復活
-- 2025/12/06 - トレンド機能を復活
+- 2025/10/24 - Education再生を復活 [@siawaseok3](https://github.com/siawaseok3)
+- 2025/12/06 - トレンド機能を復活 [@siawaseok3](https://github.com/siawaseok3)
 - 2025/12/09 - Education再生時のエラーを修正
 - 2026/01/22 - トレンドページのUIを改善
 - 2026/01/27 - Koyebでのデプロイに対応
-- 2026/01/28 - @cake-wakame (@banana-coco) のレポジトリをパクってCodeSandboxに対応
+- 2026/01/28 - [チョコのレポジトリ](https://github.com/cake-wakame/wkt) をパクってCodeSandboxに対応 @banana-coco(https://github.com/banana-coco)
 
 ---
 
