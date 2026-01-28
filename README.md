@@ -33,6 +33,7 @@
 1. [Render](https://dashboard.render.com/)
 2. [Railway](https://railway.com/dashboard)
 3. [Koyeb](https://app.koyeb.com/)
+4. [CodeSandbox](https://codesandbox.io/dashboard)
 
 
 ---
@@ -44,6 +45,7 @@
 - 2025/12/09 - Education再生時のエラーを修正
 - 2026/01/22 - トレンドページのUIを改善
 - 2026/01/27 - Koyebでのデプロイに対応
+- 2026/01/28 - @cake-wakame (@banana-coco) のレポジトリをパクってCodeSandboxに対応
 
 ---
 
