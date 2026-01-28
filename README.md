@@ -12,7 +12,7 @@
 1. [Render](https://dashboard.render.com/) にログインまたは新規登録
 2. 「New」 → 「Web Service」 を選択
 3. Remixしたわかめtubeのリポジトリを選択
-4. プランをFREEにして一番下の完了ボタン的なとこを押す
+4. Instance Typeを「Free」にして一番下の完了ボタン的なとこを押す
 5. 数分待つと完了です☑️
 
 ---
@@ -22,8 +22,8 @@
 1. [Koyeb](https://app.koyeb.com/) にログインまたは新規登録
 2. 「Create Service」 → 「GitHub」 を選択
 3. Remixしたわかめtubeのレポジトリを選択
-4. Dockerfileを選択
-5. InstanceをFreeにしてそのまま進み、一番下の完了ボタン的なとこを押す
+4. 「Dockerfile」を選択
+5. Instanceを「Free」にしてそのまま進み、一番下の完了ボタン的なとこを押す
 6. 数分待つと完了です☑️
 
 ---
@@ -34,8 +34,9 @@
 2. 「Import」を選択
 3. Remixしたわかめtubeのレポジトリを選択
 4. Runtimeを用途に合わせて選択し、一番下の完了ボタン的なとこを押す
-5. 右に出てきた画面から「Next」を押し続けて（途中Protect main branchってのが出てくるけどそこはオンにするのがおすすめ）そのまま「Apply」まで押す
-6. 右下にOpen Previewって出てくると完了です☑️
+5. 右に出てきた画面から「Next」を押し続ける。途中「Protect main branch」ってのが出てくるけどそこはオンにするのがおすすめ
+6. そのまま「Apply」まで押す
+7. 右下にOpen Previewって出てくると完了です。Open Previewを押すとリンクが分かります☑️
 
 ---
 
