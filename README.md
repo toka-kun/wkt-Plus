@@ -56,7 +56,7 @@
 - 2025/12/09 - Education再生時のエラーを修正
 - 2026/01/22 - トレンドページのUIを改善
 - 2026/01/27 - Koyebでのデプロイに対応
-- 2026/01/28 - [チョコのレポジトリ](https://github.com/cake-wakame/wkt) をパクってCodeSandboxに対応 [@banana-coco](https://github.com/banana-coco)
+- 2026/01/28 - [チョコのレポジトリ](https://github.com/cake-wakame/wkt) をパクってCodeSandboxでのデプロイに対応 [@banana-coco](https://github.com/banana-coco)
 
 ---
 
