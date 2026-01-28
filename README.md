@@ -32,7 +32,7 @@
 
 1. [Render](https://dashboard.render.com/)
 2. [Railway](https://railway.com/dashboard)
-3. [Koyeb](https://app.koyeb.com/) (Dockerfileを選択して下さい。)
+3. [Koyeb](https://app.koyeb.com/)
 
 
 ---
