@@ -64,8 +64,9 @@
 ## ToDo
 
 - プロキシを復活
-- Invidiousを修正
-- （できれば）Educationのパラメーターを選択制に
+- Invidiousをさらに追加
+- Educationのパラメーターを選択制に
+- ゲームをさらに追加
 
 ---
 
