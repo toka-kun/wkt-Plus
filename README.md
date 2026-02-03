@@ -44,9 +44,10 @@
 ## 対応しているデプロイサービス
 
 1. [Render](https://dashboard.render.com/)
-2. [Railway](https://railway.com/dashboard)
-3. [Koyeb](https://app.koyeb.com/)
-4. [CodeSandbox](https://codesandbox.io/dashboard)
+2. [Vercel](https://vercel.com/) （ただし検索は不可） 
+3. [Railway](https://railway.com/dashboard)
+4. [Koyeb](https://app.koyeb.com/)
+5. [CodeSandbox](https://codesandbox.io/dashboard)
 
 
 ---
@@ -58,7 +59,7 @@
 - 2025/12/09 - Education再生時のエラーを修正
 - 2026/01/22 - トレンドページのUIを改善
 - 2026/01/27 - Koyebでのデプロイに対応
-- 2026/01/28 - [チョコのレポジトリ](https://github.com/cake-wakame/wkt) をパクってCodeSandboxでのデプロイに対応 [@banana-coco](https://github.com/banana-coco)
+- 2026/01/28 - [チョコのレポジトリ](https://github.com/cake-wakame/wkt) をパクってCodeSandboxでのデプロイに対応 [@banana-coco](https://github.com/banana-coco) （どうやらこれのお陰でVercelにも対応できたっぽいです。）
 
 ---
 
