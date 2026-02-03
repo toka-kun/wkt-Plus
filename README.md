@@ -44,7 +44,7 @@
 ## 対応しているデプロイサービス
 
 1. [Render](https://dashboard.render.com/)
-2. [Vercel](https://vercel.com/) （ただし検索は不可） 
+2. [Vercel](https://vercel.com/) （Internal Server Errorが出る時があるが、再読み込みでだいたい治る） 
 3. [Railway](https://railway.com/dashboard)
 4. [Koyeb](https://app.koyeb.com/)
 5. [CodeSandbox](https://codesandbox.io/dashboard)
