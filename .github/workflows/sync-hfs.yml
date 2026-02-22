@@ -1,0 +1,23 @@
+name: Sync to Hugging Face Hub
+
+on:
+  push:
+    branches: [master] # もしメインのブランチ名がmainなら main に変更してください
+  workflow_dispatch:
+
+jobs:
+  sync-to-hub:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Push to Hugging Face
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          # 以下の YOUR_HF_USERNAME と YOUR_SPACE_NAME を自分のものに書き換えてください！
+          git push --force https://toka-kun:$HF_TOKEN@huggingface.co/spaces/toka-kun/wkt-plus master:main
