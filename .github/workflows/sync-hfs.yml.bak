@@ -1,3 +1,5 @@
+## HFSでのデプロイに使用するために作ったものですが、デプロイできてもYouTubeの動画再生がうまくいかなかったので諦めました。
+
 name: Sync to Hugging Face Hub
 
 on:
@@ -20,4 +22,4 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           # 以下の YOUR_HF_USERNAME と YOUR_SPACE_NAME を自分のものに書き換えてください！
-          git push --force https://toka-kun:$HF_TOKEN@huggingface.co/spaces/toka-kun/wkt-plus master:main
+          git push --force https://YOUR_HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/YOUR_HF_USERNAME/YOUR_SPACE_NAME master:main
