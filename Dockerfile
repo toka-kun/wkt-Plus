@@ -21,4 +21,4 @@ ENV PORT=7860
 EXPOSE 7860
 
 # サーバー起動コマンド
-CMD ["node", "server.js"]
+CMD ["node", "--dns-result-order=ipv4first", "server.js"]
