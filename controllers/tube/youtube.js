@@ -5,13 +5,16 @@ const serverYt = require("../../server/youtube.js");
 
 // 取得先の設定（URL、取得するキー、エンドポイント名の対応表）
 const fetchConfigs = [
+  { name: "edurl",        url: "https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/keys/key1.json", type: "json", key: "result" },
   { name: "edurl_wakame", url: "https://raw.githubusercontent.com/wakame02/wktopu/refs/heads/main/edu.text", type: "text" },
   { name: "edurl_sia",    url: "https://raw.githubusercontent.com/siawaseok3/wakame/master/video_config.json", type: "json", key: "params" },
+  { name: "edurl_toka1",        url: "https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/keys/key1.json", type: "json", key: "result" },
+  { name: "edurl_toka2",  url: "https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/keys/key2.json", type: "json", key: "result" },
   { name: "edurl_wool1",  url: "https://raw.githubusercontent.com/woolisbest-4520/about-youtube/refs/heads/main/edu/parameter.txt", type: "text" },
   { name: "edurl_wool2",  url: "https://raw.githubusercontent.com/woolisbest-4520/about-youtube/refs/heads/main/edu/edu.txt", type: "text" },
   { name: "edurl_wool3",  url: "https://raw.githubusercontent.com/woolisbest-4520/about-youtube/refs/heads/main/edu/ep.txt", type: "text" },
-  { name: "edurl",        url: "https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/keys/key1.json", type: "json", key: "result" },
-  { name: "edurl_toka2",  url: "https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/keys/key2.json", type: "json", key: "result" }
+  { name: "edurl_wool4",  url: "https://raw.githubusercontent.com/woolisbest-4520/about-youtube/refs/heads/main/edu/key1.txt", type: "text" },
+  { name: "edurl_wool5",  url: "https://raw.githubusercontent.com/woolisbest-4520/about-youtube/refs/heads/main/edu/key2.txt", type: "text" }
 ];
 
 // 汎用的なデータ取得関数
