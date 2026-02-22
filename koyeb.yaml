@@ -1,1 +1,25 @@
+name: wakame-tube
+type: web
 
+routes:
+  - path: /
+    port: 8000
+
+regions:
+  - tyo # 東京リージョン (なければ iad, fra, sin など)
+
+env:
+  # server.jsの process.env.PORT に渡される値
+  PORT: 8000
+  # Node.jsの環境設定
+  NODE_ENV: production
+
+# ビルドと起動の設定
+build:
+  command: npm install --legacy-peer-deps
+  buildpack: nodejs
+
+run:
+  command: node server.js
+  
+instance_type: free # フリープランの場合
