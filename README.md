@@ -60,7 +60,7 @@
 - 2026/01/27 - Koyebでのデプロイに対応
 - 2026/01/28 - [チョコのレポジトリ](https://github.com/cake-wakame/wkt) をパクってVercelとCodeSandboxでのデプロイに対応 [@banana-coco](https://github.com/banana-coco) 
 - 2026/02/16 - Invidiousを既存のものにさらに追加、安定性が増したはずです。
-- 2026/02/22 - Educationのパラメーターを一旦全7種のパラメーターを取得し、Toka_Kun_-1のみ使うようにしました。 [@toka-kun](https://github.com/toka-kun)
+- 2026/02/22 - Educationのパラメーターを一旦全7種のパラメーターを取得し、Toka_Kun_-1のみ使うように変更 [@toka-kun](https://github.com/toka-kun)
 
 ---
 
