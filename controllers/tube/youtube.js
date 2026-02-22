@@ -1,36 +1,52 @@
 const axios = require("axios");
 const express = require("express");
 const router = express.Router();
-const path = require("path");
-const http = require('http');
 const serverYt = require("../../server/youtube.js");
 
-// ▼▼ ここを "video_config.json" から params を取得する式に変更 ▼▼
-async function getYtParams() {
-  const url = "https://raw.githubusercontent.com/siawaseok3/wakame/master/video_config.json";
+// 取得先の設定（URL、取得するキー、エンドポイント名の対応表）
+const fetchConfigs = [
+  { name: "edurl_wakame", url: "https://raw.githubusercontent.com/wakame02/wktopu/refs/heads/main/edu.text", type: "text" },
+  { name: "edurl_sia",    url: "https://raw.githubusercontent.com/siawaseok3/wakame/master/video_config.json", type: "json", key: "params" },
+  { name: "edurl_wool1",  url: "https://raw.githubusercontent.com/woolisbest-4520/about-youtube/refs/heads/main/edu/parameter.txt", type: "text" },
+  { name: "edurl_wool2",  url: "https://raw.githubusercontent.com/woolisbest-4520/about-youtube/refs/heads/main/edu/edu.txt", type: "text" },
+  { name: "edurl_wool3",  url: "https://raw.githubusercontent.com/woolisbest-4520/about-youtube/refs/heads/main/edu/ep.txt", type: "text" },
+  { name: "edurl",        url: "https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/keys/key1.json", type: "json", key: "result" },
+  { name: "edurl_toka2",  url: "https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/keys/key2.json", type: "json", key: "result" }
+];
 
+// 汎用的なデータ取得関数
+async function getParamData(config) {
   try {
-    const response = await axios.get(url);
-    if (response.data && response.data.params) {
-      return response.data.params;
+    const response = await axios.get(config.url);
+    if (config.type === "json") {
+      // JSONの場合は指定されたキー（paramsやresult）を返す
+      return response.data[config.key] || "";
     }
-    throw new Error("params が JSON 内に見つかりませんでした");
-  } catch (err) {
-    console.error("getYtParams error:", err.message);
-    throw new Error("params を取得できませんでした");
+    // テキストの場合はそのまま返す
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching ${config.name}: ${error.message}`);
+    return ""; // 失敗時は空文字を返す（エラーで止めないため）
   }
 }
-// ▲▲ ここまで変更 ▲▲
 
+// 1. 各edurl系エンドポイントを自動生成
+fetchConfigs.forEach(config => {
+  router.get(`/${config.name}`, async (req, res) => {
+    const data = await getParamData(config);
+    res.send(`${data}`);
+  });
+});
 
+// 2. /edu/:id の処理（デフォルトとして toka-kun の key1.json = /edurl を使う例）
 router.get('/edu/:id', async (req, res) => {
   const videoId = req.params.id;
   try {
-    const params = await getYtParams();
-    const videosrc = `https://www.youtubeeducation.com/embed/${videoId}${params}`;
-
+    // デフォルトのパラメータとして fetchConfigs[5] (edurl) を取得
+    const ytinfo = await getParamData(fetchConfigs.find(c => c.name === 'edurl'));
+    const videosrc = `https://www.youtubeeducation.com/embed/${videoId}${ytinfo}`;
+    
     const Info = await serverYt.infoGet(videoId);
-
     const videoInfo = {
       title: Info.primary_info.title.text || "",
       channelId: Info.secondary_info.owner.author.id || "",
@@ -46,30 +62,20 @@ router.get('/edu/:id', async (req, res) => {
           
     res.render('tube/umekomi/edu.ejs', {videosrc, videoInfo, videoId});
   } catch (error) {
-     res.status(500).render('tube/mattev', { 
+    res.status(500).render('tube/mattev', { 
       videoId, 
-      error: '動画を取得できません',
+      error: '動画を取得できません', 
       details: error.message 
     });
   }
 });
 
-router.get('/edurl', async (req, res) => {
-  try {
-    const params = await getYtParams();
-    res.send(`${params}`);
-  } catch (error) {
-     res.status(500).send(error);
-  }
-});
-
+// 3. nocookie はそのまま
 router.get('/nocookie/:id', async (req, res) => {
   const videoId = req.params.id;
   try {
     const videosrc = `https://www.youtube-nocookie.com/embed/${videoId}`;
-
     const Info = await serverYt.infoGet(videoId);
-
     const videoInfo = {
       title: Info.primary_info.title.text || "",
       channelId: Info.secondary_info.owner.author.id || "",
@@ -85,9 +91,9 @@ router.get('/nocookie/:id', async (req, res) => {
           
     res.render('tube/umekomi/nocookie.ejs', {videosrc, videoInfo, videoId});
   } catch (error) {
-     res.status(500).render('matte', { 
+    res.status(500).render('matte', { 
       videoId, 
-      error: '動画を取得できません',
+      error: '動画を取得できません', 
       details: error.message 
     });
   }
