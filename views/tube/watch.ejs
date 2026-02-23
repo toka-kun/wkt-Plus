@@ -1003,7 +1003,7 @@ function showTutorial() {
     document.body.appendChild(tutorialOverlay);
     document.getElementById('startTutorialBtn').addEventListener('click', function() {
         tutorialOverlay.remove();
-        showPlaybackSettings("https://www.youtube-nocookie.com/embed/<%= videoId %>", "nocookie");
+        showPlaybackSettings("https://www.youtube-nocookie.com/embed/<%= videoId %>?autoplay=1&amp;mute=0", "nocookie");
     });
     document.getElementById('skipBtn0').addEventListener('click', function() {
         localStorage.setItem('tutorialCompleted', 'true');
