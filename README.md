@@ -61,6 +61,7 @@
 - 2026/01/28 - [チョコのレポジトリ](https://github.com/cake-wakame/wkt) をパクってVercelとCodeSandboxでのデプロイに対応 [@banana-coco](https://github.com/banana-coco) 
 - 2026/02/16 - Invidiousを既存のものにさらに追加、安定性が増したはずです。
 - 2026/02/22 - Educationのパラメーターを一旦全7種のパラメーターを取得し、Toka_Kun_-1のみ使うように変更 [@toka-kun](https://github.com/toka-kun)
+- 2026/02/23 - Educationのパラメーターをもう2種類取得するように変更、Nocookie再生時のパラメーターを微調整
 
 ---
 
@@ -79,8 +80,8 @@
 ## クレジット
 
 - わかめtubeの原作者 [@wakame02](https://github.com/wakame02)
-- Educationのパラメーター、トレンド情報提供 [@siawaseok3](https://github.com/siawaseok3)
 - この改造版わかめtubeの作者、Educationのパラメーターの提供 [@toka-kun](https://github.com/toka-kun)
+- Educationのパラメーター、トレンド情報提供 [@siawaseok3](https://github.com/siawaseok3)
 - VercelとCodeSandboxでのデプロイに対応 [@banana-coco](https://github.com/banana-coco)
 - Educationのパラメーターの提供 [@woolisbest-4520](https://github.com/woolisbest-4520)
 
