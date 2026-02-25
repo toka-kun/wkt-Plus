@@ -7,7 +7,7 @@ const MAX_TIME = 10000;
 
 async function getapis() {
     try {
-        const response = await axios.get('https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/apis/Invidious/stream.json');
+        const response = await axios.get('https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/apis/Invidious/yes.json');
         apis = await response.data;
         console.log('データを取得しました:', apis);
     } catch (error) {
