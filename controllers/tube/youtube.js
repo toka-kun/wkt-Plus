@@ -14,7 +14,8 @@ const fetchConfigs = [
   { name: "edurl_wool2",  url: "https://raw.githubusercontent.com/woolisbest-4520/about-youtube/refs/heads/main/edu/edu.txt", type: "text" },
   { name: "edurl_wool3",  url: "https://raw.githubusercontent.com/woolisbest-4520/about-youtube/refs/heads/main/edu/ep.txt", type: "text" },
   { name: "edurl_wool4",  url: "https://raw.githubusercontent.com/woolisbest-4520/about-youtube/refs/heads/main/edu/key1.txt", type: "text" },
-  { name: "edurl_wool5",  url: "https://raw.githubusercontent.com/woolisbest-4520/about-youtube/refs/heads/main/edu/key2.txt", type: "text" }
+  { name: "edurl_wool5",  url: "https://raw.githubusercontent.com/woolisbest-4520/about-youtube/refs/heads/main/edu/key2.txt", type: "text" },
+  { name: "min2_api",     url: "https://raw.githubusercontent.com/Minotaur-ZAOU/test/refs/heads/main/min-tube-api.json", type: "text" }  
 ];
 
 // 汎用的なデータ取得関数
