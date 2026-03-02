@@ -16,25 +16,38 @@ router.get("/", (req, res) => {
 });
 
 router.get("/s", async (req, res) => {
-	let query = req.query.q;
-	let page = Number(req.query.p || 1);
+    let query = req.query.q;
+    let page = Number(req.query.p || 1);
     try {
-		res.render("tube/search.ejs", {
-			res: await serverYt.search(query, limit, page),
-			query: query,
-			page
-		});
-	} catch (error) {
-		console.error(error);
-		try {
-			res.status(500).render("error.ejs", {
-				title: "ytsr Error",
-				content: error
-			});
-		} catch (error) {
-			console.error(error);
-		}
-	}
+        // 先に検索結果を変数に入れる
+        const searchResult = await serverYt.search(query, limit, page);
+        
+        // もしYouTubeに弾かれて null が返ってきてしまったら、空の配列を渡す
+        if (!searchResult || !searchResult.results) {
+            return res.render("tube/search.ejs", {
+                res: { results: [] }, // 空っぽのデータとして安全に渡す
+                query: query,
+                page
+            });
+        }
+
+        // 成功した場合は通常通り渡す
+        res.render("tube/search.ejs", {
+            res: searchResult,
+            query: query,
+            page
+        });
+    } catch (error) {
+        console.error(error);
+        try {
+            res.status(500).render("error.ejs", {
+                title: "ytsr Error",
+                content: error
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    }
 });
 
 router.get("/ss", async (req, res) => {
