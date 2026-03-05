@@ -105,7 +105,7 @@
 - **元のプログラム部分（わかめtube）**
   - [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/deed.ja)
   - Copyright (c) wakame02
-- **追加・改変されたプログラム部分（wkt Plus）**
+- **追加・改変されたプログラム部分（わかめtube Plus）**
   - [MIT License](https://opensource.org/licenses/MIT)
   - Copyright (c) 2026 toka-kun
 
