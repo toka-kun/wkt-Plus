@@ -62,7 +62,7 @@
 - 2026/02/16 - Invidiousを既存のものにさらに追加、安定性が増したはずです。
 - 2026/02/22 - Educationのパラメーターを一旦全7種のパラメーターを取得し、Toka_Kun_-1のみ使うように変更 [@toka-kun](https://github.com/toka-kun)
 - 2026/02/23 - Educationのパラメーターをもう2種類取得するように変更、Nocookie再生時のパラメーターを微調整、Railwayでデプロイすると動画ページの関連動画から検索したときにエラーが出る問題を改善
-- 2026/03/01 - 開けないチャンネルページがある問題を改善
+- 2026/03/01 - 動画を投稿していないチャンネルのページを開けない問題を改善
 - 2026/03/02 - InnerTubeのエラー関連（特にVercel）を改善
 
 ---
@@ -85,9 +85,9 @@
 
 このプロジェクトは、多くの方々の貢献とコードによって成り立っています。
 
-- **わかめtube (wkt) 原作者**
+- **わかめtube 原作者**
   - [@wakame02](https://github.com/wakame02)
-- **わかめtube Plus (wkt Plus) 開発・Educationパラメーター提供**
+- **わかめtube Plus 開発・Educationパラメーター提供**
   - [@toka-kun](https://github.com/toka-kun)
 - **Educationパラメーター・トレンド情報提供**
   - [@siawaseok3](https://github.com/siawaseok3)
