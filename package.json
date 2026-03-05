@@ -1,8 +1,8 @@
 {
-  "name": "wakametube",
+  "name": "wkt-plus",
   "version": "1.0.8",
   "main": "server.js",
-  "license": "CC-BY-4.0",
+  "license": "MIT",
   "dependencies": {
     "express": "^4.21.2",
     "compression": "^1.8.0",
@@ -22,9 +22,9 @@
   "engines": {
     "node": "20.x"
   },
-  "author": "wakame02",
+  "author": "toka-kun",
   "bugs": {
-    "email": "23h11008@gmail.com"
+    "email": ""
   },
   "devDependencies": {},
   "scripts": {
