@@ -139,7 +139,7 @@ router.get('/next/:id', async (req, res) => {
     try {
         // ① まずは YouTubeJS (serverYt) を試す
         const videoInfo = await serverYt.infoGet(id);
-        if (!videoInfo || !videoInfo.watch_next_feed || videoInfo.watch_next_feed.length === 0) {
+        if (!videoInfo || !videoInfo.watch_next_results || videoInfo.watch_next_results.length === 0) {
             throw new Error("YouTubeJSで関連動画が取得できませんでした");
         }
         res.render('tube/back/next', { videoInfo });
@@ -164,7 +164,7 @@ router.get('/next/:id', async (req, res) => {
                 
                 // 擬態させたデータを next.ejs に渡す
                 return res.render('tube/back/next', { 
-                    videoInfo: { watch_next_feed: convertedFeed } 
+                    videoInfo: { watch_next_results: convertedFeed } 
                 });
             }
             throw new Error("Invidiousでも関連動画が見つかりませんでした");
@@ -198,8 +198,8 @@ router.get("/nextvideo/:id", async (req, res) => {
     try {
         // ① まずは YouTubeJS (serverYt) を試す
         const info = await serverYt.infoGet(req.params.id);
-        if (info && info.watch_next_feed && info.watch_next_feed.length > 0) {
-            return res.json(info.watch_next_feed);
+        if (info && info.watch_next_results && info.watch_next_results.length > 0) {
+            return res.json(info.watch_next_results);
         }
         throw new Error(`Failed to get nextvideo from YouTubeJS`);
     } catch (error) {
