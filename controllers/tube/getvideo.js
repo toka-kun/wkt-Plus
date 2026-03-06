@@ -26,25 +26,6 @@ router.get('/:id', async (req, res) => {
     try {
       const videoData = await wakamess.getYouTube(videoId);
       const Info = await serverYt.infoGet(videoId);
-
-      let watch_next_results = Info.watch_next_results || [];
-      if (!watch_next_results || watch_next_results.length === 0) {
-          try {
-              const invData = await wakamess.ggvideo(videoId);
-              if (invData && invData.recommendedVideos) {
-                  watch_next_results = invData.recommendedVideos.map(vid => ({
-                      type: "Video",
-                      id: vid.videoId,
-                      title: { text: vid.title },
-                      author: { id: vid.authorId, name: vid.author, thumbnails: [] },
-                      short_view_count: { text: vid.viewCountText || '不明' }
-                  }));
-              }
-          } catch (e) {
-              console.error("関連動画フォールバック失敗:", e.message);
-          }
-      }
-     
       const videoInfo = {
         title: Info.primary_info.title.text || "",
         channelId: Info.secondary_info.owner.author.id || "",
@@ -55,7 +36,7 @@ router.get('/:id', async (req, res) => {
         viewCount: Info.primary_info.view_count.short_view_count?.text || Info.primary_info.view_count.view_count?.text || "",
         likeCount: Info.primary_info.menu.top_level_buttons.short_like_count || Info.primary_info.menu.top_level_buttons.like_count || Info.basic_info.like_count || "",
         description: Info.secondary_info.description.text || "",
-        watch_next_results: Info.watch_next_results || "",
+        watch_next_feed: Info.watch_next_feed || "",
       };
       res.render('tube/watch.ejs', { videoData, videoInfo, videoId, baseUrl });
   } catch (error) {
