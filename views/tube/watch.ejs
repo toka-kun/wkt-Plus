@@ -263,7 +263,9 @@
             <label class="block mb-2">画質選択:
                 <select id="qualitySelect" class="w-full bg-gray-800 text-white p-2 rounded">
                     <% videoData.streamUrls.forEach(stream => { %>
-                    <option value="<%= stream.url %>" data-resolution="<%= stream.resolution %>" data-container="<%= stream.container %>"><%= stream.resolution %><%= stream.fps %> (<%= stream.container %>)</option>
+                    <option value="<%= stream.url %>" data-resolution="<%= stream.resolution %>" data-container="<%= stream.container %>">
+                        <%= stream.resolution %><%= stream.fps ? stream.fps : '' %> (<%= stream.container %>)
+                    </option>
                     <% }); %>
                 </select>
             </label>
