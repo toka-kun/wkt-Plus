@@ -1,3 +1,12 @@
+---
+title: WakameTube
+emoji: 📺
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
 ## 🚀 まずはRemix
 
 1. このリポジトリを GitHub で開く
