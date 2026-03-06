@@ -5,7 +5,7 @@ const MAX_API_WAIT_TIME = 5000;
 const MAX_TIME = 10000;
 
 // =========================================
-// ① Invidious API からの取得（デフォルト）
+// ① Invidious API からの取得
 // =========================================
 async function getapis() {
     try {
@@ -35,16 +35,19 @@ async function ggvideo(videoId) {
 
 async function getInvidious(videoId) {
     const videoInfo = await ggvideo(videoId);
+    
+    // 【修正】初期ストリーム: itag 18 (360p統合) を最優先
     const formatStreams = videoInfo.formatStreams || [];
-    let streamUrl = formatStreams.reverse().map(stream => stream.url)[0];
+    let streamUrl = formatStreams.find(s => String(s.itag) === '18')?.url || formatStreams.reverse()[0]?.url || '';
+    
     const audioStreams = videoInfo.adaptiveFormats || [];
     
+    // 【修正】音声: itag 251 (Opus) を最優先
+    const audioUrl = audioStreams.find(s => String(s.itag) === '251')?.url || 
+                     audioStreams.find(s => s.container === 'm4a')?.url || '';
+
     let highstreamUrl = audioStreams
         .filter(stream => (stream.container === 'webm' || stream.container === 'mp4') && stream.resolution === '1080p')
-        .map(stream => stream.url)[0];
-        
-    const audioUrl = audioStreams
-        .filter(stream => stream.container === 'm4a' && stream.audioQuality === 'AUDIO_QUALITY_MEDIUM')
         .map(stream => stream.url)[0];
         
     const streamUrls = audioStreams
@@ -53,7 +56,7 @@ async function getInvidious(videoId) {
             url: stream.url,
             resolution: stream.resolution,
             container: stream.container,
-            fps: stream.fps || 30
+            fps: stream.fps || null // 【修正】fpsがない場合はnull
         }));
         
     if (videoInfo.hlsUrl) streamUrl = `/wkt/live/s/${videoId}`;
@@ -69,27 +72,31 @@ async function getSiaTube(videoId) {
         const response = await axios.get(`https://siawaseok.f5.si/api/streams/${videoId}`, { timeout: MAX_TIME });
         const streams = Array.isArray(response.data) ? response.data : (response.data.formats || []);
         
-        // ★修正: vcodec が 'none' (映像なし) のものを音声として判定
-        const audioOnlyStreams = streams.filter(s => s.vcodec === 'none' || s.resolution === 'audio only');
-        const opusAudio = audioOnlyStreams.find(s => s.acodec === 'opus');
-        const audioUrl = opusAudio ? opusAudio.url : (audioOnlyStreams[0]?.url || '');
+        // 【修正】音声: format_id(itag) が 251 のものを最優先
+        const audioStream = streams.find(s => String(s.format_id) === '251' || String(s.itag) === '251') || 
+                            streams.find(s => s.vcodec === 'none' && s.acodec === 'opus') || 
+                            streams.find(s => s.vcodec === 'none');
+        const audioUrl = audioStream?.url || '';
 
-        // ★修正: 映像を含むフォーマットを取得
+        // 【修正】初期ストリーム: format_id(itag) が 18 の360p統合ファイルを最優先
+        const combinedStream = streams.find(s => String(s.format_id) === '18' || String(s.itag) === '18') || 
+                               streams.find(s => s.vcodec !== 'none' && s.acodec !== 'none');
+        const streamUrl = combinedStream?.url || '';
+
         const videoStreams = streams.filter(s => s.vcodec !== 'none' && s.url);
         const streamUrls = videoStreams.map(s => {
             let res = s.resolution || '';
-            // "3840x2160" のような形式から "2160p" を抽出
             if (res.includes('x')) res = res.split('x')[1] + 'p';
             return {
                 url: s.url,
                 resolution: res,
                 container: s.ext || 'mp4',
-                fps: s.fps || 30
+                fps: s.fps || null // 【修正】fpsがない場合はnull
             };
         });
 
         return {
-            stream_url: streamUrls[0]?.url || '',
+            stream_url: streamUrl || streamUrls[0]?.url || '',
             highstreamUrl: streamUrls.find(s => s.resolution === '1080p')?.url || streamUrls[0]?.url || '',
             audioUrl: audioUrl,
             streamUrls: streamUrls
@@ -107,11 +114,17 @@ async function getYuZuTube(videoId) {
         const response = await axios.get(`https://yudlp.vercel.app/stream/${videoId}`, { timeout: MAX_TIME });
         const streams = Array.isArray(response.data) ? response.data : (response.data.formats || []);
         
-        // ★修正: 音声の判定をより確実に
-        const audioOnlyStreams = streams.filter(s => s.vcodec === 'none' || s.resolution === 'audio only');
-        const audioUrl = audioOnlyStreams[0]?.url || '';
+        // 【修正】音声: format_id(itag) が 251 のものを最優先
+        const audioStream = streams.find(s => String(s.format_id) === '251' || String(s.itag) === '251') || 
+                            streams.find(s => s.vcodec === 'none' && s.acodec === 'opus') || 
+                            streams.find(s => s.vcodec === 'none');
+        const audioUrl = audioStream?.url || '';
 
-        // ★修正: 映像を含むフォーマットを取得
+        // 【修正】初期ストリーム: format_id(itag) が 18 の360p統合ファイルを最優先
+        const combinedStream = streams.find(s => String(s.format_id) === '18' || String(s.itag) === '18') || 
+                               streams.find(s => s.vcodec !== 'none' && s.acodec !== 'none');
+        const streamUrl = combinedStream?.url || '';
+
         const videoStreams = streams.filter(s => s.vcodec !== 'none' && s.url);
         const streamUrls = videoStreams.map(s => {
             let res = s.resolution || '';
@@ -120,12 +133,12 @@ async function getYuZuTube(videoId) {
                 url: s.url,
                 resolution: res,
                 container: s.ext || 'mp4',
-                fps: s.fps || 30
+                fps: s.fps || null // 【修正】fpsがない場合はnull
             };
         });
 
         return {
-            stream_url: streamUrls[0]?.url || '',
+            stream_url: streamUrl || streamUrls[0]?.url || '',
             highstreamUrl: streamUrls.find(s => s.resolution === '1080p')?.url || streamUrls[0]?.url || '',
             audioUrl: audioUrl,
             streamUrls: streamUrls
