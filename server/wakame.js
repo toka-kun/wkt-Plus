@@ -36,13 +36,10 @@ async function ggvideo(videoId) {
 async function getInvidious(videoId) {
     const videoInfo = await ggvideo(videoId);
     
-    // 【修正】初期ストリーム: itag 18 (360p統合) を最優先
     const formatStreams = videoInfo.formatStreams || [];
     let streamUrl = formatStreams.find(s => String(s.itag) === '18')?.url || formatStreams.reverse()[0]?.url || '';
     
     const audioStreams = videoInfo.adaptiveFormats || [];
-    
-    // 【修正】音声: itag 251 (Opus) を最優先
     const audioUrl = audioStreams.find(s => String(s.itag) === '251')?.url || 
                      audioStreams.find(s => s.container === 'm4a')?.url || '';
 
@@ -56,7 +53,7 @@ async function getInvidious(videoId) {
             url: stream.url,
             resolution: stream.resolution,
             container: stream.container,
-            fps: stream.fps || null // 【修正】fpsがない場合はnull
+            fps: stream.fps || null
         }));
         
     if (videoInfo.hlsUrl) streamUrl = `/wkt/live/s/${videoId}`;
@@ -65,62 +62,18 @@ async function getInvidious(videoId) {
 }
 
 // =========================================
-// ③ YuZuTube API からの取得
+// ② SiaTube API からの取得
 // =========================================
-async function getYuZuTube(videoId) {
+async function getSiaTube(videoId) {
     try {
-        const response = await axios.get(`https://yudlp.vercel.app/stream/${videoId}`, { timeout: MAX_TIME });
+        const response = await axios.get(`https://siawaseok.f5.si/api/streams/${videoId}`, { timeout: MAX_TIME });
         const streams = Array.isArray(response.data) ? response.data : (response.data.formats || []);
         
-        // 【修正】音声: itag 251、または resolution が 'audio only' のものを音声として取得
-        const audioStream = streams.find(s => String(s.format_id) === '251' || String(s.itag) === '251') || 
-                            streams.find(s => s.resolution === 'audio only');
-        const audioUrl = audioStream?.url || '';
-
-        // 【修正】初期ストリーム: format_id(itag) が 18 の360p統合ファイルを最優先
-        const combinedStream = streams.find(s => String(s.format_id) === '18' || String(s.itag) === '18');
-        const streamUrl = combinedStream?.url || '';
-
-        // 【修正】動画ストリーム: resolution が 'audio only' のものを完全に除外
-        const videoStreams = streams.filter(s => s.resolution !== 'audio only' && s.url);
-        
-        const streamUrls = videoStreams.map(s => {
-            let res = s.resolution || '';
-            if (res.includes('x')) res = res.split('x')[1] + 'p';
-            return {
-                url: s.url,
-                resolution: res,
-                container: s.ext || 'mp4',
-                fps: s.fps || null // fpsがない場合はnull
-            };
-        });
-
-        return {
-            stream_url: streamUrl || streamUrls[0]?.url || '',
-            highstreamUrl: streamUrls.find(s => s.resolution === '1080p')?.url || streamUrls[0]?.url || '',
-            audioUrl: audioUrl,
-            streamUrls: streamUrls
-        };
-    } catch (error) {
-        throw new Error("YuZuTubeからの取得に失敗: " + error.message);
-    }
-}
-
-// =========================================
-// ③ YuZuTube API からの取得
-// =========================================
-async function getYuZuTube(videoId) {
-    try {
-        const response = await axios.get(`https://yudlp.vercel.app/stream/${videoId}`, { timeout: MAX_TIME });
-        const streams = Array.isArray(response.data) ? response.data : (response.data.formats || []);
-        
-        // 【修正】音声: format_id(itag) が 251 のものを最優先
         const audioStream = streams.find(s => String(s.format_id) === '251' || String(s.itag) === '251') || 
                             streams.find(s => s.vcodec === 'none' && s.acodec === 'opus') || 
                             streams.find(s => s.vcodec === 'none');
         const audioUrl = audioStream?.url || '';
 
-        // 【修正】初期ストリーム: format_id(itag) が 18 の360p統合ファイルを最優先
         const combinedStream = streams.find(s => String(s.format_id) === '18' || String(s.itag) === '18') || 
                                streams.find(s => s.vcodec !== 'none' && s.acodec !== 'none');
         const streamUrl = combinedStream?.url || '';
@@ -133,7 +86,46 @@ async function getYuZuTube(videoId) {
                 url: s.url,
                 resolution: res,
                 container: s.ext || 'mp4',
-                fps: s.fps || null // 【修正】fpsがない場合はnull
+                fps: s.fps || null
+            };
+        });
+
+        return {
+            stream_url: streamUrl || streamUrls[0]?.url || '',
+            highstreamUrl: streamUrls.find(s => s.resolution === '1080p')?.url || streamUrls[0]?.url || '',
+            audioUrl: audioUrl,
+            streamUrls: streamUrls
+        };
+    } catch (error) {
+        throw new Error("SiaTubeからの取得に失敗: " + error.message);
+    }
+}
+
+// =========================================
+// ③ YuZuTube API からの取得
+// =========================================
+async function getYuZuTube(videoId) {
+    try {
+        const response = await axios.get(`https://yudlp.vercel.app/stream/${videoId}`, { timeout: MAX_TIME });
+        const streams = Array.isArray(response.data) ? response.data : (response.data.formats || []);
+        
+        const audioStream = streams.find(s => String(s.format_id) === '251' || String(s.itag) === '251') || 
+                            streams.find(s => s.resolution === 'audio only');
+        const audioUrl = audioStream?.url || '';
+
+        const combinedStream = streams.find(s => String(s.format_id) === '18' || String(s.itag) === '18');
+        const streamUrl = combinedStream?.url || '';
+
+        const videoStreams = streams.filter(s => s.resolution !== 'audio only' && s.url);
+        
+        const streamUrls = videoStreams.map(s => {
+            let res = s.resolution || '';
+            if (res.includes('x')) res = res.split('x')[1] + 'p';
+            return {
+                url: s.url,
+                resolution: res,
+                container: s.ext || 'mp4',
+                fps: s.fps || null
             };
         });
 
@@ -149,7 +141,7 @@ async function getYuZuTube(videoId) {
 }
 
 // =========================================
-// 🌟 最終振り分け処理（ルーターから呼ばれる）
+// 🌟 最終振り分け処理
 // =========================================
 async function getYouTube(videoId, apiType = 'invidious') {
     if (apiType === 'siatube') {
