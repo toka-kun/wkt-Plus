@@ -263,7 +263,7 @@
             <label class="block mb-2">画質選択:
                 <select id="qualitySelect" class="w-full bg-gray-800 text-white p-2 rounded">
                     <% videoData.streamUrls.forEach(stream => { %>
-                    <option value="<%= stream.url %>" data-resolution="<%= stream.resolution %>"><%= stream.resolution %></option>
+                    <option value="<%= stream.url %>" data-resolution="<%= stream.resolution %>" data-container="<%= stream.container %>"><%= stream.resolution %><%= stream.fps %> (<%= stream.container %>)</option>
                     <% }); %>
                 </select>
             </label>
@@ -676,8 +676,9 @@ $(document).ready(function() {
     $('#qualitySelect').change(function() {
         const selectedOption = $(this).find(':selected');
         const resolution = selectedOption.attr('data-resolution');
+        const container = selectedOption.attr('data-container') || 'webm'; // 形式（mp4/webm）を取得
 
-        videoSrc.type = "video/webm";
+        videoSrc.type = "video/" + container; // 取得した形式をセット
         videoSrc.src = selectedOption.val();
         audio.src = "<%- videoData.stream_url %>";
         $('#controlPanel').toggleClass('open');
