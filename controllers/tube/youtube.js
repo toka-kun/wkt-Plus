@@ -51,6 +51,25 @@ router.get('/edu/:id', async (req, res) => {
     const videosrc = `https://www.youtubeeducation.com/embed/${videoId}${ytinfo}`;
     
     const Info = await serverYt.infoGet(videoId);
+
+    let watch_next_feed = Info.watch_next_feed || [];
+    if (!watch_next_feed || watch_next_feed.length === 0) {
+        try {
+            const invData = await wakamess.ggvideo(videoId);
+            if (invData && invData.recommendedVideos) {
+                watch_next_feed = invData.recommendedVideos.map(vid => ({
+                    type: "Video",
+                    id: vid.videoId,
+                    title: { text: vid.title },
+                    author: { id: vid.authorId, name: vid.author, thumbnails: [] },
+                    short_view_count: { text: vid.viewCountText || '不明' }
+                }));
+            }
+        } catch (e) {
+            console.error("関連動画フォールバック失敗:", e.message);
+        }
+    }
+    
     const videoInfo = {
       title: Info.primary_info.title.text || "",
       channelId: Info.secondary_info.owner.author.id || "",
@@ -80,6 +99,25 @@ router.get('/nocookie/:id', async (req, res) => {
   try {
     const videosrc = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&amp;mute=0`;
     const Info = await serverYt.infoGet(videoId);
+
+    let watch_next_feed = Info.watch_next_feed || [];
+    if (!watch_next_feed || watch_next_feed.length === 0) {
+        try {
+            const invData = await wakamess.ggvideo(videoId);
+            if (invData && invData.recommendedVideos) {
+                watch_next_feed = invData.recommendedVideos.map(vid => ({
+                    type: "Video",
+                    id: vid.videoId,
+                    title: { text: vid.title },
+                    author: { id: vid.authorId, name: vid.author, thumbnails: [] },
+                    short_view_count: { text: vid.viewCountText || '不明' }
+                }));
+            }
+        } catch (e) {
+            console.error("関連動画フォールバック失敗:", e.message);
+        }
+    }
+    
     const videoInfo = {
       title: Info.primary_info.title.text || "",
       channelId: Info.secondary_info.owner.author.id || "",
