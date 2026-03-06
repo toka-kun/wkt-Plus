@@ -4,8 +4,9 @@ const serverYt = require("../../server/youtube.js");
 const wakamess = require("../../server/wakame.js");
 
 const user_agent = process.env.USER_AGENT || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36";
-// 使用できるAPIのリスト
-const serverUrls = ['invidious', 'siatube', 'yuzutube'];
+
+// サーバーリスト
+const serverUrls = ['invidious', 'siawaseok', 'yudlp', 'xeroxyt-nt-apiv1'];
 
 router.get('/:id', async (req, res) => {
     const videoId = req.params.id;
@@ -19,12 +20,10 @@ router.get('/:id', async (req, res) => {
         return res.status(400).send('videoIDが正しくありません');
     }
 
-    // クエリからAPIの種類を取得。なければデフォルトで'invidious'
     const selectedApi = req.query.server || 'invidious';
     let baseUrl = selectedApi; 
 
     try {
-        // ★第2引数にAPIの種類を渡す！
         const videoData = await wakamess.getYouTube(videoId, selectedApi);
         const Info = await serverYt.infoGet(videoId);
         
