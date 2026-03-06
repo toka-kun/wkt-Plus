@@ -275,7 +275,7 @@
         <div class="control-section mb-4">
             <p class="block mb-2">使用したサーバー: <strong><%= baseUrl.replace('https://', '').replace('.glitch.me', '') %></strong></p>
             <label class="block mb-2">サーバーを変える:
-                <select id="serverSelect" onchange="window.location.href = '?api=' + this.value;" class="bg-gray-700 text-white p-1 rounded">
+                <select id="serverSelect" class="w-full bg-gray-800 text-white p-2 rounded">
                     <option value="invidious" <%= baseUrl === 'invidious' ? 'selected' : '' %>>Invidious API</option>
                     <option value="siatube" <%= baseUrl === 'siatube' ? 'selected' : '' %>>SiaTube API</option>
                     <option value="yuzutube" <%= baseUrl === 'yuzutube' ? 'selected' : '' %>>YuZuTube API</option>
