@@ -137,45 +137,15 @@ router.get('/comment/:id', async (req, res) => {
 router.get('/next/:id', async (req, res) => {
     const id = req.params.id;
     try {
-        // ① まずは YouTubeJS (serverYt) を試す
         const videoInfo = await serverYt.infoGet(id);
-        if (!videoInfo || !videoInfo.watch_next_results || videoInfo.watch_next_results.length === 0) {
-            throw new Error("YouTubeJSで関連動画が取得できませんでした");
-        }
         res.render('tube/back/next', { videoInfo });
-    } catch (error) {
-        console.log("Invidiousから関連動画の取得を試みます:", error.message);
-        try {
-            // ② 失敗したら Invidious API (wakamess) から取得する
-            const invidiousData = await wakamess.ggvideo(id);
-            if (invidiousData && invidiousData.recommendedVideos) {
-                // Invidiousのデータを、EJSが読み込めるYouTubeJSの形式に「擬態（変換）」させる
-                const convertedFeed = invidiousData.recommendedVideos.map(vid => ({
-                    type: "Video",
-                    id: vid.videoId,
-                    title: { text: vid.title },
-                    author: {
-                        id: vid.authorId,
-                        name: vid.author,
-                        thumbnails: [] // Invidiousの関連動画にはアイコンがないため空配列
-                    },
-                    short_view_count: { text: vid.viewCountText || '不明' }
-                }));
-                
-                // 擬態させたデータを next.ejs に渡す
-                return res.render('tube/back/next', { 
-                    videoInfo: { watch_next_results: convertedFeed } 
-                });
-            }
-            throw new Error("Invidiousでも関連動画が見つかりませんでした");
-        } catch (invError) {
-            res.status(500).render('error', { 
-                id, 
-                error: '関連動画を取得できません', 
-                details: invError.message 
-            });
-        }
-    }
+   } catch (error) {
+        res.status(500).render('error', { 
+      id, 
+      error: 'コメントを取得できません', 
+      details: error.message 
+    });
+  }
 });
 
 router.get("/info/:id", async (req, res) => {
@@ -195,41 +165,24 @@ router.get("/info/:id", async (req, res) => {
 });
 
 router.get("/nextvideo/:id", async (req, res) => {
-    try {
-        // ① まずは YouTubeJS (serverYt) を試す
-        const info = await serverYt.infoGet(req.params.id);
-        if (info && info.watch_next_results && info.watch_next_results.length > 0) {
-            return res.json(info.watch_next_results);
-        }
-        throw new Error(`Failed to get nextvideo from YouTubeJS`);
-    } catch (error) {
-        console.log("Invidious APIへ切り替えます...");
-        try {
-            // ② 失敗したら Invidious API (wakamess) から取得する
-            const invidiousData = await wakamess.ggvideo(req.params.id);
-            if (invidiousData && invidiousData.recommendedVideos) {
-                const convertedFeed = invidiousData.recommendedVideos.map(vid => ({
-                    type: "Video",
-                    id: vid.videoId,
-                    title: { text: vid.title },
-                    author: { 
-                        id: vid.authorId, 
-                        name: vid.author, 
-                        thumbnails: [] 
-                    },
-                    short_view_count: { text: vid.viewCountText || '不明' }
-                }));
-                return res.json(convertedFeed);
-            }
-            throw new Error("Failed to get nextvideo from Invidious API");
-        } catch (invError) {
-            console.error(invError);
-            res.status(500).render("error.ejs", {
-                title: "API Error",
-                content: invError
-            });
-        }
+  try {
+    const info = await serverYt.infoGet(req.params.id)
+    if(info.watch_next_feed){
+      res.json(info.watch_next_feed);
     }
+    
+    throw new Error(`Failed to get nextvideo`);
+	} catch (error) {
+		console.error(error);
+		try {
+			res.status(500).render("error.ejs", {
+				title: "youtube.js Error",
+				content: error
+			});
+		} catch (error) {
+			console.error(error);
+		}
+	}
 });
 
 router.get('/stream/api/:id', async (req, res) => {
