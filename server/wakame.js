@@ -69,20 +69,21 @@ async function getSiaTube(videoId) {
         const response = await axios.get(`https://siawaseok.f5.si/api/streams/${videoId}`, { timeout: MAX_TIME });
         const streams = Array.isArray(response.data) ? response.data : (response.data.formats || []);
         
-        let audioUrl = '';
-        const audioOnlyStreams = streams.filter(s => s.resolution === 'audio only');
+        // ★修正: vcodec が 'none' (映像なし) のものを音声として判定
+        const audioOnlyStreams = streams.filter(s => s.vcodec === 'none' || s.resolution === 'audio only');
         const opusAudio = audioOnlyStreams.find(s => s.acodec === 'opus');
-        audioUrl = opusAudio ? opusAudio.url : (audioOnlyStreams[0]?.url || '');
+        const audioUrl = opusAudio ? opusAudio.url : (audioOnlyStreams[0]?.url || '');
 
-        const videoStreams = streams.filter(s => s.resolution !== 'audio only' && s.resolution && s.url);
+        // ★修正: 映像を含むフォーマットを取得
+        const videoStreams = streams.filter(s => s.vcodec !== 'none' && s.url);
         const streamUrls = videoStreams.map(s => {
-            let res = s.resolution;
+            let res = s.resolution || '';
             // "3840x2160" のような形式から "2160p" を抽出
             if (res.includes('x')) res = res.split('x')[1] + 'p';
             return {
                 url: s.url,
                 resolution: res,
-                container: s.ext,
+                container: s.ext || 'mp4',
                 fps: s.fps || 30
             };
         });
@@ -106,17 +107,19 @@ async function getYuZuTube(videoId) {
         const response = await axios.get(`https://yudlp.vercel.app/stream/${videoId}`, { timeout: MAX_TIME });
         const streams = Array.isArray(response.data) ? response.data : (response.data.formats || []);
         
-        const audioOnlyStreams = streams.filter(s => s.resolution === 'audio only');
+        // ★修正: 音声の判定をより確実に
+        const audioOnlyStreams = streams.filter(s => s.vcodec === 'none' || s.resolution === 'audio only');
         const audioUrl = audioOnlyStreams[0]?.url || '';
 
-        const videoStreams = streams.filter(s => s.resolution !== 'audio only' && s.resolution && s.url);
+        // ★修正: 映像を含むフォーマットを取得
+        const videoStreams = streams.filter(s => s.vcodec !== 'none' && s.url);
         const streamUrls = videoStreams.map(s => {
-            let res = s.resolution;
+            let res = s.resolution || '';
             if (res.includes('x')) res = res.split('x')[1] + 'p';
             return {
                 url: s.url,
                 resolution: res,
-                container: s.ext,
+                container: s.ext || 'mp4',
                 fps: s.fps || 30
             };
         });
