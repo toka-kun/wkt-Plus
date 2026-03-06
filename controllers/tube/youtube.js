@@ -2,6 +2,7 @@ const axios = require("axios");
 const express = require("express");
 const router = express.Router();
 const serverYt = require("../../server/youtube.js");
+const wakamess = require("../../server/wakame.js");
 
 // 取得先の設定（URL、取得するキー、エンドポイント名の対応表）
 const fetchConfigs = [
@@ -51,6 +52,25 @@ router.get('/edu/:id', async (req, res) => {
     const videosrc = `https://www.youtubeeducation.com/embed/${videoId}${ytinfo}`;
     
     const Info = await serverYt.infoGet(videoId);
+
+    let next_feed = Info.watch_next_feed || "";
+    if (!next_feed || next_feed.length === 0) {
+        try {
+            const invData = await wakamess.ggvideo(videoId);
+            if (invData && invData.recommendedVideos) {
+                next_feed = invData.recommendedVideos.map(vid => ({
+                    type: "Video",
+                    id: vid.videoId,
+                    title: { text: vid.title },
+                    author: { id: vid.authorId, name: vid.author, thumbnails: [] },
+                    short_view_count: { text: vid.viewCountText || '不明' }
+                }));
+            }
+        } catch (e) {
+            console.log("Invidious fallback error", e.message);
+        }
+    }
+    
     const videoInfo = {
       title: Info.primary_info.title.text || "",
       channelId: Info.secondary_info.owner.author.id || "",
@@ -80,6 +100,25 @@ router.get('/nocookie/:id', async (req, res) => {
   try {
     const videosrc = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&amp;mute=0`;
     const Info = await serverYt.infoGet(videoId);
+
+    let next_feed = Info.watch_next_feed || "";
+    if (!next_feed || next_feed.length === 0) {
+        try {
+            const invData = await wakamess.ggvideo(videoId);
+            if (invData && invData.recommendedVideos) {
+                next_feed = invData.recommendedVideos.map(vid => ({
+                    type: "Video",
+                    id: vid.videoId,
+                    title: { text: vid.title },
+                    author: { id: vid.authorId, name: vid.author, thumbnails: [] },
+                    short_view_count: { text: vid.viewCountText || '不明' }
+                }));
+            }
+        } catch (e) {
+            console.log("Invidious fallback error", e.message);
+        }
+    }
+
     const videoInfo = {
       title: Info.primary_info.title.text || "",
       channelId: Info.secondary_info.owner.author.id || "",
