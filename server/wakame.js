@@ -65,18 +65,25 @@ async function getYouTube (videoId) {
     const formatStreams = videoInfo.formatStreams || [];
     let streamUrl = formatStreams.reverse().map(stream => stream.url)[0];
     const audioStreams = videoInfo.adaptiveFormats || [];
+    
+    // 【修正箇所】webmだけでなくmp4も許可するように変更
     let highstreamUrl = audioStreams
-      .filter(stream => stream.container === 'webm' && stream.resolution === '1080p')
+      .filter(stream => (stream.container === 'webm' || stream.container === 'mp4') && stream.resolution === '1080p')
       .map(stream => stream.url)[0];
+      
     const audioUrl = audioStreams
       .filter(stream => stream.container === 'm4a' && stream.audioQuality === 'AUDIO_QUALITY_MEDIUM')
       .map(stream => stream.url)[0];
+      
+    // 【修正箇所】webmだけでなくmp4も許可し、container(形式)の情報も追加
     const streamUrls = audioStreams
-      .filter(stream => stream.container === 'webm' && stream.resolution)
+      .filter(stream => (stream.container === 'webm' || stream.container === 'mp4') && stream.resolution)
       .map(stream => ({
         url: stream.url,
         resolution: stream.resolution,
+        container: stream.container // ← これがあるとmp4かwebmか判別しやすいです
       }));
+      
       if (videoInfo.hlsUrl) {
         streamUrl = `/wkt/live/s/${videoId}`;
       }
