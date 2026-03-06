@@ -1,6 +1,7 @@
 const axios = require('axios');
 
 let apis = null;
+let xeroxApis = null; // Xerox-NT用のAPIリスト
 const MAX_API_WAIT_TIME = 5000; 
 const MAX_TIME = 10000;
 
@@ -141,13 +142,63 @@ async function getYuZuTube(videoId) {
 }
 
 // =========================================
-// 🌟 最終振り分け処理
+// ④ XeroxYT-NT API からの取得 (新規追加)
+// =========================================
+async function getXeroxApis() {
+    try {
+        const response = await axios.get('https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/apis/xeroxyt-nt/yes.json');
+        xeroxApis = await response.data;
+    } catch (error) {
+        console.error('Xerox-NTサーバーリストの取得に失敗:', error);
+    }
+}
+
+async function getXeroxNT(videoId) {
+    const startTime = Date.now();
+    if (!xeroxApis) await getXeroxApis();
+    if (!xeroxApis || xeroxApis.length === 0) throw new Error("Xerox-NTのAPIリストがありません");
+
+    for (const instance of xeroxApis) {
+        try {
+            const response = await axios.get(`${instance}/stream?id=${videoId}`, { timeout: MAX_TIME });
+            const data = response.data;
+            
+            if (data && data.streamingUrl) {
+                // 画質配列を共通フォーマットに整形
+                const streamUrls = (data.formats || []).map(f => ({
+                    url: f.url,
+                    resolution: f.quality || (f.height ? f.height + 'p' : ''),
+                    container: f.container || 'mp4',
+                    fps: null // Xerox APIにfpsデータが無いためnull
+                }));
+
+                return {
+                    stream_url: data.streamingUrl, 
+                    highstreamUrl: streamUrls.find(s => s.resolution === '1080p')?.url || data.streamingUrl,
+                    audioUrl: data.audioUrl || '',
+                    streamUrls: streamUrls
+                };
+            }
+        } catch (error) {
+            console.error(`エラー: ${instance} - ${error.message}`);
+        }
+        if (Date.now() - startTime >= MAX_TIME) throw new Error("接続がタイムアウトしました");
+    }
+    throw new Error("Xerox-NTで動画を取得できませんでした");
+}
+
+
+// =========================================
+// 🌟 最終振り分け処理（ルーターから呼ばれる）
 // =========================================
 async function getYouTube(videoId, apiType = 'invidious') {
-    if (apiType === 'siatube') {
+    // サーバー名を新しいIDに変更
+    if (apiType === 'siawaseok') {
         return await getSiaTube(videoId);
-    } else if (apiType === 'yuzutube') {
+    } else if (apiType === 'yudlp') {
         return await getYuZuTube(videoId);
+    } else if (apiType === 'xeroxyt-nt-apiv1') {
+        return await getXeroxNT(videoId);
     } else {
         return await getInvidious(videoId);
     }
