@@ -81,7 +81,8 @@ async function getYouTube (videoId) {
       .map(stream => ({
         url: stream.url,
         resolution: stream.resolution,
-        container: stream.container // ← これがあるとmp4かwebmか判別しやすいです
+        container: stream.container, // ← これがあるとmp4かwebmか判別しやすいです
+        fps: stream.fps || 30 // fps情報がない場合はデフォルトで30にしておく安全対策
       }));
       
       if (videoInfo.hlsUrl) {
