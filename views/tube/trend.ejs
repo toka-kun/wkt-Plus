@@ -30,11 +30,9 @@
 <body class="bg-gray-900 text-white font-sans antialiased">
 
   <header class="bg-gray-800 p-4 flex justify-between items-center fixed top-0 left-0 w-full z-50 shadow-md">
-      
       <form action="/wkt/s" method="get" class="w-full md:w-1/2 relative flex items-center" id="searchForm">
           <input type="text" name="q" id="searchbox" placeholder="検索" 
                  class="w-full p-2 pr-10 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white border-none transition-shadow">
-          
           <button type="button" id="clearBtn" class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center h-6 w-6 rounded-full hover:bg-gray-600 text-gray-300 text-lg leading-none hidden">
             ×
           </button>
@@ -51,11 +49,15 @@
       </div>
   </header>
   
-  <div class="container mx-auto p-4 pt-24"> <h2 class="text-2xl font-bold mb-6 border-l-4 border-blue-500 pl-3">急上昇</h2>
+  <div class="container mx-auto p-4 pt-24"> 
+      <h2 class="text-2xl font-bold mb-6 border-l-4 border-blue-500 pl-3">急上昇</h2>
+      <div id="trend-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12"></div>
 
-      <div id="trend-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          </div>
+      <h2 id="gaming-title" class="text-2xl font-bold mb-6 border-l-4 border-green-500 pl-3 hidden">ゲーム</h2>
+      <div id="gaming-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 hidden"></div>
 
+      <h2 id="music-title" class="text-2xl font-bold mb-6 border-l-4 border-red-500 pl-3 hidden">音楽</h2>
+      <div id="music-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden"></div>
   </div>
 
   <script>
@@ -66,7 +68,6 @@
   const clearBtn = document.getElementById('clearBtn');
 
   function toggleClearButton() {
-      // 入力がある時だけ「×」を表示
       clearBtn.style.display = searchBox.value ? 'block' : 'none';
   }
 
@@ -77,10 +78,7 @@
       searchBox.focus();
       toggleClearButton();
   });
-  
-  // 初期状態チェック
   toggleClearButton();
-
 
   /* -----------------------------------------------
      2. データ描画: トレンド動画の生成
@@ -88,17 +86,50 @@
   document.addEventListener("DOMContentLoaded", () => {
       
       // EJS変数の展開 (サーバーから渡されたデータ)
-      const trending = <%- JSON.stringify(topVideos_base64.trending) %>;
-      const container = document.getElementById("trend-container");
+      const base64Data = <%- JSON.stringify(typeof topVideos_base64 !== 'undefined' ? topVideos_base64 : null) %>;
+      const siaData = <%- JSON.stringify(typeof topVideos_sia !== 'undefined' ? topVideos_sia : null) %>;
+      const invData = <%- JSON.stringify(typeof topVideos_inv !== 'undefined' ? topVideos_inv : null) %>;
 
-      container.innerHTML = "";
+      let source = "none";
+      let trendingList = [];
+      let gamingList = [];
+      let musicList = [];
+
+      // ① 取得元と使用するデータの優先順位チェック
+      if (base64Data && base64Data.trending && base64Data.trending.length > 0) {
+          source = "base64";
+          trendingList = base64Data.trending;
+          gamingList = base64Data.gaming || [];
+          musicList = base64Data.music || [];
+      } else if (siaData && siaData.trending && siaData.trending.length > 0) {
+          source = "sia";
+          trendingList = siaData.trending;
+      } else if (invData && invData.length > 0) {
+          source = "inv";
+          trendingList = invData; // Invidiousのレスポンスは配列が直接入る
+      }
+
+      const trendContainer = document.getElementById("trend-container");
+      const gamingTitle = document.getElementById("gaming-title");
+      const gamingContainer = document.getElementById("gaming-container");
+      const musicTitle = document.getElementById("music-title");
+      const musicContainer = document.getElementById("music-container");
 
       /**
        * 日時を「◯分前」「◯日前」に変換する関数
        */
       function timeAgo(publishedAt) {
+          if (!publishedAt) return "";
+          
+          // Invidious等のデータですでに「~ ago」のテキストが含まれている場合
+          if (typeof publishedAt === 'string' && publishedAt.includes('ago')) {
+              return publishedAt;
+          }
+
           const now = new Date();
           const published = new Date(publishedAt);
+          if (isNaN(published.getTime())) return publishedAt;
+
           const diffMs = now - published;
           const diffMin = Math.floor(diffMs / 60000);
           const diffHr = Math.floor(diffMin / 60);
@@ -110,11 +141,24 @@
       }
 
       /**
-       * ISO 8601 Duration (例: PT3M38S) を "3:38" に変換する関数
+       * 長さ (ISO 8601 または 秒数) を "3:38" に変換する関数
        */
       function parseDuration(duration) {
           if (!duration) return "";
-          // 正規表現で H, M, S を抽出
+          
+          // Invidiousのように秒数（数値・数字のみの文字列）が来た場合
+          if (typeof duration === "number" || /^\d+$/.test(duration)) {
+              const totalSeconds = parseInt(duration, 10);
+              const h = Math.floor(totalSeconds / 3600);
+              const m = Math.floor((totalSeconds % 3600) / 60);
+              const s = totalSeconds % 60;
+              if (h > 0) {
+                  return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+              }
+              return `${m}:${s.toString().padStart(2, '0')}`;
+          }
+
+          // ISO 8601形式 (PT3M38Sなど) の場合
           const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
           if (!match) return "";
           
@@ -122,65 +166,118 @@
           const minutes = (match[2] || '').replace('M', '');
           const seconds = (match[3] || '').replace('S', '');
 
-          // 時間がある場合: H:MM:SS
           if (hours) {
               return `${hours}:${minutes.padStart(2, '0')}:${seconds.padStart(2, '0')}`;
-          } 
-          // 分のみの場合: M:SS (0分の場合は 0:SS)
-          else {
+          } else {
               return `${minutes || '0'}:${seconds.padStart(2, '0')}`;
           }
       }
 
-      // データをループしてHTMLを生成
-      trending.forEach(item => {
-          const ago = timeAgo(item.publishedAt);
-          const durationText = parseDuration(item.duration);
-          const viewCount = Number(item.viewCount).toLocaleString();
-          
-          // チャンネルIDがあればリンク化、なければ #
-          const channelUrl = item.channelId ? `/wkt/c/${item.channelId}` : '#';
+      // 共通の描画処理関数
+      function renderVideos(videos, containerElement) {
+          containerElement.innerHTML = "";
+          if (!videos || videos.length === 0) return;
 
-          // カードHTMLの組み立て
-          const html = `
-            <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
-                
-                <a href="/wkt/watch/${item.id}" class="block relative group">
-                    <img loading="lazy" src="/wkt/back/vi/${item.id}/mqdefault.jpg" alt="${item.title}" class="w-full h-auto rounded aspect-video object-cover">
-                    
-                    <span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium">
-                        ${durationText}
-                    </span>
+          videos.forEach(item => {
+              // データソースの差異を吸収して統一フォーマットに変形
+              let id, title, channel, channelId, publishedAt, durationText, viewCount, channelIcon, thumbnailUrl;
 
-                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
-                </a>
+              if (source === "base64") {
+                  id = item.id;
+                  title = item.title;
+                  channel = item.channel;
+                  channelId = item.channelId;
+                  publishedAt = timeAgo(item.publishedAt);
+                  durationText = parseDuration(item.duration);
+                  viewCount = Number(item.viewCount).toLocaleString();
+                  channelIcon = item.channelIcon || "";
+                  // Base64データがある場合はそれをサムネイルとして使用
+                  thumbnailUrl = (item.thumbnails && item.thumbnails.standard && item.thumbnails.standard.url) 
+                                  ? item.thumbnails.standard.url 
+                                  : `/wkt/back/vi/${id}/mqdefault.jpg`;
+              } 
+              else if (source === "sia") {
+                  id = item.id;
+                  title = item.title;
+                  channel = item.channel;
+                  channelId = item.channelId;
+                  publishedAt = timeAgo(item.publishedAt);
+                  durationText = parseDuration(item.duration);
+                  viewCount = Number(item.viewCount).toLocaleString();
+                  channelIcon = item.channelIcon || "";
+                  thumbnailUrl = `/wkt/back/vi/${id}/mqdefault.jpg`;
+              } 
+              else if (source === "inv") {
+                  id = item.videoId;
+                  title = item.title;
+                  channel = item.author;
+                  channelId = item.authorId;
+                  // unix秒の場合や独自のpublishedTextが来る場合があるため補正
+                  publishedAt = item.publishedText || timeAgo(item.published * 1000); 
+                  durationText = parseDuration(item.lengthSeconds);
+                  viewCount = item.viewCount ? Number(item.viewCount).toLocaleString() : "";
+                  channelIcon = (item.authorThumbnails && item.authorThumbnails.length > 0) ? item.authorThumbnails[0].url : "";
+                  thumbnailUrl = `/wkt/back/vi/${id}/mqdefault.jpg`;
+              }
 
-                <div class="mt-3 flex items-start space-x-3">
-                    
-                    <a href="${channelUrl}" class="flex-shrink-0">
-                        <img src="${item.channelIcon}" alt="${item.channel}" class="w-9 h-9 rounded-full object-cover bg-gray-600 border border-gray-700">
+              const channelUrl = channelId ? `/wkt/c/${channelId}` : '#';
+
+              // カードHTMLの組み立て
+              const html = `
+                <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
+                    <a href="/wkt/watch/${id}" class="block relative group">
+                        <img loading="lazy" src="${thumbnailUrl}" alt="${title}" class="w-full h-auto rounded aspect-video object-cover">
+                        
+                        <span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium">
+                            ${durationText}
+                        </span>
+
+                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
                     </a>
-                    
-                    <div class="flex-1 min-w-0">
-                        <a href="/wkt/watch/${item.id}">
-                            <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 group-hover:text-blue-400 transition">
-                                ${item.title}
+
+                    <div class="mt-3 flex items-start space-x-3">
+                        <a href="${channelUrl}" class="flex-shrink-0">
+                            <img src="${channelIcon}" alt="${channel}" class="w-9 h-9 rounded-full object-cover bg-gray-600 border border-gray-700">
+                        </a>
+                        
+                        <div class="flex-1 min-w-0">
+                            <a href="/wkt/watch/${id}">
+                                <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 group-hover:text-blue-400 transition">
+                                    ${title}
+                                </p>
+                            </a>
+                            
+                            <a href="${channelUrl}" class="text-gray-400 text-xs hover:text-white transition mb-0.5 block truncate">
+                                ${channel}
+                            </a>
+                            
+                            <p class="text-gray-500 text-xs">
+                               ${viewCount} 回視聴 • ${publishedAt}
                             </p>
-                        </a>
-                        
-                        <a href="${channelUrl}" class="text-gray-400 text-xs hover:text-white transition mb-0.5 block truncate">
-                            ${item.channel}
-                        </a>
-                        
-                        <p class="text-gray-500 text-xs">
-                           ${viewCount} 回視聴 • ${ago}
-                        </p>
+                        </div>
                     </div>
                 </div>
-            </div>
-          `;
-          container.innerHTML += html;
-      });
+              `;
+              containerElement.innerHTML += html;
+          });
+      }
+
+      // ② レンダリング実行
+      renderVideos(trendingList, trendContainer);
+
+      // ③ base64から取得できていた場合のみ「ゲーム」「音楽」も表示
+      if (source === "base64") {
+          if (gamingList.length > 0) {
+              gamingTitle.classList.remove("hidden");
+              gamingContainer.classList.remove("hidden");
+              renderVideos(gamingList, gamingContainer);
+          }
+          if (musicList.length > 0) {
+              musicTitle.classList.remove("hidden");
+              musicContainer.classList.remove("hidden");
+              renderVideos(musicList, musicContainer);
+          }
+      }
   });
 
   /* -----------------------------------------------
