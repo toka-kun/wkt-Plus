@@ -18,8 +18,9 @@ pinned: false
   - ストリーミング再生
 - トレンド情報をまた閲覧できるように改善
 - その他エラー改善
+- 詳しくは[更新ログ](## 更新ログ)へ
 
-## 🚀 クイックスタート
+# 🚀 クイックスタート
 
 1. このリポジトリを GitHub で開く
 2. 右上の **[Fork]** ボタンをクリック
@@ -29,7 +30,17 @@ pinned: false
 
 ---
 
-## 🛠 Render でのデプロイ手順
+## 対応しているデプロイサービス
+
+1. [Render](### 🛠 Render でのデプロイ手順)
+2. [Vercel](https://vercel.com/) （エラーが出やすい） 
+3. [Railway](https://railway.com/dashboard)
+4. [Koyeb](### 🛠 Koyebでのデプロイ手順)
+5. [CodeSandbox](### 🛠 CodeSandboxでのデプロイ手順)
+
+---
+
+### 🛠 Renderでのデプロイ手順
 
 1. [Render](https://dashboard.render.com/) にログインまたは新規登録
 2. 「New」 → 「Web Service」 を選択
@@ -39,7 +50,7 @@ pinned: false
 
 ---
 
-## 🛠 Koyeb でのデプロイ手順
+### 🛠 Koyebでのデプロイ手順
 
 1. [Koyeb](https://app.koyeb.com/) にログインまたは新規登録
 2. 「Create Service」 → 「GitHub」 を選択
@@ -50,7 +61,7 @@ pinned: false
 
 ---
 
-## 🛠 CodeSandbox でのデプロイ手順
+### 🛠 CodeSandboxでのデプロイ手順
 
 1. [CodeSandbox](https://codesandbox.io/dashboard) にログインまたは新規登録
 2. 「Import」を選択
@@ -62,17 +73,7 @@ pinned: false
 
 ---
 
-## 対応しているデプロイサービス
-
-1. [Render](https://dashboard.render.com/)
-2. [Vercel](https://vercel.com/) （Internal Server Errorが出る時があるが、再読み込みでだいたい治る） 
-3. [Railway](https://railway.com/dashboard)
-4. [Koyeb](https://app.koyeb.com/)
-5. [CodeSandbox](https://codesandbox.io/dashboard)
-
----
-
-## 改善した箇所
+# 更新ログ
 
 - 2025/10/24 - Education再生を復活 [@siawaseok3](https://github.com/siawaseok3)
 - 2025/12/06 - トレンド機能を復活 [@siawaseok3](https://github.com/siawaseok3)
@@ -101,7 +102,7 @@ pinned: false
 
 ---
 
-## 👥 クレジット
+# 👥 クレジット
 
 このプロジェクトは、多くの方々のコードによって成り立っています。
 
@@ -127,7 +128,7 @@ pinned: false
 
 ---
 
-## 📄 ライセンス
+# 📄 ライセンス
 
 本プロジェクトは、元の作品のライセンスを尊重しつつ、独自の改善を加えた混在ライセンスとなっています。
 
