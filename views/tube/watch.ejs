@@ -208,11 +208,13 @@
               <% if (video.type.endsWith("Video")) { %>
                 <div class="result-item w-auto h-auto bg-gray-700 p-5 rounded">
                     <a href="/wkt/watch/<%= video.id %>" class="thumbnail">
-                        <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title.text %>" class="w-full h-auto rounded">
-                        <span class="video-duration"><%= video.duration.text %></span>
+                        <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title?.text || '動画' %>" class="w-full h-auto rounded">
+                        <% if (video.duration?.text) { %>
+                            <span class="video-duration"><%= video.duration.text %></span>
+                        <% } %>
                     </a>
                     <div class="mt-2 flex items-center">
-                        <a href="/wkt/c/<%= video.author.id %>" class="flex items-center">
+                        <a href="/wkt/c/<%= video.author?.id || '' %>" class="flex items-center">
                             <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="アイコン" class="w-8 h-8 rounded-full mr-2">
                             <p class="text-sm text-gray-400"><%= video.author.name %></p>
                         </a>
