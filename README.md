@@ -94,25 +94,25 @@ pinned: false
  
 - GitHubと連携
   1. まずは、GitHubがHFSにコードを書き込めるようにするためのパスワード（トークン）を発行
-    - Hugging Faceにログインし、右上のプロフィールアイコンから [Settings] を開く。
-    - 左メニューの [Access Tokens] → [Create new token] を開く
-    - 設定を以下のようにして下さい：
-      - Token Type: Write
-      - Name: GITHUB_SYNC など適当な名前
-    - 作成されたトークン（hf_... で始まる長い文字列）をコピー。※この画面を閉じると二度と見られないので注意！
+      - Hugging Faceにログインし、右上のプロフィールアイコンから [Settings] を開く。
+      - 左メニューの [Access Tokens] → [Create new token] を開く
+      - 設定を以下のようにして下さい：
+        - Token Type: Write
+        - Name: GITHUB_SYNC など適当な名前
+      - 作成されたトークン（hf_... で始まる長い文字列）をコピー。※この画面を閉じると二度と見られないので注意！
   2. GitHubに合鍵を登録する
-    - コピーしたトークンをGitHub側に入力
-      - レポジトリの上部タブの [Settings] を開く
-      - 左メニューの [Security] の中にある [Secrets and variables] -> [Actions] をクリック
-      - 緑色の [New repository secret] ボタンを押します。
-      - 以下のように入力して [Add secret] を押します：
-        - Name: HF_TOKEN
-        - Secret: さっきコピーしたHugging Faceのトークンを貼り付け
-    - すでに `.github/workflows/sync-hfs.yml.bak` というファイルがあるので、ファイル名を `.github/workflows/sync-hfs.yml` に変更し、コード内の YOUR_HF_USERNAME と YOUR_SPACE_NAME を自分のものに書き換えて下さい
-    - ⚠️ 最後の行の書き換え必須ポイント ⚠️
-      - YOUR_HF_USERNAME → あなたのHugging Faceのユーザー名（2箇所あります）
-      - YOUR_SPACE_NAME → 先ほど作ったSpaceの名前（例: wkt-plus）
-      - master:main → GitHub側が master ブランチで、HFS側が main ブランチの場合の書き方です。（両方 main なら main:main でOKです）
+      - コピーしたトークンをGitHub側に入力
+        - レポジトリの上部タブの [Settings] を開く
+        - 左メニューの [Security] の中にある [Secrets and variables] -> [Actions] をクリック
+        - 緑色の [New repository secret] ボタンを押します。
+        - 以下のように入力して [Add secret] を押します：
+          - Name: HF_TOKEN
+          - Secret: さっきコピーしたHugging Faceのトークンを貼り付け
+      - すでに `.github/workflows/sync-hfs.yml.bak` というファイルがあるので、ファイル名を `.github/workflows/sync-hfs.yml` に変更し、コード内の YOUR_HF_USERNAME と YOUR_SPACE_NAME を自分のものに書き換えて下さい
+      - ⚠️ 最後の行の書き換え必須ポイント ⚠️
+        - YOUR_HF_USERNAME → あなたのHugging Faceのユーザー名（2箇所あります）
+        - YOUR_SPACE_NAME → 先ほど作ったSpaceの名前（例: wkt-plus）
+        - master:main → GitHub側が master ブランチで、HFS側が main ブランチの場合の書き方です。（両方 main なら main:main でOKです）
  
 9. ファイルを保存すると、画面上部の表示が自動的に 「Building」 に変わるので、そのまま数分待ちます。
 10. ステータスが緑色の 「Running」 に変われば完了です☑️
