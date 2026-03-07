@@ -969,8 +969,11 @@ window.addEventListener("load", function() {
       showMessage("ヒント:<br>右側のコントロールボタンから画質を変更できます！");
       localStorage.setItem('tutorialCompleted', 'ok');
     }
-    if ("<%= baseUrl.replace('https://', '').replace('.glitch.me', '') %>" === "directk") {
-      showerrorMessage("現在、このサイトに高い負荷がかかっていてサーバーへのリクエストがキャンセルされたため、自動的にdirectサーバーを使用しました。")
+    // バックエンドからエラーメッセージが渡されているかチェック
+    const fallbackMsg = "<%= typeof fallbackMessage !== 'undefined' ? fallbackMessage : '' %>";
+    if (fallbackMsg !== "") {
+      // 渡されていた場合、そのメッセージ（Invidious APIを使用しました）を表示
+      showerrorMessage(fallbackMsg);
     }
     saveToHistory(videoId, channelId, channelName, videoTitle);
 });
