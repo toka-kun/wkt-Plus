@@ -87,7 +87,7 @@ pinned: false
 
 - ファイルを直接アップロード
   1. ブラウザから直接アップロードするのが一番手っ取り早いです。
-  2. 画面上部にある [Files] タブをクリックします。
+  2. 画面上部にある **[Files]** タブをクリックします。
   3. 右上の 「+ Add file」 を押し、「Upload files」 を選択します。
   4. コード一式（Dockerfile, package.json, server.js, その他のフォルダ等） をまとめてドラッグ＆ドロップします。
   5. 画面下部にある 「Commit changes to main」 ボタンを押して保存
@@ -95,17 +95,17 @@ pinned: false
 - GitHubと連携
   1. まずは、GitHubがHFSにコードを書き込めるようにするためのパスワード（トークン）を発行
       - Hugging Faceにログインし、右上のプロフィールアイコンから [Settings] を開く。
-      - 左メニューの [Access Tokens] → [Create new token] を開く
+      - 左メニューの **[Access Tokens]** → **[Create new token]** を開く
       - 設定を以下のようにして下さい：
         - Token Type: Write
         - Name: GITHUB_SYNC など適当な名前
       - 作成されたトークン（hf_... で始まる長い文字列）をコピー。※この画面を閉じると二度と見られないので注意！
   2. GitHubに合鍵を登録する
       - コピーしたトークンをGitHub側に入力
-        - レポジトリの上部タブの [Settings] を開く
-        - 左メニューの [Security] の中にある [Secrets and variables] -> [Actions] をクリック
-        - 緑色の [New repository secret] ボタンを押します。
-        - 以下のように入力して [Add secret] を押します：
+        - レポジトリの上部タブの **[Settings]** を開く
+        - 左メニューの **[Security]** の中にある **[Secrets and variables] → **[Actions]** をクリック
+        - 緑色の **[New repository secret]** ボタンを押します。
+        - 以下のように入力して **[Add secret]** を押します：
           - Name: HF_TOKEN
           - Secret: さっきコピーしたHugging Faceのトークンを貼り付け
       - すでに `.github/workflows/sync-hfs.yml.bak` というファイルがあるので、ファイル名を `.github/workflows/sync-hfs.yml` に変更し、コード内の YOUR_HF_USERNAME と YOUR_SPACE_NAME を自分のものに書き換えて下さい
