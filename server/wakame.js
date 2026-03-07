@@ -214,10 +214,10 @@ async function getMinTube2(videoId) {
                 // UIの画質選択プルダウンを壊さないように、配列を自作してあげる
                 const streamUrls = [];
                 if (data.stream_url) {
-                    streamUrls.push({ url: data.stream_url, resolution: '360p', container: 'mp4', fps: null });
+                    streamUrls.push({ url: data.stream_url, resolution: '通常画質', container: 'mp4', fps: null });
                 }
                 if (data.highstreamUrl) {
-                    streamUrls.push({ url: data.highstreamUrl, resolution: '~1080p60', container: 'mp4', fps: null });
+                    streamUrls.push({ url: data.highstreamUrl, resolution: '高画質', container: 'mp4', fps: null });
                 }
 
                 return {
