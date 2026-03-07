@@ -1,5 +1,5 @@
 ---
-title: WakameTube
+title: wkt-Plus
 emoji: 📺
 colorFrom: blue
 colorTo: indigo
