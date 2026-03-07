@@ -80,7 +80,12 @@ async function getSiaTube(videoId) {
                                streams.find(s => s.vcodec !== 'none' && s.acodec !== 'none');
         const streamUrl = combinedStream?.url || '';
 
-        const videoStreams = streams.filter(s => s.vcodec !== 'none' && s.acodec === 'none' && s.url);
+        const isLive = streams.some(s => s.url && (s.url.includes('manifest.googlevideo.com') || s.url.includes('.m3u8')));
+        const videoStreams = streams.filter(s => {
+            if (!s.url || s.vcodec === 'none') return false;
+            if (isLive) return true; // ライブの時は除外せずすべて残す！
+            return s.acodec === 'none'; // 通常動画の時は音声なし(映像のみ)に絞る
+        });
         const streamUrls = videoStreams.map(s => {
             let res = s.resolution || '';
             if (res.includes('x')) res = res.split('x')[1] + 'p';
@@ -118,7 +123,12 @@ async function getYuZuTube(videoId) {
         const combinedStream = streams.find(s => String(s.format_id) === '18' || String(s.itag) === '18');
         const streamUrl = combinedStream?.url || '';
 
-        const videoStreams = streams.filter(s => s.resolution !== 'audio only' && !['18', '22'].includes(String(s.format_id || s.itag)) && s.url);
+        const isLive = streams.some(s => s.url && (s.url.includes('manifest.googlevideo.com') || s.url.includes('.m3u8')));
+        const videoStreams = streams.filter(s => {
+            if (!s.url || s.resolution === 'audio only') return false;
+            if (isLive) return true; // ライブの時は除外せずすべて残す！
+            return !['18', '22'].includes(String(s.format_id || s.itag));
+        });
         
         const streamUrls = videoStreams.map(s => {
             let res = s.resolution || '';
