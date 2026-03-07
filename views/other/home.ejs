@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G</title>
+    <script src="/js/tailwindcss.js"></script>
+    <link rel="stylesheet" href="/css/page.css">
+    <style>
+        .hero-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 50vh;
+            background-color: #2d3748;
+        }
+        .searchbox {
+            position: absolute;
+            transform: translate(-50%, 0%);
+            width: 80%;
+            max-width: 700px;
+            padding: 0.75rem;
+            font-size: 1.2rem;
+            border-radius: 25px;
+            border: none;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        .searchbox:focus {
+            background-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+        }
+        .app-card-container {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        .app-card {
+            background-color: #1a202c;
+            border-radius: 25px;
+            padding: 15px;
+            width: 180px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid #4a5568;
+        }
+        .app-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 4px 10px rgba(255, 255, 255, 0.1);
+        }
+        .app-card img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .app-card h3 {
+            color: white;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+        .app-card p {
+            color: #cbd5e0;
+            font-size: 0.875rem;
+        }
+        footer {
+            background-color: #2d3748;
+            color: #cbd5e0;
+            padding: 1rem;
+            text-align: center;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 font-sans">
+    <button class="back-button fixed top-5 left-5 z-50 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out flex items-center space-x-2" onclick="window.location.href='/'">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        <span>戻る</span>
+    </button>
+
+    <div class="section bg-white dark:bg-gray-800 text-center py-20">
+      
+        <div class="mt-6">
+          <input type="text" id="search" placeholder="YouTubeサイトを検索..." class="w-full max-w-md p-2 border rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+        </div>
+  
+        <section class="py-10 px-4 bg-gray-800">
+
+        <div class="app-card-container" id="app-list">
+            <div class="app-card">
+                <a href="/other/others/sia">
+                <img src="https://cdn.glitch.global/441c91ae-2a7f-4142-9ffb-ab0c7066dfa1/IMG_1490.jpeg?v=1719117569017">
+                </a>
+                <h3 class="app-title">しあtube</h3>
+                <p class="app-description">siawaseokさんが開発しているYouTubeサイト<br>バージョン1.5.3 (2026/03/07時点で最新)</p>
+            </div>
+            <div class="app-card">
+                <a href="/other/others/xerox">
+                <img src="https://cdn.glitch.global/441c91ae-2a7f-4142-9ffb-ab0c7066dfa1/IMG_1604.jpeg?v=1719449838798">
+                </a>
+                <h3 class="app-title">XeroxYT-NT</h3>
+                <p class="app-description">soranousさんが開発しているYouTubeサイト<br>v5 (2026/03/07時点で最新)</p>
+            </div>
+            <div class="app-card">
+                <a href="">
+                <img src="https://cdn.glitch.global/441c91ae-2a7f-4142-9ffb-ab0c7066dfa1/IMG_1488.jpeg?v=1719117561639">
+                </a>
+                <h3 class="app-title">Wista</h3>
+                <p class="app-description">woolisbestさんが開発しているYoutubeサイト<br>未搭載です。</p>
+            </div>
+            <div class="app-card">
+                <a href="">
+                <img src="https://cdn.glitch.global/441c91ae-2a7f-4142-9ffb-ab0c7066dfa1/IMG_1633.jpeg?v=1719809274004">
+                </a>
+                <h3 class="app-title">未</h3>
+                <p class="app-description">未</p>
+            </div>
+            <div class="app-card">
+                <a href="">
+                <img src="https://cdn.glitch.global/7eb4da61-54d0-4533-b975-11b3eb7c57c6/IMG_3030.jpeg?v=1741747803053">
+                </a>
+                <h3 class="app-title">未</h3>
+                <p class="app-description">未</p>
+            </div>
+        </div>
+    </section>
+  </div>
+
+    <footer>
+        <p>♪( ´▽｀)</p>
+    </footer>
+  
+    <script>
+        const searchInput = document.getElementById('search');
+        const toolList = document.getElementById('app-list');
+        const tools = document.querySelectorAll('.app-card');
+
+        searchInput.addEventListener('input', function() {
+            const searchText = searchInput.value.toLowerCase();
+
+            tools.forEach(tool => {
+                const title = tool.querySelector('.app-title').textContent.toLowerCase();
+                const description = tool.querySelector('.app-description').textContent.toLowerCase();
+                if (title.includes(searchText) || description.includes(searchText)) {
+                    tool.style.display = '';
+                } else {
+                    tool.style.display = 'none';
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
