@@ -725,18 +725,25 @@ $(document).ready(function() {
         const container = selectedOption.attr('data-container') || 'mp4';
         const newUrl = selectedOption.val();
         
-        // 再生位置と状態を記憶
+        // ★ 処理を始める前に、一旦映像も音声も完全に止める！
+        video.pause();
+        audio.pause();
+        
+        // 再生位置を記憶
         const currentTime = video.currentTime;
-        const wasPlaying = !video.paused;
 
-        videoSrc.type = "video/" + container;
+        // ★ 形式の指定（m3u8の場合は正しいHLS形式としてブラウザに認識させる）
+        if (container === 'm3u8') {
+            videoSrc.type = "application/x-mpegURL";
+        } else {
+            videoSrc.type = "video/" + container;
+        }
         videoSrc.src = newUrl;
 
         // ★ マニフェストURLやProxyの場合は音声を別で流さない
-        if (newUrl.startsWith("https://manifest.googlevideo.com/") || newUrl.includes("proxy-siawaseok")) {
+        if (newUrl.startsWith("https://manifest.googlevideo.com/") || newUrl.includes("proxy-siawaseok") || newUrl.includes(".m3u8")) {
             audio.src = "";
         } else {
-            // 正しい音声専用URLをセット
             audio.src = "<%- videoData.audioUrl || '' %>";
         }
 
@@ -749,31 +756,29 @@ $(document).ready(function() {
         }
         video.currentTime = currentTime; // 映像の位置を合わせる
 
-        // 元々再生中だった場合は自動で再開する
-        if (wasPlaying) {
-            video.play().catch(e => console.error(e));
-        }
+        // 読み込みが完了したら自動で再開させる
+        video.play().catch(e => console.error(e));
     });
 
     // ★ 通常画質（初期状態の統合ストリーム）にリセット
     $('#qualityReset').click(function() {
+        // ★ 処理を始める前に一旦止める！
+        video.pause();
+        audio.pause();
+
         const currentTime = video.currentTime;
-        const wasPlaying = !video.paused;
 
         videoSrc.type = "video/mp4";
         videoSrc.src = "<%- videoData.stream_url %>";
         
         // 統合ストリームに戻すので裏の音声は空にする
-        audio.pause();
         audio.src = ""; 
         
         $('#controlPanel').removeClass('open');
         video.load();
         video.currentTime = currentTime;
         
-        if (wasPlaying) {
-            video.play().catch(e => console.error(e));
-        }
+        video.play().catch(e => console.error(e));
     });
 
     $('#changeServer').click(function() {
