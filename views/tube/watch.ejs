@@ -676,7 +676,7 @@ document.getElementById("expandSidebar").addEventListener("click", function() {
 // コントロール
 $(document).ready(function() {
     $('#toggleControlPanel').click(() =>$('#controlPanel').toggleClass('open'));
-    $('#closeControlPanel').click(() => $('#controlPanel').toggleClass('open'));
+    $('#closeControlPanel').click(() => $('#controlPanel').removeClass('open'));
 
     $('.tab-button').click(function() {
         $('.tab-button').removeClass('active');
@@ -685,71 +685,106 @@ $(document).ready(function() {
         $('#' + $(this).data('target')).addClass('active');
     });
 
-    $('#qualitySelect').change(function() {
-        const selectedOption = $(this).find(':selected');
-        const resolution = selectedOption.attr('data-resolution');
-        const container = selectedOption.attr('data-container') || 'webm'; // 形式（mp4/webm）を取得
+    // 共通で使う要素を取得
+    const video = document.getElementById('video');
+    const audio = document.getElementById('audio');
+    const videoSrc = document.getElementById('videoSrc');
 
-        videoSrc.type = "video/" + container; // 取得した形式をセット
-        videoSrc.src = selectedOption.val();
-        audio.src = "<%- videoData.stream_url %>";
-        $('#controlPanel').toggleClass('open');
-        video.load();
-        audio.load();
-
-        video.addEventListener('loadedmetadata', () => {
-            video.play().catch(error => console.error("動画の再生エラー:", error));
-        });
-
-        video.addEventListener('play', () => {
-            audio.play().catch(error => console.error("オーディオの再生エラー:", error));
-        });
-
-        video.addEventListener('pause', () => {
-            audio.pause();
+    // ★ 音声と映像の同期処理（イベントが重複して重くならないよう、ここで1回だけ設定！）
+    function syncAudioPlay() {
+        if (audio.src && audio.src !== window.location.href) {
+            audio.play().catch(e => console.log("オーディオ再生:", e));
+        }
+    }
+    video.addEventListener('play', syncAudioPlay);
+    video.addEventListener('playing', syncAudioPlay);
+    video.addEventListener('pause', () => {
+        audio.pause();
+        if(audio.src) audio.currentTime = video.currentTime;
+    });
+    video.addEventListener('ended', () => {
+        audio.pause();
+        audio.currentTime = 0;
+    });
+    video.addEventListener('seeked', () => {
+        if (audio.src && audio.src !== window.location.href) {
             audio.currentTime = video.currentTime;
-        });
-
-        video.addEventListener('ended', () => {
-            audio.pause();
-            audio.currentTime = 0;
-        });
-
-        video.addEventListener('seeked', () => {
-            video.pause();
-            audio.pause();
-            audio.currentTime = video.currentTime;
-            audio.play();
-            video.play();
-        });
-
-        video.addEventListener('timeupdate', () => {
+        }
+    });
+    video.addEventListener('timeupdate', () => {
+        if (audio.src && audio.src !== window.location.href) {
             if (Math.abs(video.currentTime - audio.currentTime) > 0.4) {
                 audio.currentTime = video.currentTime + 0.1;
             }
-        });
+        }
     });
-  
+
+    // ★ 画質変更（映像のみ + 裏で音声を再生）
+    $('#qualitySelect').change(function() {
+        const selectedOption = $(this).find(':selected');
+        const container = selectedOption.attr('data-container') || 'mp4';
+        const newUrl = selectedOption.val();
+        
+        // 再生位置と状態を記憶
+        const currentTime = video.currentTime;
+        const wasPlaying = !video.paused;
+
+        videoSrc.type = "video/" + container;
+        videoSrc.src = newUrl;
+
+        // ★ マニフェストURLやProxyの場合は音声を別で流さない
+        if (newUrl.startsWith("https://manifest.googlevideo.com/") || newUrl.includes("proxy-siawaseok")) {
+            audio.src = "";
+        } else {
+            // 正しい音声専用URLをセット
+            audio.src = "<%- videoData.audioUrl || '' %>";
+        }
+
+        $('#controlPanel').removeClass('open');
+        video.load();
+        
+        if (audio.src && audio.src !== window.location.href) {
+            audio.load();
+            audio.currentTime = currentTime; // 音声の位置を合わせる
+        }
+        video.currentTime = currentTime; // 映像の位置を合わせる
+
+        // 元々再生中だった場合は自動で再開する
+        if (wasPlaying) {
+            video.play().catch(e => console.error(e));
+        }
+    });
+
+    // ★ 通常画質（初期状態の統合ストリーム）にリセット
     $('#qualityReset').click(function() {
-        const audio = document.getElementById('audio');
-        const videoSrc = document.getElementById('videoSrc');
+        const currentTime = video.currentTime;
+        const wasPlaying = !video.paused;
 
         videoSrc.type = "video/mp4";
         videoSrc.src = "<%- videoData.stream_url %>";
-        audio.src = "";
-        $('#controlPanel').toggleClass('open');
+        
+        // 統合ストリームに戻すので裏の音声は空にする
+        audio.pause();
+        audio.src = ""; 
+        
+        $('#controlPanel').removeClass('open');
         video.load();
+        video.currentTime = currentTime;
+        
+        if (wasPlaying) {
+            video.play().catch(e => console.error(e));
+        }
     });
 
     $('#changeServer').click(function() {
         const server = $('#serverSelect').val();
-        $('#controlPanel').toggleClass('open');
+        $('#controlPanel').removeClass('open');
         showMessage(`サーバーを「${server}」に移動します☑️`);
         window.location.href = `/wkt/watch/<%= videoId %>?server=${server}`;
     });
 
     $('#saveSettings').click(function() {
-        $('#controlPanel').toggleClass('open');
+        $('#controlPanel').removeClass('open');
         const mode = $('input[name="playbackMode"]:checked').val();
         document.cookie = `playbackMode=${mode}; path=/; max-age=31536000`;
         showMessage(`再生方法を${mode}に変更します☑️`);
@@ -763,53 +798,39 @@ $('#closeToolbar').click(() => $('#toolbar').removeClass('open'));
 
 // 高画質
 $('#hdToggle').change(function() {
+    const video = document.getElementById('video');
     const audio = document.getElementById('audio');
     const videoSrc = document.getElementById('videoSrc');
+    
+    const currentTime = video.currentTime;
+    const wasPlaying = !video.paused;
 
     if (this.checked) {
         videoSrc.type = "video/webm";
         videoSrc.src = "<%- videoData.highstreamUrl %>";
-        audio.src = "<%- videoData.stream_url %>";
+        
+        // ★ マニフェスト判定
+        if ("<%- videoData.highstreamUrl %>".startsWith("https://manifest.googlevideo.com/")) {
+            audio.src = "";
+        } else {
+            audio.src = "<%- videoData.audioUrl || '' %>";
+        }
+        
         video.load();
-        audio.load();
-
-        video.addEventListener('loadedmetadata', () => {
-            video.play().catch(error => console.error("動画の再生エラー:", error));
-        });
-
-        video.addEventListener('play', () => {
-            audio.play().catch(error => console.error("オーディオの再生エラー:", error));
-        });
-
-        video.addEventListener('pause', () => {
-            audio.pause();
-            audio.currentTime = video.currentTime;
-        });
-
-        video.addEventListener('ended', () => {
-            audio.pause();
-            audio.currentTime = 0;
-        });
-
-        video.addEventListener('seeked', () => {
-            video.pause();
-            audio.pause();
-            audio.currentTime = video.currentTime;
-            video.play();
-            audio.play();
-        });
-
-        video.addEventListener('timeupdate', () => {
-            if (Math.abs(video.currentTime - audio.currentTime) > 0.4) {
-                audio.currentTime = video.currentTime + 0.1;
-            }
-        });
+        if (audio.src && audio.src !== window.location.href) {
+            audio.load();
+            audio.currentTime = currentTime;
+        }
     } else {
         videoSrc.type = "video/mp4";
         videoSrc.src = "<%- videoData.stream_url %>";
         audio.pause();
         audio.src = '';
         video.load();
+    }
+    
+    video.currentTime = currentTime;
+    if (wasPlaying) {
         video.play().catch(error => console.error("動画の再生エラー:", error));
     }
 });
