@@ -245,7 +245,6 @@ async function getMinTube2(videoId) {
     throw new Error("MIN-Tube2で動画を取得できませんでした");
 }
 
-
 // =========================================
 // 🌟 最終振り分け処理
 // =========================================
@@ -274,7 +273,6 @@ async function getYouTube(videoId, apiType = 'invidious') {
 
             result.streamUrls.forEach(stream => {
                 let resName = stream.resolution || 'Auto';
-                // 以前のカッコやProxyなどのゴミテキストを綺麗に消す
                 resName = resName.replace(/ \(.+\)/g, '').replace(' proxy', '').replace('Proxy', '').trim();
 
                 if (!seenResolutions.has(resName)) {
@@ -291,8 +289,8 @@ async function getYouTube(videoId, apiType = 'invidious') {
                     // ② Proxyの m3u8
                     newStreamUrls.push({
                         url: `https://proxy-siawaseok.duckdns.org/proxy/m3u8?url=${encodeURIComponent(stream.url)}`,
-                        resolution: `${resName} Proxy`, 
-                        container: 'm3u8', // ★ここを'proxy'にするとブラウザが拒否するので'm3u8'で統一！
+                        resolution: resName, // ★ここを resName だけにする
+                        container: 'Proxy',  // ★ここを Proxy にすることで「1080p30 (Proxy)」と綺麗に表示されます！
                         fps: stream.fps
                     });
                 }
@@ -308,8 +306,8 @@ async function getYouTube(videoId, apiType = 'invidious') {
                 },
                 {
                     url: `https://proxy-siawaseok.duckdns.org/proxy/m3u8?url=${encodeURIComponent(result.stream_url)}`,
-                    resolution: 'Auto Proxy',
-                    container: 'm3u8',
+                    resolution: 'Auto',
+                    container: 'Proxy', // ★ここも Proxy
                     fps: null
                 }
             ];
