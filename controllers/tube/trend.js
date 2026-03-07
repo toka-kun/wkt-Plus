@@ -42,7 +42,7 @@ router.get("/", async (req, res) => {
               if (!baseUrl.startsWith('http')) baseUrl = `https://${baseUrl}`;
               baseUrl = baseUrl.replace(/\/$/, '');
 
-              const apiUrl = `${baseUrl}/api/v1/trending?type=Gaming&region=JP`;
+              const apiUrl = `${baseUrl}/api/v1/trending?type=Livestreams&region=JP`;
               
               // 応答がないインスタンスで無限待ちしないよう5秒（5000ms）のタイムアウトを設定
               const invRes = await axios.get(apiUrl, { timeout: 5000 });
