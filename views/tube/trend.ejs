@@ -20,10 +20,10 @@
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
   <style>
-    /* jQuery UIのサジェスト候補がTailwindより手前に来るように調整 */
     .ui-autocomplete { z-index: 1000 !important; }
-    /* ロード時のチラつき防止 */
     body { background-color: #111827; } 
+    /* タブのスタイル調整 */
+    .tab-btn { transition: all 0.2s; cursor: pointer; }
   </style>
 </head>
 
@@ -50,14 +50,17 @@
   </header>
   
   <div class="container mx-auto p-4 pt-24"> 
-      <h2 class="text-2xl font-bold mb-6 border-l-4 border-blue-500 pl-3">急上昇</h2>
+      <div class="flex space-x-6 mb-6 border-b border-gray-700 text-lg" id="tabs">
+          <button id="tab-trend" class="tab-btn pb-2 text-white font-bold border-b-2 border-blue-500">急上昇</button>
+          <button id="tab-gaming" class="tab-btn pb-2 text-gray-400 font-bold hover:text-white hidden">ゲーム</button>
+          <button id="tab-music" class="tab-btn pb-2 text-gray-400 font-bold hover:text-white hidden">音楽</button>
+          <button id="tab-live" class="tab-btn pb-2 text-gray-400 font-bold hover:text-white hidden">ライブ</button>
+      </div>
+
       <div id="trend-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12"></div>
-
-      <h2 id="gaming-title" class="text-2xl font-bold mb-6 border-l-4 border-green-500 pl-3 hidden">ゲーム</h2>
       <div id="gaming-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 hidden"></div>
-
-      <h2 id="music-title" class="text-2xl font-bold mb-6 border-l-4 border-red-500 pl-3 hidden">音楽</h2>
-      <div id="music-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden"></div>
+      <div id="music-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 hidden"></div>
+      <div id="live-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 hidden"></div>
   </div>
 
   <script>
@@ -72,7 +75,6 @@
   }
 
   searchBox.addEventListener('input', toggleClearButton);
-  
   clearBtn.addEventListener('click', () => {
       searchBox.value = '';
       searchBox.focus();
@@ -81,50 +83,97 @@
   toggleClearButton();
 
   /* -----------------------------------------------
-     2. データ描画: トレンド動画の生成
+     2. データ描画: トレンド動画とタブの制御
   ----------------------------------------------- */
   document.addEventListener("DOMContentLoaded", () => {
       
-      // EJS変数の展開 (サーバーから渡されたデータ)
+      // EJS変数の展開
       const base64Data = <%- JSON.stringify(typeof topVideos_base64 !== 'undefined' ? topVideos_base64 : null) %>;
       const siaData = <%- JSON.stringify(typeof topVideos_sia !== 'undefined' ? topVideos_sia : null) %>;
       const invData = <%- JSON.stringify(typeof topVideos_inv !== 'undefined' ? topVideos_inv : null) %>;
 
-      let source = "none";
-      let trendingList = [];
-      let gamingList = [];
-      let musicList = [];
+      // 要素の取得
+      const trendContainer = document.getElementById("trend-container");
+      const gamingContainer = document.getElementById("gaming-container");
+      const musicContainer = document.getElementById("music-container");
+      const liveContainer = document.getElementById("live-container");
 
-      // ① 取得元と使用するデータの優先順位チェック
+      const tabTrend = document.getElementById("tab-trend");
+      const tabGaming = document.getElementById("tab-gaming");
+      const tabMusic = document.getElementById("tab-music");
+      const tabLive = document.getElementById("tab-live");
+
+      let sourceTrend = "none";
+      let trendingList = [];
+
+      // ① 急上昇(Trending)、ゲーム、音楽のデータ割り当て
       if (base64Data && base64Data.trending && base64Data.trending.length > 0) {
-          source = "base64";
+          sourceTrend = "base64";
           trendingList = base64Data.trending;
-          gamingList = base64Data.gaming || [];
-          musicList = base64Data.music || [];
+          
+          // ゲームと音楽のタブ・データ準備
+          if (base64Data.gaming && base64Data.gaming.length > 0) {
+              tabGaming.classList.remove("hidden");
+              renderVideos(base64Data.gaming, gamingContainer, "base64");
+          }
+          if (base64Data.music && base64Data.music.length > 0) {
+              tabMusic.classList.remove("hidden");
+              renderVideos(base64Data.music, musicContainer, "base64");
+          }
       } else if (siaData && siaData.trending && siaData.trending.length > 0) {
-          source = "sia";
+          // base64が取得できなかった場合の代替
+          sourceTrend = "sia";
           trendingList = siaData.trending;
-      } else if (invData && invData.length > 0) {
-          source = "inv";
-          trendingList = invData; // Invidiousのレスポンスは配列が直接入る
+          // ※この場合ゲームと音楽のタブは hidden のままになる
+      }
+      
+      // 急上昇を描画
+      renderVideos(trendingList, trendContainer, sourceTrend);
+
+      // ② ライブのデータ割り当て (Invidious)
+      if (invData && invData.length > 0) {
+          tabLive.classList.remove("hidden");
+          renderVideos(invData, liveContainer, "inv");
       }
 
-      const trendContainer = document.getElementById("trend-container");
-      const gamingTitle = document.getElementById("gaming-title");
-      const gamingContainer = document.getElementById("gaming-container");
-      const musicTitle = document.getElementById("music-title");
-      const musicContainer = document.getElementById("music-container");
+      /* =========================================
+         タブ切り替えロジック
+      ========================================= */
+      const tabs = [
+          { btn: tabTrend, container: trendContainer, activeColor: "border-blue-500" },
+          { btn: tabGaming, container: gamingContainer, activeColor: "border-green-500" },
+          { btn: tabMusic, container: musicContainer, activeColor: "border-red-500" },
+          { btn: tabLive, container: liveContainer, activeColor: "border-yellow-500" }
+      ];
 
-      /**
-       * 日時を「◯分前」「◯日前」に変換する関数
-       */
+      function switchTab(selectedBtn) {
+          tabs.forEach(tab => {
+              if (tab.btn === selectedBtn) {
+                  // アクティブ化
+                  tab.btn.classList.add("text-white", "border-b-2", tab.activeColor);
+                  tab.btn.classList.remove("text-gray-400");
+                  tab.container.classList.remove("hidden");
+              } else {
+                  // 非アクティブ化
+                  tab.btn.classList.remove("text-white", "border-b-2", tab.activeColor);
+                  tab.btn.classList.add("text-gray-400");
+                  tab.container.classList.add("hidden");
+              }
+          });
+      }
+
+      tabTrend.addEventListener("click", () => switchTab(tabTrend));
+      tabGaming.addEventListener("click", () => switchTab(tabGaming));
+      tabMusic.addEventListener("click", () => switchTab(tabMusic));
+      tabLive.addEventListener("click", () => switchTab(tabLive));
+
+
+      /* =========================================
+         描画・フォーマット関数群
+      ========================================= */
       function timeAgo(publishedAt) {
           if (!publishedAt) return "";
-          
-          // Invidious等のデータですでに「~ ago」のテキストが含まれている場合
-          if (typeof publishedAt === 'string' && publishedAt.includes('ago')) {
-              return publishedAt;
-          }
+          if (typeof publishedAt === 'string' && publishedAt.includes('ago')) return publishedAt;
 
           const now = new Date();
           const published = new Date(publishedAt);
@@ -140,25 +189,21 @@
           return `${diffDay}日前`;
       }
 
-      /**
-       * 長さ (ISO 8601 または 秒数) を "3:38" に変換する関数
-       */
       function parseDuration(duration) {
           if (!duration) return "";
           
-          // Invidiousのように秒数（数値・数字のみの文字列）が来た場合
           if (typeof duration === "number" || /^\d+$/.test(duration)) {
               const totalSeconds = parseInt(duration, 10);
+              // ライブ配信などで0の場合や不正な場合は「LIVE」等にするのもあり
+              if (totalSeconds === 0) return "LIVE";
+              
               const h = Math.floor(totalSeconds / 3600);
               const m = Math.floor((totalSeconds % 3600) / 60);
               const s = totalSeconds % 60;
-              if (h > 0) {
-                  return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-              }
+              if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
               return `${m}:${s.toString().padStart(2, '0')}`;
           }
 
-          // ISO 8601形式 (PT3M38Sなど) の場合
           const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
           if (!match) return "";
           
@@ -166,20 +211,16 @@
           const minutes = (match[2] || '').replace('M', '');
           const seconds = (match[3] || '').replace('S', '');
 
-          if (hours) {
-              return `${hours}:${minutes.padStart(2, '0')}:${seconds.padStart(2, '0')}`;
-          } else {
-              return `${minutes || '0'}:${seconds.padStart(2, '0')}`;
-          }
+          if (hours) return `${hours}:${minutes.padStart(2, '0')}:${seconds.padStart(2, '0')}`;
+          return `${minutes || '0'}:${seconds.padStart(2, '0')}`;
       }
 
-      // 共通の描画処理関数
-      function renderVideos(videos, containerElement) {
+      // 引数に source を追加し、データ元に応じて処理を分ける
+      function renderVideos(videos, containerElement, source) {
           containerElement.innerHTML = "";
           if (!videos || videos.length === 0) return;
 
           videos.forEach(item => {
-              // データソースの差異を吸収して統一フォーマットに変形
               let id, title, channel, channelId, publishedAt, durationText, viewCount, channelIcon, thumbnailUrl;
 
               if (source === "base64") {
@@ -191,7 +232,6 @@
                   durationText = parseDuration(item.duration);
                   viewCount = Number(item.viewCount).toLocaleString();
                   channelIcon = item.channelIcon || "";
-                  // Base64データがある場合はそれをサムネイルとして使用
                   thumbnailUrl = (item.thumbnails && item.thumbnails.standard && item.thumbnails.standard.url) 
                                   ? item.thumbnails.standard.url 
                                   : `/wkt/back/vi/${id}/mqdefault.jpg`;
@@ -212,7 +252,6 @@
                   title = item.title;
                   channel = item.author;
                   channelId = item.authorId;
-                  // unix秒の場合や独自のpublishedTextが来る場合があるため補正
                   publishedAt = item.publishedText || timeAgo(item.published * 1000); 
                   durationText = parseDuration(item.lengthSeconds);
                   viewCount = item.viewCount ? Number(item.viewCount).toLocaleString() : "";
@@ -222,14 +261,13 @@
 
               const channelUrl = channelId ? `/wkt/c/${channelId}` : '#';
 
-              // カードHTMLの組み立て
               const html = `
                 <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
                     <a href="/wkt/watch/${id}" class="block relative group">
                         <img loading="lazy" src="${thumbnailUrl}" alt="${title}" class="w-full h-auto rounded aspect-video object-cover">
                         
-                        <span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium">
-                            ${durationText}
+                        <span class="absolute bottom-1 right-1 bg-red-600 bg-opacity-90 text-white text-xs px-1.5 py-0.5 rounded font-medium">
+                            ${durationText === "LIVE" ? "ライブ" : durationText}
                         </span>
 
                         <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
@@ -261,23 +299,6 @@
               containerElement.innerHTML += html;
           });
       }
-
-      // ② レンダリング実行
-      renderVideos(trendingList, trendContainer);
-
-      // ③ base64から取得できていた場合のみ「ゲーム」「音楽」も表示
-      if (source === "base64") {
-          if (gamingList.length > 0) {
-              gamingTitle.classList.remove("hidden");
-              gamingContainer.classList.remove("hidden");
-              renderVideos(gamingList, gamingContainer);
-          }
-          if (musicList.length > 0) {
-              musicTitle.classList.remove("hidden");
-              musicContainer.classList.remove("hidden");
-              renderVideos(musicList, musicContainer);
-          }
-      }
   });
 
   /* -----------------------------------------------
@@ -294,7 +315,7 @@
                   }
               });
           },
-          delay: 200, // サーバー負荷軽減のため少し待機
+          delay: 200,
           select: function (event, ui) {
               $('#searchbox').val(ui.item.value);
               $('#searchForm').submit();
