@@ -88,7 +88,7 @@
   document.addEventListener("DOMContentLoaded", () => {
       
       // EJS変数の展開 (サーバーから渡されたデータ)
-      const trending = <%- JSON.stringify(topVideos.trending) %>;
+      const trending = <%- JSON.stringify(topVideos_base64.trending) %>;
       const container = document.getElementById("trend-container");
 
       container.innerHTML = "";
