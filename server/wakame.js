@@ -263,34 +263,65 @@ async function getYouTube(videoId, apiType = 'invidious') {
         result = await getInvidious(videoId);
     }
 
-    // ① 取得した音声が manifest.googlevideo.com から始まっていたら null にする
-    if (result.audioUrl && result.audioUrl.startsWith('https://manifest.googlevideo.com/')) {
-        result.audioUrl = null;
-    }
+    // ライブ配信（HLS形式）かどうかの判定
+    const isLive = result.stream_url && (result.stream_url.includes('manifest.googlevideo.com') || result.stream_url.includes('.m3u8'));
 
-    // ② 取得した映像(stream_url)が manifest.googlevideo.com から始まっていたら Proxy を追加
-    if (result.stream_url && result.stream_url.startsWith('https://manifest.googlevideo.com/')) {
-        const encodedUrl = encodeURIComponent(result.stream_url);
-        const proxyUrl = `https://proxy-siawaseok.duckdns.org/proxy/m3u8?url=${encodedUrl}`;
+    if (isLive) {
+        result.audioUrl = null; // ライブ時は別音声を無効化
 
-        // ライブ配信の場合は映像のみリストが空かもしれないので初期化
-        if (!result.streamUrls) result.streamUrls = [];
-        
-        // Proxy版を追加
-        result.streamUrls.unshift({
-            url: proxyUrl,
-            resolution: 'Proxy (HLS)',
-            container: 'proxy',
-            fps: null
-        });
-        
-        // 元のマニフェストURLも自動画質として追加
-        result.streamUrls.unshift({
-            url: result.stream_url,
-            resolution: 'Auto (HLS)',
-            container: 'm3u8',
-            fps: null
-        });
+        if (result.streamUrls && result.streamUrls.length > 0) {
+            const newStreamUrls = [];
+            const seenResolutions = new Set(); // 重複防止用
+
+            result.streamUrls.forEach(stream => {
+                // 余計な文字を消して解像度名だけにする (例: "1080p")
+                let resName = stream.resolution || 'Auto';
+                resName = resName.replace(/ \(.+\)/, '');
+
+                // 同じ画質が複数出ないようにする
+                if (!seenResolutions.has(resName)) {
+                    seenResolutions.add(resName);
+
+                    // ① 通常の m3u8
+                    newStreamUrls.push({
+                        url: stream.url,
+                        resolution: `${resName} (m3u8)`,
+                        container: 'm3u8',
+                        fps: stream.fps
+                    });
+
+                    // ② Proxyの m3u8
+                    newStreamUrls.push({
+                        url: `https://proxy-siawaseok.duckdns.org/proxy/m3u8?url=${encodeURIComponent(stream.url)}`,
+                        resolution: `${resName} (m3u8 proxy)`,
+                        container: 'proxy',
+                        fps: stream.fps
+                    });
+                }
+            });
+            result.streamUrls = newStreamUrls; // ペアになった配列で上書き
+        } else {
+            // 画質リストが空だった場合の保険 (Autoのみ作成)
+            result.streamUrls = [
+                {
+                    url: result.stream_url,
+                    resolution: 'Auto (m3u8)',
+                    container: 'm3u8',
+                    fps: null
+                },
+                {
+                    url: `https://proxy-siawaseok.duckdns.org/proxy/m3u8?url=${encodeURIComponent(result.stream_url)}`,
+                    resolution: 'Auto (m3u8 proxy)',
+                    container: 'proxy',
+                    fps: null
+                }
+            ];
+        }
+    } else {
+        // 通常動画で、もし音声URLにマニフェストが紛れ込んでいたら消す
+        if (result.audioUrl && (result.audioUrl.includes('manifest.googlevideo.com') || result.audioUrl.includes('.m3u8'))) {
+            result.audioUrl = null;
+        }
     }
 
     return result;
