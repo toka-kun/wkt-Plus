@@ -80,7 +80,7 @@ pinned: false
 2. 「New Space」を選択
 3. Space SDKは「Docker」を選択
 4. Docker Templateは「Blank」を選択
-5. Space Hardwareは「Free（CPU basic · 2 vCPU · 16GB）」を選択
+5. Space Hardwareは「CPU basic（2 vCPU · 16 GB RAM）」を選択
 7. Visibilityは「Public（公開）」か「Private（自分だけ）」を選択
 8. 一番下の 「Create Space」 ボタンを押す
 9. このあとはファイルをアップロード。下の2つからお好みの方法を選んで下さい。
