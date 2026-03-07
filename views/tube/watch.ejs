@@ -970,7 +970,7 @@ window.addEventListener("load", function() {
       localStorage.setItem('tutorialCompleted', 'ok');
     }
     if ("<%= baseUrl.replace('https://', '').replace('.glitch.me', '') %>" === "directk") {
-      showerrorMessage("現在、このサイトに高い負荷がかかっていてサーバーへのリクエストがキャンセルされたため、自動的にdirectサーバーを使用しました。")
+      showerrorMessage("<%= fallbackMessage %>")
     }
     saveToHistory(videoId, channelId, channelName, videoTitle);
 });
