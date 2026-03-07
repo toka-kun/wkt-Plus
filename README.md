@@ -103,12 +103,12 @@ pinned: false
   2. GitHubに合鍵を登録する
       - コピーしたトークンをGitHub側に入力
         - レポジトリの上部タブの **[Settings]** を開く
-        - 左メニューの **[Security]** の中にある **[Secrets and variables] → **[Actions]** をクリック
+        - 左メニューの **[Security]** の中にある **[Secrets and variables]** → **[Actions]** をクリック
         - 緑色の **[New repository secret]** ボタンを押します。
         - 以下のように入力して **[Add secret]** を押します：
           - Name: HF_TOKEN
           - Secret: さっきコピーしたHugging Faceのトークンを貼り付け
-      - すでに `.github/workflows/sync-hfs.yml.bak` というファイルがあるので、ファイル名を `.github/workflows/sync-hfs.yml` に変更し、コード内の YOUR_HF_USERNAME と YOUR_SPACE_NAME を自分のものに書き換えて下さい
+      - すでに `.github/workflows/sync-hfs.yml.bak` というファイルがあるので、ファイル名を `.github/workflows/sync-hfs.yml` に変更し、コード内の `YOUR_HF_USERNAME` と `YOUR_SPACE_NAME` を自分のものに書き換えて下さい
       - ⚠️ 最後の行の書き換え必須ポイント ⚠️
         - YOUR_HF_USERNAME → あなたのHugging Faceのユーザー名（2箇所あります）
         - YOUR_SPACE_NAME → 先ほど作ったSpaceの名前（例: wkt-plus）
