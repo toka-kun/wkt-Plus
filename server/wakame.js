@@ -273,44 +273,29 @@ async function getYouTube(videoId, apiType = 'invidious') {
 
             result.streamUrls.forEach(stream => {
                 let resName = stream.resolution || 'Auto';
-                resName = resName.replace(/ \(.+\)/g, '').replace(' proxy', '').replace('Proxy', '').trim();
+                // 以前のカッコやfpsなどのゴミテキストを綺麗に消す
+                resName = resName.replace(/ \(.+\)/g, '').trim();
 
                 if (!seenResolutions.has(resName)) {
                     seenResolutions.add(resName);
-
-                    // ① 通常の m3u8
+                    // 通常の m3u8 のみ追加（Proxyは削除）
                     newStreamUrls.push({
                         url: stream.url,
                         resolution: resName, 
                         container: 'm3u8',
                         fps: stream.fps
                     });
-
-                    // ② Proxyの m3u8
-                    newStreamUrls.push({
-                        url: `https://proxy-siawaseok.duckdns.org/proxy/m3u8?url=${encodeURIComponent(stream.url)}`,
-                        resolution: resName, // ★ここを resName だけにする
-                        container: 'Proxy',  // ★ここを Proxy にすることで「1080p30 (Proxy)」と綺麗に表示されます！
-                        fps: stream.fps
-                    });
                 }
             });
             result.streamUrls = newStreamUrls; 
         } else {
-            result.streamUrls = [
-                {
-                    url: result.stream_url,
-                    resolution: 'Auto',
-                    container: 'm3u8',
-                    fps: null
-                },
-                {
-                    url: `https://proxy-siawaseok.duckdns.org/proxy/m3u8?url=${encodeURIComponent(result.stream_url)}`,
-                    resolution: 'Auto',
-                    container: 'Proxy', // ★ここも Proxy
-                    fps: null
-                }
-            ];
+            // リストが空だった場合の保険
+            result.streamUrls = [{
+                url: result.stream_url,
+                resolution: 'Auto',
+                container: 'm3u8',
+                fps: null
+            }];
         }
     } else {
         if (result.audioUrl && (result.audioUrl.includes('manifest.googlevideo.com') || result.audioUrl.includes('.m3u8'))) {
