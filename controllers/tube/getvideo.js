@@ -8,6 +8,8 @@ const user_agent = process.env.USER_AGENT || "Mozilla/5.0 (Windows NT 10.0; Win6
 // サーバーリスト
 const serverUrls = ['invidious', 'siawaseok', 'yudlp', 'xeroxyt-nt-apiv1', 'min-tube2-api'];
 
+// ... (上部の設定などはそのまま) ...
+
 router.get('/:id', async (req, res) => {
     const videoId = req.params.id;
     const cookies = parseCookies(req);
@@ -20,12 +22,44 @@ router.get('/:id', async (req, res) => {
         return res.status(400).send('videoIDが正しくありません');
     }
 
-    // クエリからAPIの種類を取得。なければデフォルトで'invidious'
     const selectedApi = req.query.server || 'invidious';
     let baseUrl = selectedApi; 
+    let apiToUse = selectedApi; // 実際に動画取得に使うAPI
+    let fallbackMessage = null; // EJSに渡すアラートメッセージ
 
     try {
-        const videoData = await wakamess.getYouTube(videoId, selectedApi);
+        // ▼▼▼ 追加：キャッシュ状況による負荷チェックと自動フォールバック ▼▼▼
+        if (selectedApi === 'siawaseok') {
+            try {
+                const cacheRes = await axios.get('https://siawaseok.f5.si/api/cache', { timeout: 3000 });
+                // JSONのキー（動画ID）の数をカウントして5000件を超えているかチェック
+                if (cacheRes.data && Object.keys(cacheRes.data).length > 5000) {
+                    apiToUse = 'invidious';
+                    baseUrl = 'invidious'; // プルダウンの表示もInvidiousに戻す
+                    fallbackMessage = "現在、このサイトに高い負荷がかかっていてサーバーへのリクエストがキャンセルされたため、自動的にInvidious APIを使用しました。";
+                    console.log("SiaTube制限超過: 5000件以上のためInvidiousへフォールバック");
+                }
+            } catch (e) {
+                console.error("SiaTube負荷チェック失敗:", e.message);
+            }
+        } else if (selectedApi === 'yudlp') {
+            try {
+                const cacheRes = await axios.get('https://yudlp.vercel.app/cache', { timeout: 3000 });
+                // video配列の長さをカウントして10件を超えているかチェック
+                if (cacheRes.data && cacheRes.data.video && cacheRes.data.video.length > 10) {
+                    apiToUse = 'invidious';
+                    baseUrl = 'invidious';
+                    fallbackMessage = "現在、このサイトに高い負荷がかかっていてサーバーへのリクエストがキャンセルされたため、自動的にInvidious APIを使用しました。";
+                    console.log("YuZuTube制限超過: 10件以上のためInvidiousへフォールバック");
+                }
+            } catch (e) {
+                console.error("YuZuTube負荷チェック失敗:", e.message);
+            }
+        }
+        // ▲▲▲ ここまで追加 ▲▲▲
+
+        // ★第2引数に、負荷チェック後のAPI(apiToUse)を渡す
+        const videoData = await wakamess.getYouTube(videoId, apiToUse);
         const Info = await serverYt.infoGet(videoId);
         
         let watch_next_feed = Info.watch_next_feed || [];
@@ -58,7 +92,10 @@ router.get('/:id', async (req, res) => {
             description: Info.secondary_info.description.text || "",
             watch_next_feed: watch_next_feed,
         };
-        res.render('tube/watch.ejs', { videoData, videoInfo, videoId, baseUrl });
+        
+        // ★ fallbackMessage をEJSに渡すように追加
+        res.render('tube/watch.ejs', { videoData, videoInfo, videoId, baseUrl, fallbackMessage });
+        
     } catch (error) {
         const shufServerUrls = shuffleArray([...serverUrls]);
         res.status(500).render('tube/mattev.ejs', { 
