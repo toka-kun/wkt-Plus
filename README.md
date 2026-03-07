@@ -32,11 +32,11 @@ pinned: false
 
 ## 対応しているデプロイサービス
 
-1. [Render](### 🛠 Render でのデプロイ手順)
+1. [Render](#-renderでのデプロイ手順)
 2. [Vercel](https://vercel.com/) （エラーが出やすい） 
 3. [Railway](https://railway.com/dashboard)
-4. [Koyeb](### 🛠 Koyebでのデプロイ手順)
-5. [CodeSandbox](### 🛠 CodeSandboxでのデプロイ手順)
+4. [Koyeb](#-koyebでのデプロイ手順)
+5. [CodeSandbox](#-codesandboxでのデプロイ手順)
 
 ---
 
