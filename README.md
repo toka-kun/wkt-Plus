@@ -135,7 +135,7 @@ pinned: false
 - 2026/03/01 - 動画を投稿していないチャンネルのページを開けない問題を改善
 - 2026/03/02 - InnerTubeのエラー関連（特にVercel）を改善
 - 2026/03/06 - これまでは360pでしか視聴できなかった動画も高画質で視聴できるようにInvidiousからWebMだけではなくMP4も取得するように変更
-- 2026/03/07 - Invidious APIに加え、SiaTube API、YuZuTube API、XeroxYT-NT API、MIN-Tube2 APIを追加
+- 2026/03/07 - Invidious APIに加え、SiaTube API、YuZuTube API、XeroxYT-NT API、MIN-Tube2 APIを追加、トレンドをの取得を更新
 
 ---
 
