@@ -80,7 +80,7 @@ async function getSiaTube(videoId) {
                                streams.find(s => s.vcodec !== 'none' && s.acodec !== 'none');
         const streamUrl = combinedStream?.url || '';
 
-        const videoStreams = streams.filter(s => s.vcodec !== 'none' && s.url);
+        const videoStreams = streams.filter(s => s.vcodec !== 'none' && s.acodec === 'none' && s.url);
         const streamUrls = videoStreams.map(s => {
             let res = s.resolution || '';
             if (res.includes('x')) res = res.split('x')[1] + 'p';
@@ -118,7 +118,7 @@ async function getYuZuTube(videoId) {
         const combinedStream = streams.find(s => String(s.format_id) === '18' || String(s.itag) === '18');
         const streamUrl = combinedStream?.url || '';
 
-        const videoStreams = streams.filter(s => s.resolution !== 'audio only' && s.url);
+        const videoStreams = streams.filter(s => s.resolution !== 'audio only' && !['18', '22'].includes(String(s.format_id || s.itag)) && s.url);
         
         const streamUrls = videoStreams.map(s => {
             let res = s.resolution || '';
@@ -240,17 +240,48 @@ async function getMinTube2(videoId) {
 // 🌟 最終振り分け処理
 // =========================================
 async function getYouTube(videoId, apiType = 'invidious') {
+    let result;
     if (apiType === 'siawaseok') {
-        return await getSiaTube(videoId);
+        result = await getSiaTube(videoId);
     } else if (apiType === 'yudlp') {
-        return await getYuZuTube(videoId);
+        result = await getYuZuTube(videoId);
     } else if (apiType === 'xeroxyt-nt-apiv1') {
-        return await getXeroxNT(videoId);
+        result = await getXeroxNT(videoId);
     } else if (apiType === 'min-tube2-api') {
-        return await getMinTube2(videoId);
+        result = await getMinTube2(videoId);
     } else {
-        return await getInvidious(videoId);
+        result = await getInvidious(videoId);
     }
-}
 
-module.exports = { ggvideo, getapis, getYouTube };
+    // ① 取得した音声が manifest.googlevideo.com から始まっていたら null にする
+    if (result.audioUrl && result.audioUrl.startsWith('https://manifest.googlevideo.com/')) {
+        result.audioUrl = null;
+    }
+
+    // ② 取得した映像(stream_url)が manifest.googlevideo.com から始まっていたら Proxy を追加
+    if (result.stream_url && result.stream_url.startsWith('https://manifest.googlevideo.com/')) {
+        const encodedUrl = encodeURIComponent(result.stream_url);
+        const proxyUrl = `https://proxy-siawaseok.duckdns.org/proxy/m3u8?url=${encodedUrl}`;
+
+        // ライブ配信の場合は映像のみリストが空かもしれないので初期化
+        if (!result.streamUrls) result.streamUrls = [];
+        
+        // Proxy版を追加
+        result.streamUrls.unshift({
+            url: proxyUrl,
+            resolution: 'Proxy (HLS)',
+            container: 'proxy',
+            fps: null
+        });
+        
+        // 元のマニフェストURLも自動画質として追加
+        result.streamUrls.unshift({
+            url: result.stream_url,
+            resolution: 'Auto (HLS)',
+            container: 'm3u8',
+            fps: null
+        });
+    }
+
+    return result;
+}
