@@ -20,20 +20,6 @@
                 document.getElementById("expandSidebar").classList.add("visible");
                 document.getElementById("related-sidenone").classList.add("hidden");
             }
-
-            // ▼▼▼ 追加: URLがマニフェストURLの場合、動画をミュートにする ▼▼▼
-            const streamUrl = "<%= videoData.stream_url || '' %>";
-            if (streamUrl.startsWith("https://manifest.googlevideo.com/")) {
-                // videoタグが画面に生成されるのを監視して確実にミュートする
-                const muteInterval = setInterval(() => {
-                    const videoEl = document.querySelector("video");
-                    if (videoEl) {
-                        videoEl.muted = true; // ミュート（消音）にする
-                        clearInterval(muteInterval); // 見つけたら監視を終了
-                    }
-                }, 100);
-            }
-            // ▲▲▲ ここまで ▲▲▲
         });
     </script>
     <style>
@@ -732,7 +718,7 @@ $(document).ready(function() {
         // 再生位置を記憶
         const currentTime = video.currentTime;
 
-        // ★ 形式の指定（m3u8の場合は正しいHLS形式としてブラウザに認識させる）
+        // ★ m3u8の場合は正しいHLS形式としてブラウザに認識させる
         if (container === 'm3u8') {
             videoSrc.type = "application/x-mpegURL";
         } else {
@@ -740,8 +726,8 @@ $(document).ready(function() {
         }
         videoSrc.src = newUrl;
 
-        // ★ マニフェストURLやProxyの場合は音声を別で流さない
-        if (newUrl.startsWith("https://manifest.googlevideo.com/") || newUrl.includes("proxy-siawaseok") || newUrl.includes(".m3u8")) {
+        // ★ マニフェストURLの場合は裏の音声を流さない（動画本体の音声に任せる）
+        if (newUrl.startsWith("https://manifest.googlevideo.com/") || newUrl.includes(".m3u8")) {
             audio.src = "";
         } else {
             audio.src = "<%- videoData.audioUrl || '' %>";
