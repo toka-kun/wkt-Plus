@@ -285,3 +285,5 @@ async function getYouTube(videoId, apiType = 'invidious') {
 
     return result;
 }
+
+module.exports = { ggvideo, getapis, getYouTube };
