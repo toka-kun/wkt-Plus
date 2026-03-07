@@ -43,7 +43,7 @@ app.get('/app', (req, res) => {
 app.use("/wkt", require("./routes/wakametube"));
 app.use("/game", require("./routes/game"));
 app.use("/tools", require("./routes/tools"));
-app.use("/pp", require("./routes/proxy"));
+app.use("/other", require("./routes/other"));
 app.use("/wakams", require("./routes/music"));
 app.use("/blog", require("./routes/blog"));
 
