@@ -246,64 +246,63 @@ async function getMinTube2(videoId) {
 }
 
 // =========================================
+// ⑥ Wista Stream API からの取得 (新規追加)
+// =========================================
+async function getWistaStream(videoId) {
+    try {
+        const response = await axios.get(`https://simple-yt-stream.onrender.com/api/video/${videoId}`, { timeout: MAX_TIME });
+        const streams = response.data.streams || [];
+        
+        // 音声ストリームの抽出（format_id: 251(WebM) または 140(m4a)）
+        const audioStream = streams.find(s => String(s.format_id) === '251') || 
+                            streams.find(s => String(s.format_id) === '140') ||
+                            streams.find(s => s.quality === 'medium' || s.quality === 'low');
+        const audioUrl = audioStream?.url || '';
+
+        // 映像+音声の統合ストリーム（format_id: 18）
+        const combinedStream = streams.find(s => String(s.format_id) === '18');
+        const streamUrl = combinedStream?.url || '';
+
+        // 画質選択用の映像ストリームを抽出（qualityに'p'が含まれるもの）
+        const videoStreams = streams.filter(s => s.quality && s.quality.includes('p'));
+        
+        const streamUrls = videoStreams.map(s => {
+            return {
+                url: s.url,
+                resolution: s.quality,
+                container: s.ext || 'mp4',
+                fps: s.fps || null
+            };
+        });
+
+        return {
+            stream_url: streamUrl || streamUrls[0]?.url || '',
+            highstreamUrl: streamUrls.find(s => s.resolution === '1080p')?.url || streamUrls.find(s => s.resolution === '720p')?.url || streamUrls[0]?.url || '',
+            audioUrl: audioUrl,
+            streamUrls: streamUrls
+        };
+    } catch (error) {
+        throw new Error("Wista Streamからの取得に失敗: " + error.message);
+    }
+}
+
+// =========================================
 // 🌟 最終振り分け処理
 // =========================================
 async function getYouTube(videoId, apiType = 'invidious') {
-    let result;
     if (apiType === 'siawaseok') {
-        result = await getSiaTube(videoId);
+        return await getSiaTube(videoId);
     } else if (apiType === 'yudlp') {
-        result = await getYuZuTube(videoId);
+        return await getYuZuTube(videoId);
     } else if (apiType === 'xeroxyt-nt-apiv1') {
-        result = await getXeroxNT(videoId);
+        return await getXeroxNT(videoId);
     } else if (apiType === 'min-tube2-api') {
-        result = await getMinTube2(videoId);
+        return await getMinTube2(videoId);
+    } else if (apiType === 'simple-yt-stream') { // ★ ここに追加
+        return await getWistaStream(videoId);
     } else {
-        result = await getInvidious(videoId);
+        return await getInvidious(videoId);
     }
-
-    const isLive = result.stream_url && (result.stream_url.includes('manifest.googlevideo.com') || result.stream_url.includes('.m3u8'));
-
-    if (isLive) {
-        result.audioUrl = null; 
-
-        if (result.streamUrls && result.streamUrls.length > 0) {
-            const newStreamUrls = [];
-            const seenResolutions = new Set(); 
-
-            result.streamUrls.forEach(stream => {
-                let resName = stream.resolution || 'Auto';
-                // 以前のカッコやfpsなどのゴミテキストを綺麗に消す
-                resName = resName.replace(/ \(.+\)/g, '').trim();
-
-                if (!seenResolutions.has(resName)) {
-                    seenResolutions.add(resName);
-                    // 通常の m3u8 のみ追加（Proxyは削除）
-                    newStreamUrls.push({
-                        url: stream.url,
-                        resolution: resName, 
-                        container: 'm3u8',
-                        fps: stream.fps
-                    });
-                }
-            });
-            result.streamUrls = newStreamUrls; 
-        } else {
-            // リストが空だった場合の保険
-            result.streamUrls = [{
-                url: result.stream_url,
-                resolution: 'Auto',
-                container: 'm3u8',
-                fps: null
-            }];
-        }
-    } else {
-        if (result.audioUrl && (result.audioUrl.includes('manifest.googlevideo.com') || result.audioUrl.includes('.m3u8'))) {
-            result.audioUrl = null;
-        }
-    }
-
-    return result;
 }
 
 module.exports = { ggvideo, getapis, getYouTube };
