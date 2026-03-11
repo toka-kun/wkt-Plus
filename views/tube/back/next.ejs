@@ -6,7 +6,7 @@
   
   <% if (typeof videoInfo !== 'undefined' && videoInfo && Array.isArray(videoInfo.watch_next_feed)) { %>
     
-    <% videoInfo.watch_next_feed.contents.forEach(video => { %>
+    <% videoInfo.watch_next_feed.forEach(video => { %>
       <% if (video.type && video.type.endsWith("Video")) { %>
         <div class="bg-gray-800 p-2 rounded result-item">
           <a href="/wkt/watch/<%= video.id %>">
