@@ -4,87 +4,61 @@
 <body class="bg-gray-900 text-white">
 <div class="mt-2 space-y-2">
   
-  <% if (typeof videoInfo !== 'undefined' && videoInfo && videoInfo.watch_next_feed) { %>
+  <% if (typeof videoInfo !== 'undefined' && videoInfo && Array.isArray(videoInfo.watch_next_feed)) { %>
     
-    <% 
-      // ① ループ対象の修正: 直接配列の場合と、.contentsの中にある場合の両方に自動対応
-      const feedList = Array.isArray(videoInfo.watch_next_feed) ? videoInfo.watch_next_feed : (videoInfo.watch_next_feed.contents || []);
-    %>
-    
-    <% if (feedList.length > 0) { %>
-      <% feedList.forEach(video => { %>
-        
-        <% if (video.type && video.type.endsWith("Video")) { %>
-          <div class="bg-gray-800 p-2 rounded result-item">
-            <a href="/wkt/watch/<%= video.id %>">
-              <%# ご要望通り、動画サムネイルは mqdefault.jpg を維持 %>
-              <img src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title ? video.title.toString() : '動画' %> のサムネイル" class="w-full h-auto rounded">
-            </a>
-            <div class="flex items-center mt-2">
-              <% 
-                // ③ プロキシURLの安全処理: パースエラーで画面が真っ白になるのを防ぐ
-                let iconPath = '';
-                if (video.author?.thumbnails?.[0]?.url) {
-                  try { iconPath = new URL(video.author.thumbnails[0].url).pathname; } catch(e) {}
-                }
-              %>
-              <% if (iconPath) { %>
-                <a href="/wkt/c/<%= video.author.id %>">
-                  <img src="/wkt/back/yt3<%- iconPath %>" alt="<%= video.author?.name ? video.author.name.toString() : 'アイコン' %>" class="w-6 h-6 rounded-full">
-                </a>
-              <% } %>
-              <p class="text-sm text-gray-400 ml-2">
-                  <a href="/wkt/c/<%= video.author?.id %>"><%= video.author?.name ? video.author.name.toString() : '不明なクリエイター' %></a>
-              </p>
-            </div>
-            <%# ② .toString() の適用: オブジェクトエラーで undefined になるのを防ぐ %>
-            <p class="text-sm font-bold mt-1">
-              <%= video.title ? video.title.toString() : 'タイトル不明' %>
-            </p>
-            <p class="text-xs text-gray-400">
-              <%= video.short_view_count ? video.short_view_count.toString() : (video.view_count ? video.view_count.toString() : '不明') %>
+    <% videoInfo.watch_next_feed.forEach(video => { %>
+      <% if (video.type && video.type.endsWith("Video")) { %>
+        <div class="bg-gray-800 p-2 rounded result-item">
+          <a href="/wkt/watch/<%= video.id %>">
+            <img src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title?.text || '動画' %> のサムネイル" class="w-full h-auto rounded">
+          </a>
+          <div class="flex items-center mt-2">
+            <% if (video.author?.thumbnails?.length) { %>
+              <a href="/wkt/c/<%= video.author.id %>">
+                <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="<%= video.author.name %> のアイコン" class="w-6 h-6 rounded-full">
+              </a>
+            <% } %>
+            <p class="text-sm text-gray-400 ml-2">
+                <a href="/wkt/c/<%= video.author?.id %>"><%= video.author?.name || '不明なクリエイター' %></a>
             </p>
           </div>
-        
-        <% } else if (video.type && video.type.endsWith("Playlist")) { %>
-          <div class="bg-gray-800 p-2 rounded">
-            <a href="/wkt/p/<%= video.id %>">
-              <%# プレイリストのサムネイルも mqdefault.jpg を維持 %>
-              <img src="/wkt/back/vi/<%= video?.endpoint?.payload?.videoId || video.first_videos?.[0]?.id || 'default' %>/mqdefault.jpg" alt="<%= video.title ? video.title.toString() : 'プレイリスト' %> のサムネイル" class="w-full h-24 rounded">
-            </a>
-            <p class="text-sm font-bold mt-1">
-              <a href="/wkt/p/<%= video.id %>"><%= video.title ? video.title.toString() : 'プレイリスト' %></a>
-            </p>
-            <p class="text-xs text-gray-400">動画数: <%= video.video_count ? video.video_count.toString() : '不明' %></p>
-          </div>
-        
-        <% } else if (video.type && video.type.endsWith("Channel")) { %>
-          <div class="bg-gray-800 p-2 rounded">
-            <a href="/wkt/c/<%= video.author?.id %>">
-              <% 
-                let channelIconPath = '';
-                if (video.author?.thumbnails?.[0]?.url) {
-                  try { channelIconPath = new URL(video.author.thumbnails[0].url).pathname; } catch(e) {}
-                }
-              %>
-              <% if (channelIconPath) { %>
-                <img src="/wkt/back/yt3<%- channelIconPath %>" alt="<%= video.author?.name ? video.author.name.toString() : 'チャンネルアイコン' %>" class="w-16 h-16 rounded-full mx-auto">
-              <% } %>
-            </a>
-            <p class="text-sm font-bold mt-1 text-center">
-              <a href="/wkt/c/<%= video.author?.id %>"><%= video.author?.name ? video.author.name.toString() : '不明なチャンネル' %></a>
-            </p>
-            <p class="text-xs text-gray-400 text-center">
-              登録者数: <%= video.subscriber_count ? video.subscriber_count.toString() : '非公開' %>
-            </p>
-          </div>
-        <% } %>
-      <% }); %>
-    <% } else { %>
-      <div class="bg-gray-800 p-4 rounded text-center">
-        <p class="text-sm text-gray-400">関連動画が見つかりませんでした。</p>
-      </div>
-    <% } %>
+          <p class="text-sm font-bold mt-1">
+            <%= video.title?.text || 'タイトル不明' %>
+          </p>
+          <p class="text-xs text-gray-400">
+            <%= video.short_view_count?.text || video.view_count?.text || '不明' %>
+          </p>
+        </div>
+      
+      <% } else if (video.type && video.type.endsWith("Playlist")) { %>
+        <% hasValidVideo = true; %>
+        <div class="bg-gray-800 p-2 rounded">
+          <a href="/wkt/p/<%= video.id %>">
+            <img src="/wkt/back/vi/<%= video?.endpoint?.payload?.videoId || video.first_videos?.[0]?.id || 'default' %>/mqdefault.jpg" alt="<%= video.title?.text || 'プレイリスト' %> のサムネイル" class="w-full h-24 rounded">
+          </a>
+          <p class="text-sm font-bold mt-1">
+            <a href="/wkt/p/<%= video.id %>"><%= video.title?.text || 'プレイリスト' %></a>
+          </p>
+          <p class="text-xs text-gray-400">動画数: <%= video.video_count?.text || '不明' %></p>
+        </div>
+      
+      <% } else if (video.type && video.type.endsWith("Channel")) { %>
+        <% hasValidVideo = true; %>
+        <div class="bg-gray-800 p-2 rounded">
+          <a href="/wkt/c/<%= video.author?.id %>">
+            <% if (video.author?.thumbnails?.length) { %>
+              <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="<%= video.author.name %> のチャンネルアイコン" class="w-16 h-16 rounded-full mx-auto">
+            <% } %>
+          </a>
+          <p class="text-sm font-bold mt-1 text-center">
+            <a href="/wkt/c/<%= video.author?.id %>"><%= video.author?.name || '不明なチャンネル' %></a>
+          </p>
+          <p class="text-xs text-gray-400 text-center">
+            登録者数: <%= video.subscriber_count?.text || '非公開' %>
+          </p>
+        </div>
+      <% } %>
+    <% }); %>
   
   <% } else { %>
     <div class="bg-gray-800 p-4 rounded text-center">
