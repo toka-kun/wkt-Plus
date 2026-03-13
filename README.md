@@ -28,7 +28,7 @@ pinned: false
 2. 右上の **[Fork]** ボタンをクリック
 3. 自分の GitHub アカウントに新しいリポジトリとして作成
 4. 作成したプロジェクトをRenderなどにデプロイ！
-5. 僕がこのレポジトリを編集してもRemixしたプロジェクトには自動では反映されないので、最新版にするには **[Sync fork]** → **[Update branch]** ( **[Discard 〇〇 Commits]** が出ていたらそっちを) を押し手動で更新して下さい。
+5. 僕がこのレポジトリを編集してもRemixしたプロジェクトには自動では反映されないので、最新版にするには **[Sync fork]** → **[Update branch]** ( **[Discard 〇〇 Commits]** が出ていたらそっちを) 押し手動で更新して下さい。
 
 ---
 
@@ -161,12 +161,14 @@ pinned: false
   - わかめtube Plus 開発
   - Educationパラメーター
 - [@siawaseok3](https://github.com/siawaseok3)
+  - しあtube 開発
   - Educationパラメーター
   - トレンド情報
   - SiaTube API
 - [@yuzubb](https://github.com/yuzubb)
   - YuZuTube API
 - [@Xerox-Pro](https://github.com/Xerox-Pro)
+  - XeroxYT-NT 開発
   - XeroxYT-NT API 
 - [@mino-hobby-pro](https://github.com/mino-hobby-pro)
   - MIN-Tube2 API
@@ -174,6 +176,7 @@ pinned: false
   - Vercel & CodeSandbox デプロイ対応
 - [@woolisbest-4520](https://github.com/woolisbest-4520)
   - Educationパラメーター
+  - Wista Stream API
 
 ---
 
