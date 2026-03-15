@@ -161,7 +161,7 @@ async function getYuZuTube(videoId) {
 // =========================================
 async function getXeroxApis() {
     try {
-        const response = await axios.get('https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/apis/xeroxyt-nt/yes.json');
+        const response = await axios.get('https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/apis/XeroxYT-NT/yes.json');
         xeroxApis = await response.data;
     } catch (error) {
         console.error('Xerox-NTサーバーリストの取得に失敗:', error);
