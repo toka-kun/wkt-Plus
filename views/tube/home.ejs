@@ -116,7 +116,7 @@
         <div class="app-card-container">
             <div class="app-card">
                 <a href="/other">
-                <img src="https://cdn.glitch.global/21c63086-ffc1-4d28-8e9a-e2c12f51b431/IMG_2940.jpeg">
+                <img src="https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://www.youtube.com/&size=256">
                 </a>
                 <h3>他のYouTubeサイト</h3>
                 <p>他の方が作ったYouTubeサイトを搭載しています。</p>
@@ -198,7 +198,7 @@ document.getElementById("searchForm").addEventListener("submit", function(event)
     if (match) {
         const videoId = match[1];
         showMessage(`YouTubeのURLとして処理されました☑️`);
-        window.location.href = `/wkt/w/${videoId}`;
+        window.location.href = `/wkt/watch/${videoId}`;
     } else {
         this.submit();
     }
