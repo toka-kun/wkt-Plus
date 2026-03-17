@@ -81,8 +81,8 @@ async function getSiaTube(videoId) {
                                streams.find(s => s.vcodec !== 'none' && s.acodec !== 'none');
         const streamUrl = combinedStream?.url || '';
 
-        // ★ ライブ配信判定＆画質除外回避
-        const isLive = streams.some(s => s.url && (s.url.includes('manifest.googlevideo.com') || s.url.includes('.m3u8')));
+        // ★ ライブ配信判定 (index.m3u8 のみで判定)
+        const isLive = streams.some(s => s.url && s.url.includes('index.m3u8'));
         const videoStreams = streams.filter(s => {
             if (!s.url || s.vcodec === 'none') return false;
             if (isLive) return true; // ライブなら除外しない！
@@ -126,8 +126,8 @@ async function getYuZuTube(videoId) {
         const combinedStream = streams.find(s => String(s.format_id) === '18' || String(s.itag) === '18');
         const streamUrl = combinedStream?.url || '';
 
-        // ★ ライブ配信判定＆画質除外回避
-        const isLive = streams.some(s => s.url && (s.url.includes('manifest.googlevideo.com') || s.url.includes('.m3u8')));
+        // ★ ライブ配信判定 (index.m3u8 のみで判定)
+        const isLive = streams.some(s => s.url && s.url.includes('index.m3u8'));
         const videoStreams = streams.filter(s => {
             if (!s.url || s.resolution === 'audio only') return false;
             if (isLive) return true; // ライブなら除外しない！
@@ -264,8 +264,8 @@ async function getWistaStream(videoId) {
         const combinedStream = streams.find(s => String(s.format_id) === '18');
         const streamUrl = combinedStream?.url || '';
 
-        // ★ ライブ配信判定＆画質除外回避
-        const isLive = streams.some(s => s.url && (s.url.includes('manifest.googlevideo.com') || s.url.includes('.m3u8')));
+        // ★ ライブ配信判定 (index.m3u8 のみで判定)
+        const isLive = streams.some(s => s.url && s.url.includes('index.m3u8'));
         const videoStreams = streams.filter(s => {
             if (!s.url || !s.quality) return false;
             if (isLive) return true; // ライブなら除外しない！
@@ -313,8 +313,8 @@ async function getYouTube(videoId, apiType = 'invidious') {
         result = await getInvidious(videoId);
     }
 
-    // 全API共通: ライブ配信（マニフェスト/HLS）かどうかの判定
-    const isLive = result.stream_url && (result.stream_url.includes('manifest.googlevideo.com') || result.stream_url.includes('.m3u8'));
+    // ★ 全API共通: ライブ配信かどうかの判定 (index.m3u8 のみで判定)
+    const isLive = result.stream_url && result.stream_url.includes('index.m3u8');
 
     if (isLive) {
         result.audioUrl = null; // ライブ時は別音声を無効化して本体の音声に任せる
@@ -349,8 +349,8 @@ async function getYouTube(videoId, apiType = 'invidious') {
             }];
         }
     } else {
-        // 通常動画で、もし音声URLにマニフェストが紛れ込んでいたら消す
-        if (result.audioUrl && (result.audioUrl.includes('manifest.googlevideo.com') || result.audioUrl.includes('.m3u8'))) {
+        // 通常動画で、もし音声URLに index.m3u8 が紛れ込んでいたら消す
+        if (result.audioUrl && result.audioUrl.includes('index.m3u8')) {
             result.audioUrl = null;
         }
     }
