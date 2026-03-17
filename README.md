@@ -69,7 +69,7 @@ pinned: false
 1. [CodeSandbox](https://codesandbox.io/dashboard) にログインまたは新規登録
 2. 「Import」を選択
 3. Remixしたわかめtubeのレポジトリを選択
-4. Runtimeを用途に合わせて選択（CodeSandboxの容量は多くないので僕は一番消費が少ないやつにしてます。）し、一番下の完了ボタン的なとこを押す
+4. Runtimeを用途に合わせて選択（CodeSandboxの容量は多くないので自分だけが使う場合は一番消費が少ないやつを推奨します。ただし公開する場合は2番目以上じゃないとサーバーが落ちます。）し、一番下の完了ボタン的なとこを押す
 5. 右に出てきた画面から「Next」を押し続ける。途中「Protect main branch」ってのが出てくるけどそこは念の為オンにして下さい
 6. そのまま「Apply」まで押す
 7. 右下にOpen Previewって出てくると完了です。Open Previewを押すとリンクが分かります☑️
