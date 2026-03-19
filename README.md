@@ -137,6 +137,7 @@ pinned: false
 - 2026/03/06 - これまでは360pでしか視聴できなかった動画も高画質で視聴できるようにInvidiousからWebMだけではなくMP4も取得するように変更
 - 2026/03/07 - Invidious APIに加え、SiaTube API、YuZuTube API、XeroxYT-NT API、MIN-Tube2 APIを追加、トレンドを複数取得し表示するように変更、しあtubeとXeroxYT-NTを追加
 - 2026/03/08 - Wista Stream APIを追加
+- 2026/03/19 - Re: LABO5、YouTube 埋め込み再生ツールを追加
 
 ---
 
