@@ -778,6 +778,8 @@
     container.innerHTML = '<p style="text-align:center;">読み込み中...</p>';
     countBadge.innerText = '';
 
+    try {
+
     // 1. APIリストの取得（キャッシュがなければ取得する）
       if (!cachedApiUrls) {
         try {
@@ -952,13 +954,6 @@
     // ------------------------------------------------
 
     if (source.startsWith("Thumbnail-")) {
-      if (isLoop) {
-        alert("サムネイル（画像）はループ再生できません。");
-        resetButtons();
-        return;
-      }
-      
-      if (source.startsWith("Thumbnail-")) {
       if (isLoop) {
         alert("サムネイル（画像）はループ再生できません。");
         resetButtons();
