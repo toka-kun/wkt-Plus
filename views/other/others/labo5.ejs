@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Re: LABO5</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><rect width=%22128%22 height=%22128%22 rx=%2226%22 fill=%22%23131a2b%22/><text x=%2230%22 y=%2292%22 font-size=%2280%22 font-family=%22monospace%22 fill=%22%237c3aed%22>L</text></svg>">
+  <style>
+:root {
+  /* Balanced, accessible LABO5 theme */
+  --bg: #131a2b;
+  --bg-elev: #18203a;
+  --bg-card: #1c2545;
+  --text: #eef2fb;
+  --text-dim: #b7c0d9;
+  --brand: #7c3aed; /* violet */
+  --brand-2: #06b6d4; /* cyan */
+  --border: #2a355a;
+  --chip: #141c35;
+  --shadow: 0 6px 18px rgba(13, 26, 43, 0.45);
+  --glow: 0 0 22px rgba(124, 58, 237, 0.28);
+  --appbar-h: 64px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(900px 420px at 15% -10%, rgba(124,58,237,0.08), transparent),
+    radial-gradient(800px 340px at 100% 0%, rgba(6,182,212,0.08), transparent),
+    var(--bg);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans JP", Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* App bar (hidden on watch page) */
+.appbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: var(--appbar-h);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  background: rgba(24, 32, 58, 0.86);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+.appbar.hidden { display: none !important; }
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 900;
+  color: var(--text);
+  text-decoration: none;
+  letter-spacing: 0.3px;
+}
+.logo-badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 900;
+  box-shadow: var(--glow);
+}
+.spacer { flex: 1; }
+
+/* Search bars (global, hero, and watch-local) */
+.searchbar, .watch-searchbar, .hero-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(760px, 92vw);
+}
+.search-input-wrap, .watch-search-input-wrap, .hero-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  border-radius: 999px 0 0 999px;
+  box-shadow: inset 0 0 0 1px rgba(124,58,237,0.16);
+}
+.search-input, .watch-search-input, .hero-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: 16px;
+}
+.search-btn, .watch-search-btn, .hero-btn {
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+  padding: 12px 18px;
+  border-radius: 0 999px 999px 0;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 120ms ease;
+  box-shadow: var(--shadow);
+}
+.hero-btn {
+  background: linear-gradient(90deg, var(--brand), var(--brand-2));
+  border: none;
+  color: #fff;
+  box-shadow: var(--glow);
+}
+.search-btn:hover, .watch-search-btn:hover { background: #223060; }
+.hero-btn:hover { filter: brightness(1.06); }
+
+/* Page visibility */
+.page { display: none !important; }
+.page.active {
+  display: block !important;
+  animation: fadeIn 220ms ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Home: exact center (x,y) for title + search, no awkward bottom space */
+.home {
+  min-height: calc(100vh - var(--appbar-h));
+  position: relative;
+  padding: 0;
+}
+.home-inner {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(860px, 100%);
+  display: grid;
+  grid-auto-rows: max-content;
+  gap: 18px;
+  justify-items: center;
+  text-align: center;
+}
+.hero-title {
+  margin: 0;
+  font-size: clamp(52px, 10vw, 96px);
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  line-height: 1.04;
+  background: linear-gradient(90deg, var(--brand), var(--brand-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 2px 0 rgba(0,0,0,0.2);
+}
+.hero-sub {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: clamp(15px, 2.4vw, 18px);
+  letter-spacing: 0.2px;
+}
+.hero-search { margin-top: 8px; }
+
+/* Search page */
+.search-page {
+  padding: 20px 16px 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  max-width: 1160px;
+  margin: 0 auto;
+}
+.search-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+.search-query-chip {
+  background: var(--chip);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 14px;
+  box-shadow: inset 0 0 0 1px rgba(6,182,212,0.16);
+}
+.status {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+.status.show { display: flex; }
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--brand-2);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.results {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+.result-card {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: 120ms ease;
+}
+.result-card:hover {
+  background: #223060;
+  transform: translateY(-1px);
+}
+.thumb {
+  width: 100%;
+  aspect-ratio: 16/9;
+  border-radius: 12px;
+  background: #0f1835;
+  object-fit: cover;
+}
+.res-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.res-title {
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+.res-channel { color: var(--text-dim); font-size: 14px; }
+.res-snippet { color: var(--text-dim); font-size: 14px; }
+
+/* Pager / infinite scroll */
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 0 24px;
+}
+.pager-btn {
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+  padding: 10px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+.pager-btn:disabled { opacity: 0.5; cursor: default; }
+.pager-btn:hover:not(:disabled) { background: #223060; }
+
+/* Watch page */
+.watch-page { padding: 0; }
+
+.watch-searchbar-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  background: rgba(24, 32, 58, 0.86);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  backdrop-filter: blur(8px);
+}
+.watch-searchbar {
+  width: 100%;
+  max-width: 1160px;
+  margin: 0 auto;
+}
+
+/* Two-column container that ALWAYS keeps sidebar on the right by scaling video column */
+.watch-container {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: minmax(520px, 1fr) 360px; /* video | sidebar */
+  gap: 20px;
+  align-items: start;
+}
+
+/* Maintain two columns down to small widths by progressively shrinking both columns */
+@media (max-width: 1024px) {
+  .watch-container {
+    grid-template-columns: minmax(480px, 1fr) 340px; /* iPad landscape */
+    gap: 18px;
+  }
+}
+@media (max-width: 900px) {
+  .watch-container {
+    grid-template-columns: minmax(440px, 1fr) 320px; /* iPad portrait / small tablets */
+    gap: 16px;
+  }
+}
+@media (max-width: 780px) {
+  .watch-container {
+    grid-template-columns: minmax(400px, 1fr) 300px; /* large phones in landscape */
+    gap: 14px;
+  }
+}
+@media (max-width: 700px) {
+  .watch-container {
+    grid-template-columns: minmax(360px, 1fr) 280px; /* phones portrait keep side-by-side by shrinking video */
+    gap: 12px;
+  }
+}
+@media (max-width: 620px) {
+  .watch-container {
+    grid-template-columns: minmax(320px, 1fr) 260px;
+    gap: 10px;
+  }
+}
+@media (max-width: 560px) {
+  .watch-container {
+    grid-template-columns: minmax(280px, 1fr) 240px;
+    gap: 10px;
+  }
+}
+@media (max-width: 500px) {
+  .watch-container {
+    grid-template-columns: minmax(240px, 1fr) 220px; /* ultra small but still side-by-side */
+    gap: 8px;
+  }
+}
+
+/* Player card and video */
+.player-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.player-wrap {
+  background: #000;
+  aspect-ratio: 16/9;
+  display: grid;
+  place-items: center;
+}
+video {
+  width: 100%;
+  height: 100%;
+  background: #000;
+}
+
+.video-meta {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.video-title {
+  font-weight: 900;
+  font-size: clamp(18px, 2.6vw, 22px);
+  letter-spacing: 0.2px;
+}
+.video-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-dim);
+  font-size: 14px;
+  flex-wrap: wrap;
+}
+.chip {
+  background: var(--chip);
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+/* Sidebar (related videos) */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: sticky;
+  top: 86px;
+  max-height: calc(100vh - 86px);
+  overflow: auto;
+  padding-bottom: 24px;
+}
+.rec-section-title {
+  font-weight: 800;
+  margin: 6px 0 4px;
+  letter-spacing: 0.2px;
+}
+.rec-card {
+  display: grid;
+  grid-template-columns: 168px 1fr;
+  gap: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px;
+  cursor: pointer;
+  transition: 120ms ease;
+  box-shadow: var(--shadow);
+}
+.rec-card:hover {
+  transform: translateY(-1px);
+  background: #223060;
+}
+.rec-thumb {
+  width: 100%;
+  aspect-ratio: 16/9;
+  border-radius: 10px;
+  object-fit: cover;
+}
+.rec-title {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+.rec-channel {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* Comments */
+.comments-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  margin-top: 14px;
+  box-shadow: var(--shadow);
+}
+.comments-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.comment {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+.comment:first-child { border-top: none; }
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #121a35;
+}
+.comment-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.comment-author {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  font-size: 14px;
+}
+.author-badge {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+.comment-content {
+  font-size: 14px;
+  color: var(--text);
+}
+.comment-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+/* Hide Google CSE default UI */
+.gcse-searchresults-only,
+.gsc-control-cse,
+.gsc-webResult,
+.gcsc-find-more-on-google,
+.gsc-results,
+.gsc-cursor {
+  display: none !important;
+  visibility: hidden !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.muted { color: var(--text-dim); }
+
+/* Back button */
+.back-btn {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 1100;
+  display: none;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+.back-btn.show {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+  </style>
+
+  <script async src="https://cse.google.com/cse.js?cx=c04ec9d20c4264b0d"></script>
+</head>
+<body>
+  <header class="appbar" id="appbar">
+    <a href="#/" class="logo" id="nav-home">
+      <div class="logo-badge">L</div>
+      <div>Re: LABO5</div>
+    </a>
+    <div class="spacer"></div>
+    <form class="searchbar" id="nav-search-form">
+      <div class="search-input-wrap">
+        <input id="nav-search-input" class="search-input" type="text" placeholder="検索" aria-label="検索" />
+      </div>
+      <button class="search-btn" type="submit">検索</button>
+    </form>
+  </header>
+
+  <main id="app">
+    <!-- Home (exact center) -->
+    <section id="page-home" class="page home active" hidden>
+      <div class="home-inner">
+        <h1 class="hero-title">Re: LABO5</h1>
+        <p class="hero-sub">LABO5 was made with HTML5 Fastest video downloads in your browser.</p>
+        <form class="hero-search" id="hero-search-form">
+          <div class="hero-input-wrap">
+            <input id="hero-search-input" class="hero-input" type="text" placeholder="Search videos" aria-label="検索" />
+          </div>
+          <button class="hero-btn" type="submit">検索</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Search -->
+    <section id="page-search" class="page search-page" hidden>
+      <div class="search-header">
+        <span class="search-query-chip" id="search-chip"></span>
+        <div class="status" id="search-status">
+          <div class="spinner"></div>
+          <span>検索結果を読み込み中…</span>
+        </div>
+      </div>
+
+      <div class="results" id="results"></div>
+
+      <div class="pager" id="pager">
+        <button id="next-page-btn" class="pager-btn" disabled>次のページ</button>
+      </div>
+    </section>
+
+    <!-- Watch -->
+    <section id="page-watch" class="page watch-page" hidden>
+      <div class="watch-searchbar-wrap">
+        <form class="watch-searchbar" id="watch-search-form">
+          <div class="watch-search-input-wrap">
+            <input id="watch-search-input" class="watch-search-input" type="text" placeholder="Search videos" aria-label="検索" />
+          </div>
+          <button class="watch-search-btn" type="submit">検索</button>
+        </form>
+      </div>
+
+      <div class="watch-container">
+        <div class="watch-left">
+          <div class="player-card">
+            <div class="player-wrap">
+              <video id="player" controls playsinline></video>
+            </div>
+            <div class="video-meta">
+              <div class="video-title" id="video-title"></div>
+              <div class="video-sub">
+                <span id="video-duration" class="chip" style="display:none;"></span>
+                <span class="chip">360p ストリーム</span>
+                <span id="video-source" class="chip" style="display:none;"></span>
+                <span id="video-status" class="muted" style="display:none;"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="comments-card">
+            <div class="comments-header">
+              <strong>コメント</strong>
+              <span class="muted" id="comment-count"></span>
+            </div>
+            <div class="status" id="comments-status">
+              <div class="spinner"></div><span>コメントを取得中…</span>
+            </div>
+            <div id="comments-list"></div>
+          </div>
+        </div>
+
+        <aside class="watch-right">
+          <div class="sidebar">
+            <div class="rec-section-title">関連動画</div>
+            <div class="status" id="recs-status">
+              <div class="spinner"></div><span>関連動画を取得中…</span>
+            </div>
+            <div id="recs-list"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <button class="back-btn" id="back-btn">⟵ 検索に戻る</button>
+  <div id="hidden-cse" class="gcse-searchresults-only"></div>
+
+  <script>
+    // Router
+    const pages = {
+      home: document.getElementById('page-home'),
+      search: document.getElementById('page-search'),
+      watch: document.getElementById('page-watch'),
+    };
+    const appbar = document.getElementById('appbar');
+    const backBtn = document.getElementById('back-btn');
+    const player = document.getElementById('player');
+
+    function stopVideo() {
+      try { player.pause(); player.removeAttribute('src'); player.load(); } catch {}
+    }
+
+    function showPage(name) {
+      const prev = Object.entries(pages).find(([key, el]) => el.classList.contains('active'));
+      if (prev && prev[0] === 'watch' && name !== 'watch') stopVideo();
+
+      Object.entries(pages).forEach(([_, el]) => { el.classList.remove('active'); el.setAttribute('hidden', ''); });
+      const page = pages[name]; page.classList.add('active'); page.removeAttribute('hidden');
+
+      if (name === 'watch') {
+        appbar.classList.add('hidden'); backBtn.classList.add('show');
+        setStatus('comments-status', true); setStatus('recs-status', true);
+        document.getElementById('comments-list').innerHTML = ''; document.getElementById('recs-list').innerHTML = '';
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      } else {
+        appbar.classList.remove('hidden'); backBtn.classList.remove('show');
+        setStatus('comments-status', false); setStatus('recs-status', false);
+      }
+      if (name === 'search') {
+        setStatus('search-status', true);
+        document.getElementById('results').innerHTML = '';
+        document.getElementById('next-page-btn').disabled = true;
+      } else {
+        setStatus('search-status', false);
+      }
+    }
+
+    function setStatus(id, show) {
+      const el = document.getElementById(id); if (!el) return;
+      if (show) el.classList.add('show'); else el.classList.remove('show');
+    }
+
+    function parseHash() {
+      const h = location.hash || '#/';
+      if (h.startsWith('#/search')) {
+        const m = h.match(/#\/search\?q=(.*)$/); const q = m ? decodeURIComponent(m[1]) : '';
+        return { page: 'search', q };
+      } else if (h.startsWith('#/watch')) {
+        const m = h.match(/#\/watch\?v=([^&]+)/); const v = m ? decodeURIComponent(m[1]) : '';
+        return { page: 'watch', v };
+      }
+      return { page: 'home' };
+    }
+
+    function navigateTo(route) { history.pushState({}, '', route); onRoute(); }
+    window.addEventListener('popstate', onRoute);
+    window.addEventListener('hashchange', onRoute);
+
+    backBtn.addEventListener('click', () => {
+      const q = sessionStorage.getItem('lastQuery') || '';
+      if (q) navigateTo(`#/search?q=${encodeURIComponent(q)}`); else navigateTo('#/');
+    });
+
+    // Forms
+    document.getElementById('hero-search-form').addEventListener('submit', (e) => {
+      e.preventDefault(); const q = document.getElementById('hero-search-input').value.trim(); if (!q) return;
+      navigateTo(`#/search?q=${encodeURIComponent(q)}`);
+    });
+    document.getElementById('nav-search-form').addEventListener('submit', (e) => {
+      e.preventDefault(); const q = document.getElementById('nav-search-input').value.trim(); if (!q) return;
+      navigateTo(`#/search?q=${encodeURIComponent(q)}`);
+    });
+    document.getElementById('nav-home').addEventListener('click', (e) => { e.preventDefault(); navigateTo('#/'); });
+    document.getElementById('watch-search-form').addEventListener('submit', (e) => {
+      e.preventDefault(); const q = document.getElementById('watch-search-input').value.trim(); if (!q) return;
+      navigateTo(`#/search?q=${encodeURIComponent(q)}`);
+    });
+
+    // CSE init
+    window.__gcse = { callback: function() { initCSE(); onRoute(); } };
+    let cseHiddenElem = null;
+    function initCSE() {
+      try {
+        google.search.cse.element.render({ div: "hidden-cse", tag: 'searchresults-only', attributes: { linkTarget: '_self' } });
+        cseHiddenElem = google.search.cse.element.getElement('hidden-cse') || google.search.cse.element.getElement('searchresults-only0');
+      } catch { setTimeout(initCSE, 200); }
+    }
+
+    function getVideoIdFromUrl(href) {
+      try {
+        if (href.includes('youtu.be/')) { const u = new URL(href); const seg = u.pathname.split('/').filter(Boolean); return seg[0] || null; }
+        const u = new URL(href); if (u.hostname.includes('youtube.com')) return u.searchParams.get('v');
+      } catch {}
+      return null;
+    }
+    function youTubeThumb(videoId, size='hqdefault') { return `https://wsrv.nl/?url=https://i.ytimg.com/vi/${videoId}/${size}.jpg&output=png`; }
+    function escapeHTML(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+    // Search + pagination
+    let pagination = { hasCursor: false, currentIndex: 0, totalPages: 1, loadingNext: false };
+
+    function executeSearch(query) {
+      document.getElementById('search-chip').textContent = query;
+      document.getElementById('nav-search-input').value = query;
+      setStatus('search-status', true);
+      document.getElementById('results').innerHTML = '';
+      sessionStorage.setItem('lastQuery', query);
+      pagination = { hasCursor: false, currentIndex: 0, totalPages: 1, loadingNext: false };
+      document.getElementById('next-page-btn').disabled = true;
+      try {
+        const elem = cseHiddenElem || google.search.cse.element.getElement('hidden-cse') || google.search.cse.element.getElement('searchresults-only0');
+        if (elem) {
+          elem.execute(`site:youtube.com ${query}`);
+          setTimeout(() => { renderSearchResultsFromCSE(); setupPaginationState(); }, 600);
+        } else { setTimeout(() => executeSearch(query), 200); }
+      } catch { setTimeout(() => executeSearch(query), 200); }
+    }
+
+    function renderSearchResultsFromCSE(append=false) {
+      const container = document.getElementById('hidden-cse');
+      const rawResults = container.querySelectorAll('.gsc-webResult.gsc-result');
+      if (!rawResults.length) return;
+      const resultsHost = document.getElementById('results');
+      if (!append) { setStatus('search-status', false); resultsHost.innerHTML = ''; }
+      rawResults.forEach(res => {
+        const a = res.querySelector('.gs-title a'); if (!a || !a.href) return;
+        const href = a.href; const title = (a.textContent || '').trim();
+        const snipEl = res.querySelector('.gs-snippet'); const snippet = snipEl ? snipEl.textContent.trim() : '';
+        const vid = getVideoIdFromUrl(href); if (!vid) return;
+        let channel = ''; const urlEl = res.querySelector('.gs-visibleUrl');
+        if (urlEl) channel = urlEl.textContent.replace(/https?:\/\/(www\.)?youtube\.com\/.*/i, '').trim();
+        if (!channel && snippet) { const m = snippet.match(/by ([^•–-]+)/i); if (m) channel = m[1].trim(); }
+
+        const card = document.createElement('div');
+        card.className = 'result-card';
+        card.innerHTML = `
+          <img class="thumb" src="${youTubeThumb(vid)}" alt="Thumbnail">
+          <div class="res-meta">
+            <div class="res-title">${escapeHTML(title)}</div>
+            <div class="res-channel">${escapeHTML(channel || 'YouTube')}</div>
+            <div class="res-snippet">${escapeHTML(snippet)}</div>
+          </div>
+        `;
+        card.addEventListener('click', () => navigateTo(`#/watch?v=${encodeURIComponent(vid)}`));
+        resultsHost.appendChild(card);
+      });
+    }
+
+    function setupPaginationState() {
+      const container = document.getElementById('hidden-cse');
+      const cursorPages = container.querySelectorAll('.gsc-cursor-page');
+      const nextBtn = document.getElementById('next-page-btn');
+      if (cursorPages && cursorPages.length > 0) {
+        pagination.hasCursor = true; pagination.totalPages = cursorPages.length;
+        let activeIndex = 0;
+        cursorPages.forEach((p, i) => { if (p.getAttribute('aria-current') === 'page' || p.classList.contains('gsc-cursor-current-page')) activeIndex = i; });
+        pagination.currentIndex = activeIndex;
+        nextBtn.disabled = (pagination.currentIndex >= pagination.totalPages - 1);
+      } else {
+        pagination.hasCursor = false; pagination.totalPages = 1; pagination.currentIndex = 0; nextBtn.disabled = true;
+      }
+    }
+
+    function gotoNextPage() {
+      if (pagination.loadingNext) return; pagination.loadingNext = true;
+      const nextBtn = document.getElementById('next-page-btn');
+      if (pagination.hasCursor) {
+        const container = document.getElementById('hidden-cse');
+        const cursorPages = container.querySelectorAll('.gsc-cursor-page');
+        const nextIndex = pagination.currentIndex + 1;
+        if (!cursorPages[nextIndex]) { pagination.loadingNext = false; nextBtn.disabled = true; return; }
+        cursorPages[nextIndex].dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        setTimeout(() => { renderSearchResultsFromCSE(true); setupPaginationState(); pagination.loadingNext = false; }, 700);
+      } else { pagination.loadingNext = false; nextBtn.disabled = true; }
+    }
+
+    window.addEventListener('scroll', () => {
+      const route = parseHash(); if (route.page !== 'search') return;
+      const nextBtn = document.getElementById('next-page-btn'); if (nextBtn.disabled) return;
+      const nearBottom = (window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 120);
+      if (nearBottom) gotoNextPage();
+    });
+    document.getElementById('next-page-btn').addEventListener('click', gotoNextPage);
+
+    async function onRoute() {
+      const route = parseHash();
+      if (route.page === 'home') { showPage('home'); return; }
+      if (route.page === 'search') { showPage('search'); if (route.q) executeSearch(route.q); return; }
+      if (route.page === 'watch') { showPage('watch'); if (route.v) await loadWatch(route.v); }
+    }
+
+    async function fetchWithTimeout(url, opts={}, timeout=6000) {
+      const controller = new AbortController(); const id = setTimeout(() => controller.abort(), timeout);
+      try { const res = await fetch(url, { ...opts, signal: controller.signal }); clearTimeout(id); return res; }
+      catch (e) { clearTimeout(id); throw e; }
+    }
+
+    async function loadWatch(videoId) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      player.removeAttribute('src'); player.load(); player.poster = youTubeThumb(videoId, 'sddefault');
+
+      document.getElementById('video-title').textContent = '';
+      document.getElementById('video-duration').style.display = 'none';
+      document.getElementById('video-source').style.display = 'none';
+      document.getElementById('video-status').style.display = 'none';
+
+      let data = null;
+      try { 
+        // 変更点1: APIエンドポイントの変更とタイムアウトを10000ms（10秒）に設定
+        const res = await fetchWithTimeout(`https://ytdlpinstance-vercel.vercel.app/stream/${encodeURIComponent(videoId)}`, {}, 10000); 
+        data = await res.json(); 
+      }
+      catch { 
+        // 変更点2: エラーメッセージを10秒に変更
+        const vs = document.getElementById('video-status'); 
+        vs.textContent = 'ストリーム取得に失敗しました（10秒タイムアウト）。'; 
+        vs.style.display = 'inline'; 
+      }
+
+      // 変更点3: 新しいJSON構造（data.res_data ではなく data 直下に title や formats がある）に対応
+      const d = data?.res_data || data; // 古い形式(res_data)と新しい形式(ルート)の両方に対応
+      if (d && Object.keys(d).length > 0) {
+        document.getElementById('video-title').textContent = d.title || '動画';
+        const vd = document.getElementById('video-duration'); 
+        vd.textContent = formatDuration(d.duration); 
+        vd.style.display = 'inline';
+        const vsrc = document.getElementById('video-source'); 
+        vsrc.textContent = d.source || 'YouTube'; 
+        vsrc.style.display = 'inline';
+
+        let streamUrl = '';
+        if (Array.isArray(d.formats)) { 
+          // 変更点4: 画質の判定を新フォーマットの 'resolution: "640x360"' にも対応
+          const f360 = d.formats.find(f => 
+            (f.quality || '').toLowerCase().includes('360p') || 
+            (f.resolution || '').includes('360')
+          ); 
+          streamUrl = f360 ? f360.url : ''; 
+        }
+        
+        const vstat = document.getElementById('video-status');
+        if (streamUrl) { 
+          player.src = streamUrl; 
+          vstat.textContent = '再生準備完了'; 
+          vstat.style.display = 'inline'; 
+          player.loop = true;
+          player.play().catch(() => {}); 
+        }
+        else { 
+          vstat.textContent = '360pストリームが見つかりませんでした。'; 
+          vstat.style.display = 'inline'; 
+        }
+      }
+
+      loadComments(videoId);
+
+      const title = document.getElementById('video-title').textContent;
+      const authorFragment = title.split(' - ')[0].split('|')[0].trim();
+      const query = `${authorFragment} ${title.split(' ').slice(0, 3).join(' ')}`.trim();
+      loadRecommendations(query, videoId);
+    }
+
+    function formatDuration(seconds) {
+      if (!seconds || seconds <= 0) return '--:--';
+      const m = Math.floor(seconds / 60); const s = Math.floor(seconds % 60);
+      return `${m}:${String(s).padStart(2, '0')}`;
+    }
+    function formatCount(n) {
+      if (n >= 1_000_000) return (n/1_000_000).toFixed(1).replace(/\.0$/,'') + 'M';
+      if (n >= 1_000) return (n/1_000).toFixed(1).replace(/\.0$/,'') + 'K';
+      return String(n);
+    }
+
+    // --- APIリストを取得するヘルパー関数 ---
+    async function getCommentApiList() {
+      const fallbackApis = [
+        "https://min-tube2-api.vercel.app",
+        "https://min-tube-api-3.vercel.app",
+        "https://min-tube-api4.vercel.app",
+        "https://server-minp.vercel.app",
+        "https://min-tube-api5.vercel.app"
+      ];
+      try {
+        const res = await fetch('/wkt/yt/min-tube-api.json');
+        if (!res.ok) return fallbackApis;
+        
+        // テキストとして取得し、カンマで分割する
+        const text = await res.text();
+        
+        // 分割後、前後の空白や改行を削除し、空文字を除外する
+        const list = text.split(',')
+                         .map(url => url.trim())
+                         .filter(url => url.length > 0);
+
+        // 取得したデータが1つ以上要素があればそれを使う
+        return list.length > 0 ? list : fallbackApis;
+      } catch {
+        return fallbackApis;
+      }
+    }
+
+    // --- 複数のAPIを順番に試す loadComments 関数 ---
+    async function loadComments(videoId) {
+      const status = document.getElementById('comments-status'); const list = document.getElementById('comments-list');
+      status.classList.add('show'); list.innerHTML = '';
+      
+      const apis = await getCommentApiList();
+      let success = false;
+
+      // リストのAPIを順番に試行
+      for (const apiBase of apis) {
+        try {
+          // URL末尾の不要なスラッシュを念のため除去
+          const baseUrl = apiBase.replace(/\/$/, ''); 
+          const res = await fetch(`${baseUrl}/api/comments/${encodeURIComponent(videoId)}`);
+          if (!res.ok) continue; // エラーが返ってきたら次のAPIへ
+          
+          const json = await res.json();
+          document.getElementById('comment-count').textContent = `合計 ${formatCount(json.commentCount || 0)} 件`;
+          status.classList.remove('show');
+          
+          // --- ここからの描画ロジックは既存のものを完全維持 ---
+          const comments = Array.isArray(json.comments) ? json.comments : [];
+          comments.slice(0, 30).forEach(c => {
+            const authorThumb = (c.authorThumbnails && c.authorThumbnails[0] && c.authorThumbnails[0].url) || '';
+            const item = document.createElement('div'); item.className = 'comment';
+            const safeHtml = sanitizeContentHtml(c.contentHtml || escapeHTML(c.content || ''));
+            item.innerHTML = `
+              <img class="avatar" src="${authorThumb}" alt="${escapeHTML(c.author || '')}">
+              <div class="comment-meta">
+                <div class="comment-author">
+                  <span>${escapeHTML(c.author || '')}</span>
+                  ${c.verified ? '<span class="author-badge">認証済み</span>' : ''}
+                  ${c.authorIsChannelOwner ? '<span class="author-badge">チャンネル所有者</span>' : ''}
+                  ${c.isPinned ? '<span class="author-badge">固定</span>' : ''}
+                </div>
+                <div class="comment-content">${safeHtml}</div>
+                <div class="comment-actions">
+                  <span>👍 ${formatCount(c.likeCount || 0)}</span>
+                  <span class="muted">${escapeHTML(c.publishedText || '')}</span>
+                  ${c.replies && c.replies.replyCount ? `<span>返信 ${formatCount(c.replies.replyCount)}</span>` : ''}
+                </div>
+              </div>
+            `;
+            list.appendChild(item);
+          });
+          // --------------------------------------------------
+
+          success = true;
+          break; // データ取得と描画に成功したらループを抜ける
+        } catch {
+          // 通信エラーやJSONパースエラーの場合は次のAPIを試す
+          continue; 
+        }
+      }
+
+      // すべてのAPIで失敗した場合
+      if (!success) {
+        status.innerHTML = `<span class="muted">コメントの取得に失敗しました。</span>`;
+      }
+    }
+
+    function sanitizeContentHtml(html) {
+      const div = document.createElement('div'); div.innerHTML = html;
+      div.querySelectorAll('script').forEach(s => s.remove());
+      const walk = (node) => {
+        if (node.nodeType === 1) {
+          [...node.attributes].forEach(attr => { if (/^on/i.test(attr.name)) node.removeAttribute(attr.name); });
+          if (node.tagName === 'A') { node.setAttribute('target', '_blank'); node.setAttribute('rel', 'noopener noreferrer nofollow'); }
+          if (node.tagName === 'IMG') node.remove();
+          node.childNodes.forEach(walk);
+        }
+      };
+      div.childNodes.forEach(walk);
+      return div.innerHTML;
+    }
+
+    function loadRecommendations(query, currentVideoId) {
+      const status = document.getElementById('recs-status'); const list = document.getElementById('recs-list');
+      status.classList.add('show'); list.innerHTML = '';
+      try {
+        const elem = cseHiddenElem || google.search.cse.element.getElement('hidden-cse') || google.search.cse.element.getElement('searchresults-only0');
+        if (!elem) { setTimeout(() => loadRecommendations(query, currentVideoId), 200); return; }
+        elem.execute(`site:youtube.com ${query}`);
+        setTimeout(() => {
+          const container = document.getElementById('hidden-cse'); const raw = container.querySelectorAll('.gsc-webResult.gsc-result');
+          const items = [];
+          raw.forEach(r => {
+            const a = r.querySelector('.gs-title a'); if (!a || !a.href) return;
+            const vid = getVideoIdFromUrl(a.href); if (!vid || vid === currentVideoId) return;
+            const title = (a.textContent || '').trim();
+            let channel = ''; const urlEl = r.querySelector('.gs-visibleUrl');
+            if (urlEl) channel = urlEl.textContent.replace(/https?:\/\/(www\.)?youtube\.com\/.*/i, '').trim();
+            const snipEl = r.querySelector('.gs-snippet');
+            if (!channel && snipEl) { const m = snipEl.textContent.match(/by ([^•–-]+)/i); if (m) channel = m[1].trim(); }
+            items.push({ vid, title, channel });
+          });
+          const dedup = []; const seen = new Set();
+          for (const it of items) { if (seen.has(it.vid)) continue; seen.add(it.vid); dedup.push(it); if (dedup.length >= 10) break; }
+          status.classList.remove('show');
+          dedup.forEach(it => {
+            const el = document.createElement('div'); el.className = 'rec-card';
+            el.innerHTML = `
+              <img class="rec-thumb" src="${youTubeThumb(it.vid)}" alt="Thumbnail">
+              <div>
+                <div class="rec-title">${escapeHTML(it.title)}</div>
+                <div class="rec-channel">${escapeHTML(it.channel || 'YouTube')}</div>
+              </div>
+            `;
+            el.addEventListener('click', () => navigateTo(`#/watch?v=${encodeURIComponent(it.vid)}`));
+            list.appendChild(el);
+          });
+          if (!dedup.length) { status.classList.remove('show'); list.innerHTML = '<div class="muted">関連動画が見つかりませんでした。</div>'; }
+        }, 700);
+      } catch { status.classList.remove('show'); list.innerHTML = '<div class="muted">関連動画の取得に失敗しました。</div>'; }
+    }
+
+    (function init(){ showPage('home'); })();
+    onRoute();
+
+    // --- 追加: キーボードショートカット機能 ---
+    document.addEventListener('keydown', (event) => {
+      // 検索ボックスなどに入力中の場合はショートカットを無視する
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) {
+        return;
+      }
+
+      // プレイヤーがまだ準備されていない場合は何もしない
+      if (!player || !player.src) return;
+
+      switch (event.key) {
+        case ' ': // スペースキー (再生/一時停止)
+          event.preventDefault(); // スペースキーでの画面スクロールを防ぐ
+          if (player.paused) {
+            player.play();
+          } else {
+            player.pause();
+          }
+          break;
+
+        case 'f':
+        case 'F': // fキー (全画面表示の切り替え)
+          event.preventDefault();
+          if (!document.fullscreenElement) {
+            // 全画面にする (Safari対応も含む)
+            if (player.requestFullscreen) {
+              player.requestFullscreen();
+            } else if (player.webkitRequestFullscreen) {
+              player.webkitRequestFullscreen();
+            }
+          } else {
+            // 全画面を解除する
+            if (document.exitFullscreen) {
+              document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+              document.webkitExitFullscreen();
+            }
+          }
+          break;
+
+        case 'ArrowRight': // 右矢印 (10秒進む)
+          event.preventDefault(); // 矢印キーでの画面スクロールを防ぐ
+          player.currentTime = Math.min(player.duration, player.currentTime + 10);
+          break;
+
+        case 'ArrowLeft': // 左矢印 (10秒戻る)
+          event.preventDefault();
+          player.currentTime = Math.max(0, player.currentTime - 10);
+          break;
+      }
+    });
+  </script>
+</body>
+</html>
