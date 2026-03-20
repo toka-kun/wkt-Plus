@@ -867,36 +867,48 @@ video {
 
       let data = null;
       try { 
-        // 変更点1: APIエンドポイントの変更とタイムアウトを10000ms（10秒）に設定
         const res = await fetchWithTimeout(`https://ytdlpinstance-vercel.vercel.app/stream/${encodeURIComponent(videoId)}`, {}, 10000); 
         data = await res.json(); 
       }
       catch { 
-        // 変更点2: エラーメッセージを10秒に変更
         const vs = document.getElementById('video-status'); 
         vs.textContent = 'ストリーム取得に失敗しました（10秒タイムアウト）。'; 
         vs.style.display = 'inline'; 
+        return;
       }
 
-      // 変更点3: 新しいJSON構造（data.res_data ではなく data 直下に title や formats がある）に対応
-      const d = data?.res_data || data; // 古い形式(res_data)と新しい形式(ルート)の両方に対応
+      const d = data?.res_data || data; 
       if (d && Object.keys(d).length > 0) {
         document.getElementById('video-title').textContent = d.title || '動画';
         const vd = document.getElementById('video-duration'); 
-        vd.textContent = formatDuration(d.duration); 
-        vd.style.display = 'inline';
+        if (d.duration) {
+          vd.textContent = formatDuration(d.duration); 
+          vd.style.display = 'inline';
+        }
         const vsrc = document.getElementById('video-source'); 
         vsrc.textContent = d.source || 'YouTube'; 
         vsrc.style.display = 'inline';
 
         let streamUrl = '';
         if (Array.isArray(d.formats)) { 
-          // 変更点4: 画質の判定を新フォーマットの 'resolution: "640x360"' にも対応
-          const f360 = d.formats.find(f => 
-            (f.quality || '').toLowerCase().includes('360p') || 
+          // 変更点: 新しい形式に対応した柔軟な画質取得ロジック
+          // 1. まずは動作が軽い360pを優先的に探す
+          let targetFormat = d.formats.find(f => 
+            (f.quality || '').toLowerCase().includes('360') || 
             (f.resolution || '').includes('360')
           ); 
-          streamUrl = f360 ? f360.url : ''; 
+          
+          // 2. 360pが無い場合は、「音声のみ」ではないmp4形式の動画ストリームを探す
+          if (!targetFormat) {
+            targetFormat = d.formats.find(f => f.ext === 'mp4' && f.resolution !== 'audio only');
+          }
+          
+          // 3. それでも見つからない場合の最終フォールバック
+          if (!targetFormat && d.formats.length > 0) {
+            targetFormat = d.formats[0];
+          }
+
+          streamUrl = targetFormat ? targetFormat.url : ''; 
         }
         
         const vstat = document.getElementById('video-status');
@@ -904,18 +916,20 @@ video {
           player.src = streamUrl; 
           vstat.textContent = '再生準備完了'; 
           vstat.style.display = 'inline'; 
-          player.loop = true;
+          
+          player.loop = true; // 追加済みのループ再生機能
+          
           player.play().catch(() => {}); 
         }
         else { 
-          vstat.textContent = '360pストリームが見つかりませんでした。'; 
+          vstat.textContent = '再生可能なストリームが見つかりませんでした。'; 
           vstat.style.display = 'inline'; 
         }
       }
 
       loadComments(videoId);
 
-      const title = document.getElementById('video-title').textContent;
+      const title = document.getElementById('video-title').textContent || '';
       const authorFragment = title.split(' - ')[0].split('|')[0].trim();
       const query = `${authorFragment} ${title.split(' ').slice(0, 3).join(' ')}`.trim();
       loadRecommendations(query, videoId);
