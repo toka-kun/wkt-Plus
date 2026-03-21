@@ -891,19 +891,15 @@ video {
 
         let streamUrl = '';
         if (Array.isArray(d.formats)) { 
-          // 変更点: 新しい形式に対応した柔軟な画質取得ロジック
-          // 1. まずは動作が軽い360pを優先的に探す
-          let targetFormat = d.formats.find(f => 
-            (f.quality || '').toLowerCase().includes('360') || 
-            (f.resolution || '').includes('360')
-          ); 
+          // 変更点: itagが "18" のものを最優先で取得する
+          let targetFormat = d.formats.find(f => String(f.itag) === '18'); 
           
-          // 2. 360pが無い場合は、「音声のみ」ではないmp4形式の動画ストリームを探す
+          // 保険: もし itag 18 が存在しない特殊な動画だった場合は、音声のみではないmp4を探す
           if (!targetFormat) {
             targetFormat = d.formats.find(f => f.ext === 'mp4' && f.resolution !== 'audio only');
           }
           
-          // 3. それでも見つからない場合の最終フォールバック
+          // 最終手段: それでも見つからない場合は一番最初のデータを取得
           if (!targetFormat && d.formats.length > 0) {
             targetFormat = d.formats[0];
           }
