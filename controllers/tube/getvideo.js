@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const serverYt = require("../../server/youtube.js");
 const wakamess = require("../../server/wakame.js");
+const axios = require("axios"); // ★ 追加: これがないと負荷チェック時の axios.get でエラーになります
 
 const user_agent = process.env.USER_AGENT || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36";
 
@@ -59,6 +60,7 @@ router.get('/:id', async (req, res) => {
         // ▲▲▲ ここまで追加 ▲▲▲
 
         // ★第2引数に、負荷チェック後のAPI(apiToUse)を渡す
+        // （※先ほど修正した wakame.js 側で audioUrls 等がすでに整えられて返ってくるため、そのまま EJS に渡せます）
         const videoData = await wakamess.getYouTube(videoId, apiToUse);
         const Info = await serverYt.infoGet(videoId);
         
