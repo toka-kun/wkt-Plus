@@ -298,12 +298,17 @@
             <p class="block mb-2">使用したサーバー: <strong><%= baseUrl.replace('https://', '').replace('.glitch.me', '') %></strong></p>
             <label class="block mb-2">サーバーを変える:
                 <select id="serverSelect" class="w-full bg-gray-800 text-white p-2 rounded">
-                    <option value="invidious" <%= baseUrl === 'invidious' ? 'selected' : '' %>>Invidious API</option>
-                    <option value="siawaseok" <%= baseUrl === 'siawaseok' ? 'selected' : '' %>>SiaTube API</option>
-                    <option value="yudlp" <%= baseUrl === 'yudlp' ? 'selected' : '' %>>YuZuTube API</option>
-                    <option value="xeroxyt-nt-apiv1" <%= baseUrl === 'xeroxyt-nt-apiv1' ? 'selected' : '' %>>XeroxYT-NT API</option>
-                    <option value="min-tube2-api" <%= baseUrl === 'min-tube2-api' ? 'selected' : '' %>>MIN-Tube2 API</option>
-                    <option value="simple-yt-stream" <%= baseUrl === 'simple-yt-stream' ? 'selected' : '' %>>Wista Stream API</option>
+                    <optgroup label="⚡ 高速サーバー群">
+                        <option value="invidious" <%= baseUrl === 'invidious' ? 'selected' : '' %>>Invidious API</option>
+                        <option value="siawaseok" <%= baseUrl === 'siawaseok' ? 'selected' : '' %>>SiaTube API</option>
+                        <option value="yudlp" <%= baseUrl === 'yudlp' ? 'selected' : '' %>>YuZuTube API</option>
+                        <option value="ytdlpinstance-vercel" <%= baseUrl === 'ytdlpinstance-vercel' ? 'selected' : '' %>>KatuoTube API</option>
+                        <option value="min-tube2-api" <%= baseUrl === 'min-tube2-api' ? 'selected' : '' %>>MIN-Tube2 API</option>
+                    </optgroup>
+                    <optgroup label="🐢 低速サーバー群">
+                        <option value="xeroxyt-nt-apiv1" <%= baseUrl === 'xeroxyt-nt-apiv1' ? 'selected' : '' %>>XeroxYT-NT API</option>
+                        <option value="simple-yt-stream" <%= baseUrl === 'simple-yt-stream' ? 'selected' : '' %>>Wista Stream API</option>
+                    </optgroup>
                 </select>
             </label>
             <button id="changeServer" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">🔃 サーバーを変更</button>
