@@ -259,14 +259,17 @@
         <div id="tabControl" class="tab-button active px-4 py-2 cursor-pointer text-white bg-gray-800 rounded-t-lg" data-target="controlTab">コントロール</div>
         <div id="tabSettings" class="tab-button px-4 py-2 cursor-pointer text-gray-400 hover:text-white rounded-t-lg" data-target="settingsTab">設定</div>
     </div>
+    
     <div id="controlTab" class="tab-content active">
         <div class="control-section mb-4">
             <button id="reloadVideo" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">🔄 再読み込み</button>
         </div>
+
         <% if (videoData.streamUrls && videoData.streamUrls.length > 0) { %>
         <div class="control-section mb-4">
             <label class="block mb-2">画質選択:
                 <select id="qualitySelect" class="w-full bg-gray-800 text-white p-2 rounded">
+                    <option value="<%= videoData.stream_url %>" data-container="mp4">自動 (統合)</option>
                     <% videoData.streamUrls.forEach(stream => { %>
                     <option value="<%= stream.url %>" data-resolution="<%= stream.resolution %>" data-container="<%= stream.container %>">
                         <%= stream.resolution %><%= stream.fps ? stream.fps : '' %> (<%= stream.container %>)
@@ -274,11 +277,27 @@
                     <% }); %>
                 </select>
             </label>
-            <button id="qualityReset" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">画質をリセット</button>
+            
+            <label class="block mb-2">音質選択:
+                <select id="audioSelect" class="w-full bg-gray-800 text-white p-2 rounded">
+                    <% if (videoData.audioUrls && videoData.audioUrls.length > 0) { %>
+                        <% videoData.audioUrls.forEach(audio => { %>
+                            <option value="<%= audio.url %>" data-container="<%= audio.container %>"><%= audio.name %></option>
+                        <% }); %>
+                    <% } else if (videoData.audioUrl) { %>
+                        <option value="<%= videoData.audioUrl %>">デフォルト音声</option>
+                    <% } else { %>
+                        <option value="">音声なし (または統合)</option>
+                    <% } %>
+                </select>
+            </label>
+
+            <button id="qualityReset" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2 mt-2">画質をリセット</button>
         </div>
         <% } else { %>
-        <p class="text-gray-400">他の画質が見つかりません</p>
+        <p class="text-gray-400 mb-4">他の画質が見つかりません</p>
         <% } %>
+
         <div class="control-section mb-4">
             <p class="block mb-2">使用したサーバー: <strong><%= baseUrl.replace('https://', '').replace('.glitch.me', '') %></strong></p>
             <label class="block mb-2">サーバーを変える:
@@ -294,34 +313,39 @@
             <button id="changeServer" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">🔃 サーバーを変更</button>
         </div>
     </div>
-<div id="settingsTab" class="tab-content hidden">
-    <h2 class="text-lg font-semibold mb-3">再生方法の変更</h2>
-    <p class="mb-4 text-gray-600">動画のデフォルトの再生方法を設定できます。埋め込みで見れるなら埋め込みで見た方が良いですよ。</p>
-    <p class="mb-4 text-gray-600">現在の再生方法: 通常</p>
-    <div class="control-section mb-4">
-        <div class="flex flex-col">
-            <label class="flex items-start mb-2">
-                <input type="radio" name="playbackMode" value="normal" class="mr-2 mt-1">
-                <div>
-                    <strong>通常</strong> - ストリームURLを用いて再生します。最初のデフォルト設定で、ほとんどの人が使用できます。
-                </div>
-            </label>
-            <label class="flex items-start mb-2">
-                <input type="radio" name="playbackMode" value="edu" class="mr-2 mt-1">
-                <div>
-                    <strong>Education</strong> - YouTubeEducationを埋め込んで再生を行います。一部の人が使用できます。
-                    <a href="/wkt/yt/edu/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
-                </div>
-            </label>
-            <label class="flex items-start mb-2">
-                <input type="radio" name="playbackMode" value="nocookie" class="mr-2 mt-1">
-                <div>
-                    <strong>Nocookie</strong> - YouTube-Nocookieを埋め込んで再生を行います。こちらも一部の人が使用できます。
-                    <a href="/wkt/yt/nocookie/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
-                </div>
-            </label>
+
+    <div id="settingsTab" class="tab-content hidden">
+        <h2 class="text-lg font-semibold mb-3">再生方法の変更</h2>
+        <p class="mb-4 text-gray-600">動画のデフォルトの再生方法を設定できます。埋め込みで見れるなら埋め込みで見た方が良いですよ。</p>
+        <p class="mb-4 text-gray-600">現在の再生方法: 通常</p>
+        <div class="control-section mb-4">
+            <div class="flex flex-col">
+                <label class="flex items-start mb-2">
+                    <input type="radio" name="playbackMode" value="normal" class="mr-2 mt-1">
+                    <div>
+                        <strong>通常</strong> - ストリームURLを用いて再生します。最初のデフォルト設定で、ほとんどの人が使用できます。
+                    </div>
+                </label>
+                <label class="flex items-start mb-2">
+                    <input type="radio" name="playbackMode" value="edu" class="mr-2 mt-1">
+                    <div>
+                        <strong>Education</strong> - YouTubeEducationを埋め込んで再生を行います。一部の人が使用できます。
+                        <a href="/wkt/yt/edu/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
+                    </div>
+                </label>
+                <label class="flex items-start mb-2">
+                    <input type="radio" name="playbackMode" value="nocookie" class="mr-2 mt-1">
+                    <div>
+                        <strong>Nocookie</strong> - YouTube-Nocookieを埋め込んで再生を行います。こちらも一部の人が使用できます。
+                        <a href="/wkt/yt/nocookie/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
+                    </div>
+                </label>
+            </div>
         </div>
+        
+        <button id="saveSettings" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">💾 設定を保存</button>
     </div>
+</div>
     
     <button id="saveSettings" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">💾 設定を保存</button>
 </div>
