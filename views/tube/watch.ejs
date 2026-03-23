@@ -264,7 +264,7 @@
             <button id="reloadVideo" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">🔄 再読み込み</button>
         </div>
         <% if (videoData.streamUrls && videoData.streamUrls.length > 0) { %>
-        <div class="flex items-center space-x-2">
+        <div class="control-section mb-4">
             <label for="qualitySelect" class="text-sm font-semibold">画質:</label>
             <select id="qualitySelect" class="bg-gray-700 text-white text-sm rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="<%= videoData.stream_url %>" data-container="mp4">自動 (統合)</option>
@@ -276,7 +276,7 @@
             </select>
         </div>
 
-        <div class="flex items-center space-x-2 mt-3">
+        <div class="control-section mb-4">
             <label for="audioSelect" class="text-sm font-semibold">音質:</label>
             <select id="audioSelect" class="bg-gray-700 text-white text-sm rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <% if (videoData.audioUrls && videoData.audioUrls.length > 0) { %>
