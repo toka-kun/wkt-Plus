@@ -264,17 +264,31 @@
             <button id="reloadVideo" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">🔄 再読み込み</button>
         </div>
         <% if (videoData.streamUrls && videoData.streamUrls.length > 0) { %>
-        <div class="control-section mb-4">
-            <label class="block mb-2">画質選択:
-                <select id="qualitySelect" class="w-full bg-gray-800 text-white p-2 rounded">
+        <div class="flex items-center space-x-2">
+            <label for="qualitySelect" class="text-sm font-semibold">画質:</label>
+            <select id="qualitySelect" class="bg-gray-700 text-white text-sm rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="<%= videoData.stream_url %>" data-container="mp4">自動 (統合)</option>
+                <% if (videoData.streamUrls && videoData.streamUrls.length > 0) { %>
                     <% videoData.streamUrls.forEach(stream => { %>
-                    <option value="<%= stream.url %>" data-resolution="<%= stream.resolution %>" data-container="<%= stream.container %>">
-                        <%= stream.resolution %><%= stream.fps ? stream.fps : '' %> (<%= stream.container %>)
-                    </option>
+                        <option value="<%= stream.url %>" data-container="<%= stream.container %>"><%= stream.resolution %></option>
                     <% }); %>
-                </select>
-            </label>
-            <button id="qualityReset" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">画質をリセット</button>
+                <% } %>
+            </select>
+        </div>
+
+        <div class="flex items-center space-x-2 mt-3">
+            <label for="audioSelect" class="text-sm font-semibold">音質:</label>
+            <select id="audioSelect" class="bg-gray-700 text-white text-sm rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <% if (videoData.audioUrls && videoData.audioUrls.length > 0) { %>
+                    <% videoData.audioUrls.forEach(audio => { %>
+                        <option value="<%= audio.url %>" data-container="<%= audio.container %>"><%= audio.name %></option>
+                    <% }); %>
+                <% } else if (videoData.audioUrl) { %>
+                    <option value="<%= videoData.audioUrl %>">デフォルト音声</option>
+                <% } else { %>
+                    <option value="">音声なし (または統合)</option>
+                <% } %>
+            </select>
         </div>
         <% } else { %>
         <p class="text-gray-400">他の画質が見つかりません</p>
@@ -709,20 +723,20 @@ $(document).ready(function() {
         }
     });
 
+    // ★ 初期状態の統合URL（デフォルト音声付き360p）
+    const initialStreamUrl = "<%- videoData.stream_url %>";
+
     // ★ 画質変更（映像のみ + 裏で音声を再生）
     $('#qualitySelect').change(function() {
         const selectedOption = $(this).find(':selected');
         const container = selectedOption.attr('data-container') || 'mp4';
         const newUrl = selectedOption.val();
         
-        // ★ 処理を始める前に、一旦映像も音声も完全に止める！
         video.pause();
         audio.pause();
         
-        // 再生位置を記憶
         const currentTime = video.currentTime;
 
-        // ★ m3u8の場合は正しいHLS形式としてブラウザに認識させる
         if (container === 'm3u8') {
             videoSrc.type = "application/x-mpegURL";
         } else {
@@ -730,11 +744,12 @@ $(document).ready(function() {
         }
         videoSrc.src = newUrl;
 
-        // ★ マニフェストURLの場合は裏の音声を流さない（動画本体の音声に任せる）
-        if (newUrl.startsWith("https://manifest.googlevideo.com/") || newUrl.includes(".m3u8")) {
+        // ★ 動画が「デフォルト統合(stream_url)」または「m3u8(ライブ等)」なら、音声をつけない
+        if (newUrl === initialStreamUrl || newUrl.startsWith("https://manifest.googlevideo.com/") || newUrl.includes(".m3u8")) {
             audio.src = "";
         } else {
-            audio.src = "<%- videoData.audioUrl || '' %>";
+            // ★ それ以外（映像のみ）なら、選択されている「音質」を裏で鳴らす
+            audio.src = $('#audioSelect').val() || "<%- videoData.audioUrl || '' %>";
         }
 
         $('#controlPanel').removeClass('open');
@@ -742,29 +757,56 @@ $(document).ready(function() {
         
         if (audio.src && audio.src !== window.location.href) {
             audio.load();
-            audio.currentTime = currentTime; // 音声の位置を合わせる
+            audio.currentTime = currentTime;
         }
-        video.currentTime = currentTime; // 映像の位置を合わせる
+        video.currentTime = currentTime; 
 
-        // 読み込みが完了したら自動で再開させる
         video.play().catch(e => console.error(e));
+    });
+
+    // ★ 音質変更
+    $('#audioSelect').change(function() {
+        const currentVideoUrl = $('#qualitySelect').val();
+        const newAudioUrl = $(this).val();
+
+        // 映像が「統合ストリーム」や「m3u8」の時は、裏の音声を動かさないので切り替え不要
+        if (currentVideoUrl === initialStreamUrl || currentVideoUrl.startsWith("https://manifest.googlevideo.com/") || currentVideoUrl.includes(".m3u8")) {
+            return;
+        }
+
+        const currentTime = video.currentTime;
+        const wasPlaying = !video.paused;
+
+        video.pause();
+        audio.pause();
+
+        // 新しい音声をセットして再開
+        audio.src = newAudioUrl;
+        audio.load();
+        audio.currentTime = currentTime;
+
+        if (wasPlaying) {
+            video.play().catch(e => console.error(e));
+        }
     });
 
     // ★ 通常画質（初期状態の統合ストリーム）にリセット
     $('#qualityReset').click(function() {
-        // ★ 処理を始める前に一旦止める！
         video.pause();
         audio.pause();
 
         const currentTime = video.currentTime;
 
         videoSrc.type = "video/mp4";
-        videoSrc.src = "<%- videoData.stream_url %>";
+        videoSrc.src = initialStreamUrl; // 統合ストリーム
         
-        // 統合ストリームに戻すので裏の音声は空にする
+        // 統合なので別音声は空
         audio.src = ""; 
         
         $('#controlPanel').removeClass('open');
+        // セレクトボックスの見た目も「自動(統合)」に戻す
+        $('#qualitySelect').val(initialStreamUrl);
+        
         video.load();
         video.currentTime = currentTime;
         
