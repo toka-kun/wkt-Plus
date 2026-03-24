@@ -735,12 +735,15 @@ $(document).ready(function() {
         const container = selectedOption.attr('data-container') || 'mp4';
         const isAuto = selectedOption.attr('data-is-auto') === 'true'; // ★ 判定追加
         const newUrl = selectedOption.val();
-        
+
+        // ★ 処理を始める前に、一旦映像も音声も完全に止める！
         video.pause();
         audio.pause();
         
+        // 再生位置を記憶
         const currentTime = video.currentTime;
 
+        // ★ m3u8の場合は正しいHLS形式としてブラウザに認識させる
         if (container === 'm3u8') {
             videoSrc.type = "application/x-mpegURL";
         } else {
@@ -762,10 +765,11 @@ $(document).ready(function() {
         
         if (audio.src && audio.src !== window.location.href) {
             audio.load();
-            audio.currentTime = currentTime;
+            audio.currentTime = currentTime; // 音声の位置を合わせる
         }
-        video.currentTime = currentTime; 
+        video.currentTime = currentTime; // 映像の位置を合わせる
 
+        // 読み込みが完了したら自動で再開させる
         video.play().catch(e => console.error(e));
     });
 
@@ -785,6 +789,7 @@ $(document).ready(function() {
         const currentTime = video.currentTime;
         const wasPlaying = !video.paused;
 
+        // ★ 処理を始める前に一旦止める！
         video.pause();
         audio.pause();
 
