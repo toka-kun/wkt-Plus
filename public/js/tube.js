@@ -39,9 +39,12 @@ $(function () {
 // === シークレットモード（about:blank）共通処理 ===
 // ==========================================
 
-// 指定されたURLをabout:blankで開くための共通関数（どこからでも呼び出せます）
+// 元の window.open をバックアップしておく（無限ループ防止のため）
+const originalWindowOpen = window.open;
+
 function openUrlInAboutBlank(targetUrl, isOriginalTab = false) {
-    const win = window.open('about:blank', '_blank');
+    // 上書きされたものではなく、バックアップしておいた元の window.open を使う
+    const win = originalWindowOpen.call(window, 'about:blank', '_blank');
 
     if (!win || win.closed || typeof win.closed == 'undefined') {
         if (typeof showMessage === 'function') {
@@ -78,7 +81,7 @@ function openUrlInAboutBlank(targetUrl, isOriginalTab = false) {
     win.document.write(iframeHtml);
     win.document.close();
     
-    // 元々の大元のタブ（シークレットボタンを押したタブ）のみGoogleへリダイレクト
+    // 大元のタブ（ボタンを押したタブ）のみGoogleへリダイレクト
     if (isOriginalTab) {
         window.location.replace('https://www.google.com');
     }
@@ -86,27 +89,23 @@ function openUrlInAboutBlank(targetUrl, isOriginalTab = false) {
 }
 
 // === about:blank内部での処理（別のタブを開く動作を横取りする） ===
-// window !== window.parent は「現在のページがiframe内で開かれているか」を判定します
+// 自分がiframe（about:blank）の中にいる場合のみ、横取りシステムを起動
 if (window !== window.parent) {
     
     // (A) target="_blank" の <a> タグ（リンク）のクリックを横取り
     document.addEventListener('click', function(e) {
         const link = e.target.closest('a');
-        // リンクが存在し、かつ「新しいタブで開く」設定になっている場合
         if (link && link.target === '_blank') {
-            e.preventDefault(); // 通常の新しいタブを開く動作をキャンセル
-            openUrlInAboutBlank(link.href, false); // about:blankの関数を通して開き直す
+            e.preventDefault(); 
+            openUrlInAboutBlank(link.href, false);
         }
     });
 
-    // (B) JavaScriptの window.open() 関数自体を上書きして横取り
-    const originalWindowOpen = window.open;
+    // (B) JavaScriptの window.open() 自体を上書きして横取り
     window.open = function(url, target, features) {
         if (target === '_blank' || !target) {
-            // 新しいタブで開こうとした場合はabout:blankの関数に流す
             return openUrlInAboutBlank(url, false);
         }
-        // それ以外の同じ画面内での遷移などはそのまま処理させる
         return originalWindowOpen.call(window, url, target, features);
     };
 }
