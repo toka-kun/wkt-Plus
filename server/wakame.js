@@ -447,13 +447,10 @@ async function getYouTube(videoId, apiType = 'invidious') {
             }
         });
         result.streamUrls = newStreamUrls; 
-    } else if (result.stream_url) {
-        // リストが空だった場合の保険
-        let containerType = 'mp4';
-        if (result.stream_url.includes('.m3u8') || result.stream_url.includes('manifest')) {
-            containerType = 'm3u8';
-        }
-        result.streamUrls = [{ url: result.stream_url, resolution: 'Auto', container: containerType, fps: null }];
+    } else {
+        // ★ XeroxYT-NTなどでstreamUrlsが意図的に空の場合は、無理にAutoを追加せず空のままにする
+        // （画面側で必ず「自動 (統合)」が表示されるため）
+        result.streamUrls = [];
     }
 
     // 音声URLに manifest や .m3u8 が紛れ込んでいたら消す
