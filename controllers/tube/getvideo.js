@@ -58,12 +58,12 @@ router.get('/:id', async (req, res) => {
             // ★ 追加: KatuoTube の負荷チェック
             try {
                 const cacheRes = await axios.get('https://ytdlpinstance-vercel.vercel.app/cache', { timeout: 3000 });
-                // JSONのキー（動画ID）の数をカウントして20件を超えているかチェック
-                if (cacheRes.data && Object.keys(cacheRes.data).length > 20) {
+                // JSONのキー（動画ID）の数をカウントして60件を超えているかチェック
+                if (cacheRes.data && Object.keys(cacheRes.data).length > 60) {
                     apiToUse = 'invidious';
                     baseUrl = 'invidious';
                     fallbackMessage = "現在、このサイトに高い負荷がかかっていてサーバーへのリクエストがキャンセルされたため、自動的にInvidious APIを使用しました。";
-                    console.log("KatuoTube制限超過: 20件以上のためInvidiousへフォールバック");
+                    console.log("KatuoTube制限超過: 60件以上のためInvidiousへフォールバック");
                 }
             } catch (e) {
                 console.error("KatuoTube負荷チェック失敗:", e.message);
