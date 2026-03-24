@@ -64,10 +64,6 @@ async function getInvidious(videoId) {
             container: stream.container
         }));
 
-    let highstreamUrl = audioStreams
-        .filter(stream => (stream.container === 'webm' || stream.container === 'mp4') && stream.resolution === '1080p')
-        .map(stream => stream.url)[0];
-        
     const streamUrls = audioStreams
         .filter(stream => (stream.container === 'webm' || stream.container === 'mp4') && stream.resolution)
         .map(stream => ({
@@ -79,7 +75,7 @@ async function getInvidious(videoId) {
         
     if (videoInfo.hlsUrl) streamUrl = videoInfo.hlsUrl; 
     
-    return { stream_url: streamUrl, highstreamUrl, audioUrl, audioUrls, streamUrls };
+    return { stream_url: streamUrl, audioUrl, audioUrls, streamUrls };
 }
 
 // =========================================
@@ -128,7 +124,6 @@ async function getSiaTube(videoId) {
 
         return {
             stream_url: streamUrl || streamUrls[0]?.url || '',
-            highstreamUrl: streamUrls.find(s => s.resolution === '1080p')?.url || streamUrls[0]?.url || '',
             audioUrl: audioUrl,
             audioUrls: audioUrls,
             streamUrls: streamUrls
@@ -181,7 +176,6 @@ async function getYuZuTube(videoId) {
 
         return {
             stream_url: streamUrl || streamUrls[0]?.url || '',
-            highstreamUrl: streamUrls.find(s => s.resolution === '1080p')?.url || streamUrls[0]?.url || '',
             audioUrl: audioUrl,
             audioUrls: audioUrls,
             streamUrls: streamUrls
@@ -234,7 +228,6 @@ async function getKatuoTube(videoId) {
 
         return {
             stream_url: streamUrl || streamUrls[0]?.url || '',
-            highstreamUrl: streamUrls.find(s => s.resolution === '1080p')?.url || streamUrls[0]?.url || '',
             audioUrl: audioUrl,
             audioUrls: audioUrls,
             streamUrls: streamUrls
@@ -269,18 +262,12 @@ async function getXeroxNT(videoId) {
             const data = response.data;
             
             if (data && data.streamingUrl) {
-                const streamUrls = (data.formats || []).map(f => ({
-                    url: f.url,
-                    resolution: f.quality || (f.height ? f.height + 'p' : ''),
-                    container: f.container || 'mp4',
-                    fps: null
-                }));
-
+                // ★ XeroxYT-NTは「自動 (統合)」のみにするため、streamUrlsを空にする
+                const streamUrls = [];
                 const audioUrls = data.audioUrl ? [{ url: data.audioUrl, name: 'Default Audio', container: 'm4a' }] : [];
 
                 return {
                     stream_url: data.streamingUrl, 
-                    highstreamUrl: streamUrls.find(s => s.resolution === '1080p')?.url || data.streamingUrl,
                     audioUrl: data.audioUrl || '',
                     audioUrls: audioUrls,
                     streamUrls: streamUrls
@@ -319,15 +306,16 @@ async function getMinTube2(videoId) {
             const data = response.data;
             
             if (data && data.stream_url) {
+                // ★ MIN-Tube2は「自動 (統合)」と「高画質」のみ
                 const streamUrls = [];
-                if (data.stream_url) streamUrls.push({ url: data.stream_url, resolution: '通常画質', container: 'mp4', fps: null });
-                if (data.highstreamUrl) streamUrls.push({ url: data.highstreamUrl, resolution: '高画質', container: 'mp4', fps: null });
+                if (data.highstreamUrl && data.highstreamUrl !== data.stream_url) {
+                    streamUrls.push({ url: data.highstreamUrl, resolution: '高画質', container: 'mp4', fps: null });
+                }
 
                 const audioUrls = data.audioUrl ? [{ url: data.audioUrl, name: 'Default Audio', container: 'm4a' }] : [];
 
                 return {
                     stream_url: data.stream_url, 
-                    highstreamUrl: data.highstreamUrl || data.stream_url,
                     audioUrl: data.audioUrl || '',
                     audioUrls: audioUrls,
                     streamUrls: streamUrls
@@ -372,17 +360,23 @@ async function getWistaStream(videoId) {
         });
         
         const streamUrls = videoStreams.map(s => {
+            // ★ Wista Stream の FPS表記重複 (1080p6060fps) を修正
+            let res = s.quality || '';
+            let fpsVal = s.fps || null;
+            if (fpsVal && res.endsWith(fpsVal.toString())) {
+                res = res.slice(0, -fpsVal.toString().length); // 例: 1080p60 から 60 を取り除く
+            }
+
             return {
                 url: s.url,
-                resolution: s.quality,
+                resolution: res,
                 container: s.ext || 'mp4',
-                fps: s.fps || null
+                fps: fpsVal
             };
         });
 
         return {
             stream_url: streamUrl || streamUrls[0]?.url || '',
-            highstreamUrl: streamUrls.find(s => s.resolution === '1080p')?.url || streamUrls.find(s => s.resolution === '720p')?.url || streamUrls[0]?.url || '',
             audioUrl: audioUrl,
             audioUrls: audioUrls,
             streamUrls: streamUrls
