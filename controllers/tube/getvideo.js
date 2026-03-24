@@ -58,7 +58,7 @@ router.get('/:id', async (req, res) => {
             // ★ 追加: KatuoTube の負荷チェック
             try {
                 const cacheRes = await axios.get('https://ytdlpinstance-vercel.vercel.app/cache', { timeout: 3000 });
-                // JSONのキー（動画ID）の数をカウントして10件を超えているかチェック
+                // JSONのキー（動画ID）の数をカウントして20件を超えているかチェック
                 if (cacheRes.data && Object.keys(cacheRes.data).length > 20) {
                     apiToUse = 'invidious';
                     baseUrl = 'invidious';
