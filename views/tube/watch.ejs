@@ -130,7 +130,7 @@
             <button onclick="window.open('<%- videoData.stream_url %>', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">ストリームURLに移動</button>
             <button onclick="window.open('/other/others/xerox#/watch/<%= videoId %>', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">XeroxYT-NTで視聴</button>
             <button onclick="window.open('/other/others/labo5#/watch?v=<%= videoId %>', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">Re: LABO5で視聴</button>
-            <button onclick="window.open('/other/others/player#?v=<%= videoId %>', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">YouTube 埋め込み再生ツールで視聴</button>
+            <button onclick="window.open('/other/others/player#?v=<%= videoId %>&playlist=<%= videoId %>', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">YouTube 埋め込み再生ツールで視聴</button>
         </nav>
         <div class="mt-4">
             <button id="reloadButton" class="w-full bg-gray-700 py-2 hover:text-white rounded mb-2">動画を再読み込み</button>
