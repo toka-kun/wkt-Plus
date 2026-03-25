@@ -49,7 +49,7 @@
           </svg>
         </button>
         <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>まずは<a href="/wkt">ホーム</a>に移動してみて。それで、検索バーにキーワードを入力して検索！<br>
+          <p>まずは<a href="/wkt">ホーム</a>に移動してみて。それで、検索バーにキーワードを入力して検索！デフォルトでシークレットモードがオンになっています。<br>
           動画が出てくるから、見たい動画のサムネイル(画像)を押してね。再生ページに移動するよ。  <div class="bg-yellow-600 text-white p-3 rounded-lg mt-4">
         <h3 class="font-semibold text-xl">⚠️ 動画を連打しないでください！</h3>
           <p>動画ページにすぐに移動しなくても、<strong>連打しないで下さい</strong>。サーバーに余計な負荷がかかってしまいます...。</p>
@@ -63,33 +63,6 @@
 
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">画質を変更したい</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>サイドバーにある「<strong>コントロール</strong>」ボタンをクリックしてください。画質を変更するオプションが表示されます。  <div class="bg-red-500 text-white p-3 rounded-lg mt-4">
-       <h3 class="font-semibold text-xl">❗ 音がずれてしまう場合</h3>
-         <p>360p以外の再生は、<strong>動画と音声を別々で</strong>読み込んで再生しています。音がずれていると感じた場合は、一度再生を停止して、少し待ってから再び再生して下さい。</p>
-       </div></p>
-        </div>
-      </div>
-  
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">サーバーを変更したい</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>サイドバーにある「<strong>コントロール</strong>」ボタン、もしくは「設定」ボタンををクリックしてください。サーバーを変更するオプションが表示されます。</p>
-        </div>
-      </div>
-  
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
           <span class="faq-title">わかめtube Plusを作ってみたい</span>
           <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -99,19 +72,23 @@
           <p><strong>ありがとうございます！</strong>GitHubのリポジトリは<a href="https://github.com/toka-kun/wkt-Plus" target="_blank" rel="noopener noreferrer">https://github.com/toka-kun/wkt-Plus</a>にあるので、RemixしてRenderなどにデプロイしてみて下さい！</p>
         </div>
       </div>
-  
+
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">Invidious APIって何？</span>
+          <span class="faq-title">動画の再生方法について</span>
           <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
           </svg>
         </button>
         <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>旧わかめtubeではdirectサーバーと呼ばれていたものです。一番信頼性が高く、安定しているのでデフォルトにしていますが、時々取得できない時があるのでその場合は他のサーバーを使用して下さい。</p>
+          <p>動画の再生方法には、通常、Education、Nocookieの３種類があります。<br>
+          <strong>- 通常</strong>: 通常通りストリームURLを取得して再生を行います<br>
+          <strong>- Education</strong>: YouTubeEducationを埋め込んで再生を行います<br>
+          <strong>- Nocookie</strong>: YouTube-Nocookieを埋め込んで再生を行います<br>
+          埋め込みの方が圧倒的に良いパフォーマンスをするので、規制されないのであれば埋め込みで見ることをお勧めします。</p>
         </div>
       </div>
-  
+
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
           <span class="faq-title">おすすめの使い方</span>
@@ -123,26 +100,49 @@
           <p>動画再生ページに移動できたら、右側にある「サイドバーを隠す」を押してみて下さい。見やすいかも</p>
         </div>
       </div>
-  
+
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">動画の再生方法について</span>
+          <span class="faq-title">通常再生時: 画質・音質を変更したい</span>
           <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
           </svg>
         </button>
         <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>動画の再生方法には、通常、Education、Nocookieの３種類があります。<br>
-          <strong>通常</strong>: 通常通りストリームURLを取得して再生を行います<br>
-          <strong>Education</strong>: YouTubeEducationを埋め込んで再生を行います<br>
-          <strong>Nocookie</strong>: YouTube-Nocookieを埋め込んで再生を行います<br>
-          埋め込みの方が圧倒的に良いパフォーマンスをするので、規制されないのであれば埋め込みで見ることをお勧めします。</p>
+          <p>サイドバーにある「<strong>コントロール</strong>」ボタンをクリックしてください。画質や音質を変更するオプションが表示されます。  <div class="bg-red-500 text-white p-3 rounded-lg mt-4">
+       <h3 class="font-semibold text-xl">❗ 音がずれてしまう場合</h3>
+         <p>360p以外の再生は、<strong>動画と音声を別々で</strong>読み込んで再生しています。音がずれていると感じた場合は、一度再生を停止して、少し待ってから再び再生して下さい。</p>
+       </div></p>
         </div>
       </div>
   
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">エラー: Request failed with status code 503</span>
+          <span class="faq-title">通常再生時: サーバーを変更したい</span>
+          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
+          <p>サイドバーにある「<strong>コントロール</strong>」ボタン、もしくは「設定」ボタンををクリックしてください。サーバーを変更するオプションが表示されます。</p>
+        </div>
+      </div>
+  
+      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
+        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <span class="faq-title">各サーバーの違いがわからない！</span>
+          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
+          <p>旧わかめtubeではdirectサーバーと呼ばれていたものです。一番信頼性が高く、安定しているのでデフォルトにしていますが、時々取得できない時があるのでその場合は他のサーバーを使用して下さい。</p>
+        </div>
+      </div>
+  
+      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
+        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <span class="faq-title">通常再生時: 「エラー: Request failed with status code 503」と出てきた。</span>
           <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
           </svg>
@@ -157,7 +157,7 @@
   
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">エラー: Request failed with status code 403</span>
+          <span class="faq-title">通常再生時: 「エラー: Request failed with status code 403」と出てきた。</span>
           <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
           </svg>
@@ -169,7 +169,7 @@
   
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">エラー: timeout of 12500ms exceeded</span>
+          <span class="faq-title">通常再生時: 「エラー: timeout of なんちゃらms exceeded」と出てきた。</span>
           <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
           </svg>
@@ -181,10 +181,34 @@
         </div></p>
         </div>
       </div>
-      
+  
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">Educationで再生時に「エラーコード: 152-5」が表示される</span>
+          <span class="faq-title">通常再生時: 動画が00:00になって再生できない</span>
+          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
+          <p>まずはコントロールから画質や音質を変更してみて下さい。それでも無理なら再読み込み、どうしても無理ならサーバーを変更してみてください。</p>
+        </div>
+      </div>
+
+      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
+        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <span class="faq-title">Education、Nocookieで動画が再生できません</span>
+          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
+          <p>この再生方法は地域によっては普通に規制されてるので、再生方法を通常にしてお楽しみください。</p>
+        </div>
+      </div>
+
+      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
+        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <span class="faq-title">Education再生時: 「エラーコード: 152-5」が表示される</span>
           <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
           </svg>
@@ -196,37 +220,13 @@
   
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">動画が00:00になって再生できない</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>右上のツールバーから動画の再読み込みをしたり、ページの再読み込みを行ったり、画質やサーバーを変更してみてください。</p>
-        </div>
-      </div>
-  
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
           <span class="faq-title">関連動画が表示されません</span>
           <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
           </svg>
         </button>
         <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>まれにあるバグです。再読み込みすると直ります。</p>
-        </div>
-      </div>
-  
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">Education、Nocookieで動画が再生できません</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>この再生方法は地域によっては普通に規制されてるので、再生方法を通常にしてお楽しみください。</p>
+          <p>Toka_Kun_追記:現在復旧中です。しばらくお待ち下さい。ちなみに「関連動画を開く」のとこから検索できるのでしばらくはそれを使って下さい。</p>
         </div>
       </div>
   
