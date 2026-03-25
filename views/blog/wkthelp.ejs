@@ -103,7 +103,7 @@
 
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">通常再生時: 画質・音質を変更したい</span>
+          <span class="faq-title">通常再生: 画質・音質を変更したい</span>
           <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
           </svg>
@@ -118,7 +118,7 @@
   
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">通常再生時: サーバーを変更したい</span>
+          <span class="faq-title">通常再生: サーバーを変更したい</span>
           <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
           </svg>
@@ -130,19 +130,27 @@
   
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">各サーバーの違いがわからない！</span>
+          <span class="faq-title">通常再生: 各サーバーの違いがわからない！</span>
           <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
           </svg>
         </button>
         <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>旧わかめtubeではdirectサーバーと呼ばれていたものです。一番信頼性が高く、安定しているのでデフォルトにしていますが、時々取得できない時があるのでその場合は他のサーバーを使用して下さい。</p>
+          <p>わかめtube Plusでは、様々なAPIからストリーミングURLを取得できるようになっています。<br>
+          <strong>- Invidious API</strong>: デフォルトでこのAPIを使用します。最も信頼でき、長年世界中の「YouTubeの追跡から逃れたい！」という人々の動画視聴を支え続けています。旧わかめtubeではdirectサーバーと呼ばれていました。<br>
+          <strong>- SiaTube API</strong>: しあtubeで使用されているAPIです。YuZuTube APIやKatuoTube APIよりもこちらを推奨。ライブ配信に対応しています。<br>
+          <strong>- YuZuTube API</strong>: YuZuTubeで使用されているAPIです。ライブ配信に対応しています。<br>
+          <strong>- KatuoTube API</strong>: かつおtubeで使用されているAPIです。ライブ配信に対応しています。<br>
+          <strong>- MIN-Tube2 API</strong>: MIN-Tube2で使用されているAPIです。ただしこのAPI自体が動画情報をInvidousから取得しているので、これを使うのであればInvidious APIを推奨しています。<br>
+          <strong>- XeroxYT-NT API</strong>: XeroxYT-NTで使用されているAPIです。標準ストリームしか取得できません<br>
+          <strong>- Wista Stream API</strong>: Wistaで使用されているAPIです。サーバーが応答しないことが多く、取得できてもかなり時間がかかります。ライブ配信に対応しています。<br>
+          動画が取得できなかった時は上から順番に使って下さい。</p>
         </div>
       </div>
   
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">通常再生時: 「エラー: Request failed with status code 503」と出てきた。</span>
+          <span class="faq-title">通常再生: 「エラー: Request failed with status code 503」と出てきた。</span>
           <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
           </svg>
@@ -157,7 +165,7 @@
   
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">通常再生時: 「エラー: Request failed with status code 403」と出てきた。</span>
+          <span class="faq-title">通常再生: 「エラー: Request failed with status code 403」と出てきた。</span>
           <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
           </svg>
@@ -169,7 +177,7 @@
   
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">通常再生時: 「エラー: timeout of なんちゃらms exceeded」と出てきた。</span>
+          <span class="faq-title">通常再生: 「エラー: timeout of なんちゃらms exceeded」と出てきた。</span>
           <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
           </svg>
@@ -184,7 +192,7 @@
   
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">通常再生時: 動画が00:00になって再生できない</span>
+          <span class="faq-title">通常再生: 動画が00:00になって再生できない</span>
           <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
           </svg>
@@ -196,7 +204,19 @@
 
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">Education、Nocookieで動画が再生できません</span>
+          <span class="faq-title">Education、Nocookie再生: 「動画を再生できません 他のウェブサイトでの再生は、動画の所有者によって無効にされています」と出てきた</span>
+          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
+          <p>この場合は、再生方法を通常にしてお楽しみください。</p>
+        </div>
+      </div>
+
+      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
+        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <span class="faq-title">Education、Nocookie再生: 普通に動画が再生できません</span>
           <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
           </svg>
@@ -208,7 +228,7 @@
 
       <div class="faq-item bg-gray-800 rounded-lg shadow-md">
         <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">Education再生時: 「エラーコード: 152-5」が表示される</span>
+          <span class="faq-title">Education再生: 「エラーコード: 152-5」が表示される</span>
           <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
           </svg>
