@@ -91,24 +91,6 @@ router.get('/:id', async (req, res) => {
         }
         watch_next_feed = expanded;
 
-        // Video タイプが1件もない場合は Invidious にフォールバック
-        const hasVideos = watch_next_feed.some(v => v && v.type && v.type.endsWith('Video'));
-        if (!hasVideos) {
-            try {
-                const invData = await wakamess.ggvideo(videoId);
-                if (invData && invData.recommendedVideos && invData.recommendedVideos.length > 0) {
-                    watch_next_feed = invData.recommendedVideos.map(vid => ({
-                        type: "Video",
-                        id: vid.videoId,
-                        title: { text: vid.title },
-                        author: { id: vid.authorId, name: vid.author, thumbnails: [] },
-                        short_view_count: { text: vid.viewCountText || '不明' }
-                    }));
-                }
-            } catch (e) {
-                console.error("関連動画フォールバック失敗:", e.message);
-            }
-        }
 
         const videoInfo = {
             title: Info.primary_info.title.text || "",
