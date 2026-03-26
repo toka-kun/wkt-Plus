@@ -207,7 +207,7 @@
                 <div class="result-item w-auto h-auto bg-gray-700 p-5 rounded">
                     <a href="/wkt/watch/<%= video.id %>" class="thumbnail">
                         <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title.text %>" class="w-full h-auto rounded">
-                        <span class="video-duration"><%= video.duration.text %></span>
+                        <% if (video.duration?.text) { %><span class="video-duration"><%= video.duration.text %></span><% } %>
                     </a>
                     <div class="mt-2 flex items-center">
                         <a href="/wkt/c/<%= video.author.id %>" class="flex items-center">
