@@ -147,9 +147,7 @@ pinned: false
 ## ToDo
 
 - プロキシを復活
-- できたらもう一度HFSに挑戦
 - 関連動画を表示
-- UXを改善（特にヘルプページ）
 - Educationのパラメーターを選択制に
 - ゲームをさらに追加
 
@@ -161,14 +159,15 @@ pinned: false
 
 - [@wakame02](https://github.com/wakame02)
   - わかめtube 開発
+  - Educationパラメーター
 - [@toka-kun](https://github.com/toka-kun) 
   - わかめtube Plus 開発
   - Educationパラメーター
 - [@siawaseok3](https://github.com/siawaseok3)
   - しあtube 開発
-  - Educationパラメーター
-  - トレンド情報
   - SiaTube API
+  - トレンド情報
+  - Educationパラメーター
 - [@yuzubb](https://github.com/yuzubb)
   - YuZuTube API
 - [@Xerox-Pro](https://github.com/Xerox-Pro)
@@ -179,8 +178,8 @@ pinned: false
 - [@banana-coco](https://github.com/banana-coco)
   - Vercel & CodeSandbox デプロイ対応
 - [@woolisbest-4520](https://github.com/woolisbest-4520)
-  - Educationパラメーター
   - Wista Stream API
+  - Educationパラメーター
 
 ---
 
