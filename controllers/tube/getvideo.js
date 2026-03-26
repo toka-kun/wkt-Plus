@@ -76,10 +76,27 @@ router.get('/:id', async (req, res) => {
         const Info = await serverYt.infoGet(videoId);
         
         let watch_next_feed = Info.watch_next_feed || [];
-        if (!watch_next_feed || watch_next_feed.length === 0) {
+
+        // CompactAutoplay は内部に動画リストを持つラッパーなので展開する
+        const expanded = [];
+        for (const item of watch_next_feed) {
+            if (!item || !item.type) continue;
+            if (item.type === 'CompactAutoplay' && Array.isArray(item.videos) && item.videos.length > 0) {
+                for (const inner of item.videos) {
+                    if (inner && inner.type) expanded.push(inner);
+                }
+            } else {
+                expanded.push(item);
+            }
+        }
+        watch_next_feed = expanded;
+
+        // Video タイプが1件もない場合は Invidious にフォールバック
+        const hasVideos = watch_next_feed.some(v => v && v.type && v.type.endsWith('Video'));
+        if (!hasVideos) {
             try {
                 const invData = await wakamess.ggvideo(videoId);
-                if (invData && invData.recommendedVideos) {
+                if (invData && invData.recommendedVideos && invData.recommendedVideos.length > 0) {
                     watch_next_feed = invData.recommendedVideos.map(vid => ({
                         type: "Video",
                         id: vid.videoId,
