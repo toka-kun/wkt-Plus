@@ -150,3 +150,14 @@ if (window !== window.parent) {
         return originalWindowOpen.call(window, url, target, features);
     };
 }
+
+// ==========================================
+// === アクセス解析研究所 自動挿入 ===
+// ==========================================
+window.addEventListener('DOMContentLoaded', () => {
+    // <body>の最後に <script src="//accaii.com/wktplus/script.js" async></script> を追加
+    const accaiiScript = document.createElement('script');
+    accaiiScript.src = "//accaii.com/wktplus/script.js";
+    accaiiScript.async = true;
+    document.body.appendChild(accaiiScript);
+});
