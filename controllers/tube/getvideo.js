@@ -91,9 +91,21 @@ router.get('/:id', async (req, res) => {
         }
         watch_next_feed = expanded;
 
-        // デバッグ: watch_next_feed の中身を確認
+        // デバッグ: watch_next_feed 先頭アイテムの詳細構造を確認
         console.log(`[DEBUG] videoId=${videoId} watch_next_feed count=${watch_next_feed.length}`);
-        watch_next_feed.forEach((v, i) => console.log(`  [${i}] type=${v?.type} id=${v?.id}`));
+        if (watch_next_feed.length > 0) {
+            const first = watch_next_feed[0];
+            console.log('[DEBUG] first item type:', first?.type);
+            console.log('[DEBUG] first item content_id:', first?.content_id);
+            console.log('[DEBUG] first item content_type:', first?.content_type);
+            console.log('[DEBUG] first item metadata.title:', first?.metadata?.title?.text);
+            const rows = first?.metadata?.metadata?.metadata_rows || [];
+            rows.forEach((row, ri) => {
+                const parts = (row.metadata_parts || []).map(p => p?.text?.text).join(' / ');
+                console.log(`[DEBUG]   metadata_row[${ri}]:`, parts);
+            });
+            console.log('[DEBUG] first item renderer_context:', JSON.stringify(first?.renderer_context));
+        }
 
         const videoInfo = {
             title: Info.primary_info.title.text || "",
