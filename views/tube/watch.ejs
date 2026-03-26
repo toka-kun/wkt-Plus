@@ -218,7 +218,9 @@
                     </a>
                     <div class="mt-2 flex items-center">
                         <a href="/wkt/c/<%= video.author?.id || '' %>" class="flex items-center">
+                            <% if (video.author?.thumbnails?.length) { %>
                             <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="アイコン" class="w-8 h-8 rounded-full mr-2">
+                            <% } %>
                             <p class="text-sm text-gray-400"><%= video.author.name %></p>
                         </a>
                     </div>
@@ -238,7 +240,9 @@
               <% } else if (video.type.endsWith("Channel")) { %>
                 <div class="result-item bg-gray-600 p-4 rounded">
                   <a href="/wkt/c/<%= video.author.id %>">
+                    <% if (video.author?.thumbnails?.length) { %>
                     <img src="<%= video.author.thumbnails[0].url %>" alt="<%= video.author.name %>" class="w-full h-auto rounded">
+                    <% } %>
                   </a>
                     <div class="mt-2">
                         <p class="text-lg font-bold"><%= video.author.name %></p>
@@ -405,7 +409,9 @@
   <% } else if (video.type.endsWith("Channel")) { %>
     <div class="bg-gray-800 p-2 rounded">
       <a href="/wkt/c/<%= video.author.id %>">
+        <% if (video.author?.thumbnails?.length) { %>
         <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="チャンネルアイコン" class="w-16 h-16 rounded-full mx-auto">
+        <% } %>
       </a>
       <p class="text-sm font-bold mt-1 text-center">
         <a href="/wkt/c/<%= video.author.id %>" target="_top"><%= video.author.name %></a>
@@ -468,7 +474,9 @@
       <% hasValidVideo = true; %>
       <div class="bg-gray-800 p-2 rounded">
         <a href="/wkt/c/<%= video.author.id %>">
+          <% if (video.author?.thumbnails?.length) { %>
           <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="<%= video.author.name %> のチャンネルアイコン" class="w-16 h-16 rounded-full mx-auto">
+          <% } %>
         </a>
         <p class="text-sm font-bold mt-1 text-center">
           <a href="/wkt/c/<%= video.author.id %>"><%= video.author.name %></a>
