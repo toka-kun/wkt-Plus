@@ -1097,7 +1097,7 @@ function showTutorial() {
     document.body.appendChild(tutorialOverlay);
     document.getElementById('startTutorialBtn').addEventListener('click', function() {
         tutorialOverlay.remove();
-        showPlaybackSettings("https://www.youtube-nocookie.com/embed/_B68jajdtQ4?autoplay=1&amp;mute=0", "nocookie");
+        showPlaybackSettings("https://www.youtube-nocookie.com/embed/-ZwHP9T_wCc?autoplay=1&amp;mute=0", "nocookie");
     });
     document.getElementById('skipBtn0').addEventListener('click', function() {
         localStorage.setItem('tutorialCompleted', 'true');
@@ -1151,7 +1151,7 @@ async function showPlaybackSettings(iframeurl, mode) {
           showMessage("必要なデータを取得中です");
           const ytinfo3 = await fetch('/wkt/yt/edurl', { method: 'GET' });
           const ytinfo = await ytinfo3.text();
-          showPlaybackSettings(`https://www.youtubeeducation.com/embed/_B68jajdtQ4${ytinfo}`, "edu");
+          showPlaybackSettings(`https://www.youtubeeducation.com/embed/-ZwHP9T_wCc${ytinfo}`, "edu");
         } else {
           localStorage.setItem('tutorialCompleted', 'true');
           settingsOverlay.remove();
