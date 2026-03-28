@@ -370,13 +370,8 @@ async function getWistaStream(videoId) {
         });
         
         const streamUrls = videoStreams.map(s => {
-            // ★ Wista Stream の FPS表記重複 (1080p6060fps) を修正
             let res = s.quality || '';
             let fpsVal = s.fps || null;
-            if (fpsVal && res.endsWith(fpsVal.toString())) {
-                res = res.slice(0, -fpsVal.toString().length); // 例: 1080p60 から 60 を取り除く
-            }
-
             return {
                 url: s.url,
                 resolution: res,
@@ -417,15 +412,21 @@ async function getYouTube(videoId, apiType = 'invidious') {
         result = await getInvidious(videoId);
     }
 
-    // ★ 動画リストの最終整理 (画質ごとにコンテナとm3u8を正確に判定)
+    // ★ 動画リストの最終整理 (画質ごとにコンテナとm3u8を正確に判定し、FPSによる重複消去を防ぐ)
     if (result.streamUrls && result.streamUrls.length > 0) {
         const newStreamUrls = [];
         const seenResolutions = new Set(); 
 
         result.streamUrls.forEach(stream => {
             let resName = stream.resolution || 'Auto';
-            // カッコやfpsなどのゴミテキストを綺麗に消す
+            // カッコなどのゴミテキストを綺麗に消す
             resName = resName.replace(/ \(.+\)/g, '').trim();
+
+            // InvidiousやWista等で "720p60" のように文字の中にFPSが混ざっている場合、
+            // 「720p6060fps」のようになるのを防ぐため、末尾のFPS数値を削る
+            if (stream.fps && resName.endsWith(stream.fps.toString())) {
+                resName = resName.slice(0, -stream.fps.toString().length);
+            }
 
             // URLの中身を見て、m3u8ならコンテナを書き換える
             let containerType = stream.container || 'mp4';
@@ -433,8 +434,10 @@ async function getYouTube(videoId, apiType = 'invidious') {
                 containerType = 'm3u8';
             }
 
-            // 「画質 - コンテナ」の組み合わせで重複を弾く
-            const uniqueKey = `${resName}-${containerType}`;
+            // ★ ここが修正ポイント: 「画質 - FPS - コンテナ」の組み合わせで一意のキーを作る
+            // これにより、720pの30fpsと60fpsが別物として扱われ、両方リストに残るようになります。
+            const fpsStr = stream.fps ? stream.fps : 'none';
+            const uniqueKey = `${resName}-${fpsStr}-${containerType}`;
 
             if (!seenResolutions.has(uniqueKey)) {
                 seenResolutions.add(uniqueKey);
@@ -448,8 +451,7 @@ async function getYouTube(videoId, apiType = 'invidious') {
         });
         result.streamUrls = newStreamUrls; 
     } else {
-        // ★ XeroxYT-NTなどでstreamUrlsが意図的に空の場合は、無理にAutoを追加せず空のままにする
-        // （画面側で必ず「自動 (統合)」が表示されるため）
+        // XeroxYT-NTなどでstreamUrlsが意図的に空の場合は、無理にAutoを追加せず空のままにする
         result.streamUrls = [];
     }
 
