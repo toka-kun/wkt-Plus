@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <title>Yahoo!</title>
+  <style>
+    /* ページの余白とパディングをリセット */
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden; /* 親ページにスクロールバーが表示されるのを防ぐ */
+    }
+    
+    /* iframeを画面全体に広げる */
+    .full-screen-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block; /* iframeがブロック要素として動作するようにする */
+    }
+  </style>
+</head>
+<body>
+  <iframe src="https://subwaysurfers-3.onrender.com/" class="full-screen-iframe" frameborder="0"></iframe>
+</body>
+</html>
