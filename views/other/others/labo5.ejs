@@ -366,10 +366,11 @@ body {
   display: grid;
   place-items: center;
 }
-video {
+iframe#player, video {
   width: 100%;
   height: 100%;
   background: #000;
+  border: none;
 }
 
 .video-meta {
@@ -569,11 +570,10 @@ video {
   </header>
 
   <main id="app">
-    <!-- Home (exact center) -->
     <section id="page-home" class="page home active" hidden>
       <div class="home-inner">
         <h1 class="hero-title">Re: LABO5</h1>
-        <p class="hero-sub">LABO5 was made with HTML5 Fastest video downloads in your browser.</p>
+        <p class="hero-sub">LABO5 was made with HTML5 Fastest video downloads in your browser</p>
         <form class="hero-search" id="hero-search-form">
           <div class="hero-input-wrap">
             <input id="hero-search-input" class="hero-input" type="text" placeholder="Search videos" aria-label="検索" />
@@ -583,7 +583,6 @@ video {
       </div>
     </section>
 
-    <!-- Search -->
     <section id="page-search" class="page search-page" hidden>
       <div class="search-header">
         <span class="search-query-chip" id="search-chip"></span>
@@ -600,7 +599,6 @@ video {
       </div>
     </section>
 
-    <!-- Watch -->
     <section id="page-watch" class="page watch-page" hidden>
       <div class="watch-searchbar-wrap">
         <form class="watch-searchbar" id="watch-search-form">
@@ -615,14 +613,12 @@ video {
         <div class="watch-left">
           <div class="player-card">
             <div class="player-wrap">
-              <video id="player" controls playsinline></video>
+              <iframe id="player" allowfullscreen></iframe>
             </div>
             <div class="video-meta">
               <div class="video-title" id="video-title"></div>
               <div class="video-sub">
-                <span id="video-duration" class="chip" style="display:none;"></span>
-                <span class="chip">360p ストリーム</span>
-                <span id="video-source" class="chip" style="display:none;"></span>
+                <span id="video-source" class="chip" style="display:none;">YouTube Education</span>
                 <span id="video-status" class="muted" style="display:none;"></span>
               </div>
             </div>
@@ -668,7 +664,13 @@ video {
     const player = document.getElementById('player');
 
     function stopVideo() {
-      try { player.pause(); player.removeAttribute('src'); player.load(); } catch {}
+      try { 
+        if (player.tagName.toLowerCase() === 'video') {
+          player.pause(); player.removeAttribute('src'); player.load();
+        } else {
+          player.src = '';
+        }
+      } catch {}
     }
 
     function showPage(name) {
@@ -754,7 +756,7 @@ video {
       } catch {}
       return null;
     }
-    function youTubeThumb(videoId, size='hqdefault') { return `https://wsrv.nl/?url=https%3A%2F%2Fi.ytimg.com%2Fvi%2F${videoId}%2F${size}.jpg&output=png`; }
+    function youTubeThumb(videoId, size='hqdefault') { return `https://i.ytimg.com/vi/${videoId}/${size}.jpg`; }
     function escapeHTML(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
     // Search + pagination
@@ -858,182 +860,88 @@ video {
 
     async function loadWatch(videoId) {
       window.scrollTo({ top: 0, behavior: 'instant' });
-
-      // 既存の自前ビデオプレイヤー(videoタグ)を停止・非表示にする
-      if (player) {
-        player.pause();
-        player.removeAttribute('src');
-        player.load();
-        player.style.display = 'none';
-      }
-
+      player.src = ''; // Clear existing iframe source
+      
       document.getElementById('video-title').textContent = '読み込み中...';
-      document.getElementById('video-duration').style.display = 'none';
       document.getElementById('video-source').style.display = 'none';
       document.getElementById('video-status').style.display = 'none';
 
-      // 1. noembed API からタイトルと投稿者情報を取得
+      // 1. Fetch title from noembed
+      let title = '動画';
       try {
-        const noembedRes = await fetch(`https://noembed.com/embed?url=https://youtube.com/watch?v=${videoId}`);
-        const noembedData = await noembedRes.json();
-        
-        document.getElementById('video-title').textContent = noembedData.title || '動画';
-        
-        if (noembedData.author_name) {
-          const vsrc = document.getElementById('video-source');
-          vsrc.textContent = noembedData.author_name;
-          vsrc.style.display = 'inline';
+        const res = await fetchWithTimeout(`https://noembed.com/embed?url=https://youtube.com/watch?v=${videoId}`, {}, 6000);
+        const data = await res.json();
+        if (data && data.title) {
+          title = data.title;
         }
       } catch (e) {
-        document.getElementById('video-title').textContent = '動画';
+        console.error('Title fetch failed', e);
       }
+      document.getElementById('video-title').textContent = title;
 
-      // 2. /wkt/yt/edurl から result をそのまま取得
-      let result = '';
+      // 2. Fetch the result string from wkt/yt/edurl
+      let edResult = '';
       try {
-        const resultRes = await fetch('/wkt/yt/edurl');
-        result = await resultRes.text(); 
+        const resEd = await fetchWithTimeout(`https://wkt.app/yt/edurl/${encodeURIComponent(videoId)}`, {}, 6000);
+        if (resEd.ok) {
+          edResult = await resEd.text();
+        }
       } catch (e) {
-        console.warn('/wkt/yt/edurlからの取得に失敗しました', e);
+        console.error('edurl fetch failed', e);
       }
 
-      // 3. iframe を作成して YouTube Education を埋め込む
-      let iframe = document.getElementById('youtube-embed-iframe');
-      if (!iframe) {
-        iframe = document.createElement('iframe');
-        iframe.id = 'youtube-embed-iframe';
-        iframe.setAttribute('allowfullscreen', 'true');
-        iframe.setAttribute('frameborder', '0');
-        // 動画プレイヤーの枠に合わせてサイズを調整
-        iframe.style.width = '100%';
-        iframe.style.height = '100%';
-        iframe.style.aspectRatio = '16 / 9';
-        iframe.style.backgroundColor = '#000'; // ロード中の黒背景
-        
-        // 既存のplayerの直後にiframeを配置
-        player.parentNode.insertBefore(iframe, player.nextSibling);
-      }
+      // 3. Set iframe src to youtubeeducation.com embed
+      player.src = `https://www.youtubeeducation.com/embed/${videoId}${edResult}`;
       
-      // iframeを表示し、URLをセット
-      iframe.style.display = 'block';
-      iframe.src = `https://www.youtubeeducation.com/embed/${encodeURIComponent(videoId)}${result}`;
+      document.getElementById('video-source').style.display = 'inline';
 
-      // コメントの読み込み
+      // Load additional sections
       loadComments(videoId);
 
-      // 関連動画の読み込み（取得したタイトルを利用）
-      const title = document.getElementById('video-title').textContent || '';
       const authorFragment = title.split(' - ')[0].split('|')[0].trim();
       const query = `${authorFragment} ${title.split(' ').slice(0, 3).join(' ')}`.trim();
       loadRecommendations(query, videoId);
     }
 
-      loadComments(videoId);
-
-      const title = document.getElementById('video-title').textContent || '';
-      const authorFragment = title.split(' - ')[0].split('|')[0].trim();
-      const query = `${authorFragment} ${title.split(' ').slice(0, 3).join(' ')}`.trim();
-      loadRecommendations(query, videoId);
-    }
-
-    function formatDuration(seconds) {
-      if (!seconds || seconds <= 0) return '--:--';
-      const m = Math.floor(seconds / 60); const s = Math.floor(seconds % 60);
-      return `${m}:${String(s).padStart(2, '0')}`;
-    }
     function formatCount(n) {
       if (n >= 1_000_000) return (n/1_000_000).toFixed(1).replace(/\.0$/,'') + 'M';
       if (n >= 1_000) return (n/1_000).toFixed(1).replace(/\.0$/,'') + 'K';
       return String(n);
     }
 
-    // --- APIリストを取得するヘルパー関数 ---
-    async function getCommentApiList() {
-      const fallbackApis = [
-        "https://min-tube2-api.vercel.app",
-        "https://min-tube-api-3.vercel.app",
-        "https://min-tube-api4.vercel.app",
-        "https://server-minp.vercel.app",
-        "https://min-tube-api5.vercel.app"
-      ];
-      try {
-        const res = await fetch('/wkt/yt/min-tube-api.json');
-        if (!res.ok) return fallbackApis;
-        
-        // テキストとして取得し、カンマで分割する
-        const text = await res.text();
-        
-        // 分割後、前後の空白や改行を削除し、空文字を除外する
-        const list = text.split(',')
-                         .map(url => url.trim())
-                         .filter(url => url.length > 0);
-
-        // 取得したデータが1つ以上要素があればそれを使う
-        return list.length > 0 ? list : fallbackApis;
-      } catch {
-        return fallbackApis;
-      }
-    }
-
-    // --- 複数のAPIを順番に試す loadComments 関数 ---
     async function loadComments(videoId) {
       const status = document.getElementById('comments-status'); const list = document.getElementById('comments-list');
       status.classList.add('show'); list.innerHTML = '';
-      
-      const apis = await getCommentApiList();
-      let success = false;
-
-      // リストのAPIを順番に試行
-      for (const apiBase of apis) {
-        try {
-          // URL末尾の不要なスラッシュを念のため除去
-          const baseUrl = apiBase.replace(/\/$/, ''); 
-          const res = await fetch(`${baseUrl}/api/comments/${encodeURIComponent(videoId)}`);
-          if (!res.ok) continue; // エラーが返ってきたら次のAPIへ
-          
-          const json = await res.json();
-          document.getElementById('comment-count').textContent = `合計 ${formatCount(json.commentCount || 0)} 件`;
-          status.classList.remove('show');
-          
-          // --- ここからの描画ロジックは既存のものを完全維持 ---
-          const comments = Array.isArray(json.comments) ? json.comments : [];
-          comments.slice(0, 30).forEach(c => {
-            const authorThumb = (c.authorThumbnails && c.authorThumbnails[0] && c.authorThumbnails[0].url) || '';
-            const item = document.createElement('div'); item.className = 'comment';
-            const safeHtml = sanitizeContentHtml(c.contentHtml || escapeHTML(c.content || ''));
-            item.innerHTML = `
-              <img class="avatar" src="${authorThumb}" alt="${escapeHTML(c.author || '')}">
-              <div class="comment-meta">
-                <div class="comment-author">
-                  <span>${escapeHTML(c.author || '')}</span>
-                  ${c.verified ? '<span class="author-badge">認証済み</span>' : ''}
-                  ${c.authorIsChannelOwner ? '<span class="author-badge">チャンネル所有者</span>' : ''}
-                  ${c.isPinned ? '<span class="author-badge">固定</span>' : ''}
-                </div>
-                <div class="comment-content">${safeHtml}</div>
-                <div class="comment-actions">
-                  <span>👍 ${formatCount(c.likeCount || 0)}</span>
-                  <span class="muted">${escapeHTML(c.publishedText || '')}</span>
-                  ${c.replies && c.replies.replyCount ? `<span>返信 ${formatCount(c.replies.replyCount)}</span>` : ''}
-                </div>
+      try {
+        const res = await fetch(`https://min-tube-api-3.vercel.app/api/comments/${encodeURIComponent(videoId)}`);
+        const json = await res.json();
+        document.getElementById('comment-count').textContent = `合計 ${formatCount(json.commentCount || 0)} 件`;
+        status.classList.remove('show');
+        const comments = Array.isArray(json.comments) ? json.comments : [];
+        comments.slice(0, 30).forEach(c => {
+          const authorThumb = (c.authorThumbnails && c.authorThumbnails[0] && c.authorThumbnails[0].url) || '';
+          const item = document.createElement('div'); item.className = 'comment';
+          const safeHtml = sanitizeContentHtml(c.contentHtml || escapeHTML(c.content || ''));
+          item.innerHTML = `
+            <img class="avatar" src="${authorThumb}" alt="${escapeHTML(c.author || '')}">
+            <div class="comment-meta">
+              <div class="comment-author">
+                <span>${escapeHTML(c.author || '')}</span>
+                ${c.verified ? '<span class="author-badge">認証済み</span>' : ''}
+                ${c.authorIsChannelOwner ? '<span class="author-badge">チャンネル所有者</span>' : ''}
+                ${c.isPinned ? '<span class="author-badge">固定</span>' : ''}
               </div>
-            `;
-            list.appendChild(item);
-          });
-          // --------------------------------------------------
-
-          success = true;
-          break; // データ取得と描画に成功したらループを抜ける
-        } catch {
-          // 通信エラーやJSONパースエラーの場合は次のAPIを試す
-          continue; 
-        }
-      }
-
-      // すべてのAPIで失敗した場合
-      if (!success) {
-        status.innerHTML = `<span class="muted">コメントの取得に失敗しました。</span>`;
-      }
+              <div class="comment-content">${safeHtml}</div>
+              <div class="comment-actions">
+                <span>👍 ${formatCount(c.likeCount || 0)}</span>
+                <span class="muted">${escapeHTML(c.publishedText || '')}</span>
+                ${c.replies && c.replies.replyCount ? `<span>返信 ${formatCount(c.replies.replyCount)}</span>` : ''}
+              </div>
+            </div>
+          `;
+          list.appendChild(item);
+        });
+      } catch { status.innerHTML = `<span class="muted">コメントの取得に失敗しました。</span>`; }
     }
 
     function sanitizeContentHtml(html) {
@@ -1093,58 +1001,6 @@ video {
 
     (function init(){ showPage('home'); })();
     onRoute();
-
-    // --- 追加: キーボードショートカット機能 ---
-    document.addEventListener('keydown', (event) => {
-      // 検索ボックスなどに入力中の場合はショートカットを無視する
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) {
-        return;
-      }
-
-      // プレイヤーがまだ準備されていない場合は何もしない
-      if (!player || !player.src) return;
-
-      switch (event.key) {
-        case ' ': // スペースキー (再生/一時停止)
-          event.preventDefault(); // スペースキーでの画面スクロールを防ぐ
-          if (player.paused) {
-            player.play();
-          } else {
-            player.pause();
-          }
-          break;
-
-        case 'f':
-        case 'F': // fキー (全画面表示の切り替え)
-          event.preventDefault();
-          if (!document.fullscreenElement) {
-            // 全画面にする (Safari対応も含む)
-            if (player.requestFullscreen) {
-              player.requestFullscreen();
-            } else if (player.webkitRequestFullscreen) {
-              player.webkitRequestFullscreen();
-            }
-          } else {
-            // 全画面を解除する
-            if (document.exitFullscreen) {
-              document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) {
-              document.webkitExitFullscreen();
-            }
-          }
-          break;
-
-        case 'ArrowRight': // 右矢印 (10秒進む)
-          event.preventDefault(); // 矢印キーでの画面スクロールを防ぐ
-          player.currentTime = Math.min(player.duration, player.currentTime + 10);
-          break;
-
-        case 'ArrowLeft': // 左矢印 (10秒戻る)
-          event.preventDefault();
-          player.currentTime = Math.max(0, player.currentTime - 10);
-          break;
-      }
-    });
   </script>
 </body>
 </html>
