@@ -882,7 +882,7 @@ iframe#player, video {
       // 2. Fetch the result string from wkt/yt/edurl
       let edResult = '';
       try {
-        const resEd = await fetchWithTimeout(`https://wkt.app/yt/edurl/${encodeURIComponent(videoId)}`, {}, 6000);
+        const resEd = await fetchWithTimeout(`/wkt/yt/edurl`, {}, 6000);
         if (resEd.ok) {
           edResult = await resEd.text();
         }
