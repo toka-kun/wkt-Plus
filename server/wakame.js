@@ -35,8 +35,12 @@ async function ggvideo(videoId) {
 
     for (const instance of apis) {
         try {
-            const response = await axios.get(`${instance}/api/v1/videos/${videoId}`, { timeout: MAX_API_WAIT_TIME });
-            if (response.data && response.data.formatStreams) return response.data;
+            const apiUrl = `${instance}/api/v1/videos/${videoId}`;
+            const response = await axios.get(apiUrl, { timeout: MAX_API_WAIT_TIME });
+            if (response.data && response.data.formatStreams) {
+                console.log(`✅ 使用したAPI (Invidious): ${apiUrl}`);
+                return response.data;
+            }
         } catch (error) {
             console.error(`エラー: ${instance} - ${error.message}`);
         }
@@ -61,7 +65,6 @@ async function getInvidious(videoId) {
         .map(stream => {
             let qualityLabel = '';
             if (stream.audioQuality) {
-                // "AUDIO_QUALITY_MEDIUM" -> "MEDIUM" のように整形
                 qualityLabel = stream.audioQuality.replace('AUDIO_QUALITY_', '');
             } else if (stream.audioBitrate) {
                 qualityLabel = `${stream.audioBitrate}kbps`;
@@ -93,15 +96,17 @@ async function getInvidious(videoId) {
 // =========================================
 async function getSiaTube(videoId) {
     try {
-        const response = await axios.get(`https://siawaseok.f5.si/api/streams/${videoId}`, { timeout: MAX_TIME });
+        const apiUrl = `https://siawaseok.f5.si/api/streams/${videoId}`;
+        const response = await axios.get(apiUrl, { timeout: MAX_TIME });
         const streams = Array.isArray(response.data) ? response.data : (response.data.formats || []);
         
+        console.log(`✅ 使用したAPI (SiaTube): ${apiUrl}`);
+
         const audioStream = streams.find(s => String(s.format_id) === '251' || String(s.itag) === '251') || 
                             streams.find(s => s.vcodec === 'none' && s.acodec === 'opus') || 
                             streams.find(s => s.vcodec === 'none');
         const audioUrl = audioStream?.url || '';
 
-        // ★ autokbpsの削除
         const audioUrls = streams
             .filter(s => s.vcodec === 'none' && (s.ext === 'webm' || s.ext === 'm4a'))
             .map(s => ({
@@ -114,7 +119,6 @@ async function getSiaTube(videoId) {
                                streams.find(s => s.vcodec !== 'none' && s.acodec !== 'none');
         const streamUrl = combinedStream?.url || '';
 
-        // ★ 動画ストリームの抽出ロジック（m3u8も残す）
         const videoStreams = streams.filter(s => {
             if (!s.url || s.vcodec === 'none') return false;
             if (s.url.includes('.m3u8') || s.url.includes('manifest')) return true;
@@ -148,14 +152,16 @@ async function getSiaTube(videoId) {
 // =========================================
 async function getYuZuTube(videoId) {
     try {
-        const response = await axios.get(`https://yudlp.vercel.app/stream/${videoId}`, { timeout: MAX_TIME });
+        const apiUrl = `https://yudlp.vercel.app/stream/${videoId}`;
+        const response = await axios.get(apiUrl, { timeout: MAX_TIME });
         const streams = Array.isArray(response.data) ? response.data : (response.data.formats || []);
         
+        console.log(`✅ 使用したAPI (YuZuTube): ${apiUrl}`);
+
         const audioStream = streams.find(s => String(s.format_id) === '251' || String(s.itag) === '251') || 
                             streams.find(s => s.resolution === 'audio only');
         const audioUrl = audioStream?.url || '';
 
-        // ★ autokbpsの削除
         const audioUrls = streams
             .filter(s => s.resolution === 'audio only' && (s.ext === 'webm' || s.ext === 'm4a'))
             .map(s => ({
@@ -200,14 +206,16 @@ async function getYuZuTube(videoId) {
 // =========================================
 async function getKatuoTube(videoId) {
     try {
-        const response = await axios.get(`https://ytdlpinstance-vercel.vercel.app/stream/${videoId}`, { timeout: MAX_TIME });
+        const apiUrl = `https://ytdlpinstance-vercel.vercel.app/stream/${videoId}`;
+        const response = await axios.get(apiUrl, { timeout: MAX_TIME });
         const streams = Array.isArray(response.data) ? response.data : (response.data.formats || []);
         
+        console.log(`✅ 使用したAPI (KatuoTube): ${apiUrl}`);
+
         const audioStream = streams.find(s => String(s.format_id) === '251' || String(s.itag) === '251') || 
                             streams.find(s => s.resolution === 'audio only' || s.vcodec === 'none');
         const audioUrl = audioStream?.url || '';
 
-        // ★ autokbpsの削除
         const audioUrls = streams
             .filter(s => (s.resolution === 'audio only' || s.vcodec === 'none') && (s.ext === 'webm' || s.ext === 'm4a'))
             .map(s => ({
@@ -268,11 +276,12 @@ async function getXeroxNT(videoId) {
 
     for (const instance of shuffledApis) {
         try {
-            const response = await axios.get(`${instance}/stream?id=${videoId}`, { timeout: MAX_TIME_SLOW }); 
+            const apiUrl = `${instance}/stream?id=${videoId}`;
+            const response = await axios.get(apiUrl, { timeout: MAX_TIME_SLOW }); 
             const data = response.data;
             
             if (data && data.streamingUrl) {
-                // ★ XeroxYT-NTは「自動 (統合)」のみにするため、streamUrlsを空にする
+                console.log(`✅ 使用したAPI (XeroxYT-NT): ${apiUrl}`);
                 const streamUrls = [];
                 const audioUrls = data.audioUrl ? [{ url: data.audioUrl, name: 'Default Audio', container: 'm4a' }] : [];
 
@@ -312,11 +321,12 @@ async function getMinTube2(videoId) {
 
     for (const instance of shuffledApis) {
         try {
-            const response = await axios.get(`${instance}/api/video/${videoId}`, { timeout: MAX_TIME }); 
+            const apiUrl = `${instance}/api/video/${videoId}`;
+            const response = await axios.get(apiUrl, { timeout: MAX_TIME }); 
             const data = response.data;
             
             if (data && data.stream_url) {
-                // ★ MIN-Tube2は「自動 (統合)」と「高画質」のみ
+                console.log(`✅ 使用したAPI (MIN-Tube2): ${apiUrl}`);
                 const streamUrls = [];
                 if (data.highstreamUrl && data.highstreamUrl !== data.stream_url) {
                     streamUrls.push({ url: data.highstreamUrl, resolution: '高画質', container: 'mp4', fps: null });
@@ -344,9 +354,12 @@ async function getMinTube2(videoId) {
 // =========================================
 async function getWistaStream(videoId) {
     try {
-        const response = await axios.get(`https://simple-yt-stream.onrender.com/api/video/${videoId}`, { timeout: MAX_TIME_SLOW });
+        const apiUrl = `https://simple-yt-stream.onrender.com/api/video/${videoId}`;
+        const response = await axios.get(apiUrl, { timeout: MAX_TIME_SLOW });
         const streams = response.data.streams || [];
         
+        console.log(`✅ 使用したAPI (Wista Stream): ${apiUrl}`);
+
         const audioStream = streams.find(s => String(s.format_id) === '251') || 
                             streams.find(s => String(s.format_id) === '140') ||
                             streams.find(s => s.quality === 'medium' || s.quality === 'low');
@@ -412,46 +425,48 @@ async function getYouTube(videoId, apiType = 'invidious') {
         result = await getInvidious(videoId);
     }
 
-    // ★ 動画リストの最終整理 (画質ごとにコンテナとm3u8を正確に判定し、FPSによる重複消去を防ぐ)
+    // ★ 動画リストの最終整理 (画質ごとにコンテナとm3u8を正確に判定し、重複をカウントして表示)
     if (result.streamUrls && result.streamUrls.length > 0) {
         const newStreamUrls = [];
-        const seenResolutions = new Set(); 
+        const seenResolutions = new Map(); // 重複カウント用にMapを使用
 
         result.streamUrls.forEach(stream => {
             let resName = stream.resolution || 'Auto';
             // カッコなどのゴミテキストを綺麗に消す
             resName = resName.replace(/ \(.+\)/g, '').trim();
 
-            // InvidiousやWista等で "720p60" のように文字の中にFPSが混ざっている場合、
-            // 「720p6060fps」のようになるのを防ぐため、末尾のFPS数値を削る
             if (stream.fps && resName.endsWith(stream.fps.toString())) {
                 resName = resName.slice(0, -stream.fps.toString().length);
             }
 
-            // URLの中身を見て、m3u8ならコンテナを書き換える
             let containerType = stream.container || 'mp4';
             if (stream.url && (stream.url.includes('.m3u8') || stream.url.includes('manifest'))) {
                 containerType = 'm3u8';
             }
 
-            // ★ ここが修正ポイント: 「画質 - FPS - コンテナ」の組み合わせで一意のキーを作る
-            // これにより、720pの30fpsと60fpsが別物として扱われ、両方リストに残るようになります。
+            // 「画質 - FPS - コンテナ」でベースキーを作成
             const fpsStr = stream.fps ? stream.fps : 'none';
-            const uniqueKey = `${resName}-${fpsStr}-${containerType}`;
+            const baseKey = `${resName}-${fpsStr}-${containerType}`;
 
-            if (!seenResolutions.has(uniqueKey)) {
-                seenResolutions.add(uniqueKey);
-                newStreamUrls.push({
-                    url: stream.url,
-                    resolution: resName, 
-                    container: containerType,
-                    fps: stream.fps
-                });
+            // 重複カウントのインクリメント
+            const count = (seenResolutions.get(baseKey) || 0) + 1;
+            seenResolutions.set(baseKey, count);
+
+            // 同じベースキーが2回以上出た場合は「720p (2)」のようにナンバリングする
+            let finalResName = resName;
+            if (count > 1) {
+                finalResName = `${resName} (${count})`;
             }
+
+            newStreamUrls.push({
+                url: stream.url,
+                resolution: finalResName, 
+                container: containerType,
+                fps: stream.fps
+            });
         });
         result.streamUrls = newStreamUrls; 
     } else {
-        // XeroxYT-NTなどでstreamUrlsが意図的に空の場合は、無理にAutoを追加せず空のままにする
         result.streamUrls = [];
     }
 
