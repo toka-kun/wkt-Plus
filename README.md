@@ -16,7 +16,7 @@ pinned: false
 
 ## Unforkのお知らせ
 
-2025/03/26にUnfork、つまり本家わかめtubeとの切り離しを行いました。2025/03/26日以前にこのレポジトリをforkした人は、**[Sync fork]** → **[Discard 〇〇 Commits]** を押して更新して下さい。
+2025/03/26にUnfork、つまり本家わかめtubeとの切り離しを行いました。2025/03/26以前にこのレポジトリをforkした人は、**[Sync fork]** → **[Discard 〇〇 Commits]** を押して更新して下さい。
 
 ## 特徴
 
