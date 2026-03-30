@@ -152,6 +152,7 @@ pinned: false
 - 2026/03/26 - 関連動画表示機能を復活、Replitでのデプロイに対応、再構成に伴いUnforkを実施
 - 2026/03/28 - 720p60が取得できなくなっていたので復活
 - 2026/03/29 - 問い合わせフォームを埋め込みに変更、[Japanese-Web-NEXT-free](https://gitlab.com/Hikari_5544-1/japanese-web-next-free) からゲームをパクった
+- 2026/03/30 - ゲームを追加、ストリーミングURL取得を改善
 
 ---
 
