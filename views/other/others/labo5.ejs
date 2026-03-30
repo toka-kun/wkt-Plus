@@ -858,70 +858,75 @@ video {
 
     async function loadWatch(videoId) {
       window.scrollTo({ top: 0, behavior: 'instant' });
-      player.removeAttribute('src'); player.load(); player.poster = youTubeThumb(videoId, 'sddefault');
 
-      document.getElementById('video-title').textContent = '';
+      // 既存の自前ビデオプレイヤー(videoタグ)を停止・非表示にする
+      if (player) {
+        player.pause();
+        player.removeAttribute('src');
+        player.load();
+        player.style.display = 'none';
+      }
+
+      document.getElementById('video-title').textContent = '読み込み中...';
       document.getElementById('video-duration').style.display = 'none';
       document.getElementById('video-source').style.display = 'none';
       document.getElementById('video-status').style.display = 'none';
 
-      let data = null;
-      try { 
-        const res = await fetchWithTimeout(`https://ytdlpinstance-vercel.vercel.app/stream/${encodeURIComponent(videoId)}`, {}, 10000); 
-        data = await res.json(); 
-      }
-      catch { 
-        const vs = document.getElementById('video-status'); 
-        vs.textContent = 'ストリーム取得に失敗しました（10秒タイムアウト）。'; 
-        vs.style.display = 'inline'; 
-        return;
-      }
-
-      const d = data?.res_data || data; 
-      if (d && Object.keys(d).length > 0) {
-        document.getElementById('video-title').textContent = d.title || '動画';
-        const vd = document.getElementById('video-duration'); 
-        if (d.duration) {
-          vd.textContent = formatDuration(d.duration); 
-          vd.style.display = 'inline';
-        }
-        const vsrc = document.getElementById('video-source'); 
-        vsrc.textContent = d.source || 'YouTube'; 
-        vsrc.style.display = 'inline';
-
-        let streamUrl = '';
-        if (Array.isArray(d.formats)) { 
-          // 変更点: itagが "18" のものを最優先で取得する
-          let targetFormat = d.formats.find(f => String(f.itag) === '18'); 
-          
-          // 保険: もし itag 18 が存在しない特殊な動画だった場合は、音声のみではないmp4を探す
-          if (!targetFormat) {
-            targetFormat = d.formats.find(f => f.ext === 'mp4' && f.resolution !== 'audio only');
-          }
-          
-          // 最終手段: それでも見つからない場合は一番最初のデータを取得
-          if (!targetFormat && d.formats.length > 0) {
-            targetFormat = d.formats[0];
-          }
-
-          streamUrl = targetFormat ? targetFormat.url : ''; 
-        }
+      // 1. noembed API からタイトルと投稿者情報を取得
+      try {
+        const noembedRes = await fetch(`https://noembed.com/embed?url=https://youtube.com/watch?v=${videoId}`);
+        const noembedData = await noembedRes.json();
         
-        const vstat = document.getElementById('video-status');
-        if (streamUrl) { 
-          player.src = streamUrl; 
-          vstat.textContent = '再生準備完了'; 
-          vstat.style.display = 'inline'; 
-          
-          player.loop = true; // 追加済みのループ再生機能
-          
-          player.play().catch(() => {}); 
+        document.getElementById('video-title').textContent = noembedData.title || '動画';
+        
+        if (noembedData.author_name) {
+          const vsrc = document.getElementById('video-source');
+          vsrc.textContent = noembedData.author_name;
+          vsrc.style.display = 'inline';
         }
-        else { 
-          vstat.textContent = '再生可能なストリームが見つかりませんでした。'; 
-          vstat.style.display = 'inline'; 
-        }
+      } catch (e) {
+        document.getElementById('video-title').textContent = '動画';
       }
+
+      // 2. /wkt/yt/edurl から result をそのまま取得
+      let result = '';
+      try {
+        const resultRes = await fetch('/wkt/yt/edurl');
+        result = await resultRes.text(); 
+      } catch (e) {
+        console.warn('/wkt/yt/edurlからの取得に失敗しました', e);
+      }
+
+      // 3. iframe を作成して YouTube Education を埋め込む
+      let iframe = document.getElementById('youtube-embed-iframe');
+      if (!iframe) {
+        iframe = document.createElement('iframe');
+        iframe.id = 'youtube-embed-iframe';
+        iframe.setAttribute('allowfullscreen', 'true');
+        iframe.setAttribute('frameborder', '0');
+        // 動画プレイヤーの枠に合わせてサイズを調整
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.aspectRatio = '16 / 9';
+        iframe.style.backgroundColor = '#000'; // ロード中の黒背景
+        
+        // 既存のplayerの直後にiframeを配置
+        player.parentNode.insertBefore(iframe, player.nextSibling);
+      }
+      
+      // iframeを表示し、URLをセット
+      iframe.style.display = 'block';
+      iframe.src = `https://www.youtubeeducation.com/embed/${encodeURIComponent(videoId)}${result}`;
+
+      // コメントの読み込み
+      loadComments(videoId);
+
+      // 関連動画の読み込み（取得したタイトルを利用）
+      const title = document.getElementById('video-title').textContent || '';
+      const authorFragment = title.split(' - ')[0].split('|')[0].trim();
+      const query = `${authorFragment} ${title.split(' ').slice(0, 3).join(' ')}`.trim();
+      loadRecommendations(query, videoId);
+    }
 
       loadComments(videoId);
 
