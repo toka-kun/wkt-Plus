@@ -39,6 +39,16 @@ pinned: false
 
 ---
 
+## プロキシの搭載方法
+
+`views/tools/pro/bye.ejs`に https://github.com/toka-kun/Education/blob/main/proxies/ByeBlocker.html
+`views/tools/pro/din.ejs`に https://github.com/toka-kun/Education/blob/main/proxies/dingusproxy.html
+`views/tools/pro/hel.ejs`に https://github.com/toka-kun/Education/blob/main/proxies/Helios.html
+
+の内容をそのまま貼り替えて下さい。
+
+---
+
 ## 対応しているデプロイサービス
 
 1. [Render](#-renderでのデプロイ手順)
@@ -152,7 +162,7 @@ pinned: false
 - 2026/03/26 - 関連動画表示機能を復活、Replitでのデプロイに対応、再構成に伴いUnforkを実施
 - 2026/03/28 - 720p60が取得できなくなっていたので復活
 - 2026/03/29 - 問い合わせフォームを埋め込みに変更、[Japanese-Web-NEXT-free](https://gitlab.com/Hikari_5544-1/japanese-web-next-free) からゲームをパクった
-- 2026/03/30 - ゲームを追加、ストリーミングURL取得を改善
+- 2026/03/30 - ゲームを追加、ストリーミングURL取得を改善、プロキシを追加
 
 ---
 
