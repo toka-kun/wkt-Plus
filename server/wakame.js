@@ -54,21 +54,22 @@ async function getInvidious(videoId) {
     
     const formatStreams = videoInfo.formatStreams || [];
     
-    // ① itag: 18 (360p) や 22 (720p) など「.url」が確実に存在するものを優先して取得する
+    // ★ 修正ポイント: 18や22を優先し、マニフェスト等(m3u8等)の変なURLは標準ストリームに入れない
     const defaultStream = formatStreams.find(s => String(s.itag) === '18' && s.url) || 
                           formatStreams.find(s => String(s.itag) === '22' && s.url) || 
-                          formatStreams.find(s => s.url); // 無ければ一番最初にある有効なURL
+                          formatStreams.find(s => s.container === 'mp4' && s.url && !s.url.includes('manifest') && !s.url.includes('.m3u8')) ||
+                          formatStreams.find(s => s.url && !s.url.includes('manifest') && !s.url.includes('.m3u8'));
                           
     let streamUrl = defaultStream ? defaultStream.url : '';
     
     // 元の audioStreams は映像と音声が混ざった adaptiveFormats なので変数名を整理
     const adaptiveFormats = videoInfo.adaptiveFormats || [];
     
-    // ② 音声URLも「.url」が確実に存在するものだけを取得
+    // 音声URLも「.url」が確実に存在するものだけを取得
     const audioUrl = adaptiveFormats.find(s => String(s.itag) === '251' && s.url)?.url || 
                      adaptiveFormats.find(s => s.container === 'm4a' && s.url)?.url || '';
 
-    // ★ audioQuality (AUDIO_QUALITY_MEDIUMなど) を使ってスッキリ表示
+    // audioQuality (AUDIO_QUALITY_MEDIUMなど) を使ってスッキリ表示
     const audioUrls = adaptiveFormats
         .filter(stream => !stream.resolution && (stream.container === 'webm' || stream.container === 'm4a') && stream.url)
         .map(stream => {
@@ -95,7 +96,7 @@ async function getInvidious(videoId) {
             fps: stream.fps || null
         }));
         
-    // ★ 修正ポイント：標準ストリーム (streamUrl) が空っぽで取得できなかった時"だけ" hlsUrl を代わりに入れる
+    // 標準ストリーム (streamUrl) が空っぽで取得できなかった時"だけ" hlsUrl を代わりに入れる
     if (!streamUrl && videoInfo.hlsUrl) {
         streamUrl = videoInfo.hlsUrl; 
     }
@@ -294,13 +295,20 @@ async function getXeroxNT(videoId) {
             
             if (data && data.streamingUrl) {
                 console.log(`✅ 使用したAPI (XeroxYT-NT): ${apiUrl}`);
-                const streamUrls = [];
-                const audioUrls = data.audioUrl ? [{ url: data.audioUrl, name: 'Default Audio', container: 'm4a' }] : [];
-
+                
+                // ★ 修正ポイント: formatsから画質リストを抽出
+                const streamUrls = (data.formats || []).map(f => ({
+                    url: f.url,
+                    resolution: f.quality || (f.height ? f.height + 'p' : 'Auto'),
+                    container: f.container || 'mp4',
+                    fps: null
+                }));
+                
+                // audioUrlsを空にすることで、画面側で data.audioUrl を「標準オーディオ」として表示させる
                 return {
                     stream_url: data.streamingUrl, 
                     audioUrl: data.audioUrl || '',
-                    audioUrls: audioUrls,
+                    audioUrls: [],
                     streamUrls: streamUrls
                 };
             }
@@ -344,12 +352,11 @@ async function getMinTube2(videoId) {
                     streamUrls.push({ url: data.highstreamUrl, resolution: '高画質', container: 'mp4', fps: null });
                 }
 
-                const audioUrls = data.audioUrl ? [{ url: data.audioUrl, name: 'Default Audio', container: 'm4a' }] : [];
-
+                // ★ 修正ポイント: audioUrlsを空にし、EJSで「標準オーディオ」と表示させる
                 return {
                     stream_url: data.stream_url, 
                     audioUrl: data.audioUrl || '',
-                    audioUrls: audioUrls,
+                    audioUrls: [], 
                     streamUrls: streamUrls
                 };
             }
@@ -437,14 +444,18 @@ async function getYouTube(videoId, apiType = 'invidious') {
         result = await getInvidious(videoId);
     }
 
-    // ★ 動画リストの最終整理 (ナンバリングせずそのまま追加、URLの完全被りだけ弾く)
     if (result.streamUrls && result.streamUrls.length > 0) {
         const newStreamUrls = [];
-        const seenUrls = new Set(); // URLの重複チェック用
+        const seenUrls = new Set(); 
+
+        // ★ 修正ポイント: 標準ストリームのURLを予め重複リストに追加し、
+        // 画質メニューで同じURLが「標準ストリーム」と「360p」などで被るのを防ぐ
+        if (result.stream_url) {
+            seenUrls.add(result.stream_url);
+        }
 
         result.streamUrls.forEach(stream => {
             let resName = stream.resolution || 'Auto';
-            // カッコなどのゴミテキストを綺麗に消す
             resName = resName.replace(/ \(.+\)/g, '').trim();
 
             if (stream.fps && resName.endsWith(stream.fps.toString())) {
