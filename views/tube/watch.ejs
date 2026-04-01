@@ -285,15 +285,14 @@
 
             <label class="block mb-2">音質選択:
                 <select id="audioSelect" class="w-full bg-gray-800 text-white p-2 rounded">
-                    <% if (videoData.audioUrl) { %>
-                        <option value="<%= videoData.audioUrl %>">標準オーディオ</option>
-                    <% } else { %>
-                        <option value="">オーディオなし</option>
-                    <% } %>
                     <% if (videoData.audioUrls && videoData.audioUrls.length > 0) { %>
                         <% videoData.audioUrls.forEach(function(audio) { %>
                             <option value="<%= audio.url %>"><%= audio.name %></option>
                         <% }); %>
+                    <% } else if (videoData.audioUrl) { %>
+                        <option value="<%= videoData.audioUrl %>">標準オーディオ</option>
+                    <% } else { %>
+                        <option value="">オーディオなし</option>
                     <% } %>
                 </select>
             </label>
