@@ -53,15 +53,24 @@ async function getInvidious(videoId) {
     const videoInfo = await ggvideo(videoId);
     
     const formatStreams = videoInfo.formatStreams || [];
-    let streamUrl = formatStreams.find(s => String(s.itag) === '18')?.url || formatStreams.reverse()[0]?.url || '';
     
-    const audioStreams = videoInfo.adaptiveFormats || [];
-    const audioUrl = audioStreams.find(s => String(s.itag) === '251')?.url || 
-                     audioStreams.find(s => s.container === 'm4a')?.url || '';
+    // ① itag: 18 (360p) や 22 (720p) など「.url」が確実に存在するものを優先して取得する
+    const defaultStream = formatStreams.find(s => String(s.itag) === '18' && s.url) || 
+                          formatStreams.find(s => String(s.itag) === '22' && s.url) || 
+                          formatStreams.find(s => s.url); // 無ければ一番最初にある有効なURL
+                          
+    let streamUrl = defaultStream ? defaultStream.url : '';
+    
+    // 元の audioStreams は映像と音声が混ざった adaptiveFormats なので変数名を整理
+    const adaptiveFormats = videoInfo.adaptiveFormats || [];
+    
+    // ② 音声URLも「.url」が確実に存在するものだけを取得
+    const audioUrl = adaptiveFormats.find(s => String(s.itag) === '251' && s.url)?.url || 
+                     adaptiveFormats.find(s => s.container === 'm4a' && s.url)?.url || '';
 
     // ★ audioQuality (AUDIO_QUALITY_MEDIUMなど) を使ってスッキリ表示
-    const audioUrls = audioStreams
-        .filter(stream => !stream.resolution && (stream.container === 'webm' || stream.container === 'm4a'))
+    const audioUrls = adaptiveFormats
+        .filter(stream => !stream.resolution && (stream.container === 'webm' || stream.container === 'm4a') && stream.url)
         .map(stream => {
             let qualityLabel = '';
             if (stream.audioQuality) {
@@ -77,8 +86,8 @@ async function getInvidious(videoId) {
             };
         });
 
-    const streamUrls = audioStreams
-        .filter(stream => (stream.container === 'webm' || stream.container === 'mp4') && stream.resolution)
+    const streamUrls = adaptiveFormats
+        .filter(stream => (stream.container === 'webm' || stream.container === 'mp4') && stream.resolution && stream.url)
         .map(stream => ({
             url: stream.url,
             resolution: stream.resolution,
@@ -86,7 +95,10 @@ async function getInvidious(videoId) {
             fps: stream.fps || null
         }));
         
-    if (videoInfo.hlsUrl) streamUrl = videoInfo.hlsUrl; 
+    // ★ 修正ポイント：標準ストリーム (streamUrl) が空っぽで取得できなかった時"だけ" hlsUrl を代わりに入れる
+    if (!streamUrl && videoInfo.hlsUrl) {
+        streamUrl = videoInfo.hlsUrl; 
+    }
     
     return { stream_url: streamUrl, audioUrl, audioUrls, streamUrls };
 }
