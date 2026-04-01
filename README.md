@@ -56,7 +56,7 @@ pinned: false
 3. [Railway](https://railway.com/dashboard) （Portは8080にしてね）
 4. [Koyeb](#-koyebでのデプロイ手順)
 5. [CodeSandbox](#-codesandboxでのデプロイ手順)
-6. [Replit](https://replit.com/) （なんと全部自動でAIが最適化してくれます。無料枠がCSB同様めちゃ少ないのが欠点）
+6. [Replit](https://replit.com/) （なんと全部自動でAIが最適化してくれます。無料枠はCodeSandboxよりもちょっと多いくらい）
 7. [Hugging Face Spaces](#-hugging-face-spacesでのデプロイ手順) （YouTubei.jsが使えないので中身のないただの箱になります）
 
 ---
