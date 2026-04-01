@@ -53,7 +53,7 @@ pinned: false
 
 1. [Render](#-renderでのデプロイ手順)
 2. [Vercel](https://vercel.com/) （エラーが出やすい） 
-3. [Railway](https://railway.com/dashboard)
+3. [Railway](https://railway.com/dashboard) （Portは8080にしてね）
 4. [Koyeb](#-koyebでのデプロイ手順)
 5. [CodeSandbox](#-codesandboxでのデプロイ手順)
 6. [Replit](https://replit.com/) （なんと全部自動でAIが最適化してくれます。無料枠がCSB同様めちゃ少ないのが欠点）
