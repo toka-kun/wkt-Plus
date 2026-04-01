@@ -273,24 +273,27 @@
             <label class="block mb-2">画質選択:
                 <select id="qualitySelect" class="w-full bg-gray-800 text-white p-2 rounded">
                     <option value="<%= videoData.stream_url %>" data-container="mp4" data-is-auto="true">標準ストリーム (統合)</option>
-                    <% videoData.streamUrls.forEach(stream => { %>
-                    <option value="<%= stream.url %>" data-resolution="<%= stream.resolution %>" data-container="<%= stream.container %>">
-                        <%= stream.resolution %><%= stream.fps ? stream.fps : '' %> (<%= stream.container %>)
-                    </option>
-                    <% }); %>
+                    <% if (videoData.streamUrls && videoData.streamUrls.length > 0) { %>
+                        <% videoData.streamUrls.forEach(function(stream) { %>
+                            <option value="<%= stream.url %>">
+                                <%= stream.resolution %><%= stream.fps ? stream.fps : '' %> (<%= stream.container %>)
+                            </option>
+                        <% }); %>
+                    <% } %>
                 </select>
             </label>
 
             <label class="block mb-2">音質選択:
                 <select id="audioSelect" class="w-full bg-gray-800 text-white p-2 rounded">
-                    <% if (videoData.audioUrls && videoData.audioUrls.length > 0) { %>
-                        <% videoData.audioUrls.forEach(audio => { %>
-                            <option value="<%= audio.url %>" data-container="<%= audio.container %>"><%= audio.name %></option>
-                        <% }); %>
-                    <% } else if (videoData.audioUrl) { %>
-                        <option value="<%= videoData.audioUrl %>">デフォルト音声</option>
+                    <% if (videoData.audioUrl) { %>
+                        <option value="<%= videoData.audioUrl %>">標準オーディオ</option>
                     <% } else { %>
-                        <option value="">音声なし (または統合)</option>
+                        <option value="">オーディオなし</option>
+                    <% } %>
+                    <% if (videoData.audioUrls && videoData.audioUrls.length > 0) { %>
+                        <% videoData.audioUrls.forEach(function(audio) { %>
+                            <option value="<%= audio.url %>"><%= audio.name %></option>
+                        <% }); %>
                     <% } %>
                 </select>
             </label>
