@@ -272,7 +272,7 @@
         <div class="control-section mb-4">
             <label class="block mb-2">画質選択:
                 <select id="qualitySelect" class="w-full bg-gray-800 text-white p-2 rounded">
-                    <option value="<%= videoData.stream_url %>" data-container="mp4" data-is-auto="true">標準ストリーム (統合)</option>
+                    <option value="<%= videoData.stream_url %>" data-container="mp4" data-is-auto="true">標準ストリーム</option>
                     <% if (videoData.streamUrls && videoData.streamUrls.length > 0) { %>
                         <% videoData.streamUrls.forEach(function(stream) { %>
                             <option value="<%= stream.url %>">
