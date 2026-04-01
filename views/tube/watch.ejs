@@ -270,7 +270,7 @@
         </div>
         <% if (videoData.streamUrls && videoData.streamUrls.length > 0) { %>
         <div class="control-section mb-4">
-            <label class="block mb-2">画質選択:
+            <label class="block mb-2">映像:
                 <select id="qualitySelect" class="w-full bg-gray-800 text-white p-2 rounded">
                     <option value="<%= videoData.stream_url %>" data-container="mp4" data-is-auto="true">統合ストリーム</option>
                     <% if (videoData.streamUrls && videoData.streamUrls.length > 0) { %>
@@ -283,7 +283,7 @@
                 </select>
             </label>
 
-            <label class="block mb-2">音質選択:
+            <label class="block mb-2">音声:
                 <select id="audioSelect" class="w-full bg-gray-800 text-white p-2 rounded">
                     <% if (videoData.audioUrls && videoData.audioUrls.length > 0) { %>
                         <% videoData.audioUrls.forEach(function(audio) { %>
