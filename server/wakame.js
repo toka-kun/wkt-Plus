@@ -425,10 +425,10 @@ async function getYouTube(videoId, apiType = 'invidious') {
         result = await getInvidious(videoId);
     }
 
-    // ★ 動画リストの最終整理 (画質ごとにコンテナとm3u8を正確に判定し、重複をカウントして表示)
+    // ★ 動画リストの最終整理 (ナンバリングせずそのまま追加、URLの完全被りだけ弾く)
     if (result.streamUrls && result.streamUrls.length > 0) {
         const newStreamUrls = [];
-        const seenResolutions = new Map(); // 重複カウント用にMapを使用
+        const seenUrls = new Set(); // URLの重複チェック用
 
         result.streamUrls.forEach(stream => {
             let resName = stream.resolution || 'Auto';
@@ -444,26 +444,16 @@ async function getYouTube(videoId, apiType = 'invidious') {
                 containerType = 'm3u8';
             }
 
-            // 「画質 - FPS - コンテナ」でベースキーを作成
-            const fpsStr = stream.fps ? stream.fps : 'none';
-            const baseKey = `${resName}-${fpsStr}-${containerType}`;
-
-            // 重複カウントのインクリメント
-            const count = (seenResolutions.get(baseKey) || 0) + 1;
-            seenResolutions.set(baseKey, count);
-
-            // 同じベースキーが2回以上出た場合は「720p (2)」のようにナンバリングする
-            let finalResName = resName;
-            if (count > 1) {
-                finalResName = `${resName} (${count})`;
+            // URLが全く同じ無駄なデータだけを弾き、それ以外はそのままリストに追加
+            if (stream.url && !seenUrls.has(stream.url)) {
+                seenUrls.add(stream.url);
+                newStreamUrls.push({
+                    url: stream.url,
+                    resolution: resName, 
+                    container: containerType,
+                    fps: stream.fps
+                });
             }
-
-            newStreamUrls.push({
-                url: stream.url,
-                resolution: finalResName, 
-                container: containerType,
-                fps: stream.fps
-            });
         });
         result.streamUrls = newStreamUrls; 
     } else {
