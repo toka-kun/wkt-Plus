@@ -91,6 +91,7 @@ pinned: false
 5. 右に出てきた画面から「Next」を押し続ける。途中「Protect main branch」ってのが出てくるけどそこは念の為オンにして下さい
 6. そのまま「Apply」まで押す
 7. 右下にOpen Previewって出てくると完了です。Open Previewを押すとリンクが分かります☑️
+8. 木みたいなとこを押して「Pull」を押すと最新の状態に同期できます。
 
 ---
 
