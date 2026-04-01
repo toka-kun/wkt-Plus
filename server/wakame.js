@@ -54,7 +54,7 @@ async function getInvidious(videoId) {
     
     const formatStreams = videoInfo.formatStreams || [];
     
-    // ★ 修正ポイント: 18や22を優先し、マニフェスト等(m3u8等)の変なURLは標準ストリームに入れない
+    // ★ 修正ポイント: 18や22を優先し、マニフェスト等(m3u8等)の変なURLは統合ストリームに入れない
     const defaultStream = formatStreams.find(s => String(s.itag) === '18' && s.url) || 
                           formatStreams.find(s => String(s.itag) === '22' && s.url) || 
                           formatStreams.find(s => s.container === 'mp4' && s.url && !s.url.includes('manifest') && !s.url.includes('.m3u8')) ||
@@ -96,7 +96,7 @@ async function getInvidious(videoId) {
             fps: stream.fps || null
         }));
         
-    // 標準ストリーム (streamUrl) が空っぽで取得できなかった時"だけ" hlsUrl を代わりに入れる
+    // 統合ストリーム (streamUrl) が空っぽで取得できなかった時"だけ" hlsUrl を代わりに入れる
     if (!streamUrl && videoInfo.hlsUrl) {
         streamUrl = videoInfo.hlsUrl; 
     }
@@ -448,8 +448,8 @@ async function getYouTube(videoId, apiType = 'invidious') {
         const newStreamUrls = [];
         const seenUrls = new Set(); 
 
-        // ★ 修正ポイント: 標準ストリームのURLを予め重複リストに追加し、
-        // 画質メニューで同じURLが「標準ストリーム」と「360p」などで被るのを防ぐ
+        // ★ 修正ポイント: 統合ストリームのURLを予め重複リストに追加し、
+        // 画質メニューで同じURLが「統合ストリーム」と「360p」などで被るのを防ぐ
         if (result.stream_url) {
             seenUrls.add(result.stream_url);
         }
