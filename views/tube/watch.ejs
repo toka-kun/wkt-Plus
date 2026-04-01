@@ -272,7 +272,7 @@
         <div class="control-section mb-4">
             <label class="block mb-2">画質選択:
                 <select id="qualitySelect" class="w-full bg-gray-800 text-white p-2 rounded">
-                    <option value="<%= videoData.stream_url %>" data-container="mp4" data-is-auto="true">自動 (統合)</option>
+                    <option value="<%= videoData.stream_url %>" data-container="mp4" data-is-auto="true">標準ストリーム (統合)</option>
                     <% videoData.streamUrls.forEach(stream => { %>
                     <option value="<%= stream.url %>" data-resolution="<%= stream.resolution %>" data-container="<%= stream.container %>">
                         <%= stream.resolution %><%= stream.fps ? stream.fps : '' %> (<%= stream.container %>)
@@ -758,7 +758,7 @@ $(document).ready(function() {
         }
         videoSrc.src = newUrl;
 
-        // ★ 動画が「自動 (統合)」または「m3u8(ライブ等)」なら、裏の音声を無効化
+        // ★ 動画が「標準ストリーム (統合)」または「m3u8(ライブ等)」なら、裏の音声を無効化
         // （manifest または .m3u8 が含まれているかで判定）
         if (isAuto || newUrl.includes("manifest") || newUrl.includes(".m3u8")) {
             audio.src = "";
@@ -787,7 +787,7 @@ $(document).ready(function() {
         const currentVideoUrl = selectedQuality.val();
         const newAudioUrl = $(this).val();
 
-        // 映像が「自動(統合)」や「m3u8」の時は、裏の音声を動かさないので切り替え不要
+        // 映像が「標準ストリーム (統合)」や「m3u8」の時は、裏の音声を動かさないので切り替え不要
         // （manifest または .m3u8 が含まれているかで判定）
         if (isAuto || currentVideoUrl.includes("manifest") || currentVideoUrl.includes(".m3u8")) {
             return;
@@ -817,14 +817,14 @@ $(document).ready(function() {
         const currentTime = video.currentTime;
 
         videoSrc.type = "video/mp4";
-        // ★ 自動（統合）に戻す
+        // ★ 標準ストリーム（統合）に戻す
         videoSrc.src = "<%- videoData.stream_url %>"; 
         
         // 統合なので別音声は空
         audio.src = ""; 
         
         $('#controlPanel').removeClass('open');
-        // セレクトボックスの見た目も一番上の「自動(統合)」に戻す
+        // セレクトボックスの見た目も一番上の「標準ストリーム (統合)」に戻す
         $('#qualitySelect').prop('selectedIndex', 0);
         
         video.load();
