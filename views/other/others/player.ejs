@@ -917,13 +917,13 @@
         html += `
           <div class="comment-item">
             <div class="comment-avatar">
-              <a href="${c.authorUrl}" target="_blank">
+              <a href="/wkt/c/${c.authorId}" target="_blank">
                 <img src="${iconUrl}" alt="${c.author}">
               </a>
             </div>
             <div class="comment-content">
               <div class="comment-header">
-                <a href="${c.authorUrl}" target="_blank" class="author-name">${c.author}</a>
+                <a href="/wkt/c/${c.authorId}" target="_blank" class="author-name">${c.author}</a>
                 ${badges}
                 <span class="published-date">${c.publishedText}</span>
                 ${editedHtml}
