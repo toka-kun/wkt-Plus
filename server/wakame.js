@@ -349,10 +349,10 @@ async function getMinTube2(videoId) {
                 console.log(`✅ 使用したAPI (MIN-Tube2): ${apiUrl}`);
                 const streamUrls = [];
                 if (data.highstreamUrl && data.highstreamUrl !== data.stream_url) {
-                    streamUrls.push({ url: data.highstreamUrl, resolution: '高画質', container: 'mp4', fps: null });
+                    streamUrls.push({ url: data.highstreamUrl, resolution: 'High Quality', container: 'mp4', fps: null });
                 }
 
-                // ★ 修正ポイント: audioUrlsを空にし、EJSで「標準オーディオ」と表示させる
+                // ★ 修正ポイント: audioUrlsを空にし、EJSで「Default」と表示させる
                 return {
                     stream_url: data.stream_url, 
                     audioUrl: data.audioUrl || '',
