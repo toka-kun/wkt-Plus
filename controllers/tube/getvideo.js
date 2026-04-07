@@ -37,7 +37,7 @@ router.get('/:id', async (req, res) => {
                 if (siaRes.data && siaRes.data[videoId]) {
                     apiToUse = 'siawaseok';
                     baseUrl = 'siawaseok';
-                    fallbackMessage = `キャッシュを確認したため、「${apiToUse}」を使用しました。`;
+                    fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
                     console.log(`🎯 キャッシュヒット: siawaseok (${videoId})`);
                     cacheFound = true;
                 }
@@ -56,14 +56,14 @@ router.get('/:id', async (req, res) => {
                 if (yudRes.status === 'fulfilled' && yudRes.value.data && yudRes.value.data.video && yudRes.value.data.video.includes(videoId)) {
                     apiToUse = 'yudlp';
                     baseUrl = 'yudlp';
-                    fallbackMessage = `キャッシュを確認したため、「${apiToUse}」を使用しました。`;
+                    fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
                     console.log(`🎯 キャッシュヒット: yudlp (${videoId})`);
                 } 
                 // 優先順位3: ytdlpinstance-vercel (キーが動画ID)
                 else if (katuoRes.status === 'fulfilled' && katuoRes.value.data && katuoRes.value.data[videoId]) {
                     apiToUse = 'ytdlpinstance-vercel';
                     baseUrl = 'ytdlpinstance-vercel';
-                    fallbackMessage = `キャッシュを確認したため、「${apiToUse}」を使用しました。`;
+                    fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
                     console.log(`🎯 キャッシュヒット: ytdlpinstance-vercel (${videoId})`);
                 } 
                 // どれにもキャッシュがない場合
