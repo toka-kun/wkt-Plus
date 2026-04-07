@@ -21,57 +21,49 @@ router.get('/:id', async (req, res) => {
         return res.status(400).send('videoIDが正しくありません');
     }
 
-    const selectedApi = req.query.server || 'invidious';
-    let baseUrl = selectedApi; 
-    let apiToUse = selectedApi; // 実際に動画取得に使うAPI
-    let fallbackMessage = null; // EJSに渡すアラートメッセージ
+    const selectedApi = req.query.server;
+    let baseUrl = selectedApi || 'invidious'; 
+    let apiToUse = selectedApi || 'invidious'; 
+    let fallbackMessage = null; 
 
     try {
-        // ▼▼▼ キャッシュ状況による負荷チェックと自動フォールバック ▼▼▼
-        if (selectedApi === 'siawaseok') {
-            try {
-                const cacheRes = await axios.get('https://siawaseok.f5.si/api/cache', { timeout: 3000 });
-                // JSONのキー（動画ID）の数をカウントして5000件を超えているかチェック
-                if (cacheRes.data && Object.keys(cacheRes.data).length > 5000) {
-                    apiToUse = 'invidious';
-                    baseUrl = 'invidious'; // プルダウンの表示もInvidiousに戻す
-                    fallbackMessage = "現在、このサイトに高い負荷がかかっていてサーバーへのリクエストがキャンセルされたため、自動的にInvidious APIを使用しました。";
-                    console.log("SiaTube制限超過: 5000件以上のためInvidiousへフォールバック");
-                }
-            } catch (e) {
-                console.error("SiaTube負荷チェック失敗:", e.message);
-            }
-        } else if (selectedApi === 'yudlp') {
-            try {
-                const cacheRes = await axios.get('https://yudlp.vercel.app/cache', { timeout: 3000 });
-                // video配列の長さをカウントして10件を超えているかチェック
-                if (cacheRes.data && cacheRes.data.video && cacheRes.data.video.length > 10) {
-                    apiToUse = 'invidious';
-                    baseUrl = 'invidious';
-                    fallbackMessage = "現在、このサイトに高い負荷がかかっていてサーバーへのリクエストがキャンセルされたため、自動的にInvidious APIを使用しました。";
-                    console.log("YuZuTube制限超過: 10件以上のためInvidiousへフォールバック");
-                }
-            } catch (e) {
-                console.error("YuZuTube負荷チェック失敗:", e.message);
-            }
-        } else if (selectedApi === 'ytdlpinstance-vercel') {
-            // ★ 追加: KatuoTube の負荷チェック
-            try {
-                const cacheRes = await axios.get('https://ytdlpinstance-vercel.vercel.app/cache', { timeout: 3000 });
-                // JSONのキー（動画ID）の数をカウントして60件を超えているかチェック
-                if (cacheRes.data && Object.keys(cacheRes.data).length > 60) {
-                    apiToUse = 'invidious';
-                    baseUrl = 'invidious';
-                    fallbackMessage = "現在、このサイトに高い負荷がかかっていてサーバーへのリクエストがキャンセルされたため、自動的にInvidious APIを使用しました。";
-                    console.log("KatuoTube制限超過: 60件以上のためInvidiousへフォールバック");
-                }
-            } catch (e) {
-                console.error("KatuoTube負荷チェック失敗:", e.message);
+        // ▼▼▼ パラメータ指定がない場合の自動キャッシュ検索ロジック ▼▼▼
+        if (!selectedApi) {
+            // 3つのサーバーのキャッシュ情報を同時に取得する（タイムアウト2秒）
+            const [siaRes, yudRes, katuoRes] = await Promise.allSettled([
+                axios.get('https://siawaseok.f5.si/api/cache', { timeout: 2000 }),
+                axios.get('https://yudlp.vercel.app/cache', { timeout: 2000 }),
+                axios.get('https://ytdlpinstance-vercel.vercel.app/cache', { timeout: 2000 })
+            ]);
+
+            // 優先順位1: siawaseok (キーが動画ID)
+            if (siaRes.status === 'fulfilled' && siaRes.value.data && siaRes.value.data[videoId]) {
+                apiToUse = 'siawaseok';
+                baseUrl = 'siawaseok';
+                fallbackMessage = `キャッシュを確認したため、「${apiToUse}」を使用しました。`;
+                console.log(`🎯 キャッシュヒット: siawaseok (${videoId})`);
+            } 
+            // 優先順位2: yudlp (video配列の中に動画IDがあるか)
+            else if (yudRes.status === 'fulfilled' && yudRes.value.data && yudRes.value.data.video && yudRes.value.data.video.includes(videoId)) {
+                apiToUse = 'yudlp';
+                baseUrl = 'yudlp';
+                fallbackMessage = `キャッシュを確認したため、「${apiToUse}」を使用しました。`;
+                console.log(`🎯 キャッシュヒット: yudlp (${videoId})`);
+            } 
+            // 優先順位3: ytdlpinstance-vercel (キーが動画ID)
+            else if (katuoRes.status === 'fulfilled' && katuoRes.value.data && katuoRes.value.data[videoId]) {
+                apiToUse = 'ytdlpinstance-vercel';
+                baseUrl = 'ytdlpinstance-vercel';
+                fallbackMessage = `キャッシュを確認したため、「${apiToUse}」を使用しました。`;
+                console.log(`🎯 キャッシュヒット: ytdlpinstance-vercel (${videoId})`);
+            } 
+            // どれにもキャッシュがない場合
+            else {
+                console.log(`ℹ️ キャッシュなし: デフォルトの invidious を使用 (${videoId})`);
             }
         }
         // ▲▲▲ ここまで ▲▲▲
 
-        // 第2引数に、負荷チェック後のAPI(apiToUse)を渡す
         const videoData = await wakamess.getYouTube(videoId, apiToUse);
         const Info = await serverYt.infoGet(videoId);
         
