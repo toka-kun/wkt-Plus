@@ -29,37 +29,47 @@ router.get('/:id', async (req, res) => {
     try {
         // ▼▼▼ パラメータ指定がない場合の自動キャッシュ検索ロジック ▼▼▼
         if (!selectedApi) {
-            // 3つのサーバーのキャッシュ情報を同時に取得する（タイムアウト2秒）
-            const [siaRes, yudRes, katuoRes] = await Promise.allSettled([
-                axios.get('https://siawaseok.f5.si/api/cache', { timeout: 2000 }),
-                axios.get('https://yudlp.vercel.app/cache', { timeout: 2000 }),
-                axios.get('https://ytdlpinstance-vercel.vercel.app/cache', { timeout: 2000 })
-            ]);
+            let cacheFound = false;
 
-            // 優先順位1: siawaseok (キーが動画ID)
-            if (siaRes.status === 'fulfilled' && siaRes.value.data && siaRes.value.data[videoId]) {
-                apiToUse = 'siawaseok';
-                baseUrl = 'siawaseok';
-                fallbackMessage = `キャッシュを確認したため、「${apiToUse}」を使用しました。`;
-                console.log(`🎯 キャッシュヒット: siawaseok (${videoId})`);
-            } 
-            // 優先順位2: yudlp (video配列の中に動画IDがあるか)
-            else if (yudRes.status === 'fulfilled' && yudRes.value.data && yudRes.value.data.video && yudRes.value.data.video.includes(videoId)) {
-                apiToUse = 'yudlp';
-                baseUrl = 'yudlp';
-                fallbackMessage = `キャッシュを確認したため、「${apiToUse}」を使用しました。`;
-                console.log(`🎯 キャッシュヒット: yudlp (${videoId})`);
-            } 
-            // 優先順位3: ytdlpinstance-vercel (キーが動画ID)
-            else if (katuoRes.status === 'fulfilled' && katuoRes.value.data && katuoRes.value.data[videoId]) {
-                apiToUse = 'ytdlpinstance-vercel';
-                baseUrl = 'ytdlpinstance-vercel';
-                fallbackMessage = `キャッシュを確認したため、「${apiToUse}」を使用しました。`;
-                console.log(`🎯 キャッシュヒット: ytdlpinstance-vercel (${videoId})`);
-            } 
-            // どれにもキャッシュがない場合
-            else {
-                console.log(`ℹ️ キャッシュなし: デフォルトの invidious を使用 (${videoId})`);
+            // 1. まず最優先の siawaseok を単独でチェック (タイムアウト2秒)
+            try {
+                const siaRes = await axios.get('https://siawaseok.f5.si/api/cache', { timeout: 2000 });
+                if (siaRes.data && siaRes.data[videoId]) {
+                    apiToUse = 'siawaseok';
+                    baseUrl = 'siawaseok';
+                    fallbackMessage = `キャッシュを確認したため、「${apiToUse}」を使用しました。`;
+                    console.log(`🎯 キャッシュヒット: siawaseok (${videoId})`);
+                    cacheFound = true;
+                }
+            } catch (e) {
+                console.log(`ℹ️ siawaseok キャッシュ確認スキップ: ${e.message}`);
+            }
+
+            // 2. siawaseok に無かった場合のみ、残り2つを並列でチェック
+            if (!cacheFound) {
+                const [yudRes, katuoRes] = await Promise.allSettled([
+                    axios.get('https://yudlp.vercel.app/cache', { timeout: 2000 }),
+                    axios.get('https://ytdlpinstance-vercel.vercel.app/cache', { timeout: 2000 })
+                ]);
+
+                // 優先順位2: yudlp (video配列の中に動画IDがあるか)
+                if (yudRes.status === 'fulfilled' && yudRes.value.data && yudRes.value.data.video && yudRes.value.data.video.includes(videoId)) {
+                    apiToUse = 'yudlp';
+                    baseUrl = 'yudlp';
+                    fallbackMessage = `キャッシュを確認したため、「${apiToUse}」を使用しました。`;
+                    console.log(`🎯 キャッシュヒット: yudlp (${videoId})`);
+                } 
+                // 優先順位3: ytdlpinstance-vercel (キーが動画ID)
+                else if (katuoRes.status === 'fulfilled' && katuoRes.value.data && katuoRes.value.data[videoId]) {
+                    apiToUse = 'ytdlpinstance-vercel';
+                    baseUrl = 'ytdlpinstance-vercel';
+                    fallbackMessage = `キャッシュを確認したため、「${apiToUse}」を使用しました。`;
+                    console.log(`🎯 キャッシュヒット: ytdlpinstance-vercel (${videoId})`);
+                } 
+                // どれにもキャッシュがない場合
+                else {
+                    console.log(`ℹ️ キャッシュなし: デフォルトの invidious を使用 (${videoId})`);
+                }
             }
         }
         // ▲▲▲ ここまで ▲▲▲
