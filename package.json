@@ -13,7 +13,7 @@
     "cookie-parser": "^1.4.7",
     "soundcloud-downloader": "^1.0.0",
     "youtubei.js": "latest",
-    "undici": "latest",
+    "undici": "^6.19.8",
     "miniget": "^4.2.3",
     "cors": "^2.8.5",
     "body-parser": "^1.20.2"
