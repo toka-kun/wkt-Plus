@@ -42,7 +42,7 @@ async function ggvideo(videoId) {
                 return response.data;
             }
         } catch (error) {
-            console.error(`エラー: ${instance} - ${error.message}`);
+            console.error(`❌ エラー: ${instance} - ${error.message}`);
         }
         if (Date.now() - startTime >= MAX_TIME) throw new Error("接続がタイムアウトしました");
     }
@@ -313,7 +313,7 @@ async function getXeroxNT(videoId) {
                 };
             }
         } catch (error) {
-            console.error(`エラー: ${instance} - ${error.message}`);
+            console.error(`❌ エラー: ${instance} - ${error.message}`);
         }
         if (Date.now() - startTime >= MAX_TIME_SLOW) throw new Error("接続がタイムアウトしました");
     }
@@ -361,7 +361,7 @@ async function getMinTube2(videoId) {
                 };
             }
         } catch (error) {
-            console.error(`エラー: ${instance} - ${error.message}`);
+            console.error(`❌ エラー: ${instance} - ${error.message}`);
         }
         if (Date.now() - startTime >= MAX_TIME) throw new Error("接続がタイムアウトしました");
     }
