@@ -1,0 +1,142 @@
+Wista Non-Commercial Copyleft License with Prior Notice
+(WNCCL-PN) v1.0
+
+Copyright (c) 2026 Wista Project
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to use,
+copy, modify, and distribute the Software, subject to the following conditions:
+
+────────────────────────────
+1. Non-Commercial Use Only
+────────────────────────────
+The Software may NOT be used, in whole or in part, for any commercial purpose.
+
+Commercial purposes include, but are not limited to:
+- Selling the Software or derivative works
+- Providing revenue-generating services based on the Software
+- Use on platforms involving advertising, fees, donations, or subscriptions
+
+────────────────────────────
+2. Copyleft and License Inheritance
+────────────────────────────
+Any modification, derivative work, or redistribution of the Software
+must be licensed under the same license (WNCCL-PN v1.0).
+
+You may not apply additional restrictions
+or redistribute the Software under a different license.
+
+────────────────────────────
+3. Attribution
+────────────────────────────
+All copies or substantial portions of the Software must include:
+- This license text
+- The original copyright notice
+- A clear statement that the work is derived from the Wista Project
+
+────────────────────────────
+4. Source Code Disclosure
+────────────────────────────
+If you distribute or publicly deploy the Software or any derivative work,
+you must make the complete corresponding source code publicly available
+under this same license.
+
+────────────────────────────
+5. Mandatory Prior Notice
+────────────────────────────
+Before modifying, forking, or redistributing the Software,
+you MUST notify the Wista Project in advance.
+
+The notice must include:
+- Name of the individual or organization
+- Description of intended use or modifications
+- Planned public URL, if applicable
+
+Notification must be sent via one of the following:
+- GitHub Issue (https://github.com/wista-project)
+- Email: wista-project@outlook.jp
+
+Any modification or redistribution performed without prior notice
+shall be considered a violation of this license.
+
+────────────────────────────
+6. No Warranty
+────────────────────────────
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXP
+
+=================================================================================================================================
+
+Wista 非商用コピーレフト・事前通知義務ライセンス
+(WNCCL-PN) v1.0
+
+Copyright (c) 2026 Wista Project
+
+本ソフトウェアおよび関連ドキュメント（以下「本ソフトウェア」）の
+複製、改変、再配布、および利用を、以下の条件のもとで無償にて許諾します。
+
+────────────────────────────
+第1条（商用利用の禁止）
+────────────────────────────
+本ソフトウェアは、全部または一部を問わず、
+商用目的で利用してはなりません。
+
+商用目的には、以下を含みますが、これらに限定されません。
+- 本ソフトウェアまたは派生物の販売
+- 本ソフトウェアを用いた収益化されたサービスの提供
+- 広告、課金、寄付、サブスクリプション等を伴うプラットフォームでの利用
+
+────────────────────────────
+第2条（コピーレフトおよびライセンス継承）
+────────────────────────────
+本ソフトウェアを改変、派生、または再配布する場合、
+その成果物は必ず本ライセンス（WNCCL-PN v1.0）
+と同一の条件で公開しなければなりません。
+
+追加の制限条件を課したり、
+異なるライセンスで再配布することは禁止されます。
+
+────────────────────────────
+第3条（表示義務）
+────────────────────────────
+本ソフトウェアまたはその派生物を配布・公開する場合、
+以下を明示しなければなりません。
+
+- 本ライセンス全文
+- 元の著作権表示
+- 「Wista Project に基づく派生物である」旨の明確な記載
+
+────────────────────────────
+第4条（ソースコード公開義務）
+────────────────────────────
+本ソフトウェアまたは派生物を第三者に配布、
+もしくは公開環境で利用する場合、
+対応する完全なソースコードを、
+本ライセンスのもとで公開しなければなりません。
+
+────────────────────────────
+第5条（事前通知義務）
+────────────────────────────
+本ソフトウェアを改変、派生、Fork、または再配布する場合、
+**実施前に必ず Wista Project へ通知を行う必要があります。**
+
+通知には、以下の情報を含めてください。
+- 利用者（個人または組織）の名称
+- 利用・改変内容の概要
+- 公開予定のURL（存在する場合）
+
+通知は、以下のいずれかの方法で行うものとします。
+- GitHub Issue（https://github.com/wista-project）
+- 電子メール：wista-project@outlook.jp
+
+通知を行わずに実施された改変・再配布は、
+本ライセンス違反とみなされます。
+
+────────────────────────────
+第6条（無保証）
+────────────────────────────
+本ソフトウェアは「現状のまま」提供され、
+明示または黙示を問わず、いかなる保証も行いません。
+
+本ソフトウェアの利用により生じたいかなる損害についても、
+著作権者は一切の責任を負わないものとします。
