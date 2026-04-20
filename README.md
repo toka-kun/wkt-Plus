@@ -203,6 +203,7 @@ pinned: false
 - [@banana-coco](https://github.com/banana-coco)
   - Vercel & CodeSandbox デプロイ対応
 - [@woolisbest-4520](https://github.com/woolisbest-4520)
+  - Wista 開発
   - Wista Stream API
   - Educationパラメーター
 - [@Hikari_5544-1](https://gitlab.com/Hikari_5544-1) (GitLab)
