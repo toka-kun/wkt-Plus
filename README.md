@@ -202,7 +202,7 @@ pinned: false
 - [@mino-hobby-pro](https://github.com/mino-hobby-pro)
   - MIN-Tube-Pro 開発
   - MIN-Tube2 API
-- [@yuto1106110]((https://github.com/yuto1106110))
+- [@yuto1106110](https://github.com/yuto1106110)
   - YouTube Plus+ 開発
 - [@banana-coco](https://github.com/banana-coco)
   - Vercel & CodeSandbox デプロイ対応
