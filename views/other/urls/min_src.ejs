@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Public Domain List | MIN-Pro</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Sora:wght@400;600;800&display=swap');
+
+        :root {
+            --bg: #0d0f14;
+            --surface: #151821;
+            --surface2: #1c2030;
+            --text-main: #e8eaf0;
+            --text-sub: #6b7280;
+            --accent: #3b82f6;
+            --accent-glow: rgba(59,130,246,0.15);
+            --border: #1f2535;
+            --border-hover: #2d3555;
+            --fast: #22c55e;
+            --mid: #f59e0b;
+            --slow: #ef4444;
+            --dead: #4b5563;
+            --font-display: 'Sora', system-ui, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            margin: 0; padding: 0;
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: var(--font-display);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        /* Subtle grid background */
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background-image:
+                linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none; z-index: 0;
+        }
+
+        .container { max-width: 960px; margin: 0 auto; padding: 60px 20px; position: relative; z-index: 1; }
+
+        /* Header */
+        header { text-align: center; margin-bottom: 48px; }
+        .header-badge {
+            display: inline-block;
+            font-family: var(--font-mono);
+            font-size: 11px; font-weight: 700;
+            letter-spacing: 0.15em; text-transform: uppercase;
+            color: var(--accent); background: var(--accent-glow);
+            border: 1px solid rgba(59,130,246,0.3);
+            padding: 4px 12px; border-radius: 4px; margin-bottom: 16px;
+        }
+        h1 {
+            font-size: 40px; font-weight: 800;
+            color: var(--text-main); margin: 0 0 10px;
+            letter-spacing: -0.03em;
+        }
+        h1 span { color: var(--accent); }
+        p.subtitle { color: var(--text-sub); font-size: 15px; margin: 0; }
+
+        /* Speed bar */
+        .speed-status {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex; align-items: center; gap: 16px;
+            font-size: 13px; font-family: var(--font-mono);
+        }
+        .speed-status-label { color: var(--text-sub); white-space: nowrap; }
+        .speed-progress-bar {
+            flex: 1; height: 4px;
+            background: var(--surface2); border-radius: 99px; overflow: hidden;
+        }
+        .speed-progress-fill {
+            height: 100%; width: 0%;
+            background: linear-gradient(90deg, var(--accent), var(--fast));
+            border-radius: 99px;
+            transition: width 0.3s ease;
+        }
+        .speed-count { color: var(--text-sub); white-space: nowrap; }
+        .speed-count span { color: var(--text-main); }
+
+        /* Controls */
+        .controls {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 16px; padding: 20px;
+            margin-bottom: 28px;
+            display: flex; flex-direction: column; gap: 16px;
+        }
+
+        .search-box { position: relative; }
+        .search-box input {
+            width: 100%; background: var(--surface2);
+            border: 1px solid var(--border); border-radius: 8px;
+            padding: 11px 16px 11px 40px;
+            font-size: 14px; font-family: var(--font-display);
+            color: var(--text-main); transition: 0.2s;
+        }
+        .search-box input::placeholder { color: var(--text-sub); }
+        .search-box input:focus {
+            background: var(--surface2);
+            border-color: var(--accent); outline: none;
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-sub); pointer-events: none; font-size: 14px; }
+
+        .filter-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .filter-label { font-size: 11px; font-family: var(--font-mono); color: var(--text-sub); letter-spacing: 0.08em; text-transform: uppercase; margin-right: 4px; }
+        .filter-chip {
+            background: var(--surface2); border: 1px solid var(--border);
+            padding: 6px 14px; border-radius: 99px;
+            font-size: 12px; font-weight: 600; font-family: var(--font-mono);
+            color: var(--text-sub); cursor: pointer; transition: 0.15s;
+        }
+        .filter-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .filter-chip:hover:not(.active) { border-color: var(--border-hover); color: var(--text-main); }
+
+        .sort-btn {
+            margin-left: auto;
+            background: var(--surface2); border: 1px solid var(--border);
+            padding: 6px 14px; border-radius: 8px;
+            font-size: 12px; font-weight: 600; font-family: var(--font-mono);
+            color: var(--text-sub); cursor: pointer; transition: 0.15s;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .sort-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .sort-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+
+        /* Domain grid */
+        .domain-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+        }
+
+        .domain-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; padding: 18px;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            display: flex; flex-direction: column; gap: 10px;
+            position: relative; overflow: hidden;
+        }
+        .domain-card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: var(--speed-color, transparent);
+            opacity: 0.8;
+        }
+        .domain-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 32px rgba(0,0,0,0.4);
+            border-color: var(--border-hover);
+        }
+
+        .card-top { display: flex; justify-content: space-between; align-items: center; }
+
+        .server-badge {
+            font-size: 10px; font-weight: 700; font-family: var(--font-mono);
+            text-transform: uppercase; padding: 3px 8px;
+            border-radius: 4px; letter-spacing: 0.08em;
+        }
+        .badge-vercel { background: rgba(255,255,255,0.1); color: #e8eaf0; border: 1px solid rgba(255,255,255,0.2); }
+        .badge-render { background: rgba(70,227,183,0.15); color: #46e3b7; border: 1px solid rgba(70,227,183,0.3); }
+        .badge-unknown { background: var(--surface2); color: var(--text-sub); border: 1px solid var(--border); }
+
+        /* Speed indicator */
+        .speed-indicator {
+            display: flex; align-items: center; gap: 5px;
+            font-size: 11px; font-family: var(--font-mono); font-weight: 700;
+        }
+        .speed-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--dead);
+            animation: none;
+        }
+        .speed-dot.measuring { background: var(--accent); animation: pulse 1s infinite; }
+        .speed-dot.fast { background: var(--fast); }
+        .speed-dot.mid { background: var(--mid); }
+        .speed-dot.slow { background: var(--slow); }
+        .speed-dot.dead { background: var(--dead); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        .speed-text { color: var(--text-sub); }
+        .speed-text.fast { color: var(--fast); }
+        .speed-text.mid { color: var(--mid); }
+        .speed-text.slow { color: var(--slow); }
+        .speed-text.dead { color: var(--dead); }
+
+        .rank-badge {
+            position: absolute; top: 12px; right: 12px;
+            font-size: 10px; font-family: var(--font-mono); font-weight: 700;
+            color: var(--text-sub); opacity: 0.5;
+        }
+        .rank-badge.top { color: var(--fast); opacity: 1; }
+
+        .domain-url {
+            font-weight: 600; font-family: var(--font-mono);
+            color: var(--text-main); text-decoration: none;
+            word-break: break-all; font-size: 13px; line-height: 1.4;
+        }
+        .domain-url:hover { color: var(--accent); }
+
+        .card-footer {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 2px;
+        }
+        .domain-meta { font-size: 11px; color: var(--text-sub); font-family: var(--font-mono); }
+
+        /* Latency bar */
+        .latency-bar-wrap {
+            height: 3px; background: var(--surface2); border-radius: 99px; overflow: hidden;
+        }
+        .latency-bar-fill {
+            height: 100%; border-radius: 99px;
+            background: var(--speed-color, var(--dead));
+            transition: width 0.6s ease;
+        }
+
+        .empty-state {
+            text-align: center; padding: 80px 0;
+            color: var(--text-sub); font-size: 15px;
+            grid-column: 1 / -1;
+        }
+
+        /* Slide-in animation for cards */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .domain-card { animation: fadeUp 0.3s ease both; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="header-badge">MIN-Tube-Pro</div>
+        <h1>Public <span>Domains</span></h1>
+        <p class="subtitle">MIN-Tube-Pro の公式・コミュニティ配布URL一覧 — 応答速度順</p>
+    </header>
+
+    <div class="speed-status" id="speedStatus" style="display:none;">
+        <span class="speed-status-label">⚡ 計測中</span>
+        <div class="speed-progress-bar">
+            <div class="speed-progress-fill" id="progressFill"></div>
+        </div>
+        <span class="speed-count" id="speedCount"><span>0</span> / 0</span>
+    </div>
+
+    <div class="controls">
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="ドメインを検索...">
+        </div>
+        <div class="filter-row">
+            <span class="filter-label">サーバー</span>
+            <div id="filterContainer" style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="filter-chip active" data-filter="all">すべて</button>
+                <button class="filter-chip" data-filter="vercel">Vercel</button>
+                <button class="filter-chip" data-filter="render">Render</button>
+                <button class="filter-chip" data-filter="unknown">不明</button>
+            </div>
+            <button class="sort-btn active" id="sortBySpeed" title="応答速度でソート">
+                ⚡ 速度順
+            </button>
+        </div>
+    </div>
+
+    <div class="domain-grid" id="domainGrid">
+        <div class="empty-state">データを読み込み中...</div>
+    </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+  import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCPkgzCIOP3-ln0eX6043s2G3tyZu4uj18",
+    authDomain: "message-site-d283b.firebaseapp.com",
+    databaseURL: "https://message-site-d283b-default-rtdb.firebaseio.com",
+    projectId: "message-site-d283b",
+    storageBucket: "message-site-d283b.firebasestorage.app",
+    messagingSenderId: "58182307350",
+    appId: "1:58182307350:web:34a295f442ed2ce4ffaf37"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  let allDomains = [];
+  let currentFilter = 'all';
+  let sortBySpeed = true;
+  let measuredCount = 0;
+
+  // ── Speed measurement ────────────────────────────────────────────────────
+  const TIMEOUT_MS = 6000;
+
+  async function measureLatency(url) {
+    const start = performance.now();
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+      await fetch(url, {
+        method: 'HEAD',
+        mode: 'no-cors',
+        cache: 'no-store',
+        signal: controller.signal
+      });
+      clearTimeout(timer);
+      return Math.round(performance.now() - start);
+    } catch (e) {
+      // If aborted = timeout, mark as dead
+      if (e.name === 'AbortError') return null;
+      // Other network errors: still got a response time (CORS block = server replied)
+      const elapsed = Math.round(performance.now() - start);
+      return elapsed < TIMEOUT_MS ? elapsed : null;
+    }
+  }
+
+  function speedClass(ms) {
+    if (ms === null) return 'dead';
+    if (ms < 400) return 'fast';
+    if (ms < 1200) return 'mid';
+    return 'slow';
+  }
+
+  function speedColor(ms) {
+    if (ms === null) return 'var(--dead)';
+    if (ms < 400) return 'var(--fast)';
+    if (ms < 1200) return 'var(--mid)';
+    return 'var(--slow)';
+  }
+
+  function speedLabel(ms) {
+    if (ms === null) return 'タイムアウト';
+    return ms + ' ms';
+  }
+
+  // Latency bar: max visible width at 2000ms
+  function latencyWidth(ms) {
+    if (ms === null) return 100;
+    return Math.min(100, (ms / 2000) * 100);
+  }
+
+  // ── Render ───────────────────────────────────────────────────────────────
+  function getSortedFiltered() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    let list = allDomains.filter(d => {
+      const matchSearch = d.url.toLowerCase().includes(search);
+      const matchFilter = currentFilter === 'all' || d.server === currentFilter;
+      return matchSearch && matchFilter;
+    });
+    if (sortBySpeed) {
+      list = list.slice().sort((a, b) => {
+        if (a.latency === null && b.latency === null) return 0;
+        if (a.latency === null) return 1;
+        if (b.latency === null) return -1;
+        return a.latency - b.latency;
+      });
+    }
+    return list;
+  }
+
+  function renderList() {
+    const grid = document.getElementById('domainGrid');
+    const filtered = getSortedFiltered();
+
+    if (filtered.length === 0) {
+      grid.innerHTML = '<div class="empty-state">該当するドメインが見つかりません。</div>';
+      return;
+    }
+
+    grid.innerHTML = filtered.map((d, i) => {
+      const cls = speedClass(d.latency);
+      const color = speedColor(d.latency);
+      const label = speedLabel(d.latency);
+      const isMeasuring = d.latency === undefined;
+      const rank = i + 1;
+      const isTop = rank <= 3 && !isMeasuring && d.latency !== null;
+
+      return `
+        <div class="domain-card" style="--speed-color:${isMeasuring ? 'transparent' : color}; animation-delay:${i * 0.04}s">
+          <div class="card-top">
+            <span class="server-badge badge-${d.server}">${d.server === 'unknown' ? '不明' : d.server}</span>
+            <div class="speed-indicator">
+              <div class="speed-dot ${isMeasuring ? 'measuring' : cls}"></div>
+              <span class="speed-text ${isMeasuring ? '' : cls}">${isMeasuring ? '計測中...' : label}</span>
+            </div>
+          </div>
+          <div class="latency-bar-wrap">
+            <div class="latency-bar-fill" style="width:${isMeasuring ? '0' : latencyWidth(d.latency)}%; background:${color}"></div>
+          </div>
+          <a href="${d.url}" class="domain-url" target="_blank" rel="noopener">${d.url.replace(/^https?:\/\//, '')}</a>
+          <div class="card-footer">
+            <span class="domain-meta">登録: ${new Date(d.timestamp).toLocaleDateString('ja-JP')}</span>
+            ${sortBySpeed && !isMeasuring ? `<span class="rank-badge ${isTop ? 'top' : ''}">#${rank}</span>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ── Fetch & measure ──────────────────────────────────────────────────────
+  async function fetchDomains() {
+    const dbRef = ref(db);
+    try {
+      const snapshot = await get(child(dbRef, 'public_domains'));
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        allDomains = Object.values(data).map(item => ({
+          ...item,
+          server: detectServer(item.url),
+          latency: undefined   // undefined = not yet measured
+        }));
+        renderList();
+        startSpeedMeasurement();
+      } else {
+        document.getElementById('domainGrid').innerHTML = '<div class="empty-state">登録されたドメインはありません。</div>';
+      }
+    } catch (e) {
+      console.error(e);
+      document.getElementById('domainGrid').innerHTML = '<div class="empty-state">エラーが発生しました。</div>';
+    }
+  }
+
+  async function startSpeedMeasurement() {
+    const total = allDomains.length;
+    measuredCount = 0;
+
+    const statusEl = document.getElementById('speedStatus');
+    const fillEl = document.getElementById('progressFill');
+    const countEl = document.getElementById('speedCount');
+    statusEl.style.display = 'flex';
+    countEl.innerHTML = `<span>0</span> / ${total}`;
+
+    // Measure concurrently (limit to 5 at a time)
+    const CONCURRENCY = 5;
+    const queue = [...allDomains];
+    const workers = Array(Math.min(CONCURRENCY, total)).fill(null).map(async () => {
+      while (queue.length) {
+        const domain = queue.shift();
+        domain.latency = await measureLatency(domain.url);
+        measuredCount++;
+        const pct = (measuredCount / total) * 100;
+        fillEl.style.width = pct + '%';
+        countEl.innerHTML = `<span>${measuredCount}</span> / ${total}`;
+        renderList(); // live update
+      }
+    });
+
+    await Promise.all(workers);
+
+    // Done
+    statusEl.innerHTML = `<span style="color:var(--fast);font-family:var(--font-mono);font-size:13px;">✓ 計測完了 — ${total}件のドメインを測定しました</span>`;
+    setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
+  }
+
+  function detectServer(url) {
+    if (url.includes('vercel.app')) return 'vercel';
+    if (url.includes('onrender.com')) return 'render';
+    return 'unknown';
+  }
+
+  // ── Event listeners ──────────────────────────────────────────────────────
+  document.getElementById('searchInput').addEventListener('input', renderList);
+
+  document.getElementById('filterContainer').addEventListener('click', (e) => {
+    if (e.target.classList.contains('filter-chip')) {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      e.target.classList.add('active');
+      currentFilter = e.target.dataset.filter;
+      renderList();
+    }
+  });
+
+  document.getElementById('sortBySpeed').addEventListener('click', (e) => {
+    sortBySpeed = !sortBySpeed;
+    e.currentTarget.classList.toggle('active', sortBySpeed);
+    e.currentTarget.textContent = sortBySpeed ? '⚡ 速度順' : '📅 登録順';
+    renderList();
+  });
+
+  fetchDomains();
+</script>
+
+</body>
+</html>
