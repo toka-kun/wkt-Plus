@@ -167,7 +167,7 @@ pinned: false
 - 2026/04/01 - Invidious APIの使用時に標準ストリームがうまく取得できていなかった問題を修正
 - 2026/04/07 - キャッシュを確認してサーバーを自動選択するように変更
 - 2026/04/08 - Renderでのデプロイができなくなっていたので修正
-- 2026/04/20 - Wista追加
+- 2026/04/20 - Wista、MIN-Tube-Pro、YouTube Plus+追加
 
 ---
 
@@ -200,7 +200,10 @@ pinned: false
   - XeroxYT-NT 開発
   - XeroxYT-NT API 
 - [@mino-hobby-pro](https://github.com/mino-hobby-pro)
+  - MIN-Tube-Pro 開発
   - MIN-Tube2 API
+- [@yuto1106110]((https://github.com/yuto1106110))
+  - YouTube Plus+ 開発
 - [@banana-coco](https://github.com/banana-coco)
   - Vercel & CodeSandbox デプロイ対応
 - [@woolisbest-4520](https://github.com/woolisbest-4520)
