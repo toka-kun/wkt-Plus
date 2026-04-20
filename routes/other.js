@@ -6,9 +6,13 @@ router.get("/", (req, res) => {
   res.render("other/home");
 });
 
-router.get('/others/:id', async (req, res) => {
-  const Id = req.params.id;
-  res.render(`other/others/${Id}`);
+router.get(['/others/:id', '/urls/:id'], async (req, res) => {
+  const id = req.params.id;
+  
+  // リクエストされたパス（/others/... か /urls/...）を取得してディレクトリを決定
+  const category = req.path.split('/')[1]; 
+  
+  res.render(`other/${category}/${id}`);
 });
 
 module.exports = router;
