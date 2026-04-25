@@ -6,7 +6,7 @@ const axios = require("axios");
 
 const user_agent = process.env.USER_AGENT || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36";
 
-// サーバーリスト（senninytdlpを追加）
+// サーバーリスト (senninytdlp を追加)
 const serverUrls = ['invidious', 'siawaseok', 'yudlp', 'ytdlpinstance-vercel', 'senninytdlp', 'min-tube2-api', 'xeroxyt-nt-apiv1', 'simple-yt-stream'];
 
 router.get('/:id', async (req, res) => {
@@ -27,16 +27,17 @@ router.get('/:id', async (req, res) => {
     let fallbackMessage = null; 
 
     try {
+        // ▼▼▼ パラメータ指定がない場合の自動キャッシュ検索ロジック ▼▼▼
         if (!selectedApi) {
             let cacheFound = false;
 
-            // 1. まず最優先の siawaseok を単独でチェック
+            // 1. まず最優先の siawaseok を単独でチェック (タイムアウト2秒)
             try {
                 const siaRes = await axios.get('https://siawaseok.f5.si/api/cache', { timeout: 2000 });
                 if (siaRes.data && siaRes.data[videoId]) {
                     apiToUse = 'siawaseok';
                     baseUrl = 'siawaseok';
-                    fallbackMessage = `キャッシュを確認したため、「${apiToUse}」を使用しました。`;
+                    fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
                     console.log(`🎯 キャッシュヒット: siawaseok (${videoId})`);
                     cacheFound = true;
                 }
@@ -44,7 +45,7 @@ router.get('/:id', async (req, res) => {
                 console.log(`ℹ️ siawaseok キャッシュ確認スキップ: ${e.message}`);
             }
 
-            // 2. siawaseok に無かった場合、残り3つを並列でチェック
+            // 2. siawaseok に無かった場合のみ、残り3つを並列でチェック
             if (!cacheFound) {
                 const [yudRes, katuoRes, senninRes] = await Promise.allSettled([
                     axios.get('https://yudlp.vercel.app/cache', { timeout: 2000 }),
@@ -52,24 +53,34 @@ router.get('/:id', async (req, res) => {
                     axios.get('https://senninytdlp-42jz.vercel.app/cache', { timeout: 2000 })
                 ]);
 
+                // 優先順位2: yudlp (video配列の中に動画IDがあるか)
                 if (yudRes.status === 'fulfilled' && yudRes.value.data && yudRes.value.data.video && yudRes.value.data.video.includes(videoId)) {
                     apiToUse = 'yudlp';
                     baseUrl = 'yudlp';
-                    fallbackMessage = `キャッシュを確認したため、「${apiToUse}」を使用しました。`;
+                    fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
+                    console.log(`🎯 キャッシュヒット: yudlp (${videoId})`);
                 } 
+                // 優先順位3: ytdlpinstance-vercel (キーが動画ID)
                 else if (katuoRes.status === 'fulfilled' && katuoRes.value.data && katuoRes.value.data[videoId]) {
                     apiToUse = 'ytdlpinstance-vercel';
                     baseUrl = 'ytdlpinstance-vercel';
-                    fallbackMessage = `キャッシュを確認したため、「${apiToUse}」を使用しました。`;
+                    fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
+                    console.log(`🎯 キャッシュヒット: ytdlpinstance-vercel (${videoId})`);
                 } 
-                // 新規追加: senninytdlp の判定 (KatuoTubeと同じ形式)
+                // 優先順位4: senninytdlp (キーが動画ID)
                 else if (senninRes.status === 'fulfilled' && senninRes.value.data && senninRes.value.data[videoId]) {
                     apiToUse = 'senninytdlp';
                     baseUrl = 'senninytdlp';
-                    fallbackMessage = `キャッシュを確認したため、「${apiToUse}」を使用しました。`;
+                    fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
+                    console.log(`🎯 キャッシュヒット: senninytdlp (${videoId})`);
+                }
+                // どれにもキャッシュがない場合
+                else {
+                    console.log(`ℹ️ キャッシュなし: デフォルトの invidious を使用 (${videoId})`);
                 }
             }
         }
+        // ▲▲▲ ここまで ▲▲▲
 
         const videoData = await wakamess.getYouTube(videoId, apiToUse);
         const Info = await serverYt.infoGet(videoId);
@@ -102,4 +113,24 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// ... (以下 parseCookies, shuffleArray, module.exports は変更なし)
+function parseCookies(request) {
+    const list = {};
+    const cookieHeader = request.headers.cookie;
+    if (cookieHeader) {
+        cookieHeader.split(';').forEach(cookie => {
+            let parts = cookie.split('=');
+            list[parts.shift().trim()] = decodeURI(parts.join('='));
+        });
+    }
+    return list;
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+module.exports = router;
