@@ -168,6 +168,7 @@ pinned: false
 - 2026/04/07 - キャッシュを確認してサーバーを自動選択するように変更
 - 2026/04/08 - Renderでのデプロイができなくなっていたので修正
 - 2026/04/20 - Wista、MIN-Tube-Pro、YouTube Plus+追加
+- 2026/04/25 - SenninTube Plus API追加
 
 ---
 
