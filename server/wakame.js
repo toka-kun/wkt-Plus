@@ -269,6 +269,60 @@ async function getKatuoTube(videoId) {
 }
 
 // =========================================
+// ★ SenninTube Plus API からの取得 (新規追加)
+// =========================================
+async function getSenninTube(videoId) {
+    try {
+        const apiUrl = `https://senninytdlp-42jz.vercel.app/stream/${videoId}`;
+        const response = await axios.get(apiUrl, { timeout: MAX_TIME });
+        const streams = Array.isArray(response.data) ? response.data : (response.data.formats || []);
+        
+        console.log(`✅ 使用したAPI (SenninTube Plus): ${apiUrl}`);
+
+        const audioStream = streams.find(s => String(s.format_id) === '251' || String(s.itag) === '251') || 
+                            streams.find(s => s.resolution === 'audio only' || s.vcodec === 'none');
+        const audioUrl = audioStream?.url || '';
+
+        const audioUrls = streams
+            .filter(s => (s.resolution === 'audio only' || s.vcodec === 'none') && (s.ext === 'webm' || s.ext === 'm4a'))
+            .map(s => ({
+                url: s.url,
+                name: s.abr ? `${s.ext} (${s.abr}kbps)` : s.ext,
+                container: s.ext
+            }));
+
+        const combinedStream = streams.find(s => String(s.format_id) === '18' || String(s.itag) === '18');
+        const streamUrl = combinedStream?.url || '';
+
+        const videoStreams = streams.filter(s => {
+            if (!s.url || s.resolution === 'audio only' || s.vcodec === 'none') return false;
+            if (s.url.includes('.m3u8') || s.url.includes('manifest')) return true;
+            return !['18', '22'].includes(String(s.format_id || s.itag));
+        });
+        
+        const streamUrls = videoStreams.map(s => {
+            let res = s.resolution || '';
+            if (res.includes('x')) res = res.split('x')[1] + 'p';
+            return {
+                url: s.url,
+                resolution: res,
+                container: s.ext || 'mp4',
+                fps: s.fps || null
+            };
+        });
+
+        return {
+            stream_url: streamUrl || streamUrls[0]?.url || '',
+            audioUrl: audioUrl,
+            audioUrls: audioUrls,
+            streamUrls: streamUrls
+        };
+    } catch (error) {
+        throw new Error("SenninTube Plusからの取得に失敗: " + error.message);
+    }
+}
+
+// =========================================
 // ④ XeroxYT-NT API からの取得 (低速・ランダム)
 // =========================================
 async function getXeroxApis() {
@@ -434,6 +488,8 @@ async function getYouTube(videoId, apiType = 'invidious') {
         result = await getYuZuTube(videoId);
     } else if (apiType === 'ytdlpinstance-vercel') {
         result = await getKatuoTube(videoId);
+    } else if (apiType === 'senninytdlp') {
+        result = await getSenninTube(videoId);
     } else if (apiType === 'xeroxyt-nt-apiv1') {
         result = await getXeroxNT(videoId);
     } else if (apiType === 'min-tube2-api') {
