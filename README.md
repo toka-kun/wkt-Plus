@@ -210,6 +210,9 @@ pinned: false
   - Wista 開発
   - Wista Stream API
   - Educationパラメーター
+- [@senninsugar](https://github.com/senninsugar)
+  - SenninTube Plus API
+  - KatuoTube API
 - [@Hikari_5544-1](https://gitlab.com/Hikari_5544-1) (GitLab)
   - ゲーム
 
