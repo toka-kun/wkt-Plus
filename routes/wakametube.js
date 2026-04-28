@@ -51,21 +51,21 @@ router.get("/s", async (req, res) => {
 });
 
 router.get("/ss", async (req, res) => {
-	let query = req.query.q;
-	let page = Number(req.query.p || 3);
+        let query = req.query.q;
+        let page = Number(req.query.p || 3);
     try {
-		res.render("tube/opu/search.ejs", {
-			res: await ytsr(query, {limit, pages: page}),
-			query: query,
-			page
-		});
-	} catch (error) {
-		console.error(error);
-		res.status(500).render("error.ejs", {
-			title: "ytsr Error",
-			content: error
-		});
-	}
+                res.render("tube/opu/search.ejs", {
+                        res: await ytsr(query, {limit, pages: page}),
+                        query: query,
+                        page
+                });
+        } catch (error) {
+                console.error(error);
+                res.status(500).render("error.ejs", {
+                        title: "ytsr Error",
+                        content: error
+                });
+        }
 });
 
 router.get("/c/:id", async (req, res) => {
