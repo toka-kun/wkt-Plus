@@ -210,7 +210,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             <% videoInfo.watch_next_feed.forEach(video => { %>
               <% if (video.type.endsWith("Video")) { %>
-                <div class="result-item w-auto h-auto bg-gray-700 p-5 rounded">
+                <div class="result-item w-auto h-auto bg-gray-800 p-4 rounded">
                     <a href="/wkt/watch/<%= video.id %>" class="thumbnail">
                         <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title?.text || '動画' %>" class="w-full h-auto rounded">
                         <% if (video.duration?.text) { %>
@@ -222,11 +222,11 @@
                             <% if (video.author?.thumbnails?.length) { %>
                             <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="アイコン" class="w-8 h-8 rounded-full mr-2">
                             <% } %>
-                            <p class="text-sm text-gray-400"><%= video.author.name %></p>
+                            <p class="text-sm text-gray-400"><%= video.author?.name || '' %></p>
                         </a>
                     </div>
-                    <p class="text-lg font-bold"><%= video.title.text %></p>
-                    <p class="text-xs text-gray-500"><%= video.view_count?.text || video.short_view_count?.text || "" %> - <%= video.published?.text || "" %></p>
+                    <p class="text-lg font-bold"><%= video.title?.text || '' %></p>
+                    <p class="text-xs text-gray-500"><%= video.short_view_count?.text || video.view_count?.text || "" %><% if (video.published?.text) { %> ・ <%= video.published.text %><% } %></p>
                 </div>
               <% } else if (video.type.endsWith("Playlist")) { %>
                 <div class="result-item bg-gray-600 p-4 rounded">
@@ -381,24 +381,23 @@
 <div class="mt-2 space-y-4">
   <% if (!video) return; %>
   <% if (video.type.endsWith("Video")) { %>
-    <div class="bg-gray-800 p-2 rounded result-item">
-      <a href="/wkt/watch/<%= video.id %>">
-        <img src="/wkt/back/vi/<%= video.id %>/maxresdefault.jpg" alt="サムネ" class="w-full h-auto rounded">
-      </a>
-      <div class="flex items-center mt-2">
-        <% if (video.author?.thumbnails.length) { %>
-          <a href="/wkt/c/<%= video.author.id %>"><img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="アイコン" class="w-6 h-6 rounded-full"></a>
+    <div class="result-item w-auto h-auto bg-gray-800 p-4 rounded">
+      <a href="/wkt/watch/<%= video.id %>" class="thumbnail">
+        <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title?.text || '動画' %>" class="w-full h-auto rounded">
+        <% if (video.duration?.text) { %>
+          <span class="video-duration"><%= video.duration.text %></span>
         <% } %>
-        <p class="text-sm text-gray-400 ml-2">
-          <a href="/wkt/c/<%= video.author.id %>"><%= video.author.name %></a>
-        </p>
+      </a>
+      <div class="mt-2 flex items-center">
+        <a href="/wkt/c/<%= video.author?.id || '' %>" class="flex items-center">
+          <% if (video.author?.thumbnails?.length) { %>
+          <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="アイコン" class="w-8 h-8 rounded-full mr-2">
+          <% } %>
+          <p class="text-sm text-gray-400"><%= video.author?.name || '' %></p>
+        </a>
       </div>
-      <p class="text-sm font-bold mt-1">
-        <a href="/wkt/watch/<%= video.id %>"><%= video.title.text %></a>
-      </p>
-      <p class="text-xs text-gray-400">
-        <%= video.short_view_count?.text || video.view_count?.text || "" %><% if (video.published?.text) { %> ・ <%= video.published.text %><% } %>
-      </p>
+      <p class="text-lg font-bold"><%= video.title?.text || '' %></p>
+      <p class="text-xs text-gray-500"><%= video.short_view_count?.text || video.view_count?.text || "" %><% if (video.published?.text) { %> ・ <%= video.published.text %><% } %></p>
     </div>
   <% } else if (video.type.endsWith("Playlist")) { %>
     <div class="bg-gray-800 p-2 rounded">
@@ -442,26 +441,23 @@
     <% if (!video || !video.type) return; %>
     <% if (video.type.endsWith("Video")) { %>
       <% hasValidVideo = true; %>
-      <div class="bg-gray-800 p-2 rounded result-item">
-        <a href="/wkt/watch/<%= video.id %>">
-          <img src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title.text %> のサムネイル" class="w-full h-auto rounded">
-        </a>
-        <div class="flex items-center mt-2">
-          <% if (video.author?.thumbnails.length) { %>
-            <a href="/wkt/c/<%= video.author.id %>">
-              <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="<%= video.author.name %> のアイコン" class="w-6 h-6 rounded-full">
-            </a>
+      <div class="result-item w-auto h-auto bg-gray-800 p-4 rounded">
+        <a href="/wkt/watch/<%= video.id %>" class="thumbnail">
+          <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title?.text || '動画' %>" class="w-full h-auto rounded">
+          <% if (video.duration?.text) { %>
+            <span class="video-duration"><%= video.duration.text %></span>
           <% } %>
-          <p class="text-sm text-gray-400 ml-2">
-              <a href="/wkt/c/<%= video.author.id %>"><%= video.author.name %></a>
-          </p>
+        </a>
+        <div class="mt-2 flex items-center">
+          <a href="/wkt/c/<%= video.author?.id || '' %>" class="flex items-center">
+            <% if (video.author?.thumbnails?.length) { %>
+            <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="アイコン" class="w-8 h-8 rounded-full mr-2">
+            <% } %>
+            <p class="text-sm text-gray-400"><%= video.author?.name || '' %></p>
+          </a>
         </div>
-        <p class="text-sm font-bold mt-1">
-          <%= video.title.text %>
-        </p>
-        <p class="text-xs text-gray-400">
-          <%= video.short_view_count?.text || video.view_count?.text || "" %><% if (video.published?.text) { %> ・ <%= video.published.text %><% } %>
-        </p>
+        <p class="text-lg font-bold"><%= video.title?.text || '' %></p>
+        <p class="text-xs text-gray-500"><%= video.short_view_count?.text || video.view_count?.text || "" %><% if (video.published?.text) { %> ・ <%= video.published.text %><% } %></p>
       </div>
     <% } else if (video.type.endsWith("Playlist")) { %>
       <% hasValidVideo = true; %>
