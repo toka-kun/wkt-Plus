@@ -169,6 +169,7 @@ pinned: false
 - 2026/04/08 - Renderでのデプロイができなくなっていたので修正
 - 2026/04/20 - Wista、MIN-Tube-Pro、YouTube Plus+追加
 - 2026/04/25 - SenninTube Plus API追加
+- 2026/04/28 - 検索ページ、関連動画の動画カードを見やすく改良
 
 ---
 
