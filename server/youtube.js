@@ -78,18 +78,29 @@ function normalizeWatchNextFeed(rawFeed) {
     const rows = item.metadata?.metadata?.metadata_rows || [];
     const channelName = rows[0]?.metadata_parts?.[0]?.text?.text || '';
     const viewCountText = rows[1]?.metadata_parts?.[0]?.text?.text || '';
+    const publishedText = rows[1]?.metadata_parts?.[1]?.text?.text || '';
     const videoId = item.content_id
       || item.renderer_context?.command_context?.on_tap?.payload?.videoId
       || null;
 
     if (!videoId) return null;
 
+    // チャンネルIDはアバターのrenderer_contextに格納されている
+    const channelId = item.metadata?.image?.renderer_context?.command_context?.on_tap?.payload?.browseId || '';
+    // チャンネルアイコンはアバター画像から取得
+    const channelThumbUrl = item.metadata?.image?.avatar?.image?.[0]?.url || '';
+
     return {
       type: 'CompactVideo',
       id: videoId,
       title: { text: item.metadata?.title?.text || '' },
-      author: { id: '', name: channelName, thumbnails: [] },
-      short_view_count: { text: viewCountText }
+      author: {
+        id: channelId,
+        name: channelName,
+        thumbnails: channelThumbUrl ? [{ url: channelThumbUrl }] : []
+      },
+      short_view_count: { text: viewCountText },
+      published: publishedText ? { text: publishedText } : null
     };
   }).filter(Boolean);
 }
