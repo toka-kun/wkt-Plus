@@ -77,8 +77,14 @@ function normalizeWatchNextFeed(rawFeed) {
 
     const rows = item.metadata?.metadata?.metadata_rows || [];
     const channelName = rows[0]?.metadata_parts?.[0]?.text?.text || '';
-    const viewCountText = rows[1]?.metadata_parts?.[0]?.text?.text || '';
+    const rawViewCount = rows[1]?.metadata_parts?.[0]?.text?.text || '';
     const publishedText = rows[1]?.metadata_parts?.[1]?.text?.text || '';
+
+    // 「25万」のように単位なしで返ってくる場合は「回視聴」を補完する
+    // すでに「視聴」が含まれている場合（「回視聴」「人が視聴中」等）はそのまま
+    const viewCountText = rawViewCount && !rawViewCount.includes('視聴')
+      ? rawViewCount + '回視聴'
+      : rawViewCount;
     const videoId = item.content_id
       || item.renderer_context?.command_context?.on_tap?.payload?.videoId
       || null;
