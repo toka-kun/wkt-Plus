@@ -328,7 +328,7 @@
         <a href="/wkt/watch/<%= video.id %>"><%= video.title.text %></a>
       </p>
       <p class="text-xs text-gray-400">
-        <%= video.short_view_count?.text || video.view_count?.text %>
+        <%= video.short_view_count?.text || video.view_count?.text || "" %><% if (video.published?.text) { %> ・ <%= video.published.text %><% } %>
       </p>
     </div>
   <% } else if (video.type.endsWith("Playlist")) { %>
@@ -387,7 +387,7 @@
         <a href="/wkt/watch/<%= video.id %>"><%= video.title.text %></a>
       </p>
       <p class="text-xs text-gray-400">
-        <%= video.short_view_count?.text || video.view_count?.text %>
+        <%= video.short_view_count?.text || video.view_count?.text || "" %><% if (video.published?.text) { %> ・ <%= video.published.text %><% } %>
       </p>
     </div>
   <% } else if (video.type.endsWith("Playlist")) { %>
