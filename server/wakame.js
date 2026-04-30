@@ -1,4 +1,6 @@
 const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
 
 let apis = null;
 let xeroxApis = null;
@@ -21,8 +23,10 @@ function shuffleArray(array) {
 // =========================================
 async function getapis() {
     try {
-        const response = await axios.get('https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/apis/Invidious/yes.json');
-        apis = await response.data;
+        // ローカルの inv.json から読み込む
+        const filePath = path.join(__dirname, '../inv.json');
+        const data = await fs.promises.readFile(filePath, 'utf-8');
+        apis = JSON.parse(data);
     } catch (error) {
         console.error('Invidiousサーバーリストの取得に失敗:', error);
     }
@@ -269,7 +273,7 @@ async function getKatuoTube(videoId) {
 }
 
 // =========================================
-// ★ SenninTube Plus API からの取得 (新規追加)
+// ★ SenninTube Plus API からの取得
 // =========================================
 async function getSenninTube(videoId) {
     try {
@@ -327,8 +331,10 @@ async function getSenninTube(videoId) {
 // =========================================
 async function getXeroxApis() {
     try {
-        const response = await axios.get('https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/apis/XeroxYT-NT/yes.json');
-        xeroxApis = await response.data;
+        // ローカルの xerox.json から読み込む
+        const filePath = path.join(__dirname, '../xerox.json');
+        const data = await fs.promises.readFile(filePath, 'utf-8');
+        xeroxApis = JSON.parse(data);
     } catch (error) {
         console.error('Xerox-NTサーバーリストの取得に失敗:', error);
     }
@@ -379,8 +385,10 @@ async function getXeroxNT(videoId) {
 // =========================================
 async function getMinTube2Apis() {
     try {
-        const response = await axios.get('https://raw.githubusercontent.com/Minotaur-ZAOU/test/refs/heads/main/min-tube-api.json');
-        minTubeApis = await response.data;
+        // ローカルの min.json から読み込む
+        const filePath = path.join(__dirname, '../min.json');
+        const data = await fs.promises.readFile(filePath, 'utf-8');
+        minTubeApis = JSON.parse(data);
     } catch (error) {
         console.error('MIN-Tube2サーバーリストの取得に失敗:', error);
     }
