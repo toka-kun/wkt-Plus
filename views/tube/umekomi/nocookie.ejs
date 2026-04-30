@@ -258,7 +258,7 @@
             </div>
         </div>
             
-<div id="controlPanel" class="controlPanel bg-gray-900 text-white p-6 rounded-lg shadow-lg w-96 fixed bottom-10 right-10 border border-gray-700">
+<div id="controlPanel" class="controlPanel bg-gray-900 text-white p-6 rounded-lg shadow-lg w-96 fixed bottom-10 right-10 border border-gray-700 z-50">
     <button id="closeControlPanel" class="absolute top-2 right-2 text-gray-400 hover:text-white text-2xl">×</button>
     <h2 class="text-lg font-semibold mb-3">再生方法の変更</h2>
     <p class="mb-4 text-gray-600">動画のデフォルトの再生方法を設定できます。埋め込みで見れるなら埋め込みで見た方が良いですよ。</p>
@@ -306,7 +306,7 @@
 </div>
 
   <div id="dougaBox" class="fixed top-0 right-0 w-1/2 h-full bg-gray-800 p-4 shadow-lg overflow-y-auto related-box">
-    <div class="sticky top-0 flex justify-end">
+    <div class="sticky top-0 z-10 bg-gray-800 pb-2 flex justify-end">
     <form id="umekomisearchForm" class="w-1/2 mr-2 mb-2">
       <input type="text" name="q" id="searchInput" placeholder="検索" class="searchInput w-full p-2 rounded bg-gray-700 text-white">
     </form>
