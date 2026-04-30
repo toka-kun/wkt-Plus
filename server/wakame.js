@@ -1,6 +1,4 @@
 const axios = require('axios');
-const fs = require('fs');
-const path = require('path');
 
 let apis = null;
 let xeroxApis = null;
@@ -24,10 +22,7 @@ function shuffleArray(array) {
 async function getapis() {
     try {
         const response = await axios.get('https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/apis/Invidious/yes.json');
-        apis = response.data;
-        
-        // ★ 取得したリストを inv.json に格納（保存）
-        fs.writeFileSync(path.join(process.cwd(), 'inv.json'), JSON.stringify(apis, null, 2));
+        apis = await response.data;
     } catch (error) {
         console.error('Invidiousサーバーリストの取得に失敗:', error);
     }
@@ -274,7 +269,7 @@ async function getKatuoTube(videoId) {
 }
 
 // =========================================
-// ★ SenninTube Plus API からの取得
+// ★ SenninTube Plus API からの取得 (新規追加)
 // =========================================
 async function getSenninTube(videoId) {
     try {
@@ -333,10 +328,7 @@ async function getSenninTube(videoId) {
 async function getXeroxApis() {
     try {
         const response = await axios.get('https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/apis/XeroxYT-NT/yes.json');
-        xeroxApis = response.data;
-        
-        // ★ 取得したリストを xerox.json に格納（保存）
-        fs.writeFileSync(path.join(process.cwd(), 'xerox.json'), JSON.stringify(xeroxApis, null, 2));
+        xeroxApis = await response.data;
     } catch (error) {
         console.error('Xerox-NTサーバーリストの取得に失敗:', error);
     }
@@ -358,7 +350,7 @@ async function getXeroxNT(videoId) {
             if (data && data.streamingUrl) {
                 console.log(`✅ 使用したAPI (XeroxYT-NT): ${apiUrl}`);
                 
-                // formatsから画質リストを抽出
+                // ★ 修正ポイント: formatsから画質リストを抽出
                 const streamUrls = (data.formats || []).map(f => ({
                     url: f.url,
                     resolution: f.quality || (f.height ? f.height + 'p' : 'Auto'),
@@ -388,10 +380,7 @@ async function getXeroxNT(videoId) {
 async function getMinTube2Apis() {
     try {
         const response = await axios.get('https://raw.githubusercontent.com/Minotaur-ZAOU/test/refs/heads/main/min-tube-api.json');
-        minTubeApis = response.data;
-        
-        // ★ 取得したリストを min.json に格納（保存）
-        fs.writeFileSync(path.join(process.cwd(), 'min.json'), JSON.stringify(minTubeApis, null, 2));
+        minTubeApis = await response.data;
     } catch (error) {
         console.error('MIN-Tube2サーバーリストの取得に失敗:', error);
     }
@@ -417,7 +406,7 @@ async function getMinTube2(videoId) {
                     streamUrls.push({ url: data.highstreamUrl, resolution: 'High Quality', container: 'mp4', fps: null });
                 }
 
-                // audioUrlsを空にし、EJSで「Default」と表示させる
+                // ★ 修正ポイント: audioUrlsを空にし、EJSで「Default」と表示させる
                 return {
                     stream_url: data.stream_url, 
                     audioUrl: data.audioUrl || '',
@@ -515,7 +504,7 @@ async function getYouTube(videoId, apiType = 'invidious') {
         const newStreamUrls = [];
         const seenUrls = new Set(); 
 
-        // 統合ストリームのURLを予め重複リストに追加し、
+        // ★ 修正ポイント: 統合ストリームのURLを予め重複リストに追加し、
         // 画質メニューで同じURLが「統合ストリーム」と「360p」などで被るのを防ぐ
         if (result.stream_url) {
             seenUrls.add(result.stream_url);
