@@ -111,11 +111,58 @@ function normalizeWatchNextFeed(rawFeed) {
   }).filter(Boolean);
 }
 
+// コラボ動画を含む全チャンネルを channels 配列として抽出する
+// 戻り値: [{id, name, icon, subsc}] (primary が先頭、collab チャンネルが続く)
+function extractChannels(Info) {
+  const owner = Info.secondary_info.owner;
+  const primary = {
+    id:    owner.author.id || '',
+    name:  owner.author.name || '',
+    icon:  owner.author.thumbnails?.[0]?.url || '',
+    subsc: owner.subscriber_count?.text || ''
+  };
+
+  const channels = [primary];
+
+  // MetadataRowContainer の各行を検索してコラボチャンネルリンクを収集
+  try {
+    const rows = Info.secondary_info.metadata?.rows;
+    if (Array.isArray(rows)) {
+      for (const row of rows) {
+        if (!row || row.type !== 'MetadataRow') continue;
+        const contents = row.contents;
+        if (!Array.isArray(contents)) continue;
+        for (const content of contents) {
+          const runs = content?.runs;
+          if (!Array.isArray(runs)) continue;
+          for (const run of runs) {
+            const browseId = run.endpoint?.payload?.browseId;
+            if (!browseId) continue;
+            // チャンネルIDは UC で始まる
+            if (!browseId.startsWith('UC')) continue;
+            // primary と重複するものは除外
+            if (channels.some(ch => ch.id === browseId)) continue;
+            channels.push({
+              id:    browseId,
+              name:  run.text || '',
+              icon:  '',
+              subsc: ''
+            });
+          }
+        }
+      }
+    }
+  } catch (_) {}
+
+  return channels;
+}
+
 module.exports = {
   infoGet, 
   setClient,
   search,
   getComments,
   getChannel,
-  normalizeWatchNextFeed
+  normalizeWatchNextFeed,
+  extractChannels
 };
