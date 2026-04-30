@@ -231,7 +231,7 @@
                                 <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= video.title?.text || '' %></p>
                             </a>
                             <a href="/wkt/c/<%= video.author?.id || '' %>" class="text-gray-400 text-xs hover:text-white transition mb-0.5 block truncate"><%= video.author?.name || '' %></a>
-                            <p class="text-gray-500 text-xs"><%= video.short_view_count?.text || video.view_count?.text || "" %><% if (video.published?.text) { %> ・ <%= video.published.text %><% } %></p>
+                            <p class="text-gray-500 text-xs"><%= video.short_view_count?.text || video.view_count?.text || "" %><% if (video.published?.text) { %> • <%= video.published.text %><% } %></p>
                         </div>
                     </div>
                 </div>
