@@ -46,7 +46,7 @@ async function ggvideo(videoId) {
         }
         if (Date.now() - startTime >= MAX_TIME) throw new Error("接続がタイムアウトしました");
     }
-    throw new Error("Invidiousで動画を取得できませんでした");
+    throw new Error("Invidious APIで動画を取得できませんでした");
 }
 
 async function getInvidious(videoId) {
@@ -156,7 +156,7 @@ async function getSiaTube(videoId) {
             streamUrls: streamUrls
         };
     } catch (error) {
-        throw new Error("SiaTubeからの取得に失敗: " + error.message);
+        throw new Error("SiaTube APIからの取得に失敗: " + error.message);
     }
 }
 
@@ -210,7 +210,7 @@ async function getYuZuTube(videoId) {
             streamUrls: streamUrls
         };
     } catch (error) {
-        throw new Error("YuZuTubeからの取得に失敗: " + error.message);
+        throw new Error("YuZuTube APIからの取得に失敗: " + error.message);
     }
 }
 
@@ -264,7 +264,7 @@ async function getKatuoTube(videoId) {
             streamUrls: streamUrls
         };
     } catch (error) {
-        throw new Error("KatuoTubeからの取得に失敗: " + error.message);
+        throw new Error("KatuoTube APIからの取得に失敗: " + error.message);
     }
 }
 
@@ -318,7 +318,7 @@ async function getSenninTube(videoId) {
             streamUrls: streamUrls
         };
     } catch (error) {
-        throw new Error("SenninTube Plusからの取得に失敗: " + error.message);
+        throw new Error("SenninTube Plus APIからの取得に失敗: " + error.message);
     }
 }
 
@@ -330,7 +330,7 @@ async function getXeroxApis() {
         const response = await axios.get('https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/apis/XeroxYT-NT/yes.json');
         xeroxApis = await response.data;
     } catch (error) {
-        console.error('Xerox-NTサーバーリストの取得に失敗:', error);
+        console.error('XeroxYT-NTサーバーリストの取得に失敗:', error);
     }
 }
 
@@ -371,7 +371,7 @@ async function getXeroxNT(videoId) {
         }
         if (Date.now() - startTime >= MAX_TIME_SLOW) throw new Error("接続がタイムアウトしました");
     }
-    throw new Error("Xerox-NTで動画を取得できませんでした");
+    throw new Error("XeroxYT-NT APIで動画を取得できませんでした");
 }
 
 // =========================================
@@ -419,7 +419,7 @@ async function getMinTube2(videoId) {
         }
         if (Date.now() - startTime >= MAX_TIME) throw new Error("接続がタイムアウトしました");
     }
-    throw new Error("MIN-Tube2で動画を取得できませんでした");
+    throw new Error("MIN-Tube2 APIで動画を取得できませんでした");
 }
 
 // =========================================
@@ -472,7 +472,7 @@ async function getWistaStream(videoId) {
             streamUrls: streamUrls
         };
     } catch (error) {
-        throw new Error("Wista Streamからの取得に失敗: " + error.message);
+        throw new Error("Wista Stream APIからの取得に失敗: " + error.message);
     }
 }
 
