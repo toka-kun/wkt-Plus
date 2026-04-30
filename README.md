@@ -191,6 +191,7 @@ pinned: false
   - Educationパラメーター
 - [@toka-kun](https://github.com/toka-kun) 
   - わかめtube Plus 開発
+  - Re: LABO5 開発
   - Educationパラメーター
 - [@siawaseok3](https://github.com/siawaseok3)
   - しあtube 開発
@@ -204,6 +205,7 @@ pinned: false
   - XeroxYT-NT API 
 - [@mino-hobby-pro](https://github.com/mino-hobby-pro)
   - MIN-Tube-Pro 開発
+  - LABO5 開発
   - MIN-Tube2 API
 - [@yuto1106110](https://github.com/yuto1106110)
   - YouTube Plus+ 開発
