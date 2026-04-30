@@ -51,12 +51,14 @@ router.get('/edu/:id', async (req, res) => {
     const videosrc = `https://www.youtubeeducation.com/embed/${videoId}${ytinfo}&playlist=${videoId}&loop=1`;
     
     const Info = await serverYt.infoGet(videoId);
+    const channels = serverYt.extractChannels(Info);
     const videoInfo = {
       title: Info.primary_info.title.text || "",
-      channelId: Info.secondary_info.owner.author.id || "",
-      channelIcon: Info.secondary_info.owner.author.thumbnails[0].url || '',
-      channelName: Info.secondary_info.owner.author.name || "",
-      channelSubsc: Info.secondary_info.owner.subscriber_count.text || "",
+      channels: channels,
+      channelId: channels[0].id,
+      channelIcon: channels[0].icon,
+      channelName: channels[0].name,
+      channelSubsc: channels[0].subsc,
       published: Info.primary_info.published,
       viewCount: Info.primary_info.view_count.short_view_count?.text || Info.primary_info.view_count.view_count?.text || "",
       likeCount: Info.primary_info.menu.top_level_buttons.short_like_count || Info.primary_info.menu.top_level_buttons.like_count || Info.basic_info.like_count || "",
@@ -80,12 +82,14 @@ router.get('/nocookie/:id', async (req, res) => {
   try {
     const videosrc = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&amp;mute=0&playlist=${videoId}&loop=1`;
     const Info = await serverYt.infoGet(videoId);
+    const channels = serverYt.extractChannels(Info);
     const videoInfo = {
       title: Info.primary_info.title.text || "",
-      channelId: Info.secondary_info.owner.author.id || "",
-      channelIcon: Info.secondary_info.owner.author.thumbnails[0].url || '',
-      channelName: Info.secondary_info.owner.author.name || "",
-      channelSubsc: Info.secondary_info.owner.subscriber_count.text || "",
+      channels: channels,
+      channelId: channels[0].id,
+      channelIcon: channels[0].icon,
+      channelName: channels[0].name,
+      channelSubsc: channels[0].subsc,
       published: Info.primary_info.published,
       viewCount: Info.primary_info.view_count.short_view_count?.text || Info.primary_info.view_count.view_count?.text || "",
       likeCount: Info.primary_info.menu.top_level_buttons.short_like_count || Info.primary_info.menu.top_level_buttons.like_count || Info.basic_info.like_count || "",
