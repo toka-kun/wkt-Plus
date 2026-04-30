@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M</title>
+    <script src="/js/tailwindcss.js"></script>
+    <link rel="stylesheet" href="/css/page.css">
+</head>
+<body class="bg-gray-900 font-sans min-h-screen flex flex-col m-0 p-0 overflow-hidden">
+    
+    <button class="back-button fixed top-5 left-5 z-50 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out flex items-center space-x-2" onclick="window.location.href='/game'">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        <span>戻る</span>
+    </button>
+
+    <button class="fixed top-5 right-5 z-50 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out flex items-center space-x-2" onclick="toggleFullScreen()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+        </svg>
+        <span>全画面</span>
+    </button>
+
+    <div class="flex-grow w-full h-screen pt-20 pb-4 px-4 box-border">
+        <iframe 
+            id="content-frame"
+            src="" 
+            class="w-full h-full rounded-2xl shadow-lg border-none bg-white"
+            allow="camera;microphone;geolocation;fullscreen"
+            title="Embedded Content">
+        </iframe>
+    </div>
+
+    <script>
+        // --- 1. 全画面切り替えの処理 ---
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch((err) => {
+                    console.error(`全画面表示の有効化中にエラーが発生しました: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        // --- 2. URLパラメーターに応じてiframeのURLを切り替える処理 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // URLからパラメーターを取得 (例: ?id=1v1)
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetId = urlParams.get('id');
+
+            // ★ ここに後から簡単に追加できます ★
+            const siteMap = {
+                '1v1': 'https://onev1-lol-jw-1.onrender.com/',
+                'aiothello': '/game/games/aiothello',
+                'drive': '/game/games/drive',
+                'iron': 'https://ironsnout-3.onrender.com/',
+                'monkey': 'https://monkeymart-2.onrender.com/',
+                'paper': '/game/games/paper',
+                'snow': '/game/games/snow',
+                'snowrider': '/game/games/snowrider',
+                'stickman': 'https://stickmanhook-2.onrender.com/',
+                'subway': 'https://subwaysurfers-3.onrender.com/',
+                'super': 'https://html-classic.itch.zone/html/10873132/index.html',
+                'super2': 'https://html-classic.itch.zone/html/15043641/index.html',
+                'vex3': 'https://vex3-2.onrender.com/',
+                'vex4': 'https://vex4-2.onrender.com/',
+                'vex5': 'https://vex5-1.onrender.com/',
+                'vex6': 'https://vex6-1.onrender.com',
+                // 以下の形式で追加してください（最後のカンマを忘れないように）
+                // '新しいID': '新しいURL',
+            };
+
+            const iframe = document.getElementById('content-frame');
+
+            // パラメーターがsiteMapに存在するかチェック
+            if (targetId && siteMap[targetId]) {
+                iframe.src = siteMap[targetId];
+            } else {
+                // パラメーターがない、もしくは存在しないIDの場合はデフォルトのURLを表示
+                iframe.src = 'about:blank';
+            }
+        });
+    </script>
+</body>
+</html>
