@@ -48,7 +48,7 @@ router.get('/edu/:id', async (req, res) => {
   try {
     // デフォルトのパラメータとして fetchConfigs[5] (edurl) を取得
     const ytinfo = await getParamData(fetchConfigs.find(c => c.name === 'edurl'));
-    const videosrc = `https://www.youtubeeducation.com/embed/${videoId}${ytinfo}`;
+    const videosrc = `https://www.youtubeeducation.com/embed/${videoId}${ytinfo}&playlist=${videoId}&loop=1`;
     
     const Info = await serverYt.infoGet(videoId);
     const videoInfo = {
@@ -78,7 +78,7 @@ router.get('/edu/:id', async (req, res) => {
 router.get('/nocookie/:id', async (req, res) => {
   const videoId = req.params.id;
   try {
-    const videosrc = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&amp;mute=0`;
+    const videosrc = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&amp;mute=0&playlist=${videoId}&loop=1`;
     const Info = await serverYt.infoGet(videoId);
     const videoInfo = {
       title: Info.primary_info.title.text || "",
