@@ -433,13 +433,12 @@ async function getWistaStream(videoId) {
         
         console.log(`✅ 使用したAPI (Wista Stream): ${apiUrl}`);
 
-        const audioStream = streams.find(s => String(s.format_id) === '251') || 
-                            streams.find(s => String(s.format_id) === '140') ||
-                            streams.find(s => s.quality === 'medium' || s.quality === 'low');
+        // ★ 修正ポイント: fpsがnullのものを音声ストリームとして取得
+        const audioStream = streams.find(s => s.fps === null);
         const audioUrl = audioStream?.url || '';
 
         const audioUrls = streams
-            .filter(s => String(s.format_id) === '251' || String(s.format_id) === '140')
+            .filter(s => s.fps === null)
             .map(s => ({
                 url: s.url,
                 name: s.quality ? `${s.ext} (${s.quality})` : s.ext,
