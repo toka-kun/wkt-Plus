@@ -181,7 +181,7 @@
                 <% } %>
               </div>
                   <button id="favoriteBtn" class="ml-auto p-2 rounded-full bg-gray-500">
-                      <img id="favoriteIcon" src="https://cdn.glitch.global/44a02c72-aa32-4a7b-bb98-801035391fbc/IMG_3045.png" alt="お気に入り" class="w-8 h-8">
+                      <img id="favoriteIcon" src="https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png" alt="お気に入り" class="w-8 h-8">
                   </button>
             </div>
 
@@ -629,7 +629,7 @@ async function checkfav() {
   if(favorites){
     isFavorited = favorites.some(track => track.videoId === videoId);
   }
-  favIcon.src = isFavorited ? "https://cdn.glitch.global/44a02c72-aa32-4a7b-bb98-801035391fbc/IMG_3046.png" : "https://cdn.glitch.global/44a02c72-aa32-4a7b-bb98-801035391fbc/IMG_3045.png";
+  favIcon.src = isFavorited ? "https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_1.png" : "https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png";
 }
 checkfav()
 document.getElementById("favoriteBtn").addEventListener("click", function() {
@@ -640,7 +640,7 @@ document.getElementById("favoriteBtn").addEventListener("click", function() {
   if(updatedFavorites){
     nowFavorited = updatedFavorites.some(track => track.videoId === videoId);
   }
-  favIcon.src = nowFavorited ? "https://cdn.glitch.global/44a02c72-aa32-4a7b-bb98-801035391fbc/IMG_3046.png" : "https://cdn.glitch.global/44a02c72-aa32-4a7b-bb98-801035391fbc/IMG_3045.png";
+  favIcon.src = nowFavorited ? "https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_1.png" : "https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png";
 });
 
 // 概要
