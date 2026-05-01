@@ -66,7 +66,7 @@ router.get("/vi*", async (req, res) => {
   }
   
   // フォールバックする順番
-  const fallbackList = ['maxresdefault.jpg', 'hqdefault.jpg', 'mqdefault.jpg', 'default.jpg'];
+  const fallbackList = ['maxresdefault.jpg', 'sddefault.jpg', 'hqdefault.jpg', 'mqdefault.jpg', 'default.jpg'];
   const qualitiesToTry = [];
   
   // まず最初に要求された画質を試す
