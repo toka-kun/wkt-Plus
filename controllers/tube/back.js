@@ -50,41 +50,95 @@ router.get('/suggest', (req, res) => {
     request.end();
 });
 
+// ★ サムネイル取得のフォールバックロジックを追加
 router.get("/vi*", async (req, res) => {
-  let headersForwarded = false;
   const range = req.headers.range;
-  try {
-    const request = await undici.request("https://i.ytimg.com" + req.url, {
-      headers: {
-        "User-Agent": user_agent,
-        ...(range && { range })
-      },
-      maxRedirections: 4
-    });
-    res.status(request.statusCode);
-    if (!headersForwarded) {
-      for (const h of ["Accept-Ranges", "Content-Type", "Content-Range", "Content-Length", "Cache-Control"]) {
-        const headerValue = request.headers[h.toLowerCase()];
-        if (headerValue) res.setHeader(h, headerValue);
-      }
-      headersForwarded = true;
+  const urlPath = req.url.split("?")[0];
+  const parts = urlPath.split("/");
+  
+  let videoId = "";
+  let requestedQuality = "";
+  
+  // /vi/動画ID/画質.jpg の形式からIDと画質を抽出
+  if (parts.length >= 4 && parts[1] === "vi") {
+    videoId = parts[2];
+    requestedQuality = parts[3];
+  }
+  
+  // フォールバックする順番
+  const fallbackList = ['maxresdefault.jpg', 'sddefault.jpg', 'hqdefault.jpg', 'mqdefault.jpg', 'default.jpg'];
+  const qualitiesToTry = [];
+  
+  // まず最初に要求された画質を試す
+  if (requestedQuality) {
+    qualitiesToTry.push(requestedQuality);
+  }
+  
+  // 指定された順番でフォールバックリストを追加 (重複排除)
+  fallbackList.forEach(q => {
+    if (!qualitiesToTry.includes(q)) {
+      qualitiesToTry.push(q);
     }
-    request.body.pipe(res);
-    request.body.on('error', err => {
-      console.error(err);
-      res.status(500).send(err.toString());
-    });
-  } catch (err) {
-    const stream = miniget(`https://i.ytimg.com${req.url.split("?")[0]}`, {
-      headers: {
-        "User-Agent": user_agent
+  });
+  
+  let headersForwarded = false;
+  let success = false;
+  
+  for (const quality of qualitiesToTry) {
+    const targetUrl = videoId ? `https://i.ytimg.com/vi/${videoId}/${quality}` : `https://i.ytimg.com${urlPath}`;
+    
+    try {
+      const request = await undici.request(targetUrl, {
+        headers: {
+          "User-Agent": user_agent,
+          ...(range && { range })
+        },
+        maxRedirections: 4
+      });
+      
+      // 画像が存在した場合 (200 OK または 206 Partial Content)
+      if (request.statusCode === 200 || request.statusCode === 206) {
+        res.status(request.statusCode);
+        if (!headersForwarded) {
+          for (const h of ["Accept-Ranges", "Content-Type", "Content-Range", "Content-Length", "Cache-Control"]) {
+            const headerValue = request.headers[h.toLowerCase()];
+            if (headerValue) res.setHeader(h, headerValue);
+          }
+          headersForwarded = true;
+        }
+        request.body.pipe(res);
+        request.body.on('error', err => {
+          console.error(err);
+          if (!res.headersSent) res.status(500).send(err.toString());
+        });
+        success = true;
+        break; // 成功したため、フォールバックのループを抜ける
+      } else {
+        // 404などで画像がない場合はデータを破棄して次の画質へ
+        await request.body.dump();
       }
-    });
-    stream.on('error', err => {
-      console.error("minigetエラー:", err);
-      res.status(500).send(err.toString());
-    });
-    stream.pipe(res);
+    } catch (err) {
+      console.error(`Fetch failed for ${targetUrl}:`, err.message);
+      // エラー時も次の画質を試す
+    }
+  }
+  
+  // 全ての画質が取得できなかった場合の最終手段（minigetでのフォールバック）
+  if (!success) {
+    try {
+      const stream = miniget(`https://i.ytimg.com${urlPath}`, {
+        headers: {
+          "User-Agent": user_agent
+        }
+      });
+      stream.on('error', err => {
+        console.error("minigetエラー:", err);
+        if (!res.headersSent) res.status(500).send(err.toString());
+      });
+      stream.pipe(res);
+    } catch (err) {
+      if (!res.headersSent) res.status(500).send(err.toString());
+    }
   }
 });
 
