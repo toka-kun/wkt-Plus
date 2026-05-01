@@ -73,7 +73,7 @@
                         </a>
                     </div>
                     <p class="text-lg font-bold"><%= video.title %></p>
-                    <p class="text-xs text-gray-500"><%= video.uploadedAt %> - <%= video.views %> 回再生</p>
+                    <p class="text-xs text-gray-500"><%= video.views %>回視聴 • <%= video.uploadedAt %></p>
                 </div>
               <% } else if (video.type === 'playlist') { %>
                 <div class="result-item bg-gray-600 p-4 rounded">
