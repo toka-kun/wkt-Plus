@@ -33,7 +33,7 @@ router.get('/:id', async (req, res) => {
 
             // 1. まず最優先の siawaseok を単独でチェック (タイムアウト2秒)
             try {
-                const siaRes = await axios.get('https://siawaseok.f5.si/api/cache', { timeout: 2000 });
+                const siaRes = await axios.get('https://siawaseok.f5.si/api/cache', { timeout: 5000 });
                 if (siaRes.data && siaRes.data[videoId]) {
                     apiToUse = 'siawaseok';
                     baseUrl = 'siawaseok';
