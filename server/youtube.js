@@ -96,6 +96,18 @@ function normalizeWatchNextFeed(rawFeed) {
     // チャンネルアイコンはアバター画像から取得
     const channelThumbUrl = item.metadata?.image?.avatar?.image?.[0]?.url || '';
 
+    // サムネイルオーバーレイ（ThumbnailOverlayBadgeView / ThumbnailBottomOverlayView）から再生時間を取得
+    let durationText = '';
+    for (const overlay of (item.content_image?.overlays || [])) {
+      for (const badge of (overlay.badges || [])) {
+        if (badge.text && /^\d/.test(badge.text)) {
+          durationText = badge.text;
+          break;
+        }
+      }
+      if (durationText) break;
+    }
+
     return {
       type: 'CompactVideo',
       id: videoId,
@@ -105,6 +117,7 @@ function normalizeWatchNextFeed(rawFeed) {
         name: channelName,
         thumbnails: channelThumbUrl ? [{ url: channelThumbUrl }] : []
       },
+      duration: durationText ? { text: durationText } : null,
       short_view_count: { text: viewCountText },
       published: publishedText ? { text: publishedText } : null
     };
