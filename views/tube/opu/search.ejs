@@ -6,39 +6,11 @@
     <title><%= res.correctedQuery %> - 検索</title>
     <link rel="stylesheet" href="/css/page.css">
     <script src="/js/tailwindcss.js"></script>
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="/js/tube.js"></script>
-<style>
-.result-item {
-  position: relative;
-}
-
-.thumbnail {
-  position: relative;
-  display: inline-block;
-}
-
-.video-duration {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 2px 4px;
-  border-radius: 2px;
-  font-size: 12px;
-}
-</style>
 </head>
 <body class="bg-gray-900 text-white">
-    <header class="bg-gray-800 flex p-4 justify-between items-center">
-        <input type="text" placeholder="Welcome" class="w-full p-2 rounded bg-gray-700 text-white">
-        <nav class="space-x-4">
-            <p class="text-gray-300 hover:text-white">わかめtube</p>
-        </nav>
-    </header>
     <header class="bg-gray-800 p-4 flex justify-between items-center fixed top-0 left-0 w-full z-10">
         <form action="/wkt/s" method="get" class="w-1/2 relative" id="searchForm">
             <input type="text" name="q" id="searchbox" placeholder="検索" value="<%= query %>" class="searchbox w-full p-2 pr-10 rounded bg-gray-700 text-white">
@@ -54,26 +26,34 @@
         </nav>
     </header>
   
-   <div class="container mx-auto p-4">
+   <div class="container mx-auto p-4 mt-20">
         <h2 class="text-xl font-bold mb-4">検索結果: <%= res.correctedQuery %></h2>
-        <p class="text-sm text-gray-500 mb-4"><%= res.results %>件のヒット</p>
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            <% res.items.forEach(video => { %>
+            <% res.items.forEach(function(video) { %>
                <% if (video.type === 'video') { %>
-                <div class="result-item w-auto bg-gray-800 p-4 rounded">
-                    <a href="/wkt/watch/<%= video.id %>" class="thumbnail">
-                        <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title %>" class="w-auto h-48 rounded">
-                        <span class="video-duration"><%= video.duration %></span>
+                <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
+                    <a href="/wkt/watch/<%= video.id %>" class="block relative group">
+                        <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title %>" class="w-full h-auto rounded aspect-video object-cover">
+                        <% if (video.duration) { %>
+                        <span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium"><%= video.duration %></span>
+                        <% } %>
+                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
                     </a>
-                    <div class="mt-2 flex items-center">
-                        <a href="/wkt/c/<%= video.author.channelID %>" class="flex items-center">
-                            <img src="<%= video.author.bestAvatar.url %>" alt="アイコン" class="w-8 h-8 rounded-full mr-2">
-                            <p class="text-sm text-gray-400"><%= video.author.name %></p>
+                    <div class="mt-3 flex items-start space-x-3">
+                        <% if (video.author?.bestAvatar?.url) { %>
+                        <a href="/wkt/c/<%= video.author.channelID %>" class="flex-shrink-0">
+                            <img src="<%= video.author.bestAvatar.url %>" alt="<%= video.author.name %>" class="w-9 h-9 rounded-full object-cover bg-gray-600 border border-gray-700">
                         </a>
+                        <% } %>
+                        <div class="flex-1 min-w-0">
+                            <a href="/wkt/watch/<%= video.id %>">
+                                <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= video.title %></p>
+                            </a>
+                            <a href="/wkt/c/<%= video.author?.channelID %>" class="text-gray-400 text-xs hover:text-white transition mb-0.5 block truncate"><%= video.author?.name || '' %></a>
+                            <p class="text-gray-500 text-xs"><%= video.views ? video.views + '回視聴' : '' %><% if (video.uploadedAt) { %> • <%= video.uploadedAt %><% } %></p>
+                        </div>
                     </div>
-                    <p class="text-lg font-bold"><%= video.title %></p>
-                    <p class="text-xs text-gray-500"><%= video.views %>回視聴 • <%= video.uploadedAt %></p>
                 </div>
               <% } else if (video.type === 'playlist') { %>
                 <div class="result-item bg-gray-600 p-4 rounded">
@@ -86,7 +66,7 @@
                     </div>
                 </div>
               <% } else if (video.type === 'channel') { %>
-                <div class="result-item bg-gray-500 p-4 rounded">
+                <div class="result-item bg-gray-600 p-4 rounded">
                   <a href="/wkt/c/<%= video.channelID %>">
                     <img src="<%= video.bestAvatar.url %>" alt="<%= video.name %>" class="w-full h-30 rounded">
                   </a>
@@ -100,12 +80,11 @@
             <% }); %>
         </div>
       <div class="flex justify-center mt-10 mb-6">
-    <a class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-blue-700 transition"
-       href="/wkt/ss?q=<%= query %>&p=<%= page+1 %>">
-      もっと読み込む
-    </a>
-</div>
-
+        <a class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-blue-700 transition"
+           href="/wkt/ss?q=<%= query %>&p=<%= page+1 %>">
+          もっと読み込む
+        </a>
+      </div>
     </div>
 <script>
 window.addEventListener("load", function() {
