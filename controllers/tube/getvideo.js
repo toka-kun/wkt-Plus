@@ -6,8 +6,37 @@ const axios = require("axios");
 
 const user_agent = process.env.USER_AGENT || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36";
 
-// サーバーリスト
+// サーバーリスト (senninytdlp を追加)
 const serverUrls = ['invidious', 'siawaseok', 'yudlp', 'ytdlpinstance-vercel', 'senninytdlp', 'min-tube2-api', 'xeroxyt-nt-apiv1', 'simple-yt-stream'];
+
+// ★ 新規追加: どんな形式のキャッシュデータでも確実に動画IDが含まれているか判定する関数
+function isVideoInCache(data, videoId) {
+    if (!data) return false;
+    
+    // データが文字列のまま返ってきた場合は、JSONオブジェクトに変換を試みる
+    let parsed = data;
+    if (typeof parsed === 'string') {
+        try { 
+            parsed = JSON.parse(parsed); 
+        } catch (e) { 
+            return false; 
+        }
+    }
+    
+    if (typeof parsed !== 'object') return false;
+    
+    // パターンA: {"video": ["ID1", "ID2"]} 形式 (yudlpなど)
+    if (parsed.video && Array.isArray(parsed.video) && parsed.video.includes(videoId)) {
+        return true;
+    }
+    
+    // パターンB: {"ID1": {...}, "ID2": {...}} 形式 (siawaseok, ytdlpinstance-vercel, senninytdlpなど)
+    if (videoId in parsed) {
+        return true;
+    }
+    
+    return false;
+}
 
 router.get('/:id', async (req, res) => {
     const videoId = req.params.id;
@@ -30,16 +59,17 @@ router.get('/:id', async (req, res) => {
         // ▼▼▼ パラメータ指定がない場合の自動キャッシュ検索ロジック ▼▼▼
         if (!selectedApi) {
             let cacheFound = false;
-            // タイムアウトを5秒(5000ms)に延長し、User-Agentを指定して弾かれるのを防ぐ
+            // タイムアウト2秒(2000ms) + User-Agent指定
             const reqOptions = { 
-                timeout: 5000, 
+                timeout: 2000, 
                 headers: { "User-Agent": user_agent } 
             };
 
             // 1. まず最優先の siawaseok を単独でチェック
             try {
                 const siaRes = await axios.get('https://siawaseok.f5.si/api/cache', reqOptions);
-                if (siaRes.data && siaRes.data[videoId]) {
+                // ★ 改良した判定関数を使用
+                if (isVideoInCache(siaRes.data, videoId)) {
                     apiToUse = 'siawaseok';
                     baseUrl = 'siawaseok';
                     fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
@@ -47,7 +77,7 @@ router.get('/:id', async (req, res) => {
                     cacheFound = true;
                 }
             } catch (e) {
-                console.log(`ℹ️ siawaseok キャッシュ確認スキップ (タイムアウト等): ${e.message}`);
+                console.log(`ℹ️ siawaseok キャッシュ確認スキップ: ${e.message}`);
             }
 
             // 2. siawaseok に無かった場合のみ、残り3つを並列でチェック
@@ -58,22 +88,22 @@ router.get('/:id', async (req, res) => {
                     axios.get('https://senninytdlp-42jz.vercel.app/cache', reqOptions)
                 ]);
 
-                // 優先順位2: yudlp (video配列の中に動画IDがあるか)
-                if (yudRes.status === 'fulfilled' && yudRes.value.data && yudRes.value.data.video && yudRes.value.data.video.includes(videoId)) {
+                // 優先順位2: yudlp
+                if (yudRes.status === 'fulfilled' && isVideoInCache(yudRes.value.data, videoId)) {
                     apiToUse = 'yudlp';
                     baseUrl = 'yudlp';
                     fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
                     console.log(`🎯 キャッシュヒット: yudlp (${videoId})`);
                 } 
-                // 優先順位3: ytdlpinstance-vercel (キーが動画ID)
-                else if (katuoRes.status === 'fulfilled' && katuoRes.value.data && katuoRes.value.data[videoId]) {
+                // 優先順位3: ytdlpinstance-vercel
+                else if (katuoRes.status === 'fulfilled' && isVideoInCache(katuoRes.value.data, videoId)) {
                     apiToUse = 'ytdlpinstance-vercel';
                     baseUrl = 'ytdlpinstance-vercel';
                     fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
                     console.log(`🎯 キャッシュヒット: ytdlpinstance-vercel (${videoId})`);
                 } 
-                // 優先順位4: senninytdlp (キーが動画ID)
-                else if (senninRes.status === 'fulfilled' && senninRes.value.data && senninRes.value.data[videoId]) {
+                // 優先順位4: senninytdlp
+                else if (senninRes.status === 'fulfilled' && isVideoInCache(senninRes.value.data, videoId)) {
                     apiToUse = 'senninytdlp';
                     baseUrl = 'senninytdlp';
                     fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
