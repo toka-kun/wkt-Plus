@@ -6,7 +6,7 @@ const axios = require("axios");
 
 const user_agent = process.env.USER_AGENT || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36";
 
-// サーバーリスト (senninytdlp を追加)
+// サーバーリスト
 const serverUrls = ['invidious', 'siawaseok', 'yudlp', 'ytdlpinstance-vercel', 'senninytdlp', 'min-tube2-api', 'xeroxyt-nt-apiv1', 'simple-yt-stream'];
 
 router.get('/:id', async (req, res) => {
@@ -30,10 +30,15 @@ router.get('/:id', async (req, res) => {
         // ▼▼▼ パラメータ指定がない場合の自動キャッシュ検索ロジック ▼▼▼
         if (!selectedApi) {
             let cacheFound = false;
+            // タイムアウトを5秒(5000ms)に延長し、User-Agentを指定して弾かれるのを防ぐ
+            const reqOptions = { 
+                timeout: 5000, 
+                headers: { "User-Agent": user_agent } 
+            };
 
-            // 1. まず最優先の siawaseok を単独でチェック (タイムアウト2秒)
+            // 1. まず最優先の siawaseok を単独でチェック
             try {
-                const siaRes = await axios.get('https://siawaseok.f5.si/api/cache', { timeout: 2000 });
+                const siaRes = await axios.get('https://siawaseok.f5.si/api/cache', reqOptions);
                 if (siaRes.data && siaRes.data[videoId]) {
                     apiToUse = 'siawaseok';
                     baseUrl = 'siawaseok';
@@ -42,15 +47,15 @@ router.get('/:id', async (req, res) => {
                     cacheFound = true;
                 }
             } catch (e) {
-                console.log(`ℹ️ siawaseok キャッシュ確認スキップ: ${e.message}`);
+                console.log(`ℹ️ siawaseok キャッシュ確認スキップ (タイムアウト等): ${e.message}`);
             }
 
             // 2. siawaseok に無かった場合のみ、残り3つを並列でチェック
             if (!cacheFound) {
                 const [yudRes, katuoRes, senninRes] = await Promise.allSettled([
-                    axios.get('https://yudlp.vercel.app/cache', { timeout: 2000 }),
-                    axios.get('https://ytdlpinstance-vercel.vercel.app/cache', { timeout: 2000 }),
-                    axios.get('https://senninytdlp-42jz.vercel.app/cache', { timeout: 2000 })
+                    axios.get('https://yudlp.vercel.app/cache', reqOptions),
+                    axios.get('https://ytdlpinstance-vercel.vercel.app/cache', reqOptions),
+                    axios.get('https://senninytdlp-42jz.vercel.app/cache', reqOptions)
                 ]);
 
                 // 優先順位2: yudlp (video配列の中に動画IDがあるか)
