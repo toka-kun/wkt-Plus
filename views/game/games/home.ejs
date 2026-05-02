@@ -23,7 +23,7 @@
         <svg id="icon-compress" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 3v5H3 M8 8L3 3 M16 3v5h5 M16 8l5-5 M8 21v-5H3 M8 16l-5 5 M16 21v-5h5 M16 16l5 5"></path>
         </svg>
-        <span id="fullscreen-text">全画面</span>
+        <span id="fullscreen-text">全画面オン</span>
     </button>
 
     <div class="flex-grow w-full h-screen pt-20 pb-4 px-4 box-border">
@@ -60,12 +60,12 @@
                 // 全画面中の表示
                 iconExpand.classList.add('hidden');
                 iconCompress.classList.remove('hidden');
-                btnText.textContent = '解除';
+                btnText.textContent = '全画面オフ';
             } else {
                 // 通常時の表示
                 iconExpand.classList.remove('hidden');
                 iconCompress.classList.add('hidden');
-                btnText.textContent = '全画面';
+                btnText.textContent = '全画面オン';
             }
         });
 
