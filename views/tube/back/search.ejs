@@ -5,45 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/page.css">
     <script src="/js/tailwindcss.js"></script>
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-<style>
-.result-item {
-  position: relative;
-}
-.thumbnail {
-  position: relative;
-  display: inline-block;
-}
-.video-duration {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 2px 4px;
-  border-radius: 2px;
-  font-size: 12px;
-}
-</style>
 </head>
 <body class="bg-gray-900 text-white">
     <div class="container mx-auto p-4">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            <%# データが存在する時だけループ処理を行う %>
             <% if (typeof res !== 'undefined' && res && res.results && Array.isArray(res.results)) { %>
-                <% res.results.forEach(video => { %>
+                <% res.results.forEach(function(video) { %>
                   <% if (video.type && video.type.endsWith("Video")) { %>
-                    <div class="result-item w-auto bg-gray-800 p-4 rounded">
-                        <a href="/wkt/watch/<%= video.id %>" class="thumbnail" target="_top">
-                          <img src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="thumbnail" class="w-full h-auto rounded">
+                    <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
+                        <a href="/wkt/watch/<%= video.id %>" class="block relative group" target="_top">
+                            <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title ? (video.title.text || video.title.toString()) : '' %>" class="w-full h-auto rounded aspect-video object-cover">
+                            <% if (video.duration?.text) { %>
+                            <span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium"><%= video.duration.text %></span>
+                            <% } %>
+                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
                         </a>
-                        <div class="mt-2">
-                            <p class="text-lg font-bold"><%= video.title ? (video.title.text || video.title.toString()) : 'タイトル不明' %></p>
-                            <p class="text-sm text-gray-400"><%= video.short_view_count?.text || '不明' %></p>
+                        <div class="mt-3 flex items-start space-x-3">
+                            <% if (video.author?.thumbnails?.[0]?.url) { %>
+                            <a href="/wkt/c/<%= video.author.id %>" class="flex-shrink-0" target="_top">
+                                <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="<%= video.author.name %>" class="w-9 h-9 rounded-full object-cover bg-gray-600 border border-gray-700">
+                            </a>
+                            <% } %>
+                            <div class="flex-1 min-w-0">
+                                <a href="/wkt/watch/<%= video.id %>" target="_top">
+                                    <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= video.title ? (video.title.text || video.title.toString()) : 'タイトル不明' %></p>
+                                </a>
+                                <a href="/wkt/c/<%= video.author?.id %>" class="text-gray-400 text-xs hover:text-white transition mb-0.5 block truncate" target="_top"><%= video.author?.name || '' %></a>
+                                <p class="text-gray-500 text-xs"><%= video.view_count?.text || video.short_view_count?.text || '' %><% if (video.published?.text) { %> • <%= video.published.text %><% } %></p>
+                            </div>
                         </div>
                     </div>
                   <% } else if (video.type && video.type.endsWith("Channel")) { %>
-                    <div class="bg-gray-800 p-4 rounded">
+                    <div class="result-item bg-gray-600 p-4 rounded">
                       <a href="/wkt/c/<%= video.author?.id || video.id %>" target="_top">
                         <% if (video.author?.thumbnails?.[0]?.url) { %>
                           <img src="<%= video.author.thumbnails[0].url %>" alt="<%= video.author?.name || 'チャンネル' %>" class="w-full h-auto rounded">
@@ -52,23 +45,21 @@
                         <div class="mt-2">
                             <p class="text-lg font-bold"><%= video.author?.name || '不明なチャンネル' %></p>
                             <p class="text-sm text-gray-400"><%= video.description_snippet?.text || '' %></p>
-                            <p class="text-xs text-gray-600"><%= video.subscriber_count?.text || '' %> • <%= video.videos?.text || video.video_count?.text || '' %></p>
+                            <p class="text-xs text-gray-600"><%= video.subscriber_count?.text || '' %><% if (video.videos?.text || video.video_count?.text) { %> • <%= video.videos?.text || video.video_count?.text %><% } %></p>
                         </div>
                     </div>
                   <% } %>
                 <% }); %>
             <% } else { %>
-                <%# データが取得できなかった場合の表示 %>
                 <div class="col-span-full text-center py-8">
                     <p class="text-gray-400">検索結果を取得できませんでした。</p>
                 </div>
             <% } %>
         </div>
         
-        <%# ここは if文 の外なので、動画があってもなくても必ず表示されます %>
         <div class="flex justify-center mt-10 mb-6">
             <a class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-blue-700 transition"
-               href="/wkt/back/search?q=<%= query %>">
+               href="/wkt/back/search?q=<%= query %>" target="_top">
               再読み込み
             </a>
         </div>
