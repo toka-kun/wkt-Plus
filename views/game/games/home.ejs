@@ -17,10 +17,13 @@
     </button>
 
     <button class="fixed top-5 right-5 z-50 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out flex items-center space-x-2" onclick="toggleFullScreen()">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg id="icon-expand" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
         </svg>
-        <span>全画面</span>
+        <svg id="icon-compress" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 14h4v4M4 14l-4 4m16-14h-4v-4m4 4l4-4M4 10h4V6M4 10l-4-4m16 14h-4v4m4-4l4 4"></path>
+        </svg>
+        <span id="fullscreen-text">全画面</span>
     </button>
 
     <div class="flex-grow w-full h-screen pt-20 pb-4 px-4 box-border">
@@ -47,13 +50,30 @@
             }
         }
 
-        // --- 2. URLパラメーターに応じてiframeのURLを切り替える処理 ---
+        // --- 2. 全画面状態の変更を検知してアイコンとテキストを切り替える ---
+        document.addEventListener('fullscreenchange', () => {
+            const iconExpand = document.getElementById('icon-expand');
+            const iconCompress = document.getElementById('icon-compress');
+            const btnText = document.getElementById('fullscreen-text');
+
+            if (document.fullscreenElement) {
+                // 全画面中の表示
+                iconExpand.classList.add('hidden');
+                iconCompress.classList.remove('hidden');
+                btnText.textContent = '解除';
+            } else {
+                // 通常時の表示
+                iconExpand.classList.remove('hidden');
+                iconCompress.classList.add('hidden');
+                btnText.textContent = '全画面';
+            }
+        });
+
+        // --- 3. URLパラメーターに応じてiframeのURLを切り替える処理 ---
         document.addEventListener('DOMContentLoaded', () => {
-            // URLからパラメーターを取得 (例: ?id=1v1)
             const urlParams = new URLSearchParams(window.location.search);
             const targetId = urlParams.get('id');
 
-            // ★ ここに後から簡単に追加できます ★
             const siteMap = {
                 '1v1': 'https://onev1-lol-jw-1.onrender.com/',
                 'aiothello': '/game/games/aiothello',
@@ -71,17 +91,13 @@
                 'vex4': 'https://vex4-2.onrender.com/',
                 'vex5': 'https://vex5-1.onrender.com/',
                 'vex6': 'https://vex6-1.onrender.com',
-                // 以下の形式で追加してください（最後のカンマを忘れないように）
-                // '新しいID': '新しいURL',
             };
 
             const iframe = document.getElementById('content-frame');
 
-            // パラメーターがsiteMapに存在するかチェック
             if (targetId && siteMap[targetId]) {
                 iframe.src = siteMap[targetId];
             } else {
-                // パラメーターがない、もしくは存在しないIDの場合はデフォルトのURLを表示
                 iframe.src = 'about:blank';
             }
         });
