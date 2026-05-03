@@ -50,8 +50,15 @@
         <div id="history-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             <p id="no-history" class="hidden">最近再生した動画はありません(´・ω・｀)</p>
         </div>
+        <div class="flex justify-center mt-10 mb-6">
+            <button id="load-more-history" class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-blue-700 transition hidden">
+                もっと読み込む
+            </button>
+        </div>
     </div>
 <script>
+const HISTORY_PAGE_SIZE = 20;
+
 function getHistoryFromLocalStorage() {
     const historyData = localStorage.getItem("wakametubehistory");
     try {
@@ -66,29 +73,43 @@ function displayHistory() {
     const history = getHistoryFromLocalStorage().reverse();
     const historyList = document.getElementById("history-list");
     const noHistoryMsg = document.getElementById("no-history");
+    const loadMoreButton = document.getElementById("load-more-history");
     historyList.innerHTML = "";
     if (!history || history.length === 0) {
         noHistoryMsg.classList.remove("hidden");
+        loadMoreButton.classList.add("hidden");
         return;
     } else {
         noHistoryMsg.classList.add("hidden");
     }
-    history.forEach((video, index) => {
-        const item = document.createElement("div");
-        item.className = "result-item  w-auto bg-gray-800 p-4 rounded relative";
-        item.innerHTML = `
-            <a href="/wkt/watch/${video.videoId}" class="thumbnail">
-                <img loading="lazy" src="/wkt/back/vi/${video.videoId}/mqdefault.jpg" alt="${video.videoTitle}" class="w-full h-auto rounded">
-            </a>
-            <div class="mt-2 flex items-center justify-between">
-                <a href="/wkt/c/${video.channelId}" class="flex items-center">
-                    <p class="text-sm text-gray-400">${video.channelName}</p>
+    let displayedCount = 0;
+    const renderHistory = () => {
+        const nextItems = history.slice(displayedCount, displayedCount + HISTORY_PAGE_SIZE);
+        nextItems.forEach((video) => {
+            const item = document.createElement("div");
+            item.className = "result-item w-auto bg-gray-800 p-4 rounded relative";
+            item.innerHTML = `
+                <a href="/wkt/watch/${video.videoId}" class="thumbnail">
+                    <img loading="lazy" src="/wkt/back/vi/${video.videoId}/mqdefault.jpg" alt="${video.videoTitle}" class="w-full h-auto rounded">
                 </a>
-            </div>
-            <p class="text-lg font-bold">${video.videoTitle}</p>
-        `;
-        historyList.appendChild(item);
-    });
+                <div class="mt-2 flex items-center justify-between">
+                    <a href="/wkt/c/${video.channelId}" class="flex items-center">
+                        <p class="text-sm text-gray-400">${video.channelName}</p>
+                    </a>
+                </div>
+                <p class="text-lg font-bold">${video.videoTitle}</p>
+            `;
+            historyList.appendChild(item);
+        });
+        displayedCount += nextItems.length;
+        if (displayedCount >= history.length) {
+            loadMoreButton.classList.add("hidden");
+        } else {
+            loadMoreButton.classList.remove("hidden");
+        }
+    };
+    loadMoreButton.onclick = renderHistory;
+    renderHistory();
 }
 
 function clearHistory() {
