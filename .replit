@@ -1,5 +1,3 @@
-run = "npm start"
-
 modules = ["nodejs-20", "web"]
 [agent]
 expertMode = true
