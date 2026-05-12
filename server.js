@@ -4,15 +4,15 @@ const path = require("path");
 const compression = require("compression");
 const bodyParser = require("body-parser");
 const serverYt = require("./server/youtube.js");
-const cors = require('cors');
-const cookieParser = require('cookie-parser');
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
 
-let app = express();
+const app = express();
 let client;
 let YouTubeJS;
 
 app.use(compression());
-app.use(express.static(__dirname + "/public"));
+app.use(express.static(path.join(__dirname, "public")));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -82,14 +82,10 @@ app.use((req, res) => {
 });
 app.on("error", console.error);
 
-const listener = app.listen(process.env.PORT || 5000, '0.0.0.0', () => {
-  console.log(process.pid, "Ready.", listener.address().port);
-});
-
 async function initInnerTube() {
   try {
     YouTubeJS = await import("youtubei.js");
-    client = await YouTubeJS.Innertube.create({ lang: "ja", location: "JP"});
+    client = await YouTubeJS.Innertube.create({ lang: "ja", location: "JP" });
     serverYt.setClient(client);
     console.log("YouTube client initialized successfully");
   } catch (e) {
@@ -101,3 +97,11 @@ async function initInnerTube() {
 
 process.on("unhandledRejection", console.error);
 initInnerTube();
+
+module.exports = app;
+
+if (require.main === module) {
+  const listener = app.listen(process.env.PORT || 5000, '0.0.0.0', () => {
+    console.log(process.pid, "Ready.", listener.address().port);
+  });
+}
