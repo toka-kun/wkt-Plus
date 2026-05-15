@@ -9,6 +9,9 @@ stack = "BEST_EFFORT_FALLBACK"
 
 [nix]
 channel = "stable-25_05"
+deps = [
+  "pkgs.nodejs_20"
+]
 
 [workflows]
 runButton = "Project"
