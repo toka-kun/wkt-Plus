@@ -1,3 +1,7 @@
+[deployment]
+run = "npm start"
+build = "npm install"
+
 modules = ["nodejs-20", "web"]
 [agent]
 expertMode = true
