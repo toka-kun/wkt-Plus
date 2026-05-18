@@ -52,13 +52,14 @@ pinned: false
 ## 対応しているデプロイサービス
 
 1. [Render](#-renderでのデプロイ手順)
-2. [Vercel](https://vercel.com/) （エラーが出やすい） 
-3. [Railway](https://railway.com/dashboard) （Portは8080にしてね）
-4. [Koyeb](#-koyebでのデプロイ手順)
-5. [CodeSandbox](#-codesandboxでのデプロイ手順)
-6. [Replit](https://replit.com/) （なんと全部自動でAIが最適化してくれます。無料枠はCodeSandboxよりもちょっと多いくらい）
-7. [Kuberns](https://dashboard.kuberns.com/)
-8. [Hugging Face Spaces](#-hugging-face-spacesでのデプロイ手順) （YouTubei.jsが使えないので中身のないただの箱になります）
+2. [Vercel](https://vercel.com/) （エラーが出やすい）
+3. [Netlify](https://app.netlify.com/) （エラーが出やすい）
+4. [Railway](https://railway.com/dashboard) （Portは8080にしてね）
+5. [Koyeb](#-koyebでのデプロイ手順)
+6. [CodeSandbox](#-codesandboxでのデプロイ手順)
+7. [Replit](https://replit.com/) （なんと全部自動でAIが最適化してくれます。無料枠はCodeSandboxよりもちょっと多いくらい）
+8. [Kuberns](https://dashboard.kuberns.com/)
+9. [Hugging Face Spaces](#-hugging-face-spacesでのデプロイ手順) （YouTubei.jsが使えないので中身のないただの箱になります）
 
 ---
 
