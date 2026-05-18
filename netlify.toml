@@ -4,8 +4,7 @@
   functions = "netlify/functions"
 
 [functions]
-  node_bundler = "esbuild"
-  included_files = ["views/**"]
+  node_bundler = "zisi"
 
 [[redirects]]
   from = "/*"
