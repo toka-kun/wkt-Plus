@@ -1,11 +1,13 @@
 [build]
   command = "npm install"
+  functions = "netlify/functions"
   publish = "public"
 
 [functions]
-  directory = "netlify/functions"
-  node_bundler = "zisi"
-  external_node_modules = ["ejs"]
+  included_files = [
+    "views/**",
+    "node_modules/ejs/**"
+  ]
 
 [[redirects]]
   from = "/*"
