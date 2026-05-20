@@ -58,7 +58,7 @@ pinned: false
 5. [Koyeb](#-koyebでのデプロイ手順)
 6. [CodeSandbox](#-codesandboxでのデプロイ手順)
 7. [Replit](https://replit.com/) （なんと全部自動でAIが最適化してくれます。無料枠はCodeSandboxよりもちょっと多いくらい）
-8. [Kuberns](https://dashboard.kuberns.com/)
+8. [Kuberns](https://dashboard.kuberns.com/) （トライアル期間のみ無料。2時間で止まるので手動で動かす必要がある）
 9. [Hugging Face Spaces](#-hugging-face-spacesでのデプロイ手順) （YouTubei.jsが使えないので中身のないただの箱になります）
 
 ---
@@ -176,6 +176,7 @@ pinned: false
 - 2026/05/01 - サムネイル画像に、指定した画質がなかったときのフォールバックを追加、お気に入りボタンを復活、あとはいろいろ微調整
 - 2026/05/03 - いろいろ微調整
 - 2026/05/18 - Netlifyへの対応
+- 2026/05/20 - プロキシの追加、Netlifyでもサムネが表示されるようになった（はず）。
 
 ---
 
