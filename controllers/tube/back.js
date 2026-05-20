@@ -14,6 +14,14 @@ router.use(express.json());
 
 const user_agent = process.env.USER_AGENT || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36";
 
+const isNetlify = !!process.env.NETLIFY;
+
+function redirectNetlifyImage(res, url) {
+  return res.redirect(
+    `/.netlify/images?url=${encodeURIComponent(url)}`
+  );
+}
+
 router.get('/suggest', (req, res) => {
     const keyword = req.query.keyword;
     const options = {
@@ -52,6 +60,15 @@ router.get('/suggest', (req, res) => {
 
 // ★ サムネイル取得のフォールバックロジックを追加
 router.get("/vi*", async (req, res) => {
+
+  // Netlifyでは画像CDNへ委譲
+  if (isNetlify) {
+    const urlPath = req.url.split("?")[0];
+    return redirectNetlifyImage(
+      res,
+      `https://i.ytimg.com${urlPath}`
+    );
+  }
   const range = req.headers.range;
   const urlPath = req.url.split("?")[0];
   const parts = urlPath.split("/");
@@ -143,6 +160,19 @@ router.get("/vi*", async (req, res) => {
 });
 
 router.get(["/yt3/*", "/ytc/*"], async (req, res) => {
+
+  // Netlifyでは画像CDNへ委譲
+  if (isNetlify) {
+    let url;
+
+    if (req.url.startsWith("/yt3/")) {
+      url = "https://yt3.ggpht.com" + req.url.slice(4);
+    } else {
+      url = "https://yt3.ggpht.com" + req.url;
+    }
+
+    return redirectNetlifyImage(res, url);
+  }
   let url = null;
   if (req.url.startsWith("/yt3/")){
     url = req.url.slice(4);
