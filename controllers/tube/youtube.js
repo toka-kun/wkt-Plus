@@ -10,11 +10,14 @@ const fetchConfigs = [
   { name: "edurl_sia",    url: "https://raw.githubusercontent.com/siawaseok3/wakame/master/video_config.json", type: "json", key: "params" },
   { name: "edurl_toka1",  url: "https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/keys/key1.json", type: "json", key: "result" },
   { name: "edurl_toka2",  url: "https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/keys/key2.json", type: "json", key: "result" },
-  { name: "edurl_wool1",  url: "https://raw.githubusercontent.com/woolisbest-4520/about-youtube/refs/heads/main/edu/parameter.txt", type: "text" },
-  { name: "edurl_wool2",  url: "https://raw.githubusercontent.com/woolisbest-4520/about-youtube/refs/heads/main/edu/edu.txt", type: "text" },
-  { name: "edurl_wool3",  url: "https://raw.githubusercontent.com/woolisbest-4520/about-youtube/refs/heads/main/edu/ep.txt", type: "text" },
-  { name: "edurl_wool4",  url: "https://raw.githubusercontent.com/woolisbest-4520/about-youtube/refs/heads/main/edu/key1.txt", type: "text" },
-  { name: "edurl_wool5",  url: "https://raw.githubusercontent.com/woolisbest-4520/about-youtube/refs/heads/main/edu/key2.txt", type: "text" },
+  { name: "edurl_toka3",  url: "https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/keys/key3.json", type: "json", key: "result" },
+  { name: "edurl_toka4",  url: "https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/keys/key4.json", type: "json", key: "result" },
+  { name: "edurl_wool1",  url: "https://raw.githubusercontent.com/wista-api-project/auto/refs/heads/main/edu/1.txt", type: "text" },
+  { name: "edurl_wool2",  url: "https://raw.githubusercontent.com/wista-api-project/auto/refs/heads/main/edu/2.txt", type: "text" },
+  { name: "edurl_wool3",  url: "https://raw.githubusercontent.com/wista-api-project/auto/refs/heads/main/edu/3.txt", type: "text" },
+  { name: "edurl_wool4",  url: "https://raw.githubusercontent.com/wista-api-project/auto/refs/heads/main/edu/4.txt", type: "text" },
+  { name: "edurl_wool5",  url: "https://raw.githubusercontent.com/wista-api-project/auto/refs/heads/main/edu/5.txt", type: "text" },
+  { name: "edurl_wool6",  url: "https://raw.githubusercontent.com/wista-api-project/auto/refs/heads/main/edu/6.txt", type: "text" },
   { name: "min-tube-api.json",url: "https://raw.githubusercontent.com/Minotaur-ZAOU/test/refs/heads/main/min-tube-api.json", type: "text" }  
 ];
 
