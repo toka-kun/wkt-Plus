@@ -136,7 +136,7 @@ function showTutorial() {
     document.body.appendChild(tutorialOverlay);
     document.getElementById('startTutorialBtn').addEventListener('click', function() {
         tutorialOverlay.remove();
-        showPlaybackSettings("https://www.youtube-nocookie.com/embed/nZTLOPMF_Lo?autoplay=1&amp;mute=0&playlist=nZTLOPMF_Lo&amp;origin=https%3A%2F%2Fwww.youtube.com", "nocookie");
+        showPlaybackSettings("https://www.youtube-nocookie.com/embed/nZTLOPMF_Lo?autoplay=1&amp;mute=0&rel=0&playlist=nZTLOPMF_Lo&amp;origin=https%3A%2F%2Fwww.youtube.com", "nocookie");
     });
     document.getElementById('skipBtn0').addEventListener('click', function() {
         localStorage.setItem('tutorialCompleted', 'true');
