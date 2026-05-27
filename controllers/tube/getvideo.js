@@ -29,55 +29,51 @@ router.get('/:id', async (req, res) => {
     try {
         // ▼▼▼ パラメータ指定がない場合の自動キャッシュ検索ロジック ▼▼▼
         if (!selectedApi) {
-            let cacheFound = false;
+            // タイムアウト5秒(5000ms) + User-Agent指定
+            const reqOptions = { 
+                timeout: 5000, 
+                headers: { "User-Agent": user_agent } 
+            };
 
-            // 1. まず最優先の siawaseok を単独でチェック (タイムアウト2秒)
-            try {
-                const siaRes = await axios.get('https://siawaseok.f5.si/api/cache', { timeout: 5000 });
-                if (siaRes.data && siaRes.data[videoId]) {
-                    apiToUse = 'siawaseok';
-                    baseUrl = 'siawaseok';
-                    fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
-                    console.log(`🎯 キャッシュヒット: siawaseok (${videoId})`);
-                    cacheFound = true;
-                }
-            } catch (e) {
-                console.log(`ℹ️ siawaseok キャッシュ確認スキップ: ${e.message}`);
+            // 4つのサーバーのキャッシュを完全に並列でチェック
+            const [siaRes, yudRes, katuoRes, senninRes] = await Promise.allSettled([
+                axios.get('https://siawaseok.f5.si/api/cache', reqOptions),
+                axios.get('https://yudlp.vercel.app/cache', reqOptions),
+                axios.get('https://ytdlpinstance-vercel.vercel.app/cache', reqOptions),
+                axios.get('https://senninytdlp-42jz.vercel.app/cache', reqOptions)
+            ]);
+
+            // 優先順位1: siawaseok (キーが動画ID)
+            if (siaRes.status === 'fulfilled' && siaRes.value.data && siaRes.value.data[videoId]) {
+                apiToUse = 'siawaseok';
+                baseUrl = 'siawaseok';
+                fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
+                console.log(`🎯 キャッシュヒット: siawaseok (${videoId})`);
             }
-
-            // 2. siawaseok に無かった場合のみ、残り3つを並列でチェック
-            if (!cacheFound) {
-                const [yudRes, katuoRes, senninRes] = await Promise.allSettled([
-                    axios.get('https://yudlp.vercel.app/cache', { timeout: 2000 }),
-                    axios.get('https://ytdlpinstance-vercel.vercel.app/cache', { timeout: 2000 }),
-                    axios.get('https://senninytdlp-42jz.vercel.app/cache', { timeout: 2000 })
-                ]);
-
-                // 優先順位2: yudlp (video配列の中に動画IDがあるか)
-                if (yudRes.status === 'fulfilled' && yudRes.value.data && yudRes.value.data.video && yudRes.value.data.video.includes(videoId)) {
-                    apiToUse = 'yudlp';
-                    baseUrl = 'yudlp';
-                    fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
-                    console.log(`🎯 キャッシュヒット: yudlp (${videoId})`);
-                } 
-                // 優先順位3: ytdlpinstance-vercel (キーが動画ID)
-                else if (katuoRes.status === 'fulfilled' && katuoRes.value.data && katuoRes.value.data[videoId]) {
-                    apiToUse = 'ytdlpinstance-vercel';
-                    baseUrl = 'ytdlpinstance-vercel';
-                    fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
-                    console.log(`🎯 キャッシュヒット: ytdlpinstance-vercel (${videoId})`);
-                } 
-                // 優先順位4: senninytdlp (キーが動画ID)
-                else if (senninRes.status === 'fulfilled' && senninRes.value.data && senninRes.value.data[videoId]) {
-                    apiToUse = 'senninytdlp';
-                    baseUrl = 'senninytdlp';
-                    fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
-                    console.log(`🎯 キャッシュヒット: senninytdlp (${videoId})`);
-                }
-                // どれにもキャッシュがない場合
-                else {
-                    console.log(`ℹ️ キャッシュなし: デフォルトの invidious を使用 (${videoId})`);
-                }
+            // 優先順位2: yudlp (video配列の中に動画IDがあるか)
+            else if (yudRes.status === 'fulfilled' && yudRes.value.data && yudRes.value.data.video && yudRes.value.data.video.includes(videoId)) {
+                apiToUse = 'yudlp';
+                baseUrl = 'yudlp';
+                fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
+                console.log(`🎯 キャッシュヒット: yudlp (${videoId})`);
+            } 
+            // 優先順位3: ytdlpinstance-vercel (キーが動画ID)
+            else if (katuoRes.status === 'fulfilled' && katuoRes.value.data && katuoRes.value.data[videoId]) {
+                apiToUse = 'ytdlpinstance-vercel';
+                baseUrl = 'ytdlpinstance-vercel';
+                fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
+                console.log(`🎯 キャッシュヒット: ytdlpinstance-vercel (${videoId})`);
+            } 
+            // 優先順位4: senninytdlp (キーが動画ID)
+            else if (senninRes.status === 'fulfilled' && senninRes.value.data && senninRes.value.data[videoId]) {
+                apiToUse = 'senninytdlp';
+                baseUrl = 'senninytdlp';
+                fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
+                console.log(`🎯 キャッシュヒット: senninytdlp (${videoId})`);
+            }
+            // どれにもキャッシュがない場合
+            else {
+                console.log(`ℹ️ キャッシュなし: デフォルトの invidious を使用 (${videoId})`);
             }
         }
         // ▲▲▲ ここまで ▲▲▲
