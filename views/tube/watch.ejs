@@ -158,32 +158,45 @@
         <audio id="audio" style="display: none;"></audio>
         <button id="erroreloadButton" class="hidden absolute top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl shadow-lg hover:bg-blue-700 transition">🔄 動画を再読み込み</button>
         </div>
-            <div class="flex items-center mt-4 p-4 bg-gray-800 rounded">
-              <a href="/wkt/c/<%= videoInfo.channels[0].id %>" class="flex-shrink-0">
-                <img src="<%= videoInfo.channels[0].icon %>" alt="アイコン" class="w-12 h-12 rounded-full">
-              </a>
-              <div class="ml-4 flex-1 min-w-0">
+            <div class="flex items-start mt-4 p-4 bg-gray-800 rounded gap-3">
+              <div class="flex-1 min-w-0">
                 <% if (videoInfo.channels.length === 1) { %>
-                  <h2 class="text-lg font-bold"><a href="/wkt/c/<%= videoInfo.channels[0].id %>"><%= videoInfo.channels[0].name %></a></h2>
-                  <p class="text-sm text-gray-400"><%= videoInfo.channels[0].subsc %></p>
+                  <div class="flex items-center gap-3">
+                    <a href="/wkt/c/<%= videoInfo.channels[0].id %>" class="flex-shrink-0">
+                      <img src="<%= videoInfo.channels[0].icon %>" alt="アイコン" class="w-12 h-12 rounded-full">
+                    </a>
+                    <div class="min-w-0">
+                      <h2 class="text-lg font-bold"><a href="/wkt/c/<%= videoInfo.channels[0].id %>"><%= videoInfo.channels[0].name %></a></h2>
+                      <p class="text-sm text-gray-400"><%= videoInfo.channels[0].subsc %></p>
+                    </div>
+                  </div>
                 <% } else { %>
-                  <ul class="space-y-0.5">
+                  <ul class="space-y-3">
                     <% videoInfo.channels.forEach(function(ch) { %>
-                      <li class="flex items-baseline gap-2">
-                        <% if (ch.id) { %>
-                          <a href="/wkt/c/<%= ch.id %>" class="font-bold hover:underline"><%= ch.name %></a>
-                        <% } else { %>
-                          <span class="font-bold"><%= ch.name %></span>
-                        <% } %>
-                        <% if (ch.subsc) { %><span class="text-xs text-gray-400"><%= ch.subsc %></span><% } %>
+                      <li class="flex items-center gap-3">
+                        <a href="<%= ch.id ? '/wkt/c/' + ch.id : '#' %>" class="flex-shrink-0">
+                          <% if (ch.icon) { %>
+                            <img src="<%= ch.icon %>" alt="<%= ch.name %>" class="w-10 h-10 rounded-full object-cover">
+                          <% } else { %>
+                            <div class="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center text-gray-400 text-xs">ch</div>
+                          <% } %>
+                        </a>
+                        <div class="min-w-0">
+                          <% if (ch.id) { %>
+                            <a href="/wkt/c/<%= ch.id %>" class="font-bold hover:underline block truncate"><%= ch.name %></a>
+                          <% } else { %>
+                            <span class="font-bold block truncate"><%= ch.name %></span>
+                          <% } %>
+                          <% if (ch.subsc) { %><p class="text-xs text-gray-400"><%= ch.subsc %></p><% } %>
+                        </div>
                       </li>
                     <% }); %>
                   </ul>
                 <% } %>
               </div>
-                  <button id="favoriteBtn" class="ml-auto p-2 rounded-full bg-gray-500">
-                      <img id="favoriteIcon" src="https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png" alt="お気に入り" class="w-8 h-8">
-                  </button>
+              <button id="favoriteBtn" class="flex-shrink-0 p-2 rounded-full bg-gray-500">
+                <img id="favoriteIcon" src="https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png" alt="お気に入り" class="w-8 h-8">
+              </button>
             </div>
 
     <div class="mt-4 p-4 bg-gray-800 rounded">
