@@ -127,47 +127,49 @@ function normalizeWatchNextFeed(rawFeed) {
 // コラボ動画を含む全チャンネルを channels 配列として抽出する
 // 戻り値: [{id, name, icon, subsc}] (primary が先頭、collab チャンネルが続く)
 function extractChannels(Info) {
-  const owner = Info.secondary_info.owner;
-  const primary = {
-    id:    owner.author.id || '',
-    name:  owner.author.name || '',
-    icon:  owner.author.thumbnails?.[0]?.url || '',
-    subsc: owner.subscriber_count?.text || ''
-  };
+  const owner = Info.secondary_info?.owner;
 
-  const channels = [primary];
+  // コラボ動画の判定: author.id が 'N/A' のとき、showDialogCommand でチャンネル一覧が渡される
+  if (owner?.author?.id === 'N/A') {
+    try {
+      const listItems = owner.author?.endpoint?.payload
+        ?.panelLoadingStrategy?.inlineContent?.dialogViewModel
+        ?.customContent?.listViewModel?.listItems;
 
-  // MetadataRowContainer の各行を検索してコラボチャンネルリンクを収集
-  try {
-    const rows = Info.secondary_info.metadata?.rows;
-    if (Array.isArray(rows)) {
-      for (const row of rows) {
-        if (!row || row.type !== 'MetadataRow') continue;
-        const contents = row.contents;
-        if (!Array.isArray(contents)) continue;
-        for (const content of contents) {
-          const runs = content?.runs;
-          if (!Array.isArray(runs)) continue;
-          for (const run of runs) {
-            const browseId = run.endpoint?.payload?.browseId;
-            if (!browseId) continue;
-            // チャンネルIDは UC で始まる
-            if (!browseId.startsWith('UC')) continue;
-            // primary と重複するものは除外
-            if (channels.some(ch => ch.id === browseId)) continue;
-            channels.push({
-              id:    browseId,
-              name:  run.text || '',
-              icon:  '',
-              subsc: ''
-            });
-          }
-        }
+      if (Array.isArray(listItems) && listItems.length > 0) {
+        const channels = listItems.map(item => {
+          const lvm = item?.listItemViewModel;
+          if (!lvm) return null;
+
+          const name = lvm.title?.content || '';
+          const id   = lvm.title?.commandRuns?.[0]?.onTap?.innertubeCommand
+                         ?.browseEndpoint?.browseId || '';
+          const icon = lvm.leadingAccessory?.avatarViewModel?.image?.sources?.[0]?.url || '';
+
+          // subtitle: "⁨@handle⁩ • ⁨チャンネル登録者数 X万人⁩" → "チャンネル登録者数 X万人"
+          const rawSubtitle = lvm.subtitle?.content || '';
+          const subsc = rawSubtitle.includes('•')
+            ? rawSubtitle.split('•').slice(1).join('•')
+                .replace(/[\u200e\u200f\u2068\u2069]/g, '').trim()
+            : '';
+
+          if (!id || !name) return null;
+          return { id, name, icon, subsc };
+        }).filter(Boolean);
+
+        if (channels.length > 0) return channels;
       }
-    }
-  } catch (_) {}
+    } catch (_) {}
+  }
 
-  return channels;
+  // 通常動画 (チャンネル1つ)
+  const primary = {
+    id:    owner?.author?.id    || '',
+    name:  owner?.author?.name  || '',
+    icon:  owner?.author?.thumbnails?.[0]?.url || '',
+    subsc: owner?.subscriber_count?.text || ''
+  };
+  return [primary];
 }
 
 module.exports = {
