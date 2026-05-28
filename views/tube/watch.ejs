@@ -176,18 +176,18 @@
                       <li class="flex items-center gap-3">
                         <a href="<%= ch.id ? '/wkt/c/' + ch.id : '#' %>" class="flex-shrink-0">
                           <% if (ch.icon) { %>
-                            <img src="<%= ch.icon %>" alt="<%= ch.name %>" class="w-10 h-10 rounded-full object-cover">
+                            <img src="<%= ch.icon %>" alt="<%= ch.name %>" class="w-12 h-12 rounded-full object-cover">
                           <% } else { %>
-                            <div class="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center text-gray-400 text-xs">ch</div>
+                            <div class="w-12 h-12 rounded-full bg-gray-600"></div>
                           <% } %>
                         </a>
                         <div class="min-w-0">
                           <% if (ch.id) { %>
-                            <a href="/wkt/c/<%= ch.id %>" class="font-bold hover:underline block truncate"><%= ch.name %></a>
+                            <h2 class="text-lg font-bold"><a href="/wkt/c/<%= ch.id %>"><%= ch.name %></a></h2>
                           <% } else { %>
-                            <span class="font-bold block truncate"><%= ch.name %></span>
+                            <h2 class="text-lg font-bold"><%= ch.name %></h2>
                           <% } %>
-                          <% if (ch.subsc) { %><p class="text-xs text-gray-400"><%= ch.subsc %></p><% } %>
+                          <% if (ch.subsc) { %><p class="text-sm text-gray-400"><%= ch.subsc %></p><% } %>
                         </div>
                       </li>
                     <% }); %>
