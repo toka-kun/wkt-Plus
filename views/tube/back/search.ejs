@@ -22,15 +22,19 @@
                         </a>
                         <div class="mt-3 flex items-start space-x-3">
                             <% if (video.author?.thumbnails?.[0]?.url) { %>
-                            <a href="/wkt/c/<%= video.author.id %>" class="flex-shrink-0" target="_top">
+                            <a href="<%= (video.author?.id && video.author.id !== 'N/A') ? '/wkt/c/' + video.author.id : '/wkt/watch/' + video.id %>" class="flex-shrink-0" target="_top">
+                                <% if (video.author.id === 'N/A') { %>
+                                <img src="<%= video.author.thumbnails[0].url %>" alt="<%= video.author.name %>" class="w-9 h-9 rounded-full object-cover bg-gray-600 border border-gray-700">
+                                <% } else { %>
                                 <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="<%= video.author.name %>" class="w-9 h-9 rounded-full object-cover bg-gray-600 border border-gray-700">
+                                <% } %>
                             </a>
                             <% } %>
                             <div class="flex-1 min-w-0">
                                 <a href="/wkt/watch/<%= video.id %>" target="_top">
                                     <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= video.title ? (video.title.text || video.title.toString()) : 'タイトル不明' %></p>
                                 </a>
-                                <a href="/wkt/c/<%= video.author?.id %>" class="text-gray-400 text-xs hover:text-white transition mb-0.5 block truncate" target="_top"><%= video.author?.name || '' %></a>
+                                <a href="<%= (video.author?.id && video.author.id !== 'N/A') ? '/wkt/c/' + video.author.id : '/wkt/watch/' + video.id %>" class="text-gray-400 text-xs hover:text-white transition mb-0.5 block truncate" target="_top"><%= video.author?.name || '' %></a>
                                 <p class="text-gray-500 text-xs"><%= video.view_count?.text || video.short_view_count?.text || '' %><% if (video.published?.text) { %> • <%= video.published.text %><% } %></p>
                             </div>
                         </div>
