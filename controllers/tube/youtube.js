@@ -83,7 +83,7 @@ router.get('/edu/:id', async (req, res) => {
 router.get('/nocookie/:id', async (req, res) => {
   const videoId = req.params.id;
   try {
-    const videosrc = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&amp;mute=0&rel=0&playlist=${videoId}&amp;origin=https%3A%2F%2Fwww.youtube.com`;
+    const videosrc = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&amp;mute=0&rel=0&playlist=${videoId}&amp;origin=https%3A%2F%2Fwww.youtube.com&amp;widget_referrer=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D${videoId}`;
     const Info = await serverYt.infoGet(videoId);
     const channels = serverYt.extractChannels(Info);
     const videoInfo = {
