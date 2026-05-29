@@ -3,6 +3,7 @@ const axios = require('axios');
 let apis = null;
 let xeroxApis = null;
 let minTubeApis = null;
+let aceThinkerApis = null; // ★ 新規追加
 const MAX_API_WAIT_TIME = 5000; 
 const MAX_TIME = 10000;       // 高速サーバー用 (10秒)
 const MAX_TIME_SLOW = 20000;  // 低速サーバー用 (20秒)
@@ -269,7 +270,7 @@ async function getKatuoTube(videoId) {
 }
 
 // =========================================
-// ★ SenninTube Plus API からの取得 (新規追加)
+// ★ SenninTube Plus API からの取得
 // =========================================
 async function getSenninTube(videoId) {
     try {
@@ -323,6 +324,78 @@ async function getSenninTube(videoId) {
 }
 
 // =========================================
+// ★ AceThinker API からの取得 (新規追加)
+// =========================================
+async function getAceThinkerApis() {
+    try {
+        const response = await axios.get('https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/apis/AceThinker/yes.json');
+        aceThinkerApis = await response.data;
+    } catch (error) {
+        console.error('AceThinkerサーバーリストの取得に失敗:', error);
+    }
+}
+
+async function getAceThinker(videoId) {
+    const startTime = Date.now();
+    if (!aceThinkerApis) await getAceThinkerApis();
+    if (!aceThinkerApis || aceThinkerApis.length === 0) throw new Error("AceThinkerのAPIリストがありません");
+
+    const shuffledApis = shuffleArray([...aceThinkerApis]);
+
+    for (const instance of shuffledApis) {
+        try {
+            const apiUrl = `${instance}/api/dlapinewv2.php?url=https://www.youtube.com/watch?v=${videoId}`;
+            const response = await axios.get(apiUrl, { timeout: MAX_TIME }); 
+            const resData = response.data.res_data;
+            
+            if (resData && resData.formats) {
+                console.log(`✅ 使用したAPI (AceThinker): ${apiUrl}`);
+                const formats = resData.formats;
+
+                // 統合ストリーム: acodecもvcodecもnoneではないもの
+                const combinedStream = formats.find(f => f.acodec !== 'none' && f.vcodec !== 'none');
+                const streamUrl = combinedStream?.url || '';
+
+                // 標準オーディオ
+                const audioStream = formats.find(f => f.vcodec === 'none' && String(f.itag) === '251') || 
+                                    formats.find(f => f.vcodec === 'none');
+                const audioUrl = audioStream?.url || '';
+
+                // 音声リスト: vcodecがnoneのもの
+                const audioUrls = formats
+                    .filter(f => f.vcodec === 'none')
+                    .map(f => ({
+                        url: f.url,
+                        name: f.quality ? `${f.ext} (${f.quality})` : f.ext,
+                        container: f.ext
+                    }));
+
+                // 映像リスト: acodecがnoneのもの
+                const streamUrls = formats
+                    .filter(f => f.acodec === 'none')
+                    .map(f => ({
+                        url: f.url,
+                        resolution: f.quality || '',
+                        container: f.ext || 'mp4',
+                        fps: null // jsonにfpsフィールドがないためnull固定
+                    }));
+
+                return {
+                    stream_url: streamUrl || streamUrls[0]?.url || '',
+                    audioUrl: audioUrl,
+                    audioUrls: audioUrls,
+                    streamUrls: streamUrls
+                };
+            }
+        } catch (error) {
+            console.error(`❌ エラー: ${instance} - ${error.message}`);
+        }
+        if (Date.now() - startTime >= MAX_TIME) throw new Error("接続がタイムアウトしました");
+    }
+    throw new Error("AceThinker APIで動画を取得できませんでした");
+}
+
+// =========================================
 // ④ XeroxYT-NT API からの取得 (低速・ランダム)
 // =========================================
 async function getXeroxApis() {
@@ -350,7 +423,7 @@ async function getXeroxNT(videoId) {
             if (data && data.streamingUrl) {
                 console.log(`✅ 使用したAPI (XeroxYT-NT): ${apiUrl}`);
                 
-                // ★ 修正ポイント: formatsから画質リストを抽出
+                // formatsから画質リストを抽出
                 const streamUrls = (data.formats || []).map(f => ({
                     url: f.url,
                     resolution: f.quality || (f.height ? f.height + 'p' : 'Auto'),
@@ -406,7 +479,7 @@ async function getMinTube2(videoId) {
                     streamUrls.push({ url: data.highstreamUrl, resolution: 'High Quality', container: 'mp4', fps: null });
                 }
 
-                // ★ 修正ポイント: audioUrlsを空にし、EJSで「Default」と表示させる
+                // audioUrlsを空にし、EJSで「Default」と表示させる
                 return {
                     stream_url: data.stream_url, 
                     audioUrl: data.audioUrl || '',
@@ -433,7 +506,7 @@ async function getWistaStream(videoId) {
         
         console.log(`✅ 使用したAPI (Wista Stream): ${apiUrl}`);
 
-        // ★ 修正ポイント: fpsがnullのものを音声ストリームとして取得
+        // fpsがnullのものを音声ストリームとして取得
         const audioStream = streams.find(s => s.fps === null);
         const audioUrl = audioStream?.url || '';
 
@@ -489,6 +562,9 @@ async function getYouTube(videoId, apiType = 'invidious') {
         result = await getKatuoTube(videoId);
     } else if (apiType === 'senninytdlp') {
         result = await getSenninTube(videoId);
+    } else if (apiType === 'acethinker') {
+        // ★ AceThinkerへの振り分け
+        result = await getAceThinker(videoId);
     } else if (apiType === 'xeroxyt-nt-apiv1') {
         result = await getXeroxNT(videoId);
     } else if (apiType === 'min-tube2-api') {
@@ -503,7 +579,7 @@ async function getYouTube(videoId, apiType = 'invidious') {
         const newStreamUrls = [];
         const seenUrls = new Set(); 
 
-        // ★ 修正ポイント: 統合ストリームのURLを予め重複リストに追加し、
+        // 統合ストリームのURLを予め重複リストに追加し、
         // 画質メニューで同じURLが「統合ストリーム」と「360p」などで被るのを防ぐ
         if (result.stream_url) {
             seenUrls.add(result.stream_url);
