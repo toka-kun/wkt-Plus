@@ -27,6 +27,7 @@
             <a href="/wkt" class="text-gray-300 hover:text-white">ホーム</a>
             <a href="/wkt/trend" class="text-gray-300 hover:text-white">トレンド</a>
             <a href="/wkt/cl/history" class="text-gray-300 hover:text-white">再生履歴</a>
+            <a href="/wkt/cl/fav" class="text-gray-300 hover:text-white">お気に入り</a>
         </nav>
     </header>
 
@@ -52,7 +53,7 @@
           <p>まずは<a href="/wkt">ホーム</a>に移動してみて。それで、検索バーにキーワードを入力して検索！<br>
           動画が出てくるから、見たい動画のサムネイル(画像)を押してね。再生ページに移動するよ。  <div class="bg-yellow-600 text-white p-3 rounded-lg mt-4">
         <h3 class="font-semibold text-xl">⚠️ 動画を連打しないでください！</h3>
-          <p>動画ページにすぐに移動しなくても、<strong>連打しないで下さい</strong>。サーバーに余計な負荷がかかってしまいます...。</p>
+          <p>動画ページにすぐに移動しなくても、<strong>連打しないで下さい</strong>。サーバーに余計な負荷がかかってしまいます...。あまりにも負荷が大きい場合、アクセスを拒否させていただきます。</p>
         </div><div class="bg-blue-600 text-white p-3 rounded-lg mt-4">
            <h3 class="font-semibold text-xl">ℹ️ 初回再生時にチュートリアルが表示されます</h3>
             <p>あなたの端末がYouTubeの埋め込みを制限していない場合、通常の再生方法よりも埋め込みで視聴した方が良いです。確認してみてね</p>
@@ -135,7 +136,7 @@
         <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
           <p>サイドバーにある「<strong>コントロール</strong>」ボタンをクリックしてください。画質や音質を変更するオプションが表示されます。  <div class="bg-red-500 text-white p-3 rounded-lg mt-4">
        <h3 class="font-semibold text-xl">❗ 音がずれてしまう場合</h3>
-         <p>360p以外の再生は、<strong>動画と音声を別々で</strong>読み込んで再生しています。音がずれていると感じた場合は、一度再生を停止して、少し待ってから再び再生して下さい。どうしてもズレている場合は音質を変更して下さい。</p>
+         <p>統合ストリームとm3u8以外の再生は、<strong>動画と音声を別々で</strong>読み込んで再生しています。音がずれていると感じた場合は、一度再生を停止して、少し待ってから再び再生して下さい。どうしてもズレている場合は音質を変更して下さい。</p>
        </div></p>
         </div>
       </div>
@@ -148,9 +149,9 @@
           </svg>
         </button>
         <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>画質ですが、FPSが取得できる場合はすべて取得し表示させています。それで各ファイル形式ですが<br>
-          <strong>- 標準ストリーム</strong>: デフォルトの360pです。映像と音声が一緒なので、音がずれるとかいう現象が起こりません。360pでいいならこれが一番オススメ。<br>
-          <strong>- m3u8</strong>: 使用するサーバーによって取得できるかどうかが異なりますが、取得できた場合はmp4と同じ1080p以下にあります。m3u8は映像と音声が一緒なので、音がずれるとかいう現象が起こりません。<br>
+          <p>画質ですが、FPSが取得できる場合はすべて取得し表示させています（これは使用したサーバーによって違います）。それで各ファイル形式ですが<br>
+          <strong>- 統合ストリーム</strong>: デフォルトの360pです。映像と音声が一緒なので、音がずれるとかいう現象が起こりません。360pでいいならこれが一番オススメ。<br>
+          <strong>- m3u8</strong>: 使用するサーバーによって取得できるかどうかが異なりますが、取得できた場合はmp4と同じ1080p以下にあります。映像と音声が一緒なので、音がずれるとかいう現象が起こりません。<br>
           <strong>- mp4</strong>: 1080p以下の全ての画質にあります。<br>
           <strong>- webm</strong>: 1080p以下だと360pのみの場合もありますが、1080pよりも大きいサイズはwebmにしかありません。旧わかめtubeではwebmのみ取得されていました。<br><br>
           音質は後ろに(LOW)とか(medium)とかがついてると思いますがこれが音質を表します。ついていなければ取得できなかったということです（これは使用したサーバーによって違います）。<br>
@@ -180,13 +181,16 @@
         <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
           <p>わかめtube Plusでは、様々なAPIからストリーミングURLを取得できるようになっています。<br><br>
           <strong>- Invidious API</strong>: デフォルトでこのAPIを使用します。最も信頼でき、長年世界中の「YouTubeの追跡から逃れたい！」という人々の動画視聴を支え続けています。旧わかめtubeではdirectサーバーと呼ばれていました。<br>
-          <strong>- SiaTube API</strong>: しあtubeで使用されているAPIです。YuZuTube APIやKatuoTube APIよりもこちらを推奨。ライブ配信に対応しています。<br>
-          <strong>- YuZuTube API</strong>: YuZuTubeで使用されているAPIです。ライブ配信に対応しています。<br>
-          <strong>- KatuoTube API</strong>: かつおtubeで使用されているAPIです。ライブ配信に対応しています。<br>
-          <strong>- MIN-Tube2 API</strong>: MIN-Tube2で使用されているAPIです。ただしこのAPI自体が動画情報をInvidousから取得しているので、これを使うのであればInvidious APIを推奨しています。<br>
-          <strong>- XeroxYT-NT API</strong>: XeroxYT-NTで使用されているAPIです。標準ストリームしか取得できません<br>
-          <strong>- Wista Stream API</strong>: Wistaで使用されているAPIです。サーバーが応答しないことが多く、取得できてもかなり時間がかかります。ライブ配信に対応しています。<br><br>
-          動画が取得できなかった時は上から順番に使って下さい。</p>
+          <strong>- AceThinker API</strong>: AceThinker系列のダウンローダーのAPIです。Invidious級の安定感を誇ります。<br>
+          <strong>- MIN-Tube2 API</strong>: MIN-Tube2で使用されているAPIです。ただしこのAPI自体が動画情報をInvidousから取得しているので、これを使うのであればInvidious APIを推奨しています。<br><br>
+          <strong>- これらのAPIは全てsiawaseokさんのProxyに依存しており、ライブ配信に対応しています。ただしsiawaseokさんのProxyが死んだら全部使えなくなるので注意。
+          <strong>  - SiaTube API</strong>: しあtubeで使用されているAPIです。YuZuTube APIやKatuoTube APIよりもこちらを推奨。<br>
+          <strong>  - YuZuTube API</strong>: YuZuTubeで使用されているAPIです。<br>
+          <strong>  - KatuoTube API</strong>: かつおtubeで使用されているAPIです。<br>
+          <strong>  - SenninTube Plus API</strong>: 仙人tube Plusで使用されているAPIです。<br>
+          <strong>  - XeroxYT-NT APIv1</strong>: XeroxYT-NTで使用されているAPIです。<br>
+          <strong>  - Wista Stream API</strong>: Wistaとチョコtubeで使用されているAPIです。<br><br>
+          ここでは説明の関係上動画ページでのサーバー選択画面と並び方を変えています。</p>
         </div>
       </div>
   
@@ -200,7 +204,7 @@
         <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
           <p>動画を取得できない、動画を再生できない状態です。サーバーを変更したり再読み込みしたりしてみてください。それでも上手くいかない場合、時間をおいて試してみて下さいね。<div class="bg-yellow-600 text-white p-3 rounded-lg mt-4">
         <h3 class="font-semibold text-xl">⚠️ 再読み込みを連打しないでください！</h3>
-          <p>再生できなくても連続で再読み込みを行わないで下さい。サーバーに余計な負荷がかかってしまいます...。</p>
+          <p>再生できなくても連続で再読み込みを行わないで下さい。サーバーに余計な負荷がかかってしまいます...。あまりにも負荷が大きい場合、アクセスを拒否させていただきます。</p>
         </div></p>
         </div>
       </div>
@@ -227,7 +231,7 @@
         <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
           <p>サーバーが応答しなかったことを意味します。サーバーを変更してお試しください。<div class="bg-yellow-600 text-white p-3 rounded-lg mt-4">
         <h3 class="font-semibold text-xl">⚠️ 再読み込みを連打しないでください！</h3>
-          <p>再生できなくても連続で再読み込みを行わないで下さい。サーバーに余計な負荷がかかってしまいます...。</p>
+          <p>再生できなくても連続で再読み込みを行わないで下さい。サーバーに余計な負荷がかかってしまいます...。あまりにも負荷が大きい場合、アクセスを拒否させていただきます。</p>
         </div></p>
         </div>
       </div>
