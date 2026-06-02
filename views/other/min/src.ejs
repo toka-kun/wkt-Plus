@@ -132,6 +132,7 @@
             font-size: 12px; font-weight: 600; font-family: var(--font-mono);
             color: var(--text-sub); cursor: pointer; transition: 0.15s;
             display: flex; align-items: center; gap: 6px;
+            min-width: 110px; justify-content: center;
         }
         .sort-btn:hover { border-color: var(--accent); color: var(--accent); }
         .sort-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
@@ -171,6 +172,8 @@
         }
         .badge-vercel { background: rgba(255,255,255,0.1); color: #e8eaf0; border: 1px solid rgba(255,255,255,0.2); }
         .badge-render { background: rgba(70,227,183,0.15); color: #46e3b7; border: 1px solid rgba(70,227,183,0.3); }
+        .badge-railway { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
+        .badge-codesandbox { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
         .badge-unknown { background: var(--surface2); color: var(--text-sub); border: 1px solid var(--border); }
 
         /* Speed indicator */
@@ -272,9 +275,11 @@
                 <button class="filter-chip active" data-filter="all">すべて</button>
                 <button class="filter-chip" data-filter="vercel">Vercel</button>
                 <button class="filter-chip" data-filter="render">Render</button>
+                <button class="filter-chip" data-filter="railway">Railway</button>
+                <button class="filter-chip" data-filter="codesandbox">CodeSandbox</button>
                 <button class="filter-chip" data-filter="unknown">不明</button>
             </div>
-            <button class="sort-btn active" id="sortBySpeed" title="応答速度でソート">
+            <button class="sort-btn active" id="sortBtn" title="クリックでソート切り替え">
                 ⚡ 速度順
             </button>
         </div>
@@ -304,7 +309,7 @@
 
   let allDomains = [];
   let currentFilter = 'all';
-  let sortBySpeed = true;
+  let sortMode = 'speed'; // 'speed' | 'newest' | 'oldest'
   let measuredCount = 0;
 
   // ── Speed measurement ────────────────────────────────────────────────────
@@ -324,9 +329,7 @@
       clearTimeout(timer);
       return Math.round(performance.now() - start);
     } catch (e) {
-      // If aborted = timeout, mark as dead
       if (e.name === 'AbortError') return null;
-      // Other network errors: still got a response time (CORS block = server replied)
       const elapsed = Math.round(performance.now() - start);
       return elapsed < TIMEOUT_MS ? elapsed : null;
     }
@@ -351,7 +354,6 @@
     return ms + ' ms';
   }
 
-  // Latency bar: max visible width at 2000ms
   function latencyWidth(ms) {
     if (ms === null) return 100;
     return Math.min(100, (ms / 2000) * 100);
@@ -365,14 +367,20 @@
       const matchFilter = currentFilter === 'all' || d.server === currentFilter;
       return matchSearch && matchFilter;
     });
-    if (sortBySpeed) {
+    
+    if (sortMode === 'speed') {
       list = list.slice().sort((a, b) => {
         if (a.latency === null && b.latency === null) return 0;
         if (a.latency === null) return 1;
         if (b.latency === null) return -1;
         return a.latency - b.latency;
       });
+    } else if (sortMode === 'newest') {
+      list = list.slice().sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    } else if (sortMode === 'oldest') {
+      list = list.slice().sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
     }
+    
     return list;
   }
 
@@ -408,7 +416,7 @@
           <a href="${d.url}" class="domain-url" target="_blank" rel="noopener">${d.url.replace(/^https?:\/\//, '')}</a>
           <div class="card-footer">
             <span class="domain-meta">登録: ${new Date(d.timestamp).toLocaleDateString('ja-JP')}</span>
-            ${sortBySpeed && !isMeasuring ? `<span class="rank-badge ${isTop ? 'top' : ''}">#${rank}</span>` : ''}
+            ${sortMode === 'speed' && !isMeasuring ? `<span class="rank-badge ${isTop ? 'top' : ''}">#${rank}</span>` : ''}
           </div>
         </div>
       `;
@@ -425,7 +433,7 @@
         allDomains = Object.values(data).map(item => ({
           ...item,
           server: detectServer(item.url),
-          latency: undefined   // undefined = not yet measured
+          latency: undefined
         }));
         renderList();
         startSpeedMeasurement();
@@ -448,7 +456,6 @@
     statusEl.style.display = 'flex';
     countEl.innerHTML = `<span>0</span> / ${total}`;
 
-    // Measure concurrently (limit to 5 at a time)
     const CONCURRENCY = 5;
     const queue = [...allDomains];
     const workers = Array(Math.min(CONCURRENCY, total)).fill(null).map(async () => {
@@ -459,13 +466,12 @@
         const pct = (measuredCount / total) * 100;
         fillEl.style.width = pct + '%';
         countEl.innerHTML = `<span>${measuredCount}</span> / ${total}`;
-        renderList(); // live update
+        renderList();
       }
     });
 
     await Promise.all(workers);
 
-    // Done
     statusEl.innerHTML = `<span style="color:var(--fast);font-family:var(--font-mono);font-size:13px;">✓ 計測完了 — ${total}件のドメインを測定しました</span>`;
     setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
   }
@@ -473,6 +479,8 @@
   function detectServer(url) {
     if (url.includes('vercel.app')) return 'vercel';
     if (url.includes('onrender.com')) return 'render';
+    if (url.includes('up.railway.app')) return 'railway';
+    if (url.includes('csb.app')) return 'codesandbox';
     return 'unknown';
   }
 
@@ -488,10 +496,21 @@
     }
   });
 
-  document.getElementById('sortBySpeed').addEventListener('click', (e) => {
-    sortBySpeed = !sortBySpeed;
-    e.currentTarget.classList.toggle('active', sortBySpeed);
-    e.currentTarget.textContent = sortBySpeed ? '⚡ 速度順' : '📅 登録順';
+  document.getElementById('sortBtn').addEventListener('click', (e) => {
+    const btn = e.currentTarget;
+    if (sortMode === 'speed') {
+      sortMode = 'newest';
+      btn.classList.remove('active');
+      btn.innerHTML = '✨ 新しい順';
+    } else if (sortMode === 'newest') {
+      sortMode = 'oldest';
+      btn.classList.remove('active');
+      btn.innerHTML = '🕰️ 古い順';
+    } else {
+      sortMode = 'speed';
+      btn.classList.add('active');
+      btn.innerHTML = '⚡ 速度順';
+    }
     renderList();
   });
 
