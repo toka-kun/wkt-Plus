@@ -32,22 +32,17 @@
         }
         .main-container {
             display: flex;
-            gap: 1rem;
-            align-items: flex-start;
             transition: width 0.2s ease-in-out;
         }
         .video-container {
-            flex: 1 1 0;
-            min-width: 0;
-            width: auto;
+            width: 75%;
             transition: width 0.2s ease-in-out;
         }
         .video-container.full {
             width: 100%;
         }
         .sidebar {
-            flex: 0 0 18rem;
-            width: 18rem;
+            width: 25%;
             transition: transform 0.2s ease-in-out;
         }
         .sidebar.hidden {
@@ -176,28 +171,27 @@
                     </div>
                   </div>
                 <% } else { %>
-                  <ul class="space-y-3">
-                    <% videoInfo.channels.forEach(function(ch) { %>
-                      <li class="flex items-center gap-3">
-                        <a href="<%= ch.id ? '/wkt/c/' + ch.id : '#' %>" class="flex-shrink-0">
-                          <% if (ch.icon) { %>
-                            <img src="<%= ch.icon %>" alt="<%= ch.name %>" class="w-12 h-12 rounded-full object-cover">
-                          <% } else { %>
-                            <div class="w-12 h-12 rounded-full bg-gray-600"></div>
-                          <% } %>
-                        </a>
-                        <div class="min-w-0">
-                          <% if (ch.id) { %>
-                            <h2 class="text-lg font-bold"><a href="/wkt/c/<%= ch.id %>"><%= ch.name %></a></h2>
-                          <% } else { %>
-                            <h2 class="text-lg font-bold"><%= ch.name %></h2>
-                          <% } %>
-                          <% if (ch.subsc) { %><p class="text-sm text-gray-400"><%= ch.subsc %></p><% } %>
-                        </div>
-                      </li>
-                    <% }); %>
-                  </ul>
-                <% } %>
+  <div class="flex items-center gap-3 overflow-x-auto whitespace-nowrap">
+    <% videoInfo.channels.forEach(function(ch) { %>
+      <a href="<%= ch.id ? '/wkt/c/' + ch.id : '#' %>" class="flex items-center gap-3 flex-shrink-0">
+        <% if (ch.icon) { %>
+          <img src="<%= ch.icon %>" alt="<%= ch.name %>" class="w-12 h-12 rounded-full object-cover">
+        <% } else { %>
+          <div class="w-12 h-12 rounded-full bg-gray-600"></div>
+        <% } %>
+
+        <div class="min-w-0">
+          <% if (ch.id) { %>
+            <h2 class="text-lg font-bold"><%= ch.name %></h2>
+          <% } else { %>
+            <h2 class="text-lg font-bold"><%= ch.name %></h2>
+          <% } %>
+          <% if (ch.subsc) { %><p class="text-sm text-gray-400"><%= ch.subsc %></p><% } %>
+        </div>
+      </a>
+    <% }); %>
+  </div>
+<% } %>
               </div>
               <button id="favoriteBtn" class="flex-shrink-0 p-2 rounded-full bg-gray-500">
                 <img id="favoriteIcon" src="https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png" alt="お気に入り" class="w-8 h-8">
@@ -397,7 +391,7 @@
 </div>
 </div>
 
-        <div class="sidebar" id="sidebar">
+        <div class="sidebar w-1/4 ml-4" id="sidebar">
 <div id="commentBox" class="fixed top-0 right-0 w-1/2 h-full bg-gray-800 p-4 shadow-lg flex flex-col comment-box z-40">
     <div class="sticky top-0 bg-gray-800 p-0 z-10">
         <button id="closeComments" class="w-full bg-gray-700 py-2 rounded mb-2">閉じる</button>
