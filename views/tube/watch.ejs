@@ -171,27 +171,28 @@
                     </div>
                   </div>
                 <% } else { %>
-  <div class="flex items-center gap-3 overflow-x-auto whitespace-nowrap">
-    <% videoInfo.channels.forEach(function(ch) { %>
-      <a href="<%= ch.id ? '/wkt/c/' + ch.id : '#' %>" class="flex items-center gap-3 flex-shrink-0">
-        <% if (ch.icon) { %>
-          <img src="<%= ch.icon %>" alt="<%= ch.name %>" class="w-12 h-12 rounded-full object-cover">
-        <% } else { %>
-          <div class="w-12 h-12 rounded-full bg-gray-600"></div>
-        <% } %>
-
-        <div class="min-w-0">
-          <% if (ch.id) { %>
-            <h2 class="text-lg font-bold"><%= ch.name %></h2>
-          <% } else { %>
-            <h2 class="text-lg font-bold"><%= ch.name %></h2>
-          <% } %>
-          <% if (ch.subsc) { %><p class="text-sm text-gray-400"><%= ch.subsc %></p><% } %>
-        </div>
-      </a>
-    <% }); %>
-  </div>
-<% } %>
+                  <ul class="space-y-3">
+                    <% videoInfo.channels.forEach(function(ch) { %>
+                      <li class="flex items-center gap-3">
+                        <a href="<%= ch.id ? '/wkt/c/' + ch.id : '#' %>" class="flex-shrink-0">
+                          <% if (ch.icon) { %>
+                            <img src="<%= ch.icon %>" alt="<%= ch.name %>" class="w-12 h-12 rounded-full object-cover">
+                          <% } else { %>
+                            <div class="w-12 h-12 rounded-full bg-gray-600"></div>
+                          <% } %>
+                        </a>
+                        <div class="min-w-0">
+                          <% if (ch.id) { %>
+                            <h2 class="text-lg font-bold"><a href="/wkt/c/<%= ch.id %>"><%= ch.name %></a></h2>
+                          <% } else { %>
+                            <h2 class="text-lg font-bold"><%= ch.name %></h2>
+                          <% } %>
+                          <% if (ch.subsc) { %><p class="text-sm text-gray-400"><%= ch.subsc %></p><% } %>
+                        </div>
+                      </li>
+                    <% }); %>
+                  </ul>
+                <% } %>
               </div>
               <button id="favoriteBtn" class="flex-shrink-0 p-2 rounded-full bg-gray-500">
                 <img id="favoriteIcon" src="https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png" alt="お気に入り" class="w-8 h-8">
