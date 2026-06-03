@@ -119,7 +119,6 @@
           sourceTrend = "base64";
           trendingList = base64Data.trending;
           
-          // ゲームと音楽のタブ・データ準備
           if (base64Data.gaming && base64Data.gaming.length > 0) {
               tabGaming.classList.remove("hidden");
               renderVideos(base64Data.gaming, gamingContainer, "base64");
@@ -194,11 +193,10 @@
       }
 
       function parseDuration(duration) {
-          if (!duration) return "";
+          if (duration === undefined || duration === null || duration === "") return "";
           
           if (typeof duration === "number" || /^\d+$/.test(duration)) {
               const totalSeconds = parseInt(duration, 10);
-              if (totalSeconds === 0) return "LIVE";
               
               const h = Math.floor(totalSeconds / 3600);
               const m = Math.floor((totalSeconds % 3600) / 60);
@@ -223,7 +221,9 @@
           if (!videos || videos.length === 0) return;
 
           videos.forEach(item => {
-              let id, title, channel, channelId, publishedAt, durationText, viewCount, channelIcon, thumbnailUrl;
+              let id, title, channel, channelId, publishedAt, durationText, viewCount, channelIcon, thumbnailUrl, isLive;
+
+              isLive = false; // デフォルトは通常動画
 
               if (source === "base64") {
                   id = item.id;
@@ -255,7 +255,11 @@
                   channel = item.author;
                   channelId = item.authorId;
                   publishedAt = item.publishedText || timeAgo(item.published * 1000); 
+                  
+                  // Invidious の lengthSeconds を基にライブ配信中かを厳密に判定
+                  isLive = (item.lengthSeconds === 0 || item.lengthSeconds === "0");
                   durationText = parseDuration(item.lengthSeconds);
+
                   viewCount = item.viewCount ? Number(item.viewCount).toLocaleString() : "";
                   channelIcon = (item.authorThumbnails && item.authorThumbnails.length > 0) ? item.authorThumbnails[0].url : "";
                   thumbnailUrl = `/wkt/back/vi/${id}/mqdefault.jpg`;
@@ -264,7 +268,6 @@
               const channelUrl = channelId ? `/wkt/c/${channelId}` : '#';
 
               // ライブかどうかでバッジのスタイルとテキストを分ける
-              const isLive = durationText === "LIVE";
               const badgeClass = isLive ? "bg-red-600 bg-opacity-90" : "bg-black bg-opacity-80";
               const badgeText = isLive ? "ライブ" : durationText;
 
@@ -308,6 +311,27 @@
       }
   });
 
+  /* -----------------------------------------------
+     3. 機能維持: jQuery Autocomplete (サジェスト)
+  ----------------------------------------------- */
+  $(function () {
+      $('#searchbox').autocomplete({
+          source: function (request, response) {
+              $.ajax({
+                  url: '/wkt/back/suggest',
+                  data: { keyword: request.term },
+                  success: function (data) {
+                      response(data);
+                  }
+              });
+          },
+          delay: 200,
+          select: function (event, ui) {
+              $('#searchbox').val(ui.item.value);
+              $('#searchForm').submit();
+          }
+      });
+  });
   </script>
 
 </body>
