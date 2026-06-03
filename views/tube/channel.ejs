@@ -111,7 +111,7 @@
                         <p class="text-lg font-bold">プレイリスト(<%= video.video_count?.text %>本以上の動画)</p>
                     </div>
                 </div>
-    　　　　　　<% } else if (video.type.endsWith("Channel")) { %>
+            <% } else if (video.type.endsWith("Channel")) { %>
                 <div class="bg-gray-700 p-4 rounded">
                   <a href="/wkt/c/<%= video.author.id %>">
                     <img src="<%= video.author.thumbnails[0].url %>" alt="<%= video.author.name %>" class="w-full h-auto rounded">
@@ -127,6 +127,11 @@
         </div>
     <% }); %>
 </div>
+
+        <div style="height:480px;" class="w-full max-w-3xl mx-auto mt-8">
+            <script src="//accaii.com/wktplus/widget.js" async></script>
+        </div>
+    </div>
 
 <script>
 const dropdownButton = document.getElementById("dropdownButton");
@@ -161,6 +166,6 @@ document.addEventListener("click", (event) => {
     }
 });
 </script>
-                      
+                    
 </body>
-</html>                  
+</html>
