@@ -155,7 +155,7 @@
         <div class="video-container" id="videoContainer">
         <div class="relative">
         <div class="loading-indicator">
-          <img src="https://usagif.com/wp-content/uploads/loading-96.gif" alt="Loading...">
+          <img src="https://wsrv.nl/?url=https://usagif.com/wp-content/uploads/loading-96.gif" alt="Loading...">
         </div>
           <video id="video" class="w-full h-auto max-h-screen" controls preload="auto" playsinline poster="/wkt/back/vi/<%= videoId %>/maxresdefault.jpg">
               <source id="videoSrc" src="<%- videoData.stream_url %>" type="video/mp4">
@@ -200,7 +200,7 @@
                 <% } %>
               </div>
               <button id="favoriteBtn" class="flex-shrink-0 p-2 rounded-full bg-gray-500">
-                <img id="favoriteIcon" src="https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png" alt="お気に入り" class="w-8 h-8">
+                <img id="favoriteIcon" src="https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png" alt="お気に入り" class="w-8 h-8">
               </button>
             </div>
 
@@ -1044,7 +1044,7 @@ async function checkfav() {
   if(favorites){
     isFavorited = favorites.some(track => track.videoId === videoId);
   }
-  favIcon.src = isFavorited ? "https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_1.png" : "https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png";
+  favIcon.src = isFavorited ? "https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_1.png" : "https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png";
 }
 checkfav()
 document.getElementById("favoriteBtn").addEventListener("click", function() {
@@ -1055,7 +1055,7 @@ document.getElementById("favoriteBtn").addEventListener("click", function() {
   if(updatedFavorites){
     nowFavorited = updatedFavorites.some(track => track.videoId === videoId);
   }
-  favIcon.src = nowFavorited ? "https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_1.png" : "https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png";
+  favIcon.src = nowFavorited ? "https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_1.png" : "https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png";
 });
   
 // 概要
