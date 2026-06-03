@@ -18,7 +18,7 @@
         }
         .tab-content.active {
             display: block;
-　　     }
+         }
 </style>
 </head>
 <body class="bg-gray-900 text-white">
@@ -53,6 +53,11 @@
           </div><br>
         <p class="text-center text-lg mb-6">サーバーを変えたり、再読み込みしたりしてみてね。</p>
     </div>
+
+    <div style="height:480px;" class="w-full max-w-3xl mx-auto mt-8 px-4">
+        <script src="//accaii.com/wktplus/widget.js" async></script>
+    </div>
+
     <script>
 function changeServer() {
     const server = document.getElementById('serverSelect').value;
@@ -105,9 +110,9 @@ function showerrorMessage(text) {
 }
 window.addEventListener("load", function() {
     if (!localStorage.getItem('tutorialCompleted')) {
-      showTutorial();
+       showTutorial();
     }else{
-      showerrorMessage("動画の取得に失敗しました");
+       showerrorMessage("動画の取得に失敗しました");
     }
 });
   
