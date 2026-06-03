@@ -93,12 +93,17 @@
               <% } %>
             <% }); %>
         </div>
-      <div class="flex justify-center mt-10 mb-6">
-    <a class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-blue-700 transition"
-       href="/wkt/ss?q=<%= query %>&p=<%= page+1 %>">
-      もっと読み込む
-    </a>
-</div>
+        
+        <div class="flex justify-center mt-10 mb-6">
+            <a class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-blue-700 transition"
+               href="/wkt/ss?q=<%= query %>&p=<%= page+1 %>">
+              もっと読み込む
+            </a>
+        </div>
+
+        <div style="height:480px;" class="w-full max-w-3xl mx-auto mt-8">
+            <script src="//accaii.com/wktplus/widget.js" async></script>
+        </div>
 
     </div>
   
