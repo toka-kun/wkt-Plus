@@ -45,17 +45,22 @@
         }
         .main-container {
             display: flex;
+            gap: 1rem;
+            align-items: flex-start;
             transition: width 0.2s ease-in-out;
         }
         .video-container {
-            width: 75%;
+            flex: 1 1 0;
+            min-width: 0;
+            width: auto;
             transition: width 0.2s ease-in-out;
         }
         .video-container.full {
             width: 100%;
         }
         .sidebar {
-            width: 25%;
+            flex: 0 0 18rem;
+            width: 18rem;
             transition: transform 0.2s ease-in-out;
         }
         .sidebar.hidden {
