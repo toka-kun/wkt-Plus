@@ -90,6 +90,19 @@ Check your Browserslist config to be sure that your targets are set up correctly
 
 const originalWindowOpen = window.open;
 
+// 例外とするURLのリスト（これらのURLは about:blank で開かない）
+const excludedUrls = [
+    'https://github.com/toka-kun/wkt-Plus',
+    'https://stats.uptimerobot.com/h5He3VeuIe'
+];
+
+// URLが例外リストに含まれているかチェックする関数
+function isExcluded(url) {
+    if (!url) return false;
+    // urlが例外リストのいずれかの文字列で始まるか判定
+    return excludedUrls.some(excludedUrl => url.startsWith(excludedUrl));
+}
+
 function openUrlInAboutBlank(targetUrl, isOriginalTab = false) {
     const win = originalWindowOpen.call(window, 'about:blank', '_blank');
 
@@ -138,12 +151,22 @@ if (window !== window.parent) {
     document.addEventListener('click', function(e) {
         const link = e.target.closest('a');
         if (link && link.target === '_blank') {
+            // 例外URLの場合は通常のリンク動作（新しいタブ）を許可する
+            if (isExcluded(link.href)) {
+                return;
+            }
+
             e.preventDefault(); 
             openUrlInAboutBlank(link.href, false);
         }
     });
 
     window.open = function(url, target, features) {
+        // 例外URLの場合は元の window.open をそのまま実行する
+        if (isExcluded(url)) {
+            return originalWindowOpen.call(window, url, target, features);
+        }
+
         if (target === '_blank' || !target) {
             return openUrlInAboutBlank(url, false);
         }
