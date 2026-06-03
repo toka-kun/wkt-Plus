@@ -261,7 +261,15 @@
                   durationText = parseDuration(item.lengthSeconds);
 
                   viewCount = item.viewCount ? Number(item.viewCount).toLocaleString() : "";
-                  channelIcon = (item.authorThumbnails && item.authorThumbnails.length > 0) ? item.authorThumbnails[0].url : "";
+                  
+                  // 最も画質が高い（heightが最も大きい）チャンネルアイコン画像URLを抽出
+                  if (item.authorThumbnails && item.authorThumbnails.length > 0) {
+                      const sortedThumbs = [...item.authorThumbnails].sort((a, b) => (b.height || 0) - (a.height || 0));
+                      channelIcon = sortedThumbs[0].url;
+                  } else {
+                      channelIcon = "";
+                  }
+
                   thumbnailUrl = `/wkt/back/vi/${id}/mqdefault.jpg`;
               }
 
