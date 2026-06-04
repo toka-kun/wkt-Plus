@@ -15,15 +15,11 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const isMobile = window.matchMedia("(max-width: 768px)").matches;
-            const sidebarHidden = localStorage.getItem("sidebarHidden") === "true";
 
-            if (isMobile || sidebarHidden) {
+            if (isMobile || localStorage.getItem("sidebarHidden") === "true") {
                 document.getElementById("sidebar").classList.add("hidden");
                 document.getElementById("videoContainer").classList.add("full");
                 document.getElementById("expandSidebar").classList.add("visible");
-            }
-
-            if (sidebarHidden && !isMobile) {
                 document.getElementById("related-sidenone").classList.add("hidden");
             }
         });
@@ -121,23 +117,9 @@
             display: none;
             margin-top: 1rem;
         }
-
-        @media (max-width: 768px) {
-            .main-container {
-                flex-direction: column;
-            }
-
-            .video-container {
-                width: 100%;
-            }
-
-            .sidebar {
-                display: none !important;
-            }
-
-            .mobile-action-box {
-                display: block;
-            }
+        /* サイドバー非表示時（.full クラスが付与されている状態）にボタンを表示 */
+        .video-container.full .mobile-action-box {
+            display: block;
         }
     </style>
 </head>
@@ -192,7 +174,7 @@
         <button id="erroreloadButton" class="hidden absolute top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl shadow-lg hover:bg-blue-700 transition">🔄 動画を再読み込み</button>
         <div class="mobile-action-box">
             <button
-                class="w-full bg-gray-700 py-2 rounded"
+                class="w-full bg-gray-700 py-2 rounded font-bold hover:bg-gray-600 transition"
                 onclick="document.getElementById('controlPanel').classList.toggle('open')">
                 コントロール
             </button>
