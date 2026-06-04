@@ -14,13 +14,12 @@
     <link rel="apple-touch-icon" href="/wkt/back/vi/<%= videoId %>/maxresdefault.jpg">
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const isMobile = window.matchMedia("(max-width: 768px)").matches;
+            const isMobile = window.matchMedia("(max-width: 768px)").matches;        
 
             if (isMobile || localStorage.getItem("sidebarHidden") === "true") {
                 document.getElementById("sidebar").classList.add("hidden");
                 document.getElementById("videoContainer").classList.add("full");
                 document.getElementById("expandSidebar").classList.add("visible");
-                document.getElementById("related-sidenone").classList.add("hidden");
             }
         });
     </script>
