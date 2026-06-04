@@ -14,7 +14,9 @@
     <link rel="apple-touch-icon" href="/wkt/back/vi/<%= videoId %>/maxresdefault.jpg">
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            if (localStorage.getItem("sidebarHidden") === "true") {
+            const isMobile = window.matchMedia("(max-width: 768px)").matches;
+
+            if (isMobile || localStorage.getItem("sidebarHidden") === "true") {
                 document.getElementById("sidebar").classList.add("hidden");
                 document.getElementById("videoContainer").classList.add("full");
                 document.getElementById("expandSidebar").classList.add("visible");
@@ -124,6 +126,14 @@
             width: 75px;
             height: 75px;
         }
+        .mobile-action-box {
+            display: none;
+            margin-top: 1rem;
+        }
+        /* サイドバー非表示時（.full クラスが付与されている状態）にボタンを表示 */
+        .video-container.full .mobile-action-box {
+            display: block;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white">
@@ -161,6 +171,13 @@
           <div class="iframe-container">
             <iframe src="<%= videosrc %>" frameborder="0" allowfullscreen></iframe>
 　　　　　　</div>
+        <div class="mobile-action-box">
+            <button
+                class="w-full bg-gray-700 py-2 rounded font-bold hover:bg-gray-600 transition"
+                onclick="document.getElementById('controlPanel').classList.toggle('open')">
+                設定
+            </button>
+        </div>
         </div>
             <div class="flex items-start mt-4 p-4 bg-gray-800 rounded gap-3">
               <div class="flex-1 min-w-0">
