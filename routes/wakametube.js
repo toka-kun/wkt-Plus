@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const fs = require("fs");
 const path = require("path");
 const ytsr = require("ytsr");
 const serverYt = require("../server/youtube.js");
@@ -12,7 +13,19 @@ router.use("/live", require("../controllers/tube/live"));
 router.use("/yt", require("../controllers/tube/youtube"));
 
 router.get("/", (req, res) => {
-  res.render("tube/home");
+  try {
+    const versionPath = path.join(__dirname, "../version.json");
+    const versionData = JSON.parse(fs.readFileSync(versionPath, "utf8"));
+
+    res.render("tube/home", {
+      version: versionData.version || "unknown"
+    });
+  } catch (err) {
+    console.error("version.json の読み込みに失敗:", err);
+    res.render("tube/home", {
+      version: "unknown"
+    });
+  }
 });
 
 router.get("/s", async (req, res) => {
