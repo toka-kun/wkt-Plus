@@ -396,6 +396,63 @@ async function getAceThinker(videoId) {
 }
 
 // =========================================
+// ★ Freemake API からの取得 (新規追加)
+// =========================================
+async function getFreemake(videoId) {
+    try {
+        const apiUrl = `https://downloader.freemake.com/api/videoinfo/${videoId}`;
+        const response = await axios.get(apiUrl, { timeout: MAX_TIME });
+        const data = response.data;
+
+        // videoIdが一致しない場合は指定のエラーを出す
+        if (!data || data.videoId !== videoId) {
+            throw new Error("動画が取得できませんでした");
+        }
+
+        console.log(`✅ 使用したAPI (Freemake): ${apiUrl}`);
+        const qualities = data.qualities || [];
+
+        // 統合ストリーム: itagが18のもの
+        const combinedStream = qualities.find(q => String(q.itag) === '18');
+        const streamUrl = combinedStream?.url || '';
+
+        // 映像リスト: audioBitrateが0のもの
+        const videoStreams = qualities.filter(q => Number(q.audioBitrate) === 0);
+        const streamUrls = videoStreams.map(q => ({
+            url: q.url,
+            resolution: q.qualityLabel || '',
+            container: q.format || 'mp4',
+            fps: null
+        }));
+
+        // 音声リスト: audioBitrateが0ではない かつ itagが18ではないもの
+        const audioStreams = qualities.filter(q => Number(q.audioBitrate) !== 0 && String(q.itag) !== '18');
+        
+        // 標準オーディオURLの選出 (itag 251があれば優先、無ければ最初の音声)
+        const audioStream = audioStreams.find(q => String(q.itag) === '251') || audioStreams[0];
+        const audioUrl = audioStream?.url || '';
+
+        const audioUrls = audioStreams.map(q => ({
+            url: q.url,
+            name: q.audioBitrate ? `${q.format} (${q.audioBitrate}kbps)` : q.format,
+            container: q.format || 'mp4'
+        }));
+
+        return {
+            stream_url: streamUrl || streamUrls[0]?.url || '',
+            audioUrl: audioUrl,
+            audioUrls: audioUrls,
+            streamUrls: streamUrls
+        };
+    } catch (error) {
+        if (error.message === "動画が取得できませんでした") {
+            throw error;
+        }
+        throw new Error("Freemake APIからの取得に失敗: " + error.message);
+    }
+}
+
+// =========================================
 // ④ XeroxYT-NT API からの取得 (低速・ランダム)
 // =========================================
 async function getXeroxApis() {
@@ -563,8 +620,9 @@ async function getYouTube(videoId, apiType = 'invidious') {
     } else if (apiType === 'senninytdlp') {
         result = await getSenninTube(videoId);
     } else if (apiType === 'acethinker') {
-        // ★ AceThinkerへの振り分け
         result = await getAceThinker(videoId);
+    } else if (apiType === 'freemake') {
+        result = await getFreemake(videoId);
     } else if (apiType === 'xeroxyt-nt-apiv1') {
         result = await getXeroxNT(videoId);
     } else if (apiType === 'min-tube2-api') {
