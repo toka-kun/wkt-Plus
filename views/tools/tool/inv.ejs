@@ -42,7 +42,9 @@
         const submitButton = document.getElementById("submitButton");
         const resultContainer = document.getElementById("resultContainer");
         const result = document.getElementById("result");
+        const urlsInput = document.getElementById("urls");
 
+        // ボタンを無効化して連打を防ぐ
         errorMessage.classList.add("hidden");
         loadingMessage.classList.remove("hidden");
         submitButton.disabled = true;
@@ -50,11 +52,21 @@
         resultContainer.classList.add("hidden");
 
         try {
-            const urls = document
-                .getElementById("urls")
-                .value.split("\n")
+            // 1. テキストエリアからURLを取得して整える
+            const rawUrls = urlsInput.value.split("\n")
                 .map(url => url.trim())
                 .filter(url => url);
+
+            // 2. 重複したURLを排除する (Setを使用)
+            const urls = [...new Set(rawUrls)];
+
+            // 3. テキストエリアの表示も、重複を消した最新の状態に更新する
+            urlsInput.value = urls.join("\n");
+
+            // URLが空っぽの場合はエラーを出して処理を中断
+            if (urls.length === 0) {
+                throw new Error("URLを入力してください。");
+            }
 
             const response = await fetch("/tools/inv/check", {
                 method: "POST",
@@ -73,7 +85,7 @@
             if (successUrls.length) {
                 html += "<h3 class='text-green-500'>正常に取得できたURL</h3><ul class='list-disc pl-5'>";
                 successUrls.forEach(({ api, streamUrl }) => {
-                    html += `<li>${api} 　- 　<a href='${streamUrl}' target='_blank' class='text-blue-500 underline'>再生できるか確かめる</a></li><br>`;
+                    html += `<li>${api}  -  <a href='${streamUrl}' target='_blank' class='text-blue-500 underline'>再生できるか確かめる</a></li><br>`;
                 });
                 html += "</ul>";
             }
@@ -92,6 +104,7 @@
             errorMessage.textContent = error.message;
             errorMessage.classList.remove("hidden");
         } finally {
+            // 結果が出たら（あるいはエラーが出たら）ボタンを再度有効化する
             loadingMessage.classList.add("hidden");
             submitButton.disabled = false;
             submitButton.classList.remove("opacity-50", "cursor-not-allowed");
