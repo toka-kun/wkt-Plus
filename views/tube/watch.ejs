@@ -148,14 +148,6 @@
             <button onclick="window.open('/other/player#?v=<%= videoId %>&playlist=<%= videoId %>', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">YouTube 埋め込み再生ツールで視聴</button>
             <button onclick="window.open('/other/player#?v=<%= videoId %>&list=<%= videoInfo.channelId %>', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">YouTube 埋め込み再生ツールでチャンネルの動画を視聴</button>
         </nav>
-        <div class="mt-4">
-            <% if (videoData.highstreamUrl) { %>
-            <div class="checkbox-container mt-2 w-full bg-gray-700 py-2 hover:text-white rounded mb-2 flex items-center justify-center">
-                <label for="hdToggle" class="ml-2">高画質化</label>
-                <input type="checkbox" id="hdToggle" class="form-checkbox text-green-500">
-            </div>
-            <% } %>
-        </div>
         <nav class="mt-4">
             <button onclick="window.location.href='/blog/b/wkthelp'" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">ヘルプ</button>
         </nav>
@@ -375,6 +367,9 @@
                     <optgroup label="🐢 低速サーバー群">
                         <option value="simple-yt-stream" <%= baseUrl === 'simple-yt-stream' ? 'selected' : '' %>>Wista Stream API</option>
                         <option value="xeroxyt-nt-apiv1" <%= baseUrl === 'xeroxyt-nt-apiv1' ? 'selected' : '' %>>XeroxYT-NT APIv1</option>
+                    </optgroup>
+                    <optgroup label="🎲 予備サーバー群">
+                        <option value="freemake" <%= baseUrl === 'freemake' ? 'selected' : '' %>>Freemake API</option>
                     </optgroup>
                 </select>
             </label>
