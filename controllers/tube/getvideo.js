@@ -101,10 +101,10 @@ router.get('/:id', async (req, res) => {
         res.render('tube/watch.ejs', { videoData, videoInfo, videoId, baseUrl, fallbackMessage });
         
     } catch (error) {
-        const shufServerUrls = shuffleArray([...serverUrls]);
+        // シャッフル処理を削除し、そのまま渡すように変更
         res.status(500).render('tube/mattev.ejs', { 
             videoId, baseUrl, 
-            serverUrls: shufServerUrls,
+            serverUrls: serverUrls, // そのまま渡す
             error: '動画を取得できませんでした。サーバーを変更して再試行してください。', 
             details: error.message 
         });
@@ -123,6 +123,7 @@ function parseCookies(request) {
     return list;
 }
 
+// 念のため残す（旧わかめtubeではエラー画面に表示されるサーバー一覧をシャッフルするために使用）
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
