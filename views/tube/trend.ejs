@@ -97,7 +97,7 @@
   ----------------------------------------------- */
   document.addEventListener("DOMContentLoaded", () => {
       
-      // EJS変数の展開 (新たに topVideos_shell を追加)
+      // EJS変数の展開
       const base64Data = <%- JSON.stringify(typeof topVideos_base64 !== 'undefined' ? topVideos_base64 : null) %>;
       const invData = <%- JSON.stringify(typeof topVideos_inv !== 'undefined' ? topVideos_inv : null) %>;
       const shellData = <%- JSON.stringify(typeof topVideos_shell !== 'undefined' ? topVideos_shell : null) %>;
@@ -156,7 +156,7 @@
           { btn: tabGaming, container: gamingContainer, activeColor: "border-green-500" },
           { btn: tabMusic, container: musicContainer, activeColor: "border-red-500" },
           { btn: tabLive, container: liveContainer, activeColor: "border-yellow-500" },
-          { btn: tabShell, container: shellContainer, activeColor: "border-purple-500" } // Shellタブ（紫）を追加
+          { btn: tabShell, container: shellContainer, activeColor: "border-purple-500" }
       ];
 
       function switchTab(selectedBtn) {
@@ -268,7 +268,6 @@
 
                   thumbnailUrl = `/wkt/back/vi/${id}/mqdefault.jpg`;
               }
-              // Shell Shockers のデータパースを追加
               else if (source === "shell") {
                   id = item.id;
                   title = item.title;
@@ -278,7 +277,8 @@
                   durationText = parseDuration(item.duration);
                   viewCount = Number(item.viewCount).toLocaleString();
                   channelIcon = item.channelIcon || "";
-                  thumbnailUrl = item.externalImg || `/wkt/back/vi/${id}/mqdefault.jpg`;
+                  // URLを mqdefault.jpg に統一
+                  thumbnailUrl = `/wkt/back/vi/${id}/mqdefault.jpg`;
               }
 
               const channelUrl = channelId ? `/wkt/c/${channelId}` : '#';
