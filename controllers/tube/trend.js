@@ -4,15 +4,7 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
-    // 1. siawaseok3 のデータ取得処理
-    const siaPromise = axios.get("https://raw.githubusercontent.com/siawaseok3/wakame/refs/heads/master/trend.json")
-      .then(res => res.data)
-      .catch(err => {
-        console.error('siaデータの取得に失敗しました:', err.message);
-        return []; // 失敗時は空配列を返す
-      });
-
-    // 2. ajgpw のデータ取得処理
+    // 1. ajgpw のデータ取得処理
     const base64Promise = axios.get("https://raw.githubusercontent.com/ajgpw/youtubedata/refs/heads/main/trend-base64.json")
       .then(res => res.data)
       .catch(err => {
@@ -20,7 +12,7 @@ router.get("/", async (req, res) => {
         return [];
       });
 
-    // 3. Invidious インスタンスからのデータ取得処理
+    // 2. Invidious インスタンスからのデータ取得処理
     const invPromise = (async () => {
       try {
         // インスタンスのリストを取得
@@ -63,16 +55,14 @@ router.get("/", async (req, res) => {
       return []; // 全てのインスタンスで失敗した場合は空配列
     })();
 
-    // 4. 3つのリクエストを並列で実行し、全て完了するまで待機
-    const [topVideos_sia, topVideos_base64, topVideos_inv] = await Promise.all([
-      siaPromise,
+    // 3. 2つのリクエストを並列で実行し、全て完了するまで待機
+    const [topVideos_base64, topVideos_inv] = await Promise.all([
       base64Promise,
       invPromise
     ]);
 
-    // 5. 取得したデータをEJSテンプレートに渡す
+    // 4. 取得したデータをEJSテンプレートに渡す
     res.render("tube/trend.ejs", {
-      topVideos_sia,
       topVideos_base64,
       topVideos_inv
     });
@@ -81,7 +71,6 @@ router.get("/", async (req, res) => {
     console.error('予期せぬエラーが発生しました:', error);
     // エラー時も変数が未定義にならないように空の配列を渡す
     res.render("tube/trend.ejs", { 
-      topVideos_sia: [], 
       topVideos_base64: [], 
       topVideos_inv: [] 
     });
