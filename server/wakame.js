@@ -396,7 +396,7 @@ async function getAceThinker(videoId) {
 }
 
 // =========================================
-// ★ Freemake API からの取得 (完全対応版)
+// ★ Freemake API からの取得（予備）
 // =========================================
 async function getFreemake(videoId) {
     try {
@@ -404,9 +404,9 @@ async function getFreemake(videoId) {
         const response = await axios.get(apiUrl, { timeout: MAX_TIME });
         const data = response.data;
 
-        // videoIdが一致しない場合はエラー
-        if (!data || data.videoId !== videoId) {
-            throw new Error("動画が取得できませんでした");
+        // データ自体が存在しない場合のみエラーにする
+        if (!data) {
+            throw new Error("データが空です");
         }
 
         console.log(`✅ 使用したAPI (Freemake): ${apiUrl}`);
@@ -445,9 +445,6 @@ async function getFreemake(videoId) {
             streamUrls: streamUrls
         };
     } catch (error) {
-        if (error.message === "動画が取得できませんでした") {
-            throw error;
-        }
         throw new Error("Freemake APIからの取得に失敗: " + error.message);
     }
 }
