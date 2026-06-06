@@ -195,10 +195,16 @@
           const diffMin = Math.floor(diffMs / 60000);
           const diffHr = Math.floor(diffMin / 60);
           const diffDay = Math.floor(diffHr / 24);
+          
+          // ヶ月と年の計算を追加
+          const diffMonth = Math.floor(diffDay / 30);
+          const diffYear = Math.floor(diffDay / 365);
 
           if (diffMin < 60) return `${diffMin}分前`;
           if (diffHr < 24) return `${diffHr}時間前`;
-          return `${diffDay}日前`;
+          if (diffDay < 30) return `${diffDay}日前`;
+          if (diffYear < 1) return `${diffMonth}ヶ月前`;
+          return `${diffYear}年前`;
       }
 
       function parseDuration(duration) {
@@ -277,7 +283,6 @@
                   durationText = parseDuration(item.duration);
                   viewCount = Number(item.viewCount).toLocaleString();
                   channelIcon = item.channelIcon || "";
-                  // URLを mqdefault.jpg に統一
                   thumbnailUrl = `/wkt/back/vi/${id}/mqdefault.jpg`;
               }
 
