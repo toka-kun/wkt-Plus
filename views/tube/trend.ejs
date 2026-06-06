@@ -97,7 +97,6 @@
       
       // EJS変数の展開
       const base64Data = <%- JSON.stringify(typeof topVideos_base64 !== 'undefined' ? topVideos_base64 : null) %>;
-      const siaData = <%- JSON.stringify(typeof topVideos_sia !== 'undefined' ? topVideos_sia : null) %>;
       const invData = <%- JSON.stringify(typeof topVideos_inv !== 'undefined' ? topVideos_inv : null) %>;
 
       // 要素の取得
@@ -127,9 +126,6 @@
               tabMusic.classList.remove("hidden");
               renderVideos(base64Data.music, musicContainer, "base64");
           }
-      } else if (siaData && siaData.trending && siaData.trending.length > 0) {
-          sourceTrend = "sia";
-          trendingList = siaData.trending;
       }
       
       // 急上昇を描画
@@ -237,17 +233,6 @@
                   thumbnailUrl = (item.thumbnails && item.thumbnails.standard && item.thumbnails.standard.url) 
                                   ? item.thumbnails.standard.url 
                                   : `/wkt/back/vi/${id}/mqdefault.jpg`;
-              } 
-              else if (source === "sia") {
-                  id = item.id;
-                  title = item.title;
-                  channel = item.channel;
-                  channelId = item.channelId;
-                  publishedAt = timeAgo(item.publishedAt);
-                  durationText = parseDuration(item.duration);
-                  viewCount = Number(item.viewCount).toLocaleString();
-                  channelIcon = item.channelIcon || "";
-                  thumbnailUrl = `/wkt/back/vi/${id}/mqdefault.jpg`;
               } 
               else if (source === "inv") {
                   id = item.videoId;
