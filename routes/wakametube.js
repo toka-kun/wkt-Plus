@@ -12,18 +12,49 @@ router.use("/w", require("../controllers/tube/getvideo"));
 router.use("/live", require("../controllers/tube/live"));
 router.use("/yt", require("../controllers/tube/youtube"));
 
-router.get("/", (req, res) => {
+const REMOTE_VERSION_URL =
+  "https://raw.githubusercontent.com/toka-kun/wkt-Plus/refs/heads/master/version.json";
+
+function getLocalVersion() {
   try {
     const versionPath = path.join(__dirname, "../version.json");
     const versionData = JSON.parse(fs.readFileSync(versionPath, "utf8"));
-
-    res.render("tube/home", {
-      version: versionData.version || "unknown"
-    });
+    return versionData.version || "unknown";
   } catch (err) {
     console.error("version.json の読み込みに失敗:", err);
+    return "unknown";
+  }
+}
+
+async function getRemoteVersion() {
+  const res = await fetch(REMOTE_VERSION_URL, { cache: "no-store" });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch remote version: HTTP ${res.status}`);
+  }
+
+  const versionData = await res.json();
+  return versionData.version || "unknown";
+}
+
+router.get("/", async (req, res) => {
+  const version = getLocalVersion();
+
+  try {
+    const latestVersion = await getRemoteVersion();
+    const isOutdated =
+      version !== "unknown" &&
+      latestVersion !== "unknown" &&
+      version !== latestVersion;
+
     res.render("tube/home", {
-      version: "unknown"
+      version,
+      isOutdated
+    });
+  } catch (err) {
+    console.error("最新 version.json の取得に失敗:", err);
+    res.render("tube/home", {
+      version,
+      isOutdated: false
     });
   }
 });
