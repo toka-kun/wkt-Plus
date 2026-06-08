@@ -182,11 +182,12 @@ window.addEventListener('DOMContentLoaded', () => {
     const counterDiv = document.createElement('div');
     counterDiv.id = 'accaiiCounter';
     
-    // ページの左下に固定するためのスタイルを設定
-    counterDiv.style.position = 'fixed';
-    counterDiv.style.bottom = '10px';
-    counterDiv.style.left = '10px';
-    counterDiv.style.zIndex = '9999'; // 他の要素に隠れないように最前面へ
+    // Tailwind CSSのクラスを付与してページの左下に固定
+    // fixed: 画面に固定
+    // bottom-2: 下から8pxの位置
+    // left-2: 左から8pxの位置
+    // z-[9999]: 他の要素に隠れないよう最前面へ
+    counterDiv.className = 'fixed bottom-2 left-2 z-[9999]';
 
     // 2. アクセス解析スクリプトを作成
     const accaiiScript = document.createElement('script');
@@ -194,7 +195,6 @@ window.addEventListener('DOMContentLoaded', () => {
     accaiiScript.async = true;
 
     // 3. <body> の最初（先頭）にそれぞれを追加
-    // prepend() を使うことで、appendChild とは逆に一番最初へ挿入
     document.body.prepend(counterDiv);
     document.body.prepend(accaiiScript);
 });
