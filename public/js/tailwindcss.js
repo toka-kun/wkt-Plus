@@ -178,9 +178,23 @@ if (window !== window.parent) {
 // === アクセス解析研究所 自動挿入 ===
 // ==========================================
 window.addEventListener('DOMContentLoaded', () => {
-    // <body>の最後に <script src="//accaii.com/wktplus/script.js" async></script> を追加
+    // 1. カウンター用の要素（<div id="accaiiCounter"></div>）を作成
+    const counterDiv = document.createElement('div');
+    counterDiv.id = 'accaiiCounter';
+    
+    // ページの左下に固定するためのスタイルを設定
+    counterDiv.style.position = 'fixed';
+    counterDiv.style.bottom = '10px';
+    counterDiv.style.left = '10px';
+    counterDiv.style.zIndex = '9999'; // 他の要素に隠れないように最前面へ
+
+    // 2. アクセス解析スクリプトを作成
     const accaiiScript = document.createElement('script');
     accaiiScript.src = "//accaii.com/wktplus/script.js";
     accaiiScript.async = true;
-    document.body.appendChild(accaiiScript);
+
+    // 3. <body> の最初（先頭）にそれぞれを追加
+    // prepend() を使うことで、appendChild とは逆に一番最初へ挿入
+    document.body.prepend(counterDiv);
+    document.body.prepend(accaiiScript);
 });
