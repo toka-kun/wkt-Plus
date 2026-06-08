@@ -198,9 +198,16 @@
     </div>
 </div>
 
-    <footer>
-        <p>♪( ´▽｀) - 現在のバージョン: <%= version %></p>
-    </footer>
+<footer>
+    <p>
+        ♪( ´▽｀) - 現在のバージョン: <%= version %>
+        <% if (isOutdated) { %>
+            <span>（更新あり）</span>
+        <% } else { %>
+            <span>（最新版）</span>
+        <% } %>
+    </p>
+</footer>
 
 <script>
 // ==========================================
