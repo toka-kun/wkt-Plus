@@ -184,10 +184,10 @@ window.addEventListener('DOMContentLoaded', () => {
     
     // Tailwind CSSのクラスを付与してページの左下に固定
     // fixed: 画面に固定
-    // bottom-2: 下から8pxの位置
-    // left-2: 左から8pxの位置
+    // bottom-0: 下から0pxの位置
+    // left-0: 左から0pxの位置
     // z-[9999]: 他の要素に隠れないよう最前面へ
-    counterDiv.className = 'fixed bottom-2 left-2 z-[9999]';
+    counterDiv.className = 'fixed bottom-0 left-0 z-[9999]';
 
     // 2. アクセス解析スクリプトを作成
     const accaiiScript = document.createElement('script');
