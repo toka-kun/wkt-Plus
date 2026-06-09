@@ -1,36 +1,218 @@
-<!DOCTYPE html>
-<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oops!</title>
-    <link rel="stylesheet" href="/css/page.css">
-    <script src="/js/tailwindcss.js"></script>
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script src="/js/tube.js"></script>
-</head>
-<body class="bg-gray-900 text-white">
-    <header class="bg-gray-800 p-4 flex justify-between items-center fixed top-0 left-0 w-full z-10">
-        <form action="/wkt/s" method="get" class="w-1/2" id="searchForm">
-            <input type="text" name="q" id="searchbox" placeholder="検索" class="searchbox w-full p-2 rounded bg-gray-700 text-white">
-        </form>
-        <nav class="space-x-4">
-            <a href="/wkt" class="text-gray-300 hover:text-white">ホーム</a>
-        </nav>
-    </header>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+      }
+    
+      #background {
+        position: absolute;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        background: radial-gradient(circle, rgb(0, 0, 0), rgb(1, 44, 42));
+      }
+    
+      .star {
+        position: absolute;
+        background: rgb(57, 255, 215);
+        border-radius: 50%;
+        transform: scale(0);
+        animation: sparkle 2s infinite, drift linear infinite;
+      }
+    
+      @keyframes sparkle {
+        0%, 100% {
+          opacity: 0;
+          transform: scale(0);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+    
+      @keyframes drift {
+        0%, 100% {
+          transform: translate(0, 0);
+        }
+        50% {
+          transform: translate(50px, -50px);
+        }
+      }
+    </style>
+    </head>
+      <div id="background">
+        <!-- Generating stars -->
+        <script>
+          const numStars = 300;
+          const background = document.getElementById('background');
+    
+          for (let i = 0; i < numStars; i++) {
+            const star = document.createElement('div');
+            star.classList.add('star');
+            star.style.width = `${Math.random() * 3}px`;
+            star.style.height = star.style.width;
+            star.style.left = `${Math.random() * 100}vw`;
+            star.style.top = `${Math.random() * 100}vh`;
+    
+            background.appendChild(star);
+          }
+        </script>
+      </div>
+    </body>
+        <style>
+          body {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+          }
+          input {
+            margin-bottom: 10px;
+          }
+        </style>
+      <style>
+        .image-container {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+    
+        .image {
+          width: 250px;
+          height: 250px;
+          border: 2px solid #daf3f1;
+          margin: 40px;
+          padding: 10px;
+          box-sizing: border-box;
+          transition: all 0.3s ease;
+        }
+    
+        .image:hover {
+          transform: scale(1.1);
+          border-color: #9900ff;
+        }
+      </style>
+    </head>
+    <script>
+        javascript:(function() {
+  var menu = document.createElement('div');
+  var menuContent = document.createElement('div');
+  var closeButton = document.createElement('span');
+  var button = document.createElement('button');
 
-    <div class="container mx-auto p-4">
-        <div class="flex justify-center items-center min-h-screen">
-            <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md text-center">
-                <h1 class="text-4xl font-bold text-red-500 mb-4">搭載されていません。</h1>
-                <p class="text-xl text-gray-300 mb-8">諸事情により、公式インスタンスを含む一部のインスタンスにはプロキシは搭載されていません。<br>申し訳ございませんが、ご利用のインスタンスの管理者へお問い合わせ下さい</p>
-                <a href="/tools" class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-blue-700 transition">
-                    ツールページへ戻る
-                </a>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
+  menu.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    background-color: rgba(0, 255, 255, 0.2); 
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+    width: 200px;
+  `;
+
+  menuContent.style.padding = '10px';
+
+  closeButton.style.cssText = `
+    float: right;
+    cursor: pointer;
+    color: #333;
+  `;
+  closeButton.innerHTML = '&times;';
+  closeButton.onclick = function() {
+    menu.remove();
+  };
+
+  button.innerHTML = 'Launch ByeBlocker';
+  button.style.cssText = `
+    font-family: Arial;
+    font-size: 16px;
+    color: #fff;
+    background-color: #333;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    margin-top: 10px;
+    cursor: pointer;
+  `;
+  button.onclick = function() {
+    var link = prompt("Url?");
+    var proxy = 'https://api.codetabs.com/v1/proxy?quest=';
+    fetch(proxy + link)
+      .then((response) => response.text())
+      .then((text) => document.write(text));
+    var all = document.getElementsByTagName("*");
+    for (var i = 0, max = all.length; i < max; i++) {
+      if (all[i].src) {
+        all[i].src = new URL(all[i].src, link).href;
+        all[i].src = proxy + all[i].src;
+      }
+    }
+    window.onbeforeunload = function(e) {
+      e.preventDefault();
+      alert(e.toString());
+    };
+    function locationHashChanged(e) {
+      e.preventDefault();
+      alert(e);
+      window.location = new URL(e.oldURL, e.newURL).href;
+    }
+    window.onhashchange = locationHashChanged;
+  };
+
+  menuContent.appendChild(button);
+  menuContent.appendChild(closeButton);
+  menu.appendChild(menuContent);
+  document.body.appendChild(menu);
+
+  var isDragging = false;
+  var mouseOffset = { x: 0, y: 0 };
+
+  menuContent.addEventListener('mousedown', function(e) {
+    isDragging = true;
+    mouseOffset.x = e.pageX - menu.offsetLeft;
+    mouseOffset.y = e.pageY - menu.offsetTop;
+  });
+
+  document.addEventListener('mousemove', function(e) {
+    if (isDragging) {
+      menu.style.left = (e.pageX - mouseOffset.x) + 'px';
+      menu.style.top = (e.pageY - mouseOffset.y) + 'px';
+    }
+  });
+
+  document.addEventListener('mouseup', function() {
+    isDragging = false;
+  });
+})();
+    </script>
+  <head>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000; 
+    }
+    .bottom-left {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.2); 
+      padding: 10px;
+    }
+  </style>
+  </head>
+  <body>
+    <div class="bottom-left">
+Tacogamerman on github
+ </div>
+  </body>
+  
