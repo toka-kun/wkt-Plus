@@ -39,14 +39,6 @@ pinned: false
 
 ---
 
-## プロキシの搭載方法
-
-`views/tools/pro/hel.ejs`に https://github.com/toka-kun/Education/blob/main/proxies/Helios.html
-
-の内容をそのまま貼り替えて下さい。
-
----
-
 ## 対応しているデプロイサービス
 
 1. [Render](#-renderでのデプロイ手順)
@@ -180,7 +172,7 @@ pinned: false
 - 2026/06/03 - 動画ページのレイアウトを微調整、トレンドページを改善
 - 2026/06/04 - 一応モバイルに対応
 - 2026/06/06 - トレンドにShell Shockersを追加、その他色々改善
-- 2026/06/09 - 主にVercel、Netlify向けに検索を改善
+- 2026/06/09 - 主にVercel、Netlify向けに検索を改善、プロキシを追加
 
 ---
 
