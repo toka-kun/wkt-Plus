@@ -39,8 +39,12 @@
     <script>
         // --- 1. 全画面切り替えの処理 ---
         function toggleFullScreen() {
+            // iframe要素を取得
+            const iframe = document.getElementById('content-frame');
+            
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch((err) => {
+                // document.documentElement ではなく、iframe に対して requestFullscreen を実行
+                iframe.requestFullscreen().catch((err) => {
                     console.error(`全画面表示の有効化中にエラーが発生しました: ${err.message}`);
                 });
             } else {
