@@ -182,13 +182,19 @@ pinned: false
 - 2026/06/03 - 動画ページのレイアウトを微調整、トレンドページを改善
 - 2026/06/04 - 一応モバイルに対応
 - 2026/06/06 - トレンドにShell Shockersを追加、その他色々改善
+- 2026/06/09 - 主にVercel、Netlify向けに検索を改善
 
 ---
 
 ## ToDo
 
-- プロキシを復活
-- ゲームをさらに追加
+- ニュースを追加
+- プロキシを追加
+- ツールを追加
+- ゲームを追加
+- チャンネルページを改善
+- プレイリストページを追加
+- ダウンロードを改善
 
 ---
 
@@ -229,6 +235,7 @@ pinned: false
 - [@senninsugar](https://github.com/senninsugar)
   - SenninTube Plus API
   - KatuoTube API
+  - Proxy Wiki 開発
 - [@Hikari_5544-1](https://gitlab.com/Hikari_5544-1) (GitLab)
   - ゲーム
 
