@@ -41,8 +41,6 @@ pinned: false
 
 ## プロキシの搭載方法
 
-`views/tools/pro/bye.ejs`に https://github.com/toka-kun/Education/blob/main/proxies/ByeBlocker.html
-`views/tools/pro/din.ejs`に https://github.com/toka-kun/Education/blob/main/proxies/dingusproxy.html
 `views/tools/pro/hel.ejs`に https://github.com/toka-kun/Education/blob/main/proxies/Helios.html
 
 の内容をそのまま貼り替えて下さい。
@@ -236,6 +234,9 @@ pinned: false
   - SenninTube Plus API
   - KatuoTube API
   - Proxy Wiki 開発
+- [@dinguschan-owo](https://github.com/dinguschan-owo)
+  - Helios 開発
+  - GUST 開発
 - [@Hikari_5544-1](https://gitlab.com/Hikari_5544-1) (GitLab)
   - ゲーム
 
