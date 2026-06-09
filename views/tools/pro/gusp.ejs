@@ -1,0 +1,2172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>GUST Patcher</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<style>
+:root {
+  --bg0: #0d0f12;
+  --bg1: #181c21;
+  --bg2: #1c2026;
+  --bg3: #252b33;
+  --bg-elevated: #161a1f;
+  --main-bg: #13161a;
+  --surface: rgba(255,255,255,.08);
+  --surface2: rgba(255,255,255,.14);
+  --bd: #4f5963;
+  --bd2: #5a6370;
+  --tx: #f0f4f8;
+  --tx2: #b8c4d0;
+  --tx3: #7d8a98;
+  --ac: #9de5ff;
+  --ac2: #70d4ff;
+  --ok: #8aefb0;
+  --warn: #f8dc75;
+  --err: #ff9595;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.35);
+  --shadow-md: 0 8px 24px rgba(0,0,0,.45);
+  --ui: 'Space Grotesk','Segoe UI',sans-serif;
+  --mono: 'JetBrains Mono','SF Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg0);color:var(--tx);font-family:var(--ui);overflow:hidden}
+button,input,select,textarea{font:inherit}
+::selection{background:rgba(141,217,255,.25);color:var(--tx)}
+.app{height:100%;display:flex;flex-direction:column}
+
+/* Titlebar */
+.titlebar{display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--bg0);border-bottom:1px solid var(--bd);}
+.brand{display:flex;align-items:center;gap:8px;color:var(--ac);font-weight:700;font-size:14px;white-space:nowrap;height:42px;padding:0 2px;}
+.brand-letters{display:inline-flex;letter-spacing:3px;font-size:22px;font-weight:800;}
+.brand-sub{font-size:22px;font-weight:800;color:var(--ac);margin-left:2px;letter-spacing:3px;}
+.titlebar-actions{display:flex;align-items:center;gap:8px;margin-left:auto;}
+
+/* GUST animations (exact copy) */
+@keyframes gust-icon{0%{opacity:0;transform:translateX(-44px);filter:blur(8px)}65%{opacity:1;transform:translateX(4px);filter:blur(0)}100%{opacity:1;transform:translateX(0)}}
+@keyframes gust-letter{0%{opacity:0;transform:translateX(-28px) skewX(-12deg);filter:blur(6px)}60%{opacity:1;transform:translateX(3px) skewX(2deg);filter:blur(0)}80%{transform:translateX(-1px) skewX(-.5deg)}100%{opacity:1;transform:translateX(0) skewX(0);filter:blur(0)}}
+@keyframes gust-sub{0%{opacity:0;transform:translateY(4px)}100%{opacity:1;transform:translateY(0)}}
+.gust-icon-anim{animation:gust-icon .7s cubic-bezier(.22,1,.36,1) both;animation-play-state:paused}
+.gust-letter-G{animation:gust-letter .65s cubic-bezier(.22,1,.36,1) .10s both;animation-play-state:paused}
+.gust-letter-U{animation:gust-letter .65s cubic-bezier(.22,1,.36,1) .20s both;animation-play-state:paused}
+.gust-letter-S{animation:gust-letter .65s cubic-bezier(.22,1,.36,1) .30s both;animation-play-state:paused}
+.gust-letter-T{animation:gust-letter .65s cubic-bezier(.22,1,.36,1) .40s both;animation-play-state:paused}
+.gust-sub-anim{animation:gust-sub .45s ease-out .65s both;animation-play-state:paused}
+.brand-anim-ready .gust-icon-anim,
+.brand-anim-ready .gust-letter-G,
+.brand-anim-ready .gust-letter-U,
+.brand-anim-ready .gust-letter-S,
+.brand-anim-ready .gust-letter-T,
+.brand-anim-ready .gust-sub-anim{animation-play-state:running}
+
+/* Buttons */
+.btn-primary{display:flex;align-items:center;gap:7px;padding:0 16px;height:36px;background:var(--ac);color:#0b1015;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;transition:opacity .15s,transform .1s}
+.btn-primary:hover{opacity:.85}
+.btn-primary:active{transform:scale(.97)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-secondary{display:flex;align-items:center;gap:7px;padding:0 14px;height:36px;background:var(--bg2);color:var(--tx2);font-weight:500;font-size:13px;border:1px solid var(--bd);border-radius:8px;cursor:pointer;transition:background .12s,color .12s}
+.btn-secondary:hover{background:var(--bg3);color:var(--tx)}
+
+/* Layout */
+.layout{flex:1;display:flex;overflow:hidden}
+
+/* Sidebar — 200px wide, matching GUST exactly */
+.sidebar{width:200px;min-width:200px;height:100%;background:rgba(13,15,18,.7);border-right:1px solid var(--bd);display:flex;flex-direction:column;backdrop-filter:blur(8px);overflow:hidden;}
+.sidebar-scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:24px 0;}
+.sidebar-scroll::-webkit-scrollbar{width:3px}
+.sidebar-scroll::-webkit-scrollbar-track{background:transparent}
+.sidebar-scroll::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
+.sidebar nav{display:flex;flex-direction:column;gap:2px;padding:0 12px;}
+
+/* Nav items — GUST values: padding 9px 14px, radius 8px, size 13px, tx3 */
+.settings-nav-item{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:8px;border:none;background:transparent;color:var(--tx3);font-size:13px;font-weight:500;font-family:var(--ui);cursor:pointer;text-align:left;width:100%;transition:background .12s,color .12s}
+.settings-nav-item i{width:16px;text-align:center;font-size:13px;transition:color .12s}
+.settings-nav-item:hover{background:var(--surface);color:var(--tx2)}
+.settings-nav-item.active{background:rgba(157,229,255,.1);color:var(--ac)}
+.settings-nav-item.active i{color:var(--ac)}
+.nav-label{flex:1}
+
+/* ── Sidebar icon micro-animations ── */
+@keyframes _gust-pulse   { 0%,100%{transform:scale(1)}  50%{transform:scale(1.22)} }
+@keyframes _gust-spin    { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+@keyframes _gust-spinrev { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
+@keyframes _gust-bob     { 0%,100%{transform:translateY(0)}  40%{transform:translateY(-4px)} 70%{transform:translateY(2px)} }
+@keyframes _gust-shake   { 0%,100%{transform:rotate(0)}  20%{transform:rotate(-12deg)} 50%{transform:rotate(12deg)} 75%{transform:rotate(-7deg)} }
+@keyframes _gust-ping    { 0%{transform:scale(1)} 40%{transform:scale(1.28)} 65%{transform:scale(.88)} 100%{transform:scale(1)} }
+@keyframes _gust-tilt    { 0%,100%{transform:rotate(0deg)} 30%{transform:rotate(-14deg)} 70%{transform:rotate(10deg)} }
+@keyframes _gust-pop     { 0%{transform:scale(1)} 35%{transform:scale(1.3)} 60%{transform:scale(.92)} 80%{transform:scale(1.08)} 100%{transform:scale(1)} }
+@keyframes _gust-beam    { 0%,100%{transform:scaleX(1) scaleY(1)} 40%{transform:scaleX(1.2) scaleY(.85)} 70%{transform:scaleX(.9) scaleY(1.1)} }
+@keyframes _gust-flick   { 0%,100%{transform:rotate(0) scale(1)} 25%{transform:rotate(-8deg) scale(1.15)} 60%{transform:rotate(6deg) scale(.95)} }
+@keyframes _gust-jolt    { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-4px)} 50%{transform:translateX(5px)} 75%{transform:translateX(-2px)} }
+@keyframes _gust-stamp   { 0%{transform:scale(1) translateY(0)} 35%{transform:scale(.82) translateY(3px)} 65%{transform:scale(1.12) translateY(-2px)} 100%{transform:scale(1) translateY(0)} }
+/* AI Assistant — wand: flick (magic tap) */
+@keyframes _gust-wand-tap { 0%{transform:rotate(0) scale(1)} 25%{transform:rotate(-10deg) scale(1.15)} 60%{transform:rotate(8deg) scale(.95)} 100%{transform:rotate(0) scale(1)} }
+.settings-nav-item[data-section="aiassistant"]:hover i { animation: _gust-wand-tap .35s ease-in-out forwards; }
+/* Connection — wired: pulse like signal */
+.settings-nav-item[data-section="connection"]:hover i { animation: _gust-pulse .55s cubic-bezier(.34,1.56,.64,1) forwards; }
+/* Search — magnifying glass: bob */
+.settings-nav-item[data-section="search"]:hover i { animation: _gust-bob .45s ease forwards; }
+/* Privacy — shield: ping */
+.settings-nav-item[data-section="privacy"]:hover i { animation: _gust-ping .4s ease forwards; }
+/* Cache — database: beam (squish like stacking) */
+.settings-nav-item[data-section="cache"]:hover i { animation: _gust-beam .45s ease forwards; }
+/* Files & Media — film: shake (film reel clatter) */
+.settings-nav-item[data-section="filesandmedia"]:hover i { animation: _gust-shake .45s ease forwards; }
+/* Appearance — palette: spin */
+.settings-nav-item[data-section="appearance"]:hover i { animation: _gust-spin .5s cubic-bezier(.34,1.56,.64,1) forwards; }
+/* Home Screen — house: bob */
+.settings-nav-item[data-section="homescreen"]:hover i { animation: _gust-bob .42s ease forwards; }
+/* Shortcuts — keyboard: tilt (like pressing a key) */
+.settings-nav-item[data-section="shortcuts"]:hover i { animation: _gust-tilt .4s ease forwards; }
+/* Tutorial (Core) — map: pop */
+.settings-nav-item[data-section="core-tutorial"]:hover i { animation: _gust-pop .45s ease forwards; }
+/* Language — globe: spin reverse */
+.settings-nav-item[data-section="language"]:hover i { animation: _gust-spinrev .5s cubic-bezier(.34,1.56,.64,1) forwards; }
+/* Tab System — window-restore: flick (like flipping a tab) */
+.settings-nav-item[data-section="core-tabs"]:hover i { animation: _gust-flick .4s ease forwards; }
+/* Ad Blocker (Core) — shield: ping */
+.settings-nav-item[data-section="core-adblock"]:hover i { animation: _gust-ping .4s ease forwards; }
+/* Dev Tools — server: jolt (like a server rack vibrating) */
+.settings-nav-item[data-section="core-devtools"]:hover i { animation: _gust-jolt .4s ease forwards; }
+/* Metrics — chart: stamp (bars pressing down) */
+.settings-nav-item[data-section="core-metrics"]:hover i { animation: _gust-stamp .45s ease forwards; }
+/* Fallback — rotate-left: simple spin like reload button */
+.settings-nav-item[data-section="fallback"]:hover i { transform: rotate(-180deg); transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+
+/* #/# badge */
+.nav-count{margin-left:auto;font-size:10px;font-weight:600;font-family:var(--mono);color:var(--tx3)}
+.nav-count.lit{color:var(--ac)}
+
+.sidebar-divider{border:none;border-top:1px solid var(--bd);margin:4px 4px;flex-shrink:0}
+.sidebar-core-label{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--tx3);text-transform:uppercase;padding:8px 14px 4px;flex-shrink:0}
+
+/* Main — GUST: padding 40px 48px, gap 32px */
+.main{flex:1;overflow-y:auto;padding:40px 48px;display:flex;flex-direction:column;gap:32px;background:var(--main-bg)}
+.main::-webkit-scrollbar{width:5px}
+.main::-webkit-scrollbar-track{background:transparent}
+.main::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
+
+/* Settings sections — GUST: display none, flex-col, gap 16px */
+.settings-section{display:none;flex-direction:column;gap:16px}
+.settings-section.active{display:flex}
+
+/* Settings card — GUST: bg2, bd, radius 12px */
+.settings-card{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;overflow:hidden}
+/* Card head — GUST: padding 13px 18px, size 13px, weight 600, color tx, bg bg1 */
+.settings-card-head{padding:13px 18px;font-size:13px;font-weight:600;color:var(--tx);background:var(--bg1);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px}
+.settings-card-head i{color:var(--ac)}
+/* Card body — GUST: padding 18px */
+.settings-card-body{padding:18px}
+
+/* GUST hint — 11px, tx3 */
+.settings-hint{font-size:11px;color:var(--tx3);margin-top:6px;line-height:1.5}
+/* GUST label — uppercase, 12px, tx3 */
+.settings-label{font-size:12px;color:var(--tx3);margin-bottom:8px;display:block;text-transform:uppercase}
+
+/* Patch rows */
+.patch-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:10px 0}
+.patch-row+.patch-row{border-top:1px solid var(--bd)}
+.patch-row-info{flex:1;min-width:0}
+.patch-row-label{font-size:13px;font-weight:500;color:var(--tx);margin-bottom:2px}
+.patch-row-desc{font-size:11px;color:var(--tx3);line-height:1.5}
+.broken-tag{font-size:10px;font-weight:700;color:#ff4444;margin-left:4px}
+
+/* Checkbox — styled to match GUST's switch on/off feel */
+.patch-check{width:22px;height:22px;border-radius:6px;border:2px solid var(--bd);background:var(--bg3);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:border-color .15s,background .15s}
+.patch-check.checked{border-color:var(--ac);background:rgba(157,229,255,.15)}
+.patch-check.checked::after{content:'\f00c';font-family:'Font Awesome 6 Free';font-weight:900;font-size:11px;color:var(--ac)}
+.patch-check.master-disabled{opacity:0.28;cursor:not-allowed;pointer-events:none;}
+.patch-row.master-disabled{opacity:0.35;pointer-events:none;transition:opacity .18s;}
+.settings-card.master-disabled{opacity:0.35;pointer-events:none;transition:opacity .18s;}
+
+/* Sidebar master toggle bar */
+.sidebar-master-bar{display:flex;align-items:center;gap:14px;padding:13px 18px;background:var(--bg2);border:2px solid var(--ac);border-radius:12px;margin-bottom:0;}
+.sidebar-master-bar-icon{width:34px;height:34px;border-radius:9px;background:rgba(157,229,255,0.1);display:flex;align-items:center;justify-content:center;color:var(--ac);font-size:14px;flex-shrink:0;}
+.sidebar-master-bar-info{flex:1;min-width:0;}
+.sidebar-master-bar-label{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:2px;}
+.sidebar-master-bar-desc{font-size:11px;color:var(--tx3);line-height:1.4;}
+.sidebar-master-check{width:24px;height:24px;border-radius:7px;border:2px solid rgba(157,229,255,0.35);background:rgba(157,229,255,0.06);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:border-color .15s,background .15s;}
+.sidebar-master-check.checked{border-color:var(--ac);background:rgba(157,229,255,0.15);}
+.sidebar-master-check.checked::after{content:'\f00c';font-family:'Font Awesome 6 Free';font-weight:900;font-size:12px;color:var(--ac);}
+
+/* Section header */
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.section-title{font-size:18px;font-weight:700;color:var(--tx)}
+.select-btns{display:flex;align-items:center;gap:6px}
+.select-btn{font-size:11px;color:var(--ac);background:none;border:none;cursor:pointer;padding:2px 0;opacity:.65;transition:opacity .12s}
+.select-btn:hover{opacity:1}
+.select-sep{color:var(--bd2);font-size:10px}
+
+/* Status bar */
+.status-bar{padding:8px 16px;background:var(--bg-elevated);border-top:1px solid var(--bd);display:flex;align-items:center;gap:12px;font-size:12px;color:var(--tx3)}
+
+/* Loading overlay */
+.loading-overlay{position:fixed;inset:0;background:rgba(13,15,18,.88);backdrop-filter:blur(8px);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.loading-spinner{width:40px;height:40px;border:3px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:14px;color:var(--tx2)}
+.loading-sub{font-size:12px;color:var(--tx3)}
+
+/* Error */
+.error-box{background:rgba(255,149,149,.07);border:1px solid rgba(255,149,149,.25);border-radius:12px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.error-box i{font-size:28px;color:var(--err)}
+.error-box h3{color:var(--err);font-size:14px}
+.error-box p{color:var(--tx3);font-size:12px;line-height:1.6}
+
+/* ── Homepage section ── */
+.homepage-section{display:none;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100%;width:100%}
+.homepage-section.active{display:flex}
+.homepage-hero{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 40px 28px;width:100%}
+.homepage-brand-wrap{display:flex;align-items:center;gap:14px}
+.hp-brand-letters{display:inline-flex;letter-spacing:5px;font-size:56px;font-weight:800;color:var(--ac)}
+.hp-brand-sub{font-size:56px;font-weight:800;color:var(--ac);margin-left:4px;letter-spacing:4px}
+.hp-icon{font-size:64px;color:var(--ac)}
+.homepage-tagline{font-size:13px;font-weight:700;color:#ffffff;margin-top:10px;letter-spacing:0.04em}
+.homepage-credits{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx3);margin-top:16px}
+.homepage-credits .heart{color:#f87171}
+.homepage-credits strong{color:var(--tx2);font-weight:600}
+
+.homepage-presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;width:100%;max-width:720px;padding:0 40px 52px}
+.preset-card{background:var(--bg2);border:1px solid var(--bd);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .18s,transform .15s,box-shadow .18s}
+.preset-card:hover{border-color:var(--bd2);transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,.5)}
+.preset-card-head{padding:18px 20px 14px;background:var(--bg1);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px}
+.preset-card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.preset-card-icon.blue{background:rgba(157,229,255,.12);color:var(--ac)}
+.preset-card-icon.green{background:rgba(138,239,176,.12);color:var(--ok)}
+.preset-card-icon.amber{background:rgba(248,220,117,.12);color:var(--warn)}
+.preset-card-title{font-size:15px;font-weight:700;color:var(--tx);line-height:1.2}
+.preset-card-subtitle{font-size:11px;color:var(--tx3);margin-top:2px}
+.preset-card-body{padding:16px 20px 12px;flex:1;display:flex;flex-direction:column;gap:5px}
+.preset-card-desc{font-size:13px;color:var(--tx2);line-height:1.6;flex:1}
+.preset-card-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.preset-tag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px;background:rgba(255,255,255,.06);color:var(--tx3);border:1px solid var(--bd)}
+.preset-tag.ac{background:rgba(157,229,255,.1);color:var(--ac);border-color:rgba(157,229,255,.2)}
+.preset-tag.ok{background:rgba(138,239,176,.1);color:var(--ok);border-color:rgba(138,239,176,.2)}
+.preset-tag.warn{background:rgba(248,220,117,.1);color:var(--warn);border-color:rgba(248,220,117,.2)}
+.preset-card-footer{padding:12px 20px 18px}
+.preset-dl-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:0;height:38px;border-radius:9px;font-weight:700;font-size:13px;border:none;cursor:pointer;transition:opacity .15s,transform .1s;font-family:var(--ui);margin-bottom:6px}
+.preset-dl-btn.primary{background:var(--ac);color:#0b1015}
+.preset-dl-btn.secondary{background:var(--bg3);color:var(--tx2);border:1px solid var(--bd)}
+.preset-dl-btn:hover{opacity:.85}
+.preset-dl-btn:active{transform:scale(.97)}
+.preset-dl-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.preset-source-note{font-size:10px;color:var(--tx3);text-align:center;display:flex;align-items:center;justify-content:center;gap:4px}
+.recommended-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(157,229,255,.13);color:var(--ac);border:1px solid rgba(157,229,255,.35);letter-spacing:.04em;text-transform:uppercase;}
+
+/* Tutorial overlay */
+#patcherTutorialOverlay{position:fixed;inset:0;z-index:99999;pointer-events:all;display:none}
+#patcherTutorialBackdrop{position:absolute;inset:0;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:opacity .35s;opacity:0;pointer-events:all}
+#patcherTutorialSvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:all;transition:opacity .35s;opacity:0}
+#patcherTutorialCard{position:absolute;width:360px;background:var(--bg2);border:1px solid var(--ac);border-radius:16px;padding:24px 26px 20px;box-shadow:0 12px 50px rgba(0,0,0,.7),0 0 0 1px rgba(100,210,255,.08);pointer-events:all;transition:opacity .25s,transform .25s;opacity:0;transform:translateY(8px);z-index:10}
+#patcherTutorialArrow{position:absolute;width:12px;height:12px;background:var(--bg2);border:1px solid var(--ac);display:none;transform:rotate(45deg);z-index:-1}
+#patcherTutorialRing{position:absolute;pointer-events:none;border:1.5px solid #9de5ff;border-radius:8px;display:none;z-index:3}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Fetching GUST source…</div>
+  <div class="loading-sub" id="loadingSub">Connecting…</div>
+</div>
+
+<div class="titlebar">
+  <div class="brand">
+    <i class="fas fa-wind gust-icon-anim" style="font-size:18px"></i>
+    <span class="brand-letters"><span class="gust-letter-G">G</span><span class="gust-letter-U">U</span><span class="gust-letter-S">S</span><span class="gust-letter-T">T</span></span>
+    <span class="brand-sub gust-sub-anim">Patcher</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:#ffffff;margin-left:-4px;white-space:nowrap;position:relative;top:3px;">Made with <i class="fas fa-heart" style="color:#f87171;font-size:12px;margin:0 2px;"></i> by <strong style="font-weight:700;">Nautilus Labs</strong></div>
+  <div class="titlebar-actions">
+    <button class="btn-secondary" id="reloadSourceBtn"><i class="fas fa-rotate-right"></i> Refresh Source</button>
+    <button class="btn-secondary" id="pasteSourceBtn" title="Paste GUST source manually"><i class="fas fa-paste"></i> Paste Source</button>
+    <button class="btn-secondary" id="githubBtn" onclick="window.open('https://github.com/nautilus-os/GUST','_blank')" title="View GUST on GitHub" style="padding:0;width:36px;justify-content:center;"><i class="fab fa-github" style="font-size:17px;line-height:1"></i></button>
+    <button class="btn-primary" id="downloadBtn" disabled title="Please apply a patch"><i class="fas fa-download"></i> Download Patched GUST</button>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-scroll">
+    <div class="sidebar-core-label" style="padding-top:8px;">Patcher</div>
+    <nav id="settingsNav" style="padding:0 12px;margin-bottom:8px;">
+      <button class="settings-nav-item active" data-section="homepage"><i class="fas fa-house-chimney"></i><span class="nav-label">Home</span></button>
+    </nav>
+    <hr class="sidebar-divider" style="margin:4px 12px 8px">
+    <div class="sidebar-core-label">Settings</div>
+    <nav id="settingsNav2" style="padding:0 12px;">
+      <button class="settings-nav-item" data-section="connection"><i class="fas fa-network-wired"></i><span class="nav-label">Connection</span><span class="nav-count" id="nc-connection"></span></button>
+      <button class="settings-nav-item" data-section="fallback"><i class="fas fa-rotate-left"></i><span class="nav-label">Fallback</span><span class="nav-count" id="nc-fallback"></span></button>
+      <button class="settings-nav-item" data-section="aiassistant"><i class="fas fa-wand-magic-sparkles"></i><span class="nav-label">AI Assistant</span><span class="nav-count" id="nc-aiassistant"></span></button>
+      <button class="settings-nav-item" data-section="search"><i class="fas fa-magnifying-glass"></i><span class="nav-label">Search</span><span class="nav-count" id="nc-search"></span></button>
+      <button class="settings-nav-item" data-section="privacy"><i class="fas fa-shield-halved"></i><span class="nav-label">Privacy</span><span class="nav-count" id="nc-privacy"></span></button>
+      <button class="settings-nav-item" data-section="cache"><i class="fas fa-database"></i><span class="nav-label">Cache</span><span class="nav-count" id="nc-cache"></span></button>
+      <button class="settings-nav-item" data-section="filesandmedia"><i class="fas fa-photo-film"></i><span class="nav-label">Files &amp; Media</span><span class="nav-count" id="nc-filesandmedia"></span></button>
+      <button class="settings-nav-item" data-section="appearance"><i class="fas fa-palette"></i><span class="nav-label">Appearance</span><span class="nav-count" id="nc-appearance"></span></button>
+      <button class="settings-nav-item" data-section="homescreen"><i class="fas fa-house"></i><span class="nav-label">Home Screen</span><span class="nav-count" id="nc-homescreen"></span></button>
+      <button class="settings-nav-item" data-section="shortcuts"><i class="fas fa-keyboard"></i><span class="nav-label">Shortcuts</span><span class="nav-count" id="nc-shortcuts"></span></button>
+      <button class="settings-nav-item" data-section="language"><i class="fas fa-language"></i><span class="nav-label">Language</span><span class="nav-count" id="nc-language"></span></button>
+    </nav>
+    <hr class="sidebar-divider" style="margin-top:8px">
+    <div class="sidebar-core-label">Core Features</div>
+    <nav id="coreNav" style="padding:0 12px">
+      <button class="settings-nav-item" data-section="core-tutorial"><i class="fas fa-map"></i><span class="nav-label">Tutorial</span><span class="nav-count" id="nc-core-tutorial"></span></button>
+      <button class="settings-nav-item" data-section="core-tabs"><i class="fas fa-window-restore"></i><span class="nav-label">Tab System</span><span class="nav-count" id="nc-core-tabs"></span></button>
+      <button class="settings-nav-item" data-section="core-adblock"><i class="fas fa-shield-halved"></i><span class="nav-label">Ad Blocker</span><span class="nav-count" id="nc-core-adblock"></span></button>
+      <button class="settings-nav-item" data-section="core-devtools"><i class="fas fa-server"></i><span class="nav-label">Dev Tools</span><span class="nav-count" id="nc-core-devtools"></span></button>
+      <button class="settings-nav-item" data-section="core-metrics"><i class="fas fa-chart-simple"></i><span class="nav-label">Metrics</span><span class="nav-count" id="nc-core-metrics"></span></button>
+    </nav>
+    </div>
+  </div>
+
+  <div class="main" id="mainContent">
+
+<!-- HOMEPAGE -->
+<div class="homepage-section active" data-section="homepage">
+  <div class="homepage-hero">
+    <div class="homepage-brand-wrap">
+      <i class="fas fa-wind hp-icon gust-icon-anim" id="hp-wind-icon"></i>
+      <span class="hp-brand-letters">
+        <span class="gust-letter-G">G</span><span class="gust-letter-U">U</span><span class="gust-letter-S">S</span><span class="gust-letter-T">T</span>
+      </span>
+      <span class="hp-brand-sub gust-sub-anim">Patcher</span>
+    </div>
+    <div class="homepage-tagline">Customize your GUST build before you download it.</div>
+  </div>
+  <div class="homepage-presets" id="homepagePresets">
+
+    <!-- Card 1: Base GUST -->
+    <div class="preset-card">
+      <div class="preset-card-head">
+        <div class="preset-card-icon blue"><i class="fab fa-github"></i></div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;"><span class="preset-card-title">Base GUST</span><span class="recommended-badge"><i class="fas fa-star" style="font-size:8px;"></i> Recommended</span></div>
+          <div class="preset-card-subtitle">Straight from GitHub</div>
+        </div>
+      </div>
+      <div class="preset-card-body">
+        <div class="preset-card-desc">Download the latest unmodified GUST source directly from the official GitHub repository with no custom patches applied. The most stable version of GUST, and the team at Nautilus Labs's recommended build.</div>
+      </div>
+      <div class="preset-card-footer">
+        <button class="preset-dl-btn primary" id="presetBaseBtn" onclick="downloadBaseGUST()"><i class="fas fa-download"></i> Download Base GUST</button>
+      </div>
+    </div>
+
+    <!-- Card 2: GUST Lite Preset -->
+    <div class="preset-card">
+      <div class="preset-card-head">
+        <div class="preset-card-icon green"><i class="fas fa-feather"></i></div>
+        <div>
+          <div class="preset-card-title">GUST Lite</div>
+          <div class="preset-card-subtitle">Trimmed-down build</div>
+        </div>
+      </div>
+      <div class="preset-card-body">
+        <div class="preset-card-desc">Removes thread controls, favicon proxying, WebRTC blocking, smart request headers, spellcheck, request &amp; page user-agent spoofing, dev console logs, dev inspector, metrics, and the language picker.</div>
+      </div>
+      <div class="preset-card-footer">
+        <button class="preset-dl-btn primary" id="presetLiteBtn" onclick="downloadLite()" disabled><i class="fas fa-download"></i> Download GUST Lite</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- LANGUAGE -->
+<div class="settings-section" data-section="language">
+  <div class="section-head"><div class="section-title">Language</div><div class="select-btns"><button class="select-btn" onclick="selectAll('language',true)">Select all</button><span class="select-sep">·</span><button class="select-btn" onclick="selectAll('language',false)">None</button></div></div>
+  <div class="sidebar-master-bar">
+    <div class="sidebar-master-bar-icon"><i class="fas fa-table-list"></i></div>
+    <div class="sidebar-master-bar-info">
+      <div class="sidebar-master-bar-label">Show Language in Settings Sidebar</div>
+      <div class="sidebar-master-bar-desc">Uncheck to remove the <strong>Language</strong> entry from GUST's Settings sidebar. The language picker panel will be hidden and its nav entry removed entirely.</div>
+    </div>
+    <div class="sidebar-master-check checked" data-patch="sidebar-nav-language" data-section="language" data-master-for="language" onclick="toggleSidebarMaster(this)"></div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-language"></i> Language</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Preferred language picker</div><div class="patch-row-desc">Removes the language selector from Settings.</div></div><div class="patch-check checked" data-patch="language" data-section="language" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- AI ASSISTANT -->
+<div class="settings-section" data-section="aiassistant">
+  <div class="section-head"><div class="section-title">AI Assistant</div><div class="select-btns"><button class="select-btn" onclick="selectAll('aiassistant',true)">Select all</button><span class="select-sep">·</span><button class="select-btn" onclick="selectAll('aiassistant',false)">None</button></div></div>
+  <div class="sidebar-master-bar">
+    <div class="sidebar-master-bar-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+    <div class="sidebar-master-bar-info">
+      <div class="sidebar-master-bar-label">Show AI Assistant in Settings Sidebar</div>
+      <div class="sidebar-master-bar-desc">Uncheck to remove the <strong>AI Assistant</strong> entry from GUST's Settings sidebar and hide the AI toolbar button entirely. The assistant panel and all its settings will be inaccessible.</div>
+    </div>
+    <div class="sidebar-master-check checked" data-patch="sidebar-nav-aiassistant" data-section="aiassistant" data-master-for="ai-context" onclick="toggleSidebarMaster(this)"></div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-wand-magic-sparkles"></i> Context</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Page context by default</div><div class="patch-row-desc"><strong>Uncheck to disable</strong> the "Page Context by default" setting and remove its toggle from Settings › AI Assistant. The assistant will never automatically receive the current page's content when opened.</div></div><div class="patch-check checked" data-patch="ai-context" data-section="aiassistant" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CONNECTION -->
+<div class="settings-section" data-section="connection">
+  <div class="section-head"><div class="section-title">Connection</div><div class="select-btns"><button class="select-btn" onclick="selectAll('connection',true)">Select all</button><span class="select-sep">·</span><button class="select-btn" onclick="selectAll('connection',false)">None</button></div></div>
+  <div class="sidebar-master-bar">
+    <div class="sidebar-master-bar-icon"><i class="fas fa-table-list"></i></div>
+    <div class="sidebar-master-bar-info">
+      <div class="sidebar-master-bar-label">Show Connection in Settings Sidebar</div>
+      <div class="sidebar-master-bar-desc">Uncheck to remove the <strong>Connection</strong> entry from GUST's Settings sidebar. WISP URL, thread controls, WebRTC blocking, and smart headers will all be hidden from Settings and locked to their defaults.</div>
+    </div>
+    <div class="sidebar-master-check checked" data-patch="sidebar-nav-connection" data-section="connection" data-master-for="wisp-url threads webrtc-block media-headers" onclick="toggleSidebarMaster(this)"></div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-network-wired"></i> WISP Server</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">WebSocket URL input</div><div class="patch-row-desc"><strong>Uncheck to remove</strong> the WISP server URL input from Settings. The default server (wss://wisp.mercurywork.shop/) will always be used with no way to change it at runtime.</div></div><div class="patch-check checked" data-patch="wisp-url" data-section="connection" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-sliders"></i> Concurrent Requests</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Idle &amp; active thread steppers</div><div class="patch-row-desc"><strong>Uncheck to remove</strong> the thread count controls and retry counters from Settings. Defaults (idle: 3, active: 6, retries: 3) will be locked in permanently.</div></div><div class="patch-check checked" data-patch="threads" data-section="connection" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-ban"></i> WebRTC Blocking</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Block WebRTC connections</div><div class="patch-row-desc"><strong>Uncheck to disable</strong> WebRTC blocking and remove its toggle from Settings. P2P connections will be able to bypass the WISP proxy and may leak the real IP.</div></div><div class="patch-check checked" data-patch="webrtc-block" data-section="connection" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-shield-halved"></i> Smart Request Headers</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Spoof Sec-Fetch &amp; Referer headers</div><div class="patch-row-desc"><strong>Uncheck to disable</strong> smart header spoofing and remove its toggle from Settings. Some CDNs may reject requests with missing or incorrect fetch metadata headers.</div></div><div class="patch-check checked" data-patch="media-headers" data-section="connection" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- FALLBACK -->
+<div class="settings-section" data-section="fallback">
+  <div class="section-head"><div class="section-title">Fallback WISP</div><div class="select-btns"><button class="select-btn" onclick="selectAll('fallback',true)">Select all</button><span class="select-sep">·</span><button class="select-btn" onclick="selectAll('fallback',false)">None</button></div></div>
+  <div class="sidebar-master-bar">
+    <div class="sidebar-master-bar-icon"><i class="fas fa-table-list"></i></div>
+    <div class="sidebar-master-bar-info">
+      <div class="sidebar-master-bar-label">Show Fallback in Settings Sidebar</div>
+      <div class="sidebar-master-bar-desc">Uncheck to remove the <strong>Fallback</strong> entry from GUST's Settings sidebar. The fallback toggle, fallback WISP URL, retry policy, and error triggers will all be hidden from Settings.</div>
+    </div>
+    <div class="sidebar-master-check checked" data-patch="sidebar-nav-fallback" data-section="fallback" data-master-for="fallback-enabled fallback-wisp fallback-retries fallback-triggers" onclick="toggleSidebarMaster(this)"></div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-toggle-on"></i> Fallback Toggle</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Enable fallback WISP switch</div><div class="patch-row-desc"><strong>Uncheck to permanently disable</strong> the entire fallback system and remove its toggle from Settings. If the primary WISP fails, GUST will show an error immediately with no retry or fallback attempt.</div></div><div class="patch-check" data-patch="fallback-enabled" data-section="fallback" data-master-for="fallback-wisp fallback-retries fallback-triggers" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card" data-child-of="fallback-enabled">
+    <div class="settings-card-head"><i class="fas fa-server"></i> Fallback WISP URL</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Fallback server URL input</div><div class="patch-row-desc"><strong>Uncheck to remove</strong> the fallback WISP URL input, save, and reset buttons from Settings. No fallback server can be configured at runtime — only useful if the fallback toggle is kept enabled.</div></div><div class="patch-check" data-patch="fallback-wisp" data-section="fallback" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card" data-child-of="fallback-enabled">
+    <div class="settings-card-head"><i class="fas fa-clock-rotate-left"></i> Retry Policy</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Main &amp; fallback retry counters + delay</div><div class="patch-row-desc"><strong>Uncheck to remove</strong> the main retry attempts, fallback retry attempts, and retry delay steppers from Settings. Defaults (3 main retries, 3 fallback retries, 3s delay) will be locked in permanently.</div></div><div class="patch-check" data-patch="fallback-retries" data-section="fallback" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card" data-child-of="fallback-enabled">
+    <div class="settings-card-head"><i class="fas fa-triangle-exclamation"></i> Error Triggers</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">5xx / timeout / DNS trigger toggles</div><div class="patch-row-desc"><strong>Uncheck to remove</strong> the error trigger switches from Settings. Fallback will trigger on all generic connection errors by default (5xx and timeout triggers default on, DNS trigger default off).</div></div><div class="patch-check" data-patch="fallback-triggers" data-section="fallback" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SEARCH -->
+<div class="settings-section" data-section="search">
+  <div class="section-head"><div class="section-title">Search</div><div class="select-btns"><button class="select-btn" onclick="selectAll('search',true)">Select all</button><span class="select-sep">·</span><button class="select-btn" onclick="selectAll('search',false)">None</button></div></div>
+  <div class="sidebar-master-bar">
+    <div class="sidebar-master-bar-icon"><i class="fas fa-table-list"></i></div>
+    <div class="sidebar-master-bar-info">
+      <div class="sidebar-master-bar-label">Show Search in Settings Sidebar</div>
+      <div class="sidebar-master-bar-desc">Uncheck to remove the <strong>Search</strong> entry from GUST's Settings sidebar. The search engine picker, spellcheck toggle, and favicon proxy option will all be hidden from Settings.</div>
+    </div>
+    <div class="sidebar-master-check checked" data-patch="sidebar-nav-search" data-section="search" data-master-for="search-engine custom-search-engine spellcheck search-favicon" onclick="toggleSidebarMaster(this)"></div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-magnifying-glass"></i> Default Search Engine</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Search engine picker</div><div class="patch-row-desc"><strong>Uncheck to remove</strong> the search engine selector from Settings. Brave Search will be locked in as the default with no way to change it.</div></div><div class="patch-check checked" data-patch="search-engine" data-section="search" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-pen"></i> Custom Search Engine</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Custom search engine card</div><div class="patch-row-desc"><strong>Uncheck to remove</strong> the custom search engine config card from Settings. The <strong>Custom</strong> option will still appear in the engine picker but its name/URL card will be hidden.</div></div><div class="patch-check checked" data-patch="custom-search-engine" data-section="search" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-spell-check"></i> Spellcheck <span class="broken-tag">[BROKEN]</span></div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Enable spellcheck <span class="broken-tag">broken</span></div><div class="patch-row-desc"><strong>Uncheck to remove</strong> the spellcheck toggle from Settings. Only affects GUST's own UI inputs — spellcheck inside proxied pages cannot be controlled and remains non-functional.</div></div><div class="patch-check checked" data-patch="spellcheck" data-section="search" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-image"></i> Tab Favicons</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Proxy favicons through WISP</div><div class="patch-row-desc"><strong>Uncheck to disable</strong> favicon proxying through WISP and remove its toggle from Settings. Google's favicon service will be used instead — favicons may not load on some networks.</div></div><div class="patch-check checked" data-patch="search-favicon" data-section="search" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PRIVACY -->
+<div class="settings-section" data-section="privacy">
+  <div class="section-head"><div class="section-title">Privacy</div><div class="select-btns"><button class="select-btn" onclick="selectAll('privacy',true)">Select all</button><span class="select-sep">·</span><button class="select-btn" onclick="selectAll('privacy',false)">None</button></div></div>
+  <div class="sidebar-master-bar">
+    <div class="sidebar-master-bar-icon"><i class="fas fa-table-list"></i></div>
+    <div class="sidebar-master-bar-info">
+      <div class="sidebar-master-bar-label">Show Privacy in Settings Sidebar</div>
+      <div class="sidebar-master-bar-desc">Uncheck to remove the <strong>Privacy</strong> entry from GUST's Settings sidebar. Ad blocking, user-agent spoofing, and custom filter rules will all be hidden from Settings.</div>
+    </div>
+    <div class="sidebar-master-check checked" data-patch="sidebar-nav-privacy" data-section="privacy" data-master-for="adblock-toggle pause-site-btn ua-request ua-page custom-filters adblock-allowlist" onclick="toggleSidebarMaster(this)"></div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-shield-halved"></i> Privacy &amp; Blocking</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Ad &amp; Tracker Blocking toggle</div><div class="patch-row-desc"><strong>Uncheck to permanently disable</strong> ad/tracker blocking and remove its toggle from Settings and the toolbar. Cannot be re-enabled at runtime.</div></div><div class="patch-check checked" data-patch="adblock-toggle" data-section="privacy" onclick="togglePatch(this)"></div></div>
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">"Pause for this site" button</div><div class="patch-row-desc"><strong>Uncheck to remove</strong> the per-site pause button from the adblock toolbar popup. Users will only be able to globally disable ad blocking, not pause it per-site.</div></div><div class="patch-check checked" data-patch="pause-site-btn" data-section="privacy" onclick="togglePatch(this)"></div></div>
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Paused sites allowlist</div><div class="patch-row-desc"><strong>Uncheck to remove</strong> the paused-sites textarea from Settings › Privacy. Sites cannot be individually allowlisted from the Settings page — only via the toolbar popup button (if kept above).</div></div><div class="patch-check checked" data-patch="adblock-allowlist" data-section="privacy" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-user-secret"></i> User-Agent Spoofing</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Request User-Agent field</div><div class="patch-row-desc"><strong>Uncheck to remove</strong> the request UA input from Settings. The browser's native User-Agent will be sent on all proxy requests.</div></div><div class="patch-check checked" data-patch="ua-request" data-section="privacy" onclick="togglePatch(this)"></div></div>
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Page navigator.userAgent field</div><div class="patch-row-desc"><strong>Uncheck to remove</strong> the page UA input from Settings. The real browser value will be exposed to pages via navigator.userAgent.</div></div><div class="patch-check checked" data-patch="ua-page" data-section="privacy" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-filter"></i> Blocklist &amp; Filters</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Custom Filter Rules textarea</div><div class="patch-row-desc"><strong>Uncheck to remove</strong> the custom CSS filter textarea from Settings. Per-page hide rules cannot be added or edited at runtime.</div></div><div class="patch-check checked" data-patch="custom-filters" data-section="privacy" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CACHE -->
+<div class="settings-section" data-section="cache">
+  <div class="section-head"><div class="section-title">Cache</div><div class="select-btns"><button class="select-btn" onclick="selectAll('cache',true)">Select all</button><span class="select-sep">·</span><button class="select-btn" onclick="selectAll('cache',false)">None</button></div></div>
+  <div class="sidebar-master-bar">
+    <div class="sidebar-master-bar-icon"><i class="fas fa-table-list"></i></div>
+    <div class="sidebar-master-bar-info">
+      <div class="sidebar-master-bar-label">Show Cache in Settings Sidebar</div>
+      <div class="sidebar-master-bar-desc">Uncheck to remove the <strong>Cache</strong> entry from GUST's Settings sidebar. Tab caching and the Clear Cache / Reset Everything buttons will both be hidden from Settings.</div>
+    </div>
+    <div class="sidebar-master-check checked" data-patch="sidebar-nav-cache" data-section="cache" data-master-for="tab-cache clear-cache" onclick="toggleSidebarMaster(this)"></div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-layer-group"></i> Tab Caching</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Keep tabs loaded in background</div><div class="patch-row-desc"><strong>Uncheck to permanently disable</strong> tab caching and remove its toggle from Settings. Background tabs will always be fully reloaded when switched to.</div></div><div class="patch-check checked" data-patch="tab-cache" data-section="cache" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-database"></i> Resource Cache</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Clear Cache &amp; Reset All buttons</div><div class="patch-row-desc"><strong>Uncheck to remove</strong> the Clear Cache and Reset Everything buttons from Settings. Cached data can only be cleared by wiping browser storage manually.</div></div><div class="patch-check checked" data-patch="clear-cache" data-section="cache" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- FILES & MEDIA -->
+<div class="settings-section" data-section="filesandmedia">
+  <div class="section-head"><div class="section-title">Files &amp; Media</div><div class="select-btns"><button class="select-btn" onclick="selectAll('filesandmedia',true)">Select all</button><span class="select-sep">·</span><button class="select-btn" onclick="selectAll('filesandmedia',false)">None</button></div></div>
+  <div class="sidebar-master-bar">
+    <div class="sidebar-master-bar-icon"><i class="fas fa-table-list"></i></div>
+    <div class="sidebar-master-bar-info">
+      <div class="sidebar-master-bar-label">Show Files &amp; Media in Settings Sidebar</div>
+      <div class="sidebar-master-bar-desc">Uncheck to remove the <strong>Files &amp; Media</strong> entry from GUST's Settings sidebar. Range requests, auto-download, and all inline viewer toggles (PDF, image, video, audio, text) will be hidden from Settings.</div>
+    </div>
+    <div class="sidebar-master-check checked" data-patch="sidebar-nav-filesandmedia" data-section="filesandmedia" data-master-for="render-limits media-range media-download media-pdf media-img media-video media-audio media-text" onclick="toggleSidebarMaster(this)"></div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-code"></i> Advanced Rendering</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Script &amp; image render limits</div><div class="patch-row-desc"><strong>Uncheck to remove</strong> the script tag limit and image prefetch limit steppers from Settings. Defaults (250 scripts, 300 images) will be locked in permanently.</div></div><div class="patch-check checked" data-patch="render-limits" data-section="filesandmedia" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-film"></i> Media Range Requests</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Enable Range request support</div><div class="patch-row-desc"><strong>Uncheck to disable</strong> Range requests and remove their toggle from Settings. Seeking in video and audio will not work.</div></div><div class="patch-check checked" data-patch="media-range" data-section="filesandmedia" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-download"></i> Unknown File Types</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Auto-download unknown files</div><div class="patch-row-desc"><strong>Uncheck to disable</strong> auto-downloading of unknown MIME types and remove the toggle from Settings. Unknown file types will fail silently instead of downloading.</div></div><div class="patch-check checked" data-patch="media-download" data-section="filesandmedia" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-file-pdf"></i> PDF Viewer</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Built-in PDF viewer</div><div class="patch-row-desc"><strong>Uncheck to disable</strong> the PDF viewer and remove its toggle from Settings. PDF files will be downloaded instead of opening inline.</div></div><div class="patch-check checked" data-patch="media-pdf" data-section="filesandmedia" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-image"></i> Image Viewer</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Built-in image viewer</div><div class="patch-row-desc"><strong>Uncheck to disable</strong> the image viewer and remove its toggle from Settings. Images will open as raw files or download rather than rendering inline.</div></div><div class="patch-check checked" data-patch="media-img" data-section="filesandmedia" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-film"></i> Video Player</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Built-in video player</div><div class="patch-row-desc"><strong>Uncheck to disable</strong> the video player and remove its toggle from Settings. Video files will not play inline.</div></div><div class="patch-check checked" data-patch="media-video" data-section="filesandmedia" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-music"></i> Audio Player</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Built-in audio player</div><div class="patch-row-desc"><strong>Uncheck to disable</strong> the audio player and remove its toggle from Settings. Audio files will not play inline.</div></div><div class="patch-check checked" data-patch="media-audio" data-section="filesandmedia" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-file-lines"></i> Text / Code Viewer</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Built-in text viewer</div><div class="patch-row-desc"><strong>Uncheck to disable</strong> the text/code viewer and remove its toggle from Settings. Plain text and code files will be downloaded instead of rendering.</div></div><div class="patch-check checked" data-patch="media-text" data-section="filesandmedia" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- APPEARANCE -->
+<div class="settings-section" data-section="appearance">
+  <div class="section-head"><div class="section-title">Appearance</div><div class="select-btns"><button class="select-btn" onclick="selectAll('appearance',true)">Select all</button><span class="select-sep">·</span><button class="select-btn" onclick="selectAll('appearance',false)">None</button></div></div>
+  <div class="sidebar-master-bar">
+    <div class="sidebar-master-bar-icon"><i class="fas fa-table-list"></i></div>
+    <div class="sidebar-master-bar-info">
+      <div class="sidebar-master-bar-label">Show Appearance in Settings Sidebar</div>
+      <div class="sidebar-master-bar-desc">Uncheck to remove the <strong>Appearance</strong> entry from GUST's Settings sidebar. Font size, panel width persistence, panel position, and fullscreen-on-launch will all be hidden from Settings.</div>
+    </div>
+    <div class="sidebar-master-check checked" data-patch="sidebar-nav-appearance" data-section="appearance" data-master-for="font-size panel-widths panels-left auto-fullscreen" onclick="toggleSidebarMaster(this)"></div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-text-width"></i> Font Size</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Font size slider</div><div class="patch-row-desc"><strong>Uncheck to remove</strong> the font size slider from Settings. UI text size will be locked at the default with no way to adjust it.</div></div><div class="patch-check checked" data-patch="font-size" data-section="appearance" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-arrows-left-right"></i> Panel Widths</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Remember panel widths</div><div class="patch-row-desc"><strong>Uncheck to disable</strong> panel width persistence and remove its toggle from Settings. Panels will reset to default width on every load.</div></div><div class="patch-check checked" data-patch="panel-widths" data-section="appearance" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-table-columns"></i> Panel Position</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Panels on the left</div><div class="patch-row-desc"><strong>Uncheck to disable</strong> the left-panels option and remove its toggle from Settings. Panels will always be on the right.</div></div><div class="patch-check checked" data-patch="panels-left" data-section="appearance" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-expand"></i> Fullscreen on Launch</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Start in fullscreen</div><div class="patch-row-desc"><strong>Uncheck to disable</strong> auto-fullscreen on launch and remove its toggle from Settings. GUST will always open in a normal window.</div></div><div class="patch-check checked" data-patch="auto-fullscreen" data-section="appearance" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- HOME SCREEN -->
+<div class="settings-section" data-section="homescreen">
+  <div class="section-head"><div class="section-title">Home Screen</div><div class="select-btns"><button class="select-btn" onclick="selectAll('homescreen',true)">Select all</button><span class="select-sep">·</span><button class="select-btn" onclick="selectAll('homescreen',false)">None</button></div></div>
+  <div class="sidebar-master-bar">
+    <div class="sidebar-master-bar-icon"><i class="fas fa-table-list"></i></div>
+    <div class="sidebar-master-bar-info">
+      <div class="sidebar-master-bar-label">Show Home Screen in Settings Sidebar</div>
+      <div class="sidebar-master-bar-desc">Uncheck to remove the <strong>Home Screen</strong> entry from GUST's Settings sidebar. The bookmarks bar toggle, wallpaper controls, and clock options will all be hidden from Settings.</div>
+    </div>
+    <div class="sidebar-master-check checked" data-patch="sidebar-nav-homescreen" data-section="homescreen" data-master-for="bookmarks-bar nt-wallpaper nt-clock nt-clock24" onclick="toggleSidebarMaster(this)"></div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-bookmark"></i> Bookmarks Bar</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Show Bookmarks Bar</div><div class="patch-row-desc"><strong>Uncheck to disable</strong> the bookmarks bar and remove its toggle from Settings. Bookmarks will only be accessible via the history panel.</div></div><div class="patch-check checked" data-patch="bookmarks-bar" data-section="homescreen" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-image"></i> New Tab Wallpaper</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Background image controls</div><div class="patch-row-desc"><strong>Uncheck to remove</strong> the wallpaper change and reset buttons from Settings. The new tab background will be locked to the default gradient.</div></div><div class="patch-check checked" data-patch="nt-wallpaper" data-section="homescreen" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-clock"></i> Home Page Clock</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Show clock on new tab</div><div class="patch-row-desc"><strong>Uncheck to permanently hide</strong> the clock on the new tab page and remove its toggle from Settings.</div></div><div class="patch-check checked" data-patch="nt-clock" data-section="homescreen" onclick="togglePatch(this)"></div></div>
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">24-hour clock</div><div class="patch-row-desc"><strong>Uncheck to disable</strong> 24-hour format and remove its toggle from Settings. The clock will always display in 12-hour format.</div></div><div class="patch-check checked" data-patch="nt-clock24" data-section="homescreen" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SHORTCUTS -->
+<div class="settings-section" data-section="shortcuts">
+  <div class="section-head"><div class="section-title">Shortcuts</div><div class="select-btns"><button class="select-btn" onclick="selectAll('shortcuts',true)">Select all</button><span class="select-sep">·</span><button class="select-btn" onclick="selectAll('shortcuts',false)">None</button></div></div>
+  <div class="sidebar-master-bar">
+    <div class="sidebar-master-bar-icon"><i class="fas fa-table-list"></i></div>
+    <div class="sidebar-master-bar-info">
+      <div class="sidebar-master-bar-label">Show Shortcuts in Settings Sidebar</div>
+      <div class="sidebar-master-bar-desc">Uncheck to remove the <strong>Shortcuts</strong> entry from GUST's Settings sidebar. The keyboard shortcuts enable/disable toggle and the full key binding list will be hidden from Settings.</div>
+    </div>
+    <div class="sidebar-master-check checked" data-patch="sidebar-nav-shortcuts" data-section="shortcuts" data-master-for="shortcuts-panel" onclick="toggleSidebarMaster(this)"></div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-keyboard"></i> Keyboard Shortcuts</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Enable shortcuts toggle + shortcut list</div><div class="patch-row-desc"><strong>Uncheck to permanently disable</strong> keyboard shortcuts and remove the enable/disable toggle and key binding list from Settings.</div></div><div class="patch-check checked" data-patch="shortcuts-panel" data-section="shortcuts" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CORE: TUTORIAL -->
+<div class="settings-section" data-section="core-tutorial">
+  <div class="section-head"><div class="section-title">Tutorial</div><div class="select-btns"><button class="select-btn" onclick="selectAll('core-tutorial',true)">Select all</button><span class="select-sep">·</span><button class="select-btn" onclick="selectAll('core-tutorial',false)">None</button></div></div>
+  <div class="sidebar-master-bar">
+    <div class="sidebar-master-bar-icon"><i class="fas fa-table-list"></i></div>
+    <div class="sidebar-master-bar-info">
+      <div class="sidebar-master-bar-label">Show Tutorial in Settings Sidebar</div>
+      <div class="sidebar-master-bar-desc">Uncheck to remove the <strong>Tutorial</strong> entry from GUST's Settings sidebar. The tutorial overlay, auto-launch on first load, and the restart button in Settings will all be hidden.</div>
+    </div>
+    <div class="sidebar-master-check checked" data-patch="sidebar-nav-tutorial" data-section="core-tutorial" data-master-for="tutorial-include tutorial-auto tutorial-settings" onclick="toggleSidebarMaster(this)"></div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-map"></i> Interactive Tutorial</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Include tutorial overlay &amp; steps</div><div class="patch-row-desc"><strong>Uncheck to remove</strong> the guided tour overlay entirely and pre-mark it as done so it never appears. When unchecked, the two options below are also forced off.</div></div><div class="patch-check checked" data-patch="tutorial-include" data-section="core-tutorial" data-master-for="tutorial-auto tutorial-settings" onclick="togglePatch(this)"></div></div>
+      <div class="patch-row" data-child-of="tutorial-include"><div class="patch-row-info"><div class="patch-row-label">Auto-start on first load</div><div class="patch-row-desc"><strong>Uncheck to suppress</strong> the tutorial auto-launch on first open by pre-seeding the done flag. The overlay is still present if triggered manually from Settings.</div></div><div class="patch-check checked" data-patch="tutorial-auto" data-section="core-tutorial" onclick="togglePatch(this)"></div></div>
+      <div class="patch-row" data-child-of="tutorial-include"><div class="patch-row-info"><div class="patch-row-label">Tutorial nav entry in Settings</div><div class="patch-row-desc"><strong>Uncheck to remove</strong> the Tutorial nav item from the Settings sidebar so users cannot manually re-launch the tour.</div></div><div class="patch-check checked" data-patch="tutorial-settings" data-section="core-tutorial" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CORE: TABS -->
+<div class="settings-section" data-section="core-tabs">
+  <div class="section-head"><div class="section-title">Tab System</div><div class="select-btns"><button class="select-btn" onclick="selectAll('core-tabs',true)">Select all</button><span class="select-sep">·</span><button class="select-btn" onclick="selectAll('core-tabs',false)">None</button></div></div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-window-restore"></i> Tab System</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Drag-to-reorder tabs</div><div class="patch-row-desc"><strong>Uncheck to disable</strong> tab dragging by blocking the pointer events that drive it. Tabs cannot be grabbed or reordered — no ghost, no slot indicator, no reorder.</div></div><div class="patch-check checked" data-patch="tab-drag" data-section="core-tabs" onclick="togglePatch(this)"></div></div>
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Right-click context menu on tabs</div><div class="patch-row-desc"><strong>Uncheck to remove</strong> the tab context menu element. Right-clicking a tab will do nothing.</div></div><div class="patch-check checked" data-patch="tab-context" data-section="core-tabs" onclick="togglePatch(this)"></div></div>
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Audio mute controls on tabs</div><div class="patch-row-desc"><strong>Uncheck to hide</strong> the mute icon on tabs that are playing audio. Audio will still play — it just cannot be muted from the tab strip.</div></div><div class="patch-check checked" data-patch="tab-mute" data-section="core-tabs" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CORE: AD BLOCKER -->
+<div class="settings-section" data-section="core-adblock">
+  <div class="section-head"><div class="section-title">Ad Blocker</div><div class="select-btns"><button class="select-btn" onclick="selectAll('core-adblock',true)">Select all</button><span class="select-sep">·</span><button class="select-btn" onclick="selectAll('core-adblock',false)">None</button></div></div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-shield-halved"></i> Ad Blocker</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Adblock shield toolbar button &amp; panel</div><div class="patch-row-desc"><strong>Uncheck to remove</strong> the shield toolbar button and the floating adblock modal that shows per-page block counts and the on/off power button.</div></div><div class="patch-check checked" data-patch="adblock-panel" data-section="core-adblock" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CORE: DEV TOOLS -->
+<div class="settings-section" data-section="core-devtools">
+  <div class="section-head"><div class="section-title">Dev Tools</div><div class="select-btns"><button class="select-btn" onclick="selectAll('core-devtools',true)">Select all</button><span class="select-sep">·</span><button class="select-btn" onclick="selectAll('core-devtools',false)">None</button></div></div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-server"></i> Browser Logs</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Log panel &amp; toolbar toggle button</div><div class="patch-row-desc"><strong>Uncheck to hide</strong> the logs toolbar button and the log panel. Real-time request logging will be completely unavailable to the user.</div></div><div class="patch-check checked" data-patch="dev-logs" data-section="core-devtools" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-code"></i> Page Inspector</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Element inspector panel &amp; toolbar button</div><div class="patch-row-desc"><strong>Uncheck to hide</strong> the inspector toolbar button and the elements panel. DOM and CSS inspection will be completely unavailable to the user.</div></div><div class="patch-check checked" data-patch="dev-inspector" data-section="core-devtools" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CORE: METRICS -->
+<div class="settings-section" data-section="core-metrics">
+  <div class="section-head"><div class="section-title">Metrics</div><div class="select-btns"><button class="select-btn" onclick="selectAll('core-metrics',true)">Select all</button><span class="select-sep">·</span><button class="select-btn" onclick="selectAll('core-metrics',false)">None</button></div></div>
+  <div class="settings-card">
+    <div class="settings-card-head"><i class="fas fa-chart-simple"></i> Browser Metrics</div>
+    <div class="settings-card-body">
+      <div class="patch-row"><div class="patch-row-info"><div class="patch-row-label">Metrics modal &amp; toolbar button</div><div class="patch-row-desc"><strong>Uncheck to hide</strong> the metrics toolbar button and the stats popup. Live performance and network data will be completely unavailable to the user.</div></div><div class="patch-check checked" data-patch="metrics" data-section="core-metrics" onclick="togglePatch(this)"></div></div>
+    </div>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<div class="status-bar">
+  <i class="fas fa-circle-info" style="color:var(--ac)" id="statusIcon"></i>
+  <span id="statusText">Loading source…</span>
+  <span style="margin-left:auto;display:flex;align-items:center;gap:14px">
+    <span style="display:flex;align-items:center;gap:6px">
+      <span style="color:var(--tx3)">Enabled:</span>
+      <span style="color:var(--ac);font-weight:600;font-family:var(--mono)" id="totalCount">0/0</span>
+    </span>
+    <span style="display:flex;align-items:center;gap:6px">
+      <span style="color:var(--tx3)">Patches removed:</span>
+      <span style="color:var(--warn);font-weight:600;font-family:var(--mono)" id="removedCount">0</span>
+    </span>
+    <span style="display:flex;align-items:center;gap:6px" id="fileSizeWrap" style="display:none">
+      <span style="color:var(--tx3)">File size:</span>
+      <span style="color:var(--ok);font-weight:600;font-family:var(--mono)" id="fileSizeCount">—</span>
+    </span>
+  </span>
+</div>
+
+<div id="patcherTutorialOverlay">
+  <div id="patcherTutorialBackdrop"></div>
+  <svg id="patcherTutorialSvg" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <mask id="patcherSpotMask">
+        <rect width="100%" height="100%" fill="white"/>
+        <rect id="patcherSpotRect" x="0" y="0" width="0" height="0" rx="12" fill="black"/>
+      </mask>
+    </defs>
+    <rect width="100%" height="100%" fill="rgba(0,0,0,0.48)" mask="url(#patcherSpotMask)" id="patcherSpotOverlay"/>
+    <rect id="patcherSpotRing" x="0" y="0" width="0" height="0" rx="12" fill="none" stroke="var(--ac)" stroke-width="1"/>
+  </svg>
+  <div id="patcherTutorialRing"></div>
+  <div id="patcherTutorialCloneWrap" style="position:absolute;inset:0;pointer-events:none;z-index:2;"></div>
+  <div id="patcherTutorialCard">
+    <div id="patcherTutorialDots" style="display:flex;gap:5px;margin-bottom:16px;"></div>
+    <div id="patcherTutorialArrow"></div>
+    <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;">
+      <div id="patcherTutorialIcon" style="width:42px;height:42px;border-radius:11px;background:rgba(100,210,255,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--ac);font-size:18px;"></div>
+      <div style="flex:1;">
+        <div id="patcherTutorialTitle" style="font-size:15px;font-weight:700;color:var(--tx);margin-bottom:5px;line-height:1.2;"></div>
+        <div id="patcherTutorialBody" style="font-size:13.5px;color:var(--tx2);line-height:1.6;"></div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px;">
+      <button id="patcherTutorialSkip" style="background:none;border:none;color:var(--tx3);font-size:12px;cursor:pointer;padding:0;">Skip tour</button>
+      <div style="display:flex;gap:8px;">
+        <button id="patcherTutorialBack" style="background:var(--bg3);border:1px solid var(--bd);color:var(--tx2);border-radius:8px;padding:7px 18px;font-size:13px;cursor:pointer;display:none;font-family:var(--ui)"><i class="fas fa-arrow-left" style="margin-right:5px;"></i>Back</button>
+        <button id="patcherTutorialNext" style="background:var(--ac);border:none;color:#000;border-radius:8px;padding:7px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--ui)">Next</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+let sourceHTML = '', sourceLoaded = false;
+const RAW_URL = 'https://raw.githubusercontent.com/nautilus-os/GUST/refs/heads/main/index.html';
+const GH_URL  = 'https://github.com/nautilus-os/GUST/raw/refs/heads/main/index.html';
+
+// Default checked state for all patches (all checked by default)
+function resetCheckboxesToDefault() {
+  document.querySelectorAll('.patch-check[data-patch]').forEach(el => {
+    el.classList.add('checked');
+    el.classList.remove('master-disabled');
+    delete el.dataset.savedCheckedBySidebar;
+  });
+  document.querySelectorAll('.sidebar-master-check[data-patch]').forEach(el => {
+    el.classList.add('checked');
+  });
+  // Re-apply master states after reset
+  document.querySelectorAll('.settings-card').forEach(c => c.classList.remove('master-disabled'));
+  updateCounts();
+}
+
+function playBrandAnimation() {
+  const brand = document.querySelector('.brand');
+  brand.classList.remove('brand-anim-ready');
+  const animated = brand.querySelectorAll('.gust-icon-anim, .gust-letter-G, .gust-letter-U, .gust-letter-S, .gust-letter-T, .gust-sub-anim');
+  animated.forEach(el => { el.style.animation = 'none'; el.style.opacity = '0'; });
+  void brand.offsetWidth;
+  animated.forEach(el => { el.style.animation = ''; el.style.opacity = ''; });
+  void brand.offsetWidth;
+  brand.classList.add('brand-anim-ready');
+
+  // Also replay homepage brand animation
+  const hpWrap = document.querySelector('.homepage-brand-wrap');
+  if (hpWrap) {
+    hpWrap.classList.remove('brand-anim-ready');
+    const hpAnimated = hpWrap.querySelectorAll('.gust-icon-anim, .gust-letter-G, .gust-letter-U, .gust-letter-S, .gust-letter-T, .gust-sub-anim');
+    hpAnimated.forEach(el => { el.style.animation = 'none'; el.style.opacity = '0'; });
+    void hpWrap.offsetWidth;
+    hpAnimated.forEach(el => { el.style.animation = ''; el.style.opacity = ''; });
+    void hpWrap.offsetWidth;
+    hpWrap.classList.add('brand-anim-ready');
+  }
+}
+
+function updateCounts() {
+  const all = document.querySelectorAll('.patch-check[data-section]');
+  let totalOn = 0, totalAll = 0;
+  const map = {};
+  all.forEach(el => {
+    const s = el.dataset.section;
+    if (!map[s]) map[s] = {on:0,total:0};
+    map[s].total++; totalAll++;
+    if (el.classList.contains('checked')) { map[s].on++; totalOn++; }
+  });
+  // Also count sidebar master bars
+  document.querySelectorAll('.sidebar-master-check[data-section]').forEach(el => {
+    const s = el.dataset.section;
+    if (!map[s]) map[s] = {on:0,total:0};
+    map[s].total++; totalAll++;
+    if (el.classList.contains('checked')) { map[s].on++; totalOn++; }
+  });
+  Object.keys(map).forEach(s => {
+    const b = document.getElementById('nc-' + s);
+    if (!b) return;
+    b.textContent = map[s].on + '/' + map[s].total;
+    b.classList.toggle('lit', map[s].on > 0);
+  });
+  document.getElementById('totalCount').textContent = totalOn + '/' + totalAll;
+  const removed = totalAll - totalOn;
+  const rc = document.getElementById('removedCount');
+  if (rc) { rc.textContent = removed; rc.style.color = removed > 0 ? 'var(--warn)' : 'var(--tx3)'; }
+  const dlBtn = document.getElementById('downloadBtn');
+  if (dlBtn && sourceLoaded) {
+    dlBtn.disabled = removed === 0;
+    dlBtn.title = removed === 0 ? 'Please apply a patch' : '';
+  }
+}
+
+function applyMasterState(masterPatch, isChecked) {
+  const masterKey = masterPatch.dataset.patch;
+  const children = (masterPatch.dataset.masterFor || '').split(' ').filter(Boolean);
+
+  // Dim/undim child cards
+  document.querySelectorAll(`[data-child-of="${masterKey}"]`).forEach(el => {
+    el.classList.toggle('master-disabled', !isChecked);
+  });
+
+  children.forEach(childPatch => {
+    document.querySelectorAll(`.patch-check[data-patch="${childPatch}"]`).forEach(el => {
+      if (!isChecked) {
+        // Save current checked state before disabling, then uncheck
+        el.dataset.savedChecked = el.classList.contains('checked') ? '1' : '0';
+        el.classList.remove('checked');
+        el.classList.add('master-disabled');
+      } else {
+        el.classList.remove('master-disabled');
+        // Restore previously saved state (default to checked if no saved state)
+        const saved = el.dataset.savedChecked;
+        if (saved === '0') {
+          el.classList.remove('checked');
+        } else {
+          el.classList.add('checked');
+        }
+        delete el.dataset.savedChecked;
+      }
+    });
+  });
+}
+
+function togglePatch(el) {
+  // Don't toggle children of a disabled master
+  if (el.classList.contains('master-disabled')) return;
+  const wasChecked = el.classList.contains('checked');
+  el.classList.toggle('checked');
+  const isChecked = el.classList.contains('checked');
+  // If this is a master, cascade to children
+  if (el.dataset.masterFor) applyMasterState(el, isChecked);
+  updateCounts();
+}
+
+function toggleSidebarMaster(el) {
+  el.classList.toggle('checked');
+  const isChecked = el.classList.contains('checked');
+  const children = (el.dataset.masterFor || '').split(' ').filter(Boolean);
+
+  // Dim/enable all settings cards and patch rows in this section
+  const section = el.closest('.settings-section');
+  if (section) {
+    section.querySelectorAll('.settings-card').forEach(card => {
+      card.classList.toggle('master-disabled', !isChecked);
+    });
+    section.querySelectorAll('.patch-check').forEach(check => {
+      if (!isChecked) {
+        check.dataset.savedCheckedBySidebar = check.classList.contains('checked') ? '1' : '0';
+        check.classList.remove('checked');
+        check.classList.add('master-disabled');
+      } else {
+        check.classList.remove('master-disabled');
+        const saved = check.dataset.savedCheckedBySidebar;
+        if (saved === '0') {
+          check.classList.remove('checked');
+        } else {
+          check.classList.add('checked');
+        }
+        delete check.dataset.savedCheckedBySidebar;
+        // Re-apply any nested master state
+        if (check.dataset.masterFor) applyMasterState(check, check.classList.contains('checked'));
+      }
+    });
+  }
+  updateCounts();
+}
+
+function selectAll(sec, state) {
+  // Toggle the sidebar master bar first
+  const masterBar = document.querySelector(`.sidebar-master-check[data-section="${sec}"]`);
+  if (masterBar) {
+    masterBar.classList.toggle('checked', state);
+    if (!state) {
+      // Disabling sidebar master — dim all cards and uncheck all patches
+      const section = masterBar.closest('.settings-section');
+      if (section) {
+        section.querySelectorAll('.settings-card').forEach(card => card.classList.add('master-disabled'));
+        section.querySelectorAll('.patch-check').forEach(check => {
+          check.dataset.savedCheckedBySidebar = check.classList.contains('checked') ? '1' : '0';
+          check.classList.remove('checked');
+          check.classList.add('master-disabled');
+        });
+      }
+    } else {
+      // Re-enabling sidebar master — restore all cards and patches
+      const section = masterBar.closest('.settings-section');
+      if (section) {
+        section.querySelectorAll('.settings-card').forEach(card => card.classList.remove('master-disabled'));
+        section.querySelectorAll('.patch-check').forEach(check => {
+          check.classList.remove('master-disabled');
+          delete check.dataset.savedCheckedBySidebar;
+          check.classList.toggle('checked', state);
+          if (check.dataset.masterFor) applyMasterState(check, state);
+        });
+      }
+    }
+  } else {
+    document.querySelectorAll(`.patch-check[data-section="${sec}"]`).forEach(e => {
+      if (state === false && e.classList.contains('master-disabled')) return;
+      e.classList.toggle('checked', state);
+      if (e.dataset.masterFor) applyMasterState(e, state);
+    });
+  }
+  updateCounts();
+}
+
+document.querySelectorAll('.settings-nav-item').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.settings-nav-item').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const sec = btn.dataset.section;
+    document.querySelectorAll('.settings-section, .homepage-section').forEach(s => s.classList.remove('active'));
+    const t = document.querySelector(`.settings-section[data-section="${sec}"], .homepage-section[data-section="${sec}"]`);
+    if (t) t.classList.add('active');
+  });
+});
+
+function looksLikeGUST(t) {
+  if (typeof t !== 'string' || t.length < 50000) return false;
+  if (!t.toLowerCase().includes('<!doctype html')) return false;
+  // Must contain GUST-specific identifiers (present in the real source)
+  return t.includes('GUST Browser') || t.includes('gust:') || t.includes('wisp.mercurywork');
+}
+async function fetchWithTimeout(url, ms, opts={}) {
+  const c = new AbortController();
+  const id = setTimeout(() => c.abort(), ms);
+  try { const r = await fetch(url, {cache:'no-store', signal:c.signal, ...opts}); clearTimeout(id); return r; }
+  catch(e) { clearTimeout(id); throw e; }
+}
+async function attemptFetch(url, label, opts={}) {
+  document.getElementById('loadingSub').textContent = label;
+  const res = await fetchWithTimeout(url, 15000, opts);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const text = await res.text();
+  if (!looksLikeGUST(text)) throw new Error('Response (' + text.length + 'B) not valid GUST source');
+  return text;
+}
+let _firstLoad = true;
+async function fetchSource() {
+  const ov = document.getElementById('loadingOverlay');
+  ov.style.display = 'flex';
+  document.getElementById('loadingSub').textContent = 'Connecting...';
+  document.querySelectorAll('.error-box').forEach(e => e.remove());
+  document.getElementById('downloadBtn').disabled = true;
+  sourceLoaded = false;
+  resetCheckboxesToDefault();
+
+  // Attempt order: raw.githubusercontent (most reliable, direct HTML),
+  // then CORS proxies that return raw content not the GitHub HTML page
+  const attempts = [
+    {label:'Fetching from GitHub Raw...',       url: RAW_URL,  opts: {headers:{'Accept':'text/html,application/xhtml+xml'}}},
+    {label:'Fetching via jsDelivr CDN...',       url: 'https://cdn.jsdelivr.net/gh/nautilus-os/GUST@main/index.html', opts:{}},
+    {label:'Fetching via codetabs proxy...',     url: 'https://api.codetabs.com/v1/proxy/?quest=' + RAW_URL, opts:{}},
+    {label:'Fetching via allorigins...',         url: 'https://api.allorigins.win/raw?url=' + encodeURIComponent(RAW_URL), opts:{}},
+  ];
+  for (const a of attempts) {
+    try {
+      const text = await attemptFetch(a.url, a.label, a.opts);
+      sourceHTML = text; sourceLoaded = true;
+      ov.style.display = 'none';
+      playBrandAnimation();
+      setStatus('ok', 'Source loaded -- ' + (text.length/1024).toFixed(0) + ' KB');
+      document.getElementById('downloadBtn').disabled = false;
+      updateCounts();
+      updatePresetButtons();
+      if (_firstLoad) { _firstLoad = false; setTimeout(() => startPatcherTutorial(), 600); }
+      return;
+    } catch(err) { console.warn('[GUST Patcher] ' + a.label + ' failed:', err.message); }
+  }
+  ov.style.display = 'none';
+  playBrandAnimation();
+  setStatus('err', 'All fetch attempts failed -- open DevTools (F12) for details.');
+  const active = document.querySelector('.settings-section.active');
+  if (active) {
+    const box = document.createElement('div');
+    box.className = 'error-box';
+    box.id = 'fetchErrorBox';
+    box.innerHTML = `
+      <i class="fas fa-triangle-exclamation"></i>
+      <h3>Could not load GUST source</h3>
+      <p>All fetch attempts failed (likely a network/CORS restriction).<br>
+      Open DevTools (F12) → Console for details, then hit <strong style="color:var(--tx2)">Refresh Source</strong>.<br><br>
+      <strong style="color:var(--tx2)">Or paste the GUST source manually below:</strong></p>
+      <textarea id="manualSourceInput" placeholder="Paste the full GUST HTML here (download from github.com/nautilus-os/GUST)…"
+        style="width:100%;height:120px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;padding:10px;
+               color:var(--tx2);font-family:var(--mono);font-size:12px;resize:vertical;outline:none;margin-top:4px;"></textarea>
+      <button id="manualSourceBtn" class="btn-primary" style="margin-top:2px;">
+        <i class="fas fa-paste"></i> Use Pasted Source
+      </button>`;
+    active.prepend(box);
+
+    document.getElementById('manualSourceBtn').addEventListener('click', () => {
+      const val = document.getElementById('manualSourceInput').value.trim();
+      if (!looksLikeGUST(val)) {
+        setStatus('err', 'Pasted content does not look like valid GUST source — check you copied the full file.');
+        return;
+      }
+      sourceHTML = val; sourceLoaded = true;
+      box.remove();
+      playBrandAnimation();
+      setStatus('ok', 'Source loaded from paste — ' + (val.length/1024).toFixed(0) + ' KB');
+      document.getElementById('downloadBtn').disabled = false;
+      updateCounts();
+    });
+  }
+  updateCounts();
+}
+function setStatus(type, text) {
+  document.getElementById('statusText').textContent = text;
+  const i = document.getElementById('statusIcon');
+  i.className = type==='ok'?'fas fa-circle-check':type==='err'?'fas fa-circle-xmark':'fas fa-circle-info';
+  i.style.color = type==='ok'?'var(--ok)':type==='err'?'var(--err)':'var(--ac)';
+}
+
+document.getElementById('downloadBtn').addEventListener('click', () => { if (sourceLoaded) buildAndDownload(); });
+document.getElementById('reloadSourceBtn').addEventListener('click', fetchSource);
+
+// Paste Source button — opens a modal for manually pasting GUST HTML
+document.getElementById('pasteSourceBtn').addEventListener('click', () => {
+  // Remove existing modal if any
+  const existing = document.getElementById('pasteModal');
+  if (existing) { existing.remove(); return; }
+  const modal = document.createElement('div');
+  modal.id = 'pasteModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9998;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);';
+  modal.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:24px;width:520px;max-width:94vw;display:flex;flex-direction:column;gap:14px;box-shadow:0 16px 48px rgba(0,0,0,.7);">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:15px;font-weight:700;color:var(--tx)"><i class="fas fa-paste" style="color:var(--ac);margin-right:8px;"></i>Paste GUST Source</span>
+      </div>
+      <p style="font-size:12px;color:var(--tx3);line-height:1.6;">
+        Download <code style="background:var(--bg3);padding:1px 5px;border-radius:4px;">index.html</code> from
+        <a href="https://github.com/nautilus-os/GUST" target="_blank" style="color:var(--ac)">github.com/nautilus-os/GUST</a>
+        then paste the full file contents below.
+      </p>
+      <textarea id="pasteModalInput" placeholder="Paste the full GUST HTML here…"
+        style="width:100%;height:160px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;
+               padding:10px;color:var(--tx2);font-family:var(--mono);font-size:12px;resize:vertical;outline:none;"></textarea>
+      <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+        <span id="pasteModalStatus" style="font-size:12px;color:var(--err);flex:1;"></span>
+        <button id="pasteModalCancel" class="btn-secondary">Cancel</button>
+        <button id="pasteModalLoad" class="btn-primary"><i class="fas fa-check"></i> Load Source</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  document.getElementById('pasteModalCancel').onclick = () => modal.remove();
+  document.getElementById('pasteModalLoad').onclick = () => {
+    const val = document.getElementById('pasteModalInput').value.trim();
+    if (!looksLikeGUST(val)) {
+      document.getElementById('pasteModalStatus').textContent = 'This does not look like valid GUST source — make sure you copied the complete index.html file.';
+      return;
+    }
+    sourceHTML = val; sourceLoaded = true;
+    modal.remove();
+    // Remove any error box that was shown
+    const errBox = document.getElementById('fetchErrorBox');
+    if (errBox) errBox.remove();
+    playBrandAnimation();
+    setStatus('ok', 'Source loaded from paste — ' + (val.length/1024).toFixed(0) + ' KB');
+    document.getElementById('downloadBtn').disabled = false;
+    updateCounts();
+  };
+});
+
+function getPatch(id) {
+  const el = document.querySelector(`[data-patch="${id}"]`);
+  return el ? el.classList.contains('checked') : true;
+}
+
+// STRATEGY: Never cut HTML/CSS/JS out of GUST source - that breaks it.
+// Inject a small script before </head> that pre-seeds localStorage,
+// hides elements with CSS, and stubs JS functions after load.
+// The payload is base64-encoded so no special chars can break the HTML.
+
+function buildPatchScript(removedPatches) {
+  var rm = new Set(removedPatches);
+  var lsLines = [];
+  var cssRules = [];
+  var jsLines = [];
+
+  // ---- helpers ----
+  // ls() writes both the bare key and the instance-prefixed key.
+  // GUST wraps localStorage so all its reads go through `_INST_ID + ':' + key`.
+  // The instance ID is stored in sessionStorage under '__gust_inst__'.
+  function ls(key, val) {
+    lsLines.push('(function(){');
+    lsLines.push('  var _k=' + JSON.stringify(key) + ';');
+    lsLines.push('  var _v=' + JSON.stringify(val) + ';');
+    lsLines.push('  try{localStorage.setItem(_k,_v);}catch(e){}'); // bare key
+    lsLines.push('  try{');
+    lsLines.push('    var _id=sessionStorage.getItem("__gust_inst__")||window._sessionInstId;');
+    lsLines.push('    if(_id){localStorage.setItem(_id+":"+_k,_v);}');
+    lsLines.push('  }catch(e){}');
+    lsLines.push('})();');
+  }
+  function css(sel) { cssRules.push(sel + ' { display:none !important; }'); }
+  function js(line) { jsLines.push(line); }
+  function stubFns(arr) {
+    js('[' + arr.map(function(n){ return JSON.stringify(n); }).join(',') + '].forEach(function(fn){');
+    js('  if(typeof window[fn]==="function") window[fn]=function(){};');
+    js('});');
+  }
+  // badge(sel): hides all matched elements and inserts ONE "removed by patcher" pill
+  // per unique .settings-switch-row/.settings-toggle-row ancestor found.
+  // Selectors each in their own row each get their own badge.
+  // Selectors sharing a row get a single shared badge.
+  // Elements with no row ancestor: badge inserted after the element only if no row was found at all.
+  function badge(sel) {
+    css(sel);
+    js('(function(){');
+    js('  var _sels=' + JSON.stringify(sel.split(',').map(function(s){return s.trim();})) + ';');
+    js('  function _mkBadge(){');
+    js('    var b=document.createElement("div");');
+    js('    b.style.cssText="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(255,180,80,0.10);border:1px solid rgba(255,180,80,0.28);border-radius:6px;font-size:11px;font-family:var(--mono,monospace);color:rgba(255,180,80,0.85);white-space:nowrap;flex-shrink:0;margin-left:auto;";');
+    js('    b.innerHTML=\'<i class="fas fa-lock" style="font-size:9px;"></i> removed by patcher\';');
+    js('    return b;');
+    js('  }');
+    js('  function _inject(){');
+    js('    var usedRows=[];');
+    js('    var fallbackEl=null;');
+    js('    for(var i=0;i<_sels.length;i++){');
+    js('      var el=document.querySelector(_sels[i]);');
+    js('      if(!el) continue;');
+    js('      var row=el.closest(".settings-switch-row,.settings-toggle-row");');
+    js('      if(row){');
+    js('        if(usedRows.indexOf(row)===-1){');
+    js('          usedRows.push(row);');
+    js('          if(!row._gp_badged){row._gp_badged=true;row.appendChild(_mkBadge());}');
+    js('        }');
+    js('      } else if(!fallbackEl){');
+    js('        fallbackEl=el;');
+    js('      }');
+    js('    }');
+    js('    if(usedRows.length===0&&fallbackEl&&!fallbackEl._gp_badged){');
+    js('      fallbackEl._gp_badged=true;');
+    js('      fallbackEl.parentNode.insertBefore(_mkBadge(),fallbackEl.nextSibling);');
+    js('    }');
+    js('  }');
+    js('  if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",_inject);}else{_inject();}');
+    js('})();');
+  }
+
+  // ---- Sidebar nav hide rules (hides the nav item in GUST Browser Settings) ----
+  if (rm.has('sidebar-nav-connection'))    css('.settings-nav-item[data-section=\"connection\"]');
+  if (rm.has('sidebar-nav-aiassistant'))   css('.settings-nav-item[data-section=\"aiassistant\"]');
+  if (rm.has('sidebar-nav-fallback'))      css('.settings-nav-item[data-section=\"fallback\"]');
+  if (rm.has('sidebar-nav-search'))        css('.settings-nav-item[data-section=\"search\"]');
+  if (rm.has('sidebar-nav-privacy'))       css('.settings-nav-item[data-section=\"privacy\"]');
+  if (rm.has('sidebar-nav-cache'))         css('.settings-nav-item[data-section=\"cache\"]');
+  if (rm.has('sidebar-nav-filesandmedia')) css('.settings-nav-item[data-section=\"filesandmedia\"]');
+  if (rm.has('sidebar-nav-appearance'))    css('.settings-nav-item[data-section=\"appearance\"]');
+  if (rm.has('sidebar-nav-homescreen'))    css('.settings-nav-item[data-section=\"homescreen\"]');
+  if (rm.has('sidebar-nav-shortcuts'))     css('.settings-nav-item[data-section=\"shortcuts\"]');
+  if (rm.has('sidebar-nav-language'))      css('.settings-nav-item[data-section=\"language\"]');
+  if (rm.has('sidebar-nav-tutorial'))      css('.settings-nav-item[data-section=\"tutorial\"]');
+
+  // ---- localStorage pre-seeds (keys verified against GUST source) ----
+  if (rm.has('search-favicon'))  { ls('gust:favicon-proxy:v1','0'); }
+  if (rm.has('webrtc-block'))    { ls('gust:webrtc:block:v1','0'); }
+  if (rm.has('media-headers'))   { ls('gust:media:headers:v1','0'); }
+  if (rm.has('adblock-toggle'))  { ls('gust:block:v1','false'); }
+  if (rm.has('tab-cache'))       { ls('gust:tabcache:v1','false'); }
+  if (rm.has('media-range'))     { ls('gust:media:range:v1','0'); }
+  if (rm.has('media-download'))  { ls('gust:media:download:v1','0'); }
+  if (rm.has('media-pdf'))       { ls('gust:media:pdf:v1','0'); }
+  if (rm.has('media-img'))       { ls('gust:media:img:v1','0'); }
+  if (rm.has('media-video'))     { ls('gust:media:video:v1','0'); }
+  if (rm.has('media-audio'))     { ls('gust:media:audio:v1','0'); }
+  if (rm.has('media-text'))      { ls('gust:media:text:v1','0'); }
+  if (rm.has('panel-widths'))    { ls('gust:panelwidthpersist:v1','false'); }
+  if (rm.has('panels-left'))     { ls('gust:panelsleft','0'); }
+  if (rm.has('auto-fullscreen')) { ls('gust:autoFullscreen','0'); }
+  if (rm.has('bookmarks-bar'))   { ls('gust:bookmarksbar:v1','false'); }
+  if (rm.has('nt-clock'))        { ls('gust:showclock:v1','false'); }
+  if (rm.has('nt-clock24'))      { ls('gust:24hrclock:v1','false'); }
+  if (rm.has('shortcuts-panel')) { ls('gust:shortcutsEnabled','0'); }
+  if (rm.has('tutorial-auto') || rm.has('tutorial-include')) {
+    ls('gust:tutorial:v1','done');
+  }
+  if (rm.has('fallback-enabled'))  { ls('gust:fallback:enabled','0'); }
+  if (rm.has('fallback-5xx'))      { ls('gust:fallback:5xx','0'); }
+  if (rm.has('fallback-timeout'))  { ls('gust:fallback:timeout','0'); }
+  if (rm.has('fallback-dns'))      { ls('gust:fallback:dns','0'); }
+  if (rm.has('ai-context'))        { ls('gust_ai_ctx','false'); }
+
+  // ---- CSS hide rules (selectors verified against GUST source) ----
+  // Each rule hides the settings UI element when that patch is removed.
+  // NOTE: these only hide the settings option — the feature itself is
+  // disabled via the localStorage pre-seeds above.
+
+  // AI Assistant
+  // ai-context is child of sidebar-nav-aiassistant
+  if (rm.has('sidebar-nav-aiassistant')) {
+    css('#aiBtn,#aiSidebar');
+  }
+  if (rm.has('ai-context'))
+    (rm.has('sidebar-nav-aiassistant') ? badge : css)('#settingsAiContextSwitch');
+
+  // Connection
+  // wisp-url, threads, webrtc-block, media-headers are children of sidebar-nav-connection
+  if (rm.has('wisp-url')) {
+    (rm.has('sidebar-nav-connection') ? badge : css)('#settingsWispInput,#settingsWispSave,#settingsWispReset');
+    css('#settingsWispStatus');
+  }
+  if (rm.has('search-favicon'))
+    (rm.has('sidebar-nav-connection') ? badge : css)('#faviconProxySwitch');
+  if (rm.has('threads')) {
+    var _thr = rm.has('sidebar-nav-connection');
+    (_thr ? badge : css)('#settingsIdleMinus,#settingsIdleVal,#settingsIdlePlus');
+    (_thr ? badge : css)('#settingsActiveMinus,#settingsActiveVal,#settingsActivePlus');
+    (_thr ? badge : css)('#settingsThreadsSave,#settingsThreadsReset,#settingsThreadsStatus');
+  }
+  if (rm.has('webrtc-block'))
+    (rm.has('sidebar-nav-connection') ? badge : css)('#webrtcBlockSwitch');
+  if (rm.has('media-headers'))
+    (rm.has('sidebar-nav-connection') ? badge : css)('#mediaHeadersSwitch');
+
+  // Fallback WISP
+  // fallback-enabled is child of sidebar-nav-fallback
+  // fallback-wisp/retries/triggers are children of both sidebar-nav-fallback AND fallback-enabled
+  if (rm.has('fallback-enabled'))
+    (rm.has('sidebar-nav-fallback') ? badge : css)('#fallbackEnabledSwitch');
+  if (rm.has('fallback-wisp')) {
+    var _fbParent = rm.has('sidebar-nav-fallback') || rm.has('fallback-enabled');
+    (_fbParent ? badge : css)('#settingsFallbackWispInput,#settingsFallbackWispSave,#settingsFallbackWispReset');
+    css('#settingsFallbackWispStatus');
+  }
+  if (rm.has('fallback-retries')) {
+    var _fbrParent = rm.has('sidebar-nav-fallback') || rm.has('fallback-enabled');
+    (_fbrParent ? badge : css)('#mainRetryMinus,#mainRetryVal,#mainRetryPlus');
+    (_fbrParent ? badge : css)('#fallbackRetryMinus,#fallbackRetryVal,#fallbackRetryPlus');
+    (_fbrParent ? badge : css)('#fallbackDelayMinus,#fallbackDelayVal,#fallbackDelayPlus');
+  }
+  if (rm.has('fallback-triggers')) {
+    var _fbtParent = rm.has('sidebar-nav-fallback') || rm.has('fallback-enabled');
+    (_fbtParent ? badge : css)('#fallback5xxSwitch,#fallbackTimeoutSwitch,#fallbackDnsSwitch');
+  }
+
+  // Search
+  // search-engine, custom-search-engine, spellcheck, search-favicon are children of sidebar-nav-search
+  if (rm.has('search-engine'))
+    css('#settingsEngineRows');
+  if (rm.has('custom-search-engine'))
+    (rm.has('sidebar-nav-search') ? badge : css)('#customSearchCard');
+  if (rm.has('spellcheck')) {
+    // Show a "broken" warning badge (special case — spellcheck doesn't actually work)
+    js('(function(){');
+    js('  function _spellBroken(){');
+    js('    var sw=document.getElementById("settingsSpellSwitch");');
+    js('    if(!sw||sw._gp_broken) return;');
+    js('    sw._gp_broken=true;');
+    js('    var row=sw.closest(".settings-switch-row,.settings-toggle-row");');
+    js('    var b=document.createElement("div");');
+    js('    b.style.cssText="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(255,68,68,0.10);border:1px solid rgba(255,68,68,0.28);border-radius:6px;font-size:11px;font-family:var(--mono,monospace);color:rgba(255,100,100,0.9);white-space:nowrap;flex-shrink:0;margin-left:6px;";');
+    js('    b.innerHTML=\'<i class="fas fa-triangle-exclamation" style="font-size:9px;"></i> broken\';');
+    js('    if(row&&!row._gp_badged){row._gp_badged=true;row.appendChild(b);}');
+    js('    else if(!row){sw.parentNode.insertBefore(b,sw.nextSibling);}');
+    js('  }');
+    js('  if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",_spellBroken);}else{_spellBroken();}');
+    js('})();');
+  }
+  if (rm.has('language'))
+    css('#settingsLanguage,#settingsLanguageTrigger,#settingsLanguagePanel,#settingsLanguageSave,#settingsLanguageStatus');
+
+  // Privacy
+  // adblock-toggle, pause-site-btn, ua-request, ua-page, custom-filters, adblock-allowlist are children of sidebar-nav-privacy
+  if (rm.has('adblock-toggle')) {
+    (rm.has('sidebar-nav-privacy') ? badge : css)('#settingsBlockSwitch');
+    css('#blockToggle');
+  }
+  if (rm.has('pause-site-btn'))
+    css('#adblockPauseSiteBtn');
+  if (rm.has('adblock-allowlist')) {
+    css('#settingsAllowlistTextarea,#settingsSaveAllowlist,#settingsAllowlistStatus');
+    js('(function(){');
+    js('  function _hideAllowlist(){');
+    js('    var ta=document.getElementById("settingsAllowlistTextarea");');
+    js('    if(!ta) return;');
+    js('    var wrap=ta.closest("div");');
+    js('    if(wrap&&!wrap._gp_hidden){wrap._gp_hidden=true;wrap.style.display="none";}');
+    js('  }');
+    js('  if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",_hideAllowlist);}else{_hideAllowlist();}');
+    js('})();');
+  }
+  if (rm.has('ua-request')) {
+    css('#settingsRequestUA');
+    js('(function(){');
+    js('  function _hideUAReq(){');
+    js('    var el=document.getElementById("settingsRequestUA");');
+    js('    if(el&&el.parentNode){el.parentNode.style.display="none";}');
+    js('  }');
+    js('  if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",_hideUAReq);}else{_hideUAReq();}');
+    js('})();');
+  }
+  if (rm.has('ua-page')) {
+    css('#settingsPageUA');
+    js('(function(){');
+    js('  function _hideUAPage(){');
+    js('    var el=document.getElementById("settingsPageUA");');
+    js('    if(el&&el.parentNode){el.parentNode.style.display="none";}');
+    js('  }');
+    js('  if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",_hideUAPage);}else{_hideUAPage();}');
+    js('})();');
+  }
+  if (rm.has('ua-request') && rm.has('ua-page')) {
+    css('#settingsSaveUA,#settingsResetUA,#settingsUAStatus');
+  }
+  if (rm.has('custom-filters'))
+    css('#settingsCustomFilters,#settingsSaveFilters');
+
+  // Cache
+  // tab-cache, clear-cache are children of sidebar-nav-cache
+  if (rm.has('tab-cache'))
+    (rm.has('sidebar-nav-cache') ? badge : css)('#settingsTabCacheSwitch');
+  if (rm.has('clear-cache'))
+    css('#settingsClearCache,#settingsResetEverything');
+
+  // Files & Media
+  // render-limits, media-* are children of sidebar-nav-filesandmedia
+  var _fmParent = rm.has('sidebar-nav-filesandmedia');
+  if (rm.has('media-range'))     (_fmParent ? badge : css)('#mediaRangeSwitch');
+  if (rm.has('media-download'))  (_fmParent ? badge : css)('#mediaDownloadSwitch');
+  if (rm.has('media-pdf'))       (_fmParent ? badge : css)('#mediaPdfSwitch');
+  if (rm.has('media-img'))       (_fmParent ? badge : css)('#mediaImgSwitch');
+  if (rm.has('media-video'))     (_fmParent ? badge : css)('#mediaVideoSwitch');
+  if (rm.has('media-audio'))     (_fmParent ? badge : css)('#mediaAudioSwitch');
+  if (rm.has('media-text'))      (_fmParent ? badge : css)('#mediaTextSwitch');
+
+  // Advanced Rendering
+  if (rm.has('render-limits')) {
+    (_fmParent ? badge : css)('#scriptLimitMinus,#scriptLimitVal,#scriptLimitPlus');
+    (_fmParent ? badge : css)('#imgLimitMinus,#imgLimitVal,#imgLimitPlus');
+    css('#renderLimitsSave,#renderLimitsReset,#renderLimitsStatus');
+  }
+
+  // Appearance
+  // font-size, panel-widths, panels-left, auto-fullscreen are children of sidebar-nav-appearance
+  var _apParent = rm.has('sidebar-nav-appearance');
+  if (rm.has('font-size'))
+    css('#settingsFontSlider,#settingsFontReset');
+  if (rm.has('panel-widths'))
+    (_apParent ? badge : css)('#settingsPanelWidthSwitch');
+  if (rm.has('panels-left'))
+    (_apParent ? badge : css)('#settingsPanelsLeftSwitch');
+  if (rm.has('auto-fullscreen'))
+    (_apParent ? badge : css)('#settingsAutoFullscreenSwitch');
+
+  // Home Screen
+  // bookmarks-bar, nt-wallpaper, nt-clock, nt-clock24 are children of sidebar-nav-homescreen
+  var _hsParent = rm.has('sidebar-nav-homescreen');
+  if (rm.has('bookmarks-bar'))
+    (_hsParent ? badge : css)('#settingsBookmarksBarSwitch');
+  if (rm.has('nt-wallpaper'))
+    css('#settingsWallpaperChange,#settingsWallpaperReset,#settingsWallpaperStatus,#wallpaperModal,#ntWallpaperBtn');
+  if (rm.has('nt-clock'))
+    (_hsParent ? badge : css)('#settingsClockSwitch');
+  if (rm.has('nt-clock24'))
+    (_hsParent ? badge : css)('#settings24hrSwitch');
+
+  // Shortcuts
+  // shortcuts-panel is child of sidebar-nav-shortcuts
+  if (rm.has('shortcuts-panel')) {
+    (rm.has('sidebar-nav-shortcuts') ? badge : css)('#settingsShortcutsEnabledSwitch');
+    css('#shortcutsList');
+  }
+
+  // Tutorial
+  // tutorial-include/auto/settings are children of sidebar-nav-tutorial
+  // tutorial-auto/settings are also children of tutorial-include
+  if (rm.has('tutorial-include'))
+    css('#tutorialOverlay');
+  if (rm.has('tutorial-include') || rm.has('tutorial-settings')) {
+    var _tutParent = rm.has('sidebar-nav-tutorial') || rm.has('tutorial-include');
+    (_tutParent ? badge : css)('#restartTutorialBtn');
+  }
+
+  // Core — Ad Blocker panel (toolbar button + modal)
+  if (rm.has('adblock-panel'))
+    css('#adblockModal,#blockToggle');
+
+  // Core — Tab System (tab-drag handled above with JS block)
+  if (rm.has('tab-context'))
+    css('#tabContextMenu');
+  if (rm.has('tab-mute'))
+    css('.tab-mute-icon');
+
+  // Core — Dev Tools
+  if (rm.has('dev-logs'))
+    css('#devToggle,#logs');
+  if (rm.has('dev-inspector'))
+    css('#codeBtn,#elements');
+
+  // Core — Metrics
+  if (rm.has('metrics'))
+    css('#metricsBtn,#metricsModal');
+
+  // ---- JS overrides (flat lines only - no template literals, no backticks) ----
+  if (rm.has('tutorial-include') || rm.has('tutorial-auto')) {
+    js('window.startTutorial=function(){};');
+    js('window.endTutorial=function(){};');
+    js('window.__gustStartTutorial=function(){};');
+    js('try{Object.defineProperty(window,"startTutorial",{configurable:true,writable:true,value:function(){}});}catch(e){}');
+    js('try{Object.defineProperty(window,"__gustStartTutorial",{configurable:true,writable:true,value:function(){}});}catch(e){}');
+    // Block the deferred tutorial gate introduced in newer GUST builds
+    js('window._onLibcurlInitDone=(function(orig){');
+    js('  return function(){');
+    js('    if(typeof orig==="function") orig.apply(this,arguments);');
+    js('    window.__gustStartTutorial=function(){};');
+    js('    window.startTutorial=function(){};');
+    js('  };');
+    js('})(window._onLibcurlInitDone);');
+  }
+  if (rm.has('auto-fullscreen')) {
+    js('(function(){');
+    js('  var orig=Element.prototype.requestFullscreen;');
+    js('  var blocked=false;');
+    js('  Element.prototype.requestFullscreen=function(){');
+    js('    if(!blocked){blocked=true;return Promise.resolve();}');
+    js('    return orig.apply(this,arguments);');
+    js('  };');
+    js('})();');
+  }
+  if (rm.has('tab-drag')) {
+    // The drag handler is an IIFE — there's no global to stub.
+    // Instead we inject a capture-phase pointerdown listener that
+    // intercepts any pointerdown on a .tab element and stops it
+    // from propagating to GUST's drag handler, while still allowing
+    // normal click/close events (which use click/pointerup, not pointerdown).
+    js('(function(){');
+    js('  document.addEventListener("pointerdown", function(e){');
+    js('    if(e.button!==0) return;');
+    js('    var tab=e.target.closest(".tab[data-tab-id]");');
+    js('    if(!tab) return;');
+    js('    if(e.target.closest(".tab-close")) return;');
+    js('    // Stop GUST\'s drag listener from firing; click still works');
+    js('    e.stopImmediatePropagation();');
+    js('    // Re-fire a plain click so tab switching still works');
+    js('    tab.dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true}));');
+    js('  }, true);');
+    js('})();');
+    css('.tab-drag-ghost,.tab-drag-slot,.tab-dragging');
+  }
+  if (rm.has('sidebar-nav-aiassistant')) stubFns(['openAI','closeAI']);
+  if (rm.has('tab-context')) stubFns([]);
+  if (rm.has('dev-logs'))      stubFns(['toggleLogs']);
+  if (rm.has('dev-inspector')) stubFns(['toggleElements']);
+  if (rm.has('metrics'))       stubFns(['showMetrics','hideMetrics']);
+
+  // ---- Assemble payload and base64-encode it ----
+  // The payload is encoded so that no special characters (backticks, <\/script>,
+  // quotes, em-dashes) can break the surrounding HTML or script context.
+  if (!lsLines.length && !cssRules.length && !jsLines.length) return '';
+
+  var parts = ['(function(){'];
+  if (lsLines.length) { parts.push('// localStorage pre-seeds'); lsLines.forEach(function(l){ parts.push(l); }); }
+  if (cssRules.length) {
+    parts.push('// CSS hide rules');
+    parts.push('var _s=document.createElement("style");');
+    parts.push('_s.id="gust-patcher-css";');
+    parts.push('_s.textContent=' + JSON.stringify(cssRules.join('\n')) + ';');
+    parts.push('(document.head||document.documentElement).appendChild(_s);');
+  }
+  if (jsLines.length) {
+    parts.push('// JS overrides');
+    parts.push('function _gp(){');
+    jsLines.forEach(function(l){ parts.push('  ' + l); });
+    parts.push('}');
+    parts.push('if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",_gp);}else{_gp();}');
+  }
+  parts.push('})();');
+  var payload = parts.join('\n');
+
+  // btoa only handles latin1; encode utf8 first via encodeURIComponent/unescape trick
+  var b64 = btoa(unescape(encodeURIComponent(payload)));
+
+  // Bootstrap: only contains the b64 blob (alphanumeric+/+=) and safe method names.
+  // Uses <\/script> so the HTML parser never sees a raw <\/script> closing tag.
+  var out = '';
+  out += '<!-- GUST Patcher patch -->\n';
+  out += '<script>\n';
+  out += '(function(){\n';
+  out += '  var b=' + JSON.stringify(b64) + ';\n';
+  out += '  var c=decodeURIComponent(escape(atob(b)));\n';
+  out += '  try{eval(c);}catch(e){console.error("[GUST Patcher] patch failed:",e);}\n';
+  out += '})();\n';
+  out += '<\/script>';
+  return '\n' + out + '\n';
+}
+
+function buildAndDownload() {
+  setStatus('info', 'Building patched GUST...');
+
+  const removed = [
+    ...[...document.querySelectorAll('.patch-check[data-patch]')]
+      .filter(e => !e.classList.contains('checked'))
+      .map(e => e.dataset.patch),
+    ...[...document.querySelectorAll('.sidebar-master-check[data-patch]')]
+      .filter(e => !e.classList.contains('checked'))
+      .map(e => e.dataset.patch)
+  ];
+
+  let html = sourceHTML;
+
+  // Inject patch script right before </head>
+  const patchScript = buildPatchScript(removed);
+  if (patchScript) {
+    // Try </head> first, fall back to first <script> tag
+    if (html.includes('</head>')) {
+      html = html.replace('</head>', patchScript + '</head>');
+    } else {
+      const firstScript = html.indexOf('<script');
+      if (firstScript !== -1) {
+        html = html.slice(0, firstScript) + patchScript + html.slice(firstScript);
+      }
+    }
+  }
+
+  // Stamp a build comment
+  var stamp = removed.length
+    ? '<!-- GUST Patcher build ' + new Date().toISOString() + ' removed: ' + removed.join(', ') + ' -->'
+    : '<!-- GUST Patcher build ' + new Date().toISOString() + ' full default build -->';
+  html = html.replace(/<!doctype html>/i, '<!doctype html>\n' + stamp);
+
+  const blob = new Blob([html], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'GUST-Patched.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  var kb = (html.length/1024).toFixed(0);
+  var msg = removed.length ? ('Downloaded GUST-Patched.html - ' + kb + ' KB (' + removed.length + ' patch' + (removed.length>1?'es':'') + ' applied)') : ('Downloaded GUST-Patched.html - ' + kb + ' KB');
+  setStatus('ok', msg);
+  const fsc = document.getElementById('fileSizeCount');
+  if (fsc) { fsc.textContent = kb + ' KB'; }
+  const fsw = document.getElementById('fileSizeWrap');
+  if (fsw) { fsw.style.display = 'flex'; fsw.style.alignItems = 'center'; fsw.style.gap = '6px'; }
+}
+
+// -- GUST Patcher Tutorial --------------------------------------------------
+const patcherTutSteps = [
+  {
+    target: null,
+    icon: '<i class="fas fa-wind"></i>',
+    title: 'Welcome to GUST Patcher',
+    body: 'Build a custom version of GUST with only the features you want. This quick tour covers all the key controls.',
+    pos: 'center'
+  },
+  {
+    target: '.sidebar',
+    icon: '<i class="fas fa-list"></i>',
+    title: 'Feature Sidebar',
+    body: 'Browse all patchable features by category — Connection, Search, Privacy, Cache, and more. Click any category to see its patches.',
+    pos: 'right',
+    pad: 0
+  },
+  {
+    target: '#reloadSourceBtn',
+    icon: '<i class="fas fa-rotate-right"></i>',
+    title: 'Refresh Source',
+    body: 'Fetches the latest GUST source from GitHub. Also resets all checkboxes back to the default base GUST configuration.',
+    pos: 'below'
+  },
+  {
+    target: '#pasteSourceBtn',
+    icon: '<i class="fas fa-paste"></i>',
+    title: 'Paste Source',
+    body: 'Can\'t fetch automatically? Paste the raw GUST HTML here manually. Download it from GitHub and paste the whole file in.',
+    pos: 'below'
+  },
+  {
+    target: '#githubBtn',
+    icon: '<i class="fab fa-github"></i>',
+    title: 'GUST on GitHub',
+    body: "GUST is fully open source, and you can view GUST's full source code, report issues, or download GUST directly from the GitHub repository. If you like this project, please leave a star on the repository!",
+    pos: 'below'
+  },
+  {
+    target: '#downloadBtn',
+    icon: '<i class="fas fa-download"></i>',
+    title: 'Download GUST',
+    body: 'Once the source is loaded, click here to build and download your custom patched GUST. You must uncheck at least one patch to enable this button — if you want the unmodified build, use the <strong>Base GUST</strong> card on the home screen instead.',
+    pos: 'below'
+  },
+  {
+    icon: '<i class="fas fa-box-open"></i>',
+    title: 'Quick Presets',
+    body: 'Need a fast start? Grab <strong>Base GUST</strong> straight from GitHub, or <strong>GUST Lite</strong> — a trimmed build with bloat already removed.',
+    pos: 'above',
+    pad: 10,
+    cloneSelector: '#homepagePresets .preset-card',
+    navDelay: 200,
+    getBounds: function() {
+      const cards = document.querySelectorAll('#homepagePresets .preset-card');
+      if (!cards.length) return null;
+      let minL = Infinity, minT = Infinity, maxR = -Infinity, maxB = -Infinity;
+      cards.forEach(c => {
+        const r = c.getBoundingClientRect();
+        if (r.left < minL) minL = r.left;
+        if (r.top < minT) minT = r.top;
+        if (r.right > maxR) maxR = r.right;
+        if (r.bottom > maxB) maxB = r.bottom;
+      });
+      return { left: minL, top: minT, right: maxR, bottom: maxB, width: maxR - minL, height: maxB - minT };
+    },
+    onBefore: function() {
+      const homeBtn = document.querySelector('.settings-nav-item[data-section="homepage"]');
+      if (homeBtn) homeBtn.click();
+    }
+  },
+  {
+    target: null,
+    icon: '<i class="fas fa-check-circle"></i>',
+    title: 'Default selections = base GUST',
+    body: 'All currently checked patches represent the default base GUST build. Uncheck anything you want to remove before downloading.',
+    pos: 'center'
+  }
+];
+
+let patcherTutIdx = 0;
+
+function startPatcherTutorial() {
+  patcherTutIdx = 0;
+  const ov = document.getElementById('patcherTutorialOverlay');
+  ov.style.display = 'block';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const bd = document.getElementById('patcherTutorialBackdrop');
+    if (bd) bd.style.opacity = '1';
+    showPatcherTutStep(0);
+  }));
+}
+
+function endPatcherTutorial() {
+  const ov = document.getElementById('patcherTutorialOverlay');
+  const card = document.getElementById('patcherTutorialCard');
+  card.style.opacity = '0';
+  card.style.transform = 'translateY(8px)';
+  const bd = document.getElementById('patcherTutorialBackdrop');
+  if (bd) bd.style.opacity = '0';
+  const svg = document.getElementById('patcherTutorialSvg');
+  if (svg) svg.style.opacity = '0';
+  setTimeout(() => { ov.style.display = 'none'; }, 350);
+  try { localStorage.setItem('gust-patcher:tutorial:done', '1'); } catch(e){}
+  const sr = document.getElementById('patcherSpotRect');
+  if (sr) { sr.setAttribute('width','0'); sr.setAttribute('height','0'); }
+  document.getElementById('patcherTutorialRing').style.display = 'none';
+  const cw = document.getElementById('patcherTutorialCloneWrap');
+  if (cw) cw.innerHTML = '';
+  setTimeout(() => playBrandAnimation(), 200);
+}
+
+function showPatcherTutStep(idx) {
+  const step = patcherTutSteps[idx];
+  const card = document.getElementById('patcherTutorialCard');
+  const arrow = document.getElementById('patcherTutorialArrow');
+  const dots = document.getElementById('patcherTutorialDots');
+  const titleEl = document.getElementById('patcherTutorialTitle');
+  const bodyEl = document.getElementById('patcherTutorialBody');
+  const iconEl = document.getElementById('patcherTutorialIcon');
+  const btnNext = document.getElementById('patcherTutorialNext');
+  const btnBack = document.getElementById('patcherTutorialBack');
+  const svgEl = document.getElementById('patcherTutorialSvg');
+  const so = document.getElementById('patcherSpotOverlay');
+  const ringDiv = document.getElementById('patcherTutorialRing');
+  const cloneWrap = document.getElementById('patcherTutorialCloneWrap');
+
+  card.style.opacity = '0';
+  card.style.transform = 'translateY(6px)';
+
+  dots.innerHTML = patcherTutSteps.map((_,i) =>
+    `<div style="width:${i===idx?'16px':'6px'};height:6px;border-radius:3px;background:${i===idx?'var(--ac)':'rgba(255,255,255,0.2)'};transition:all .2s;"></div>`
+  ).join('');
+
+  titleEl.innerHTML = step.title;
+  bodyEl.innerHTML = step.body;
+  iconEl.innerHTML = step.icon;
+  btnNext.innerHTML = idx === patcherTutSteps.length-1 ? '<i class="fas fa-check" style="margin-right:5px;"></i>Done' : 'Next <i class="fas fa-arrow-right" style="margin-left:5px;"></i>';
+  btnBack.style.display = idx > 0 ? 'block' : 'none';
+
+  // Run any pre-step navigation hook
+  if (step.onBefore) step.onBefore();
+
+  const _delay = step.navDelay || 80;
+  setTimeout(() => {
+    const sr = document.getElementById('patcherSpotRect');
+    if (cloneWrap) cloneWrap.innerHTML = '';
+
+    if (step.target || step.getBounds) {
+      const r = step.getBounds ? step.getBounds() : (() => { const el = document.querySelector(step.target); return el ? el.getBoundingClientRect() : null; })();
+      if (r) {
+        const pad = step.pad !== undefined ? step.pad : 6;
+
+        // SVG cutout
+        sr.setAttribute('x', r.left - pad);
+        sr.setAttribute('y', r.top - pad);
+        sr.setAttribute('width', r.width + pad*2);
+        sr.setAttribute('height', r.height + pad*2);
+        sr.setAttribute('rx', pad > 10 ? '20' : '10');
+
+        // Ring overlay
+        ringDiv.style.left = (r.left-pad)+'px';
+        ringDiv.style.top = (r.top-pad)+'px';
+        ringDiv.style.width = (r.width+pad*2)+'px';
+        ringDiv.style.height = (r.height+pad*2)+'px';
+        ringDiv.style.borderRadius = (pad > 10 ? '20px' : '10px');
+        ringDiv.style.display = 'block';
+
+        // Clone the element and place it on top of the blur
+        const cloneSourceEl = step.target ? document.querySelector(step.target) : null;
+        if (cloneWrap && cloneSourceEl) {
+          try {
+            const clone = cloneSourceEl.cloneNode(true);
+            clone.removeAttribute('id');
+            const computedBR = getComputedStyle(cloneSourceEl).borderRadius || '0px';
+            clone.style.cssText = '';
+            clone.style.position = 'absolute';
+            clone.style.left = r.left + 'px';
+            clone.style.top = r.top + 'px';
+            clone.style.width = r.width + 'px';
+            clone.style.height = r.height + 'px';
+            clone.style.margin = '0';
+            clone.style.pointerEvents = 'none';
+            clone.style.boxSizing = 'border-box';
+            clone.style.borderRadius = computedBR;
+            clone.style.overflow = 'hidden';
+            clone.style.transform = 'none';
+            clone.style.animation = 'none';
+            clone.style.transition = 'none';
+            clone.style.filter = 'none';
+            clone.style.backdropFilter = 'none';
+            clone.style.webkitBackdropFilter = 'none';
+            clone.style.boxShadow = 'none';
+            clone.style.opacity = '1';
+            clone.style.zIndex = '2';
+            // preserve the original background so the clone looks right
+            clone.style.background = getComputedStyle(cloneSourceEl).background;
+            // preserve flex layout so button contents stay centered
+            const cs = getComputedStyle(cloneSourceEl);
+            if (cs.display === 'flex' || cs.display === 'inline-flex') {
+              clone.style.display = cs.display;
+              clone.style.alignItems = cs.alignItems;
+              clone.style.justifyContent = cs.justifyContent;
+              clone.style.gap = cs.gap;
+            }
+            cloneWrap.appendChild(clone);
+          } catch(e) {}
+        } else if (cloneWrap && step.getBounds) {
+          // For getBounds steps, clone each source element individually
+          const cloneTargets = step.cloneSelector ? document.querySelectorAll(step.cloneSelector) : [];
+          cloneTargets.forEach(srcEl => {
+            try {
+              const er = srcEl.getBoundingClientRect();
+              const clone = srcEl.cloneNode(true);
+              clone.removeAttribute('id');
+              clone.querySelectorAll('[id]').forEach(c => c.removeAttribute('id'));
+              clone.style.cssText = '';
+              clone.style.position = 'absolute';
+              clone.style.left = er.left + 'px';
+              clone.style.top = er.top + 'px';
+              clone.style.width = er.width + 'px';
+              clone.style.height = er.height + 'px';
+              clone.style.margin = '0';
+              clone.style.pointerEvents = 'none';
+              clone.style.boxSizing = 'border-box';
+              clone.style.borderRadius = getComputedStyle(srcEl).borderRadius || '0px';
+              clone.style.overflow = 'hidden';
+              clone.style.transform = 'none';
+              clone.style.animation = 'none';
+              clone.style.transition = 'none';
+              clone.style.filter = 'none';
+              clone.style.backdropFilter = 'none';
+              clone.style.webkitBackdropFilter = 'none';
+              clone.style.boxShadow = 'none';
+              clone.style.opacity = '1';
+              clone.style.zIndex = '2';
+              clone.style.background = getComputedStyle(srcEl).background;
+              const cs = getComputedStyle(srcEl);
+              if (cs.display === 'flex' || cs.display === 'inline-flex') {
+                clone.style.display = cs.display;
+                clone.style.flexDirection = cs.flexDirection;
+                clone.style.alignItems = cs.alignItems;
+                clone.style.justifyContent = cs.justifyContent;
+              }
+              cloneWrap.appendChild(clone);
+            } catch(e) {}
+          });
+        }
+
+        if (svgEl) svgEl.style.opacity = '1';
+        if (so) { so.setAttribute('mask','url(#patcherSpotMask)'); so.style.display=''; }
+        document.getElementById('patcherTutorialBackdrop').style.background = '';
+
+        patcherPositionCard(card, arrow, r, step.pos);
+      } else {
+        sr.setAttribute('width','0'); sr.setAttribute('height','0');
+        ringDiv.style.display = 'none';
+        patcherCenterCard(card, arrow);
+      }
+    } else {
+      sr.setAttribute('width','0'); sr.setAttribute('height','0');
+      ringDiv.style.display = 'none';
+      if (svgEl) svgEl.style.opacity = '0';
+      document.getElementById('patcherTutorialBackdrop').style.background = 'rgba(0,0,0,0.48)';
+      patcherCenterCard(card, arrow);
+    }
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }));
+  }, _delay);
+}
+
+function patcherPositionCard(card, arrow, r, pos) {
+  const cw = 360;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const pad = 16;
+  arrow.style.display = 'none';
+  card.style.borderRadius = '16px';
+
+  function placeArrowBelow(cardLeft, cardTop, cardH) {
+    // Arrow pointing up from card toward the target above
+    const cx = r.left + r.width / 2;
+    const nubMin = 24, nubMax = cw - 24;
+    const rawNub = cx - cardLeft - 6;
+    arrow.style.left = Math.min(Math.max(rawNub, nubMin), nubMax) + 'px';
+    arrow.style.right = '';
+    // card is below target -> arrow points up (top nub)
+    if (cardTop >= r.bottom - 4) {
+      arrow.style.top = '-7px'; arrow.style.bottom = '';
+      arrow.style.borderBottom = 'none'; arrow.style.borderRight = 'none';
+      arrow.style.borderTop = '1px solid var(--ac)'; arrow.style.borderLeft = '1px solid var(--ac)';
+    } else {
+      // card flipped above -> arrow points down
+      arrow.style.bottom = '-7px'; arrow.style.top = '';
+      arrow.style.borderTop = 'none'; arrow.style.borderLeft = 'none';
+      arrow.style.borderBottom = '1px solid var(--ac)'; arrow.style.borderRight = '1px solid var(--ac)';
+    }
+    arrow.style.display = 'block';
+  }
+
+  if (pos === 'above') {
+    const cardH = card.offsetHeight || 220;
+    let left = Math.max(pad, r.left + r.width/2 - cw/2);
+    left = Math.min(left, vw - cw - pad);
+    let top = r.top - cardH - 26;
+    if (top < pad) top = r.bottom + 26; // flip below if no room
+    top = Math.max(pad, top);
+    card.style.left = left+'px'; card.style.top = top+'px';
+    card.style.bottom = ''; card.style.right = '';
+    // Arrow points down toward target below
+    const cx = r.left + r.width / 2;
+    const nubMin = 24, nubMax = cw - 24;
+    const rawNub = cx - left - 6;
+    arrow.style.left = Math.min(Math.max(rawNub, nubMin), nubMax) + 'px';
+    arrow.style.right = '';
+    arrow.style.bottom = '-7px'; arrow.style.top = '';
+    arrow.style.borderTop = 'none'; arrow.style.borderLeft = 'none';
+    arrow.style.borderBottom = '1px solid var(--ac)'; arrow.style.borderRight = '1px solid var(--ac)';
+    arrow.style.display = 'block';
+
+  } else if (pos === 'below' || pos === 'below-left') {
+    let left = pos === 'below-left'
+      ? Math.max(pad, r.right - cw)
+      : Math.max(pad, r.left + r.width/2 - cw/2);
+    left = Math.min(left, vw - cw - pad);
+    let top = r.bottom + 26;
+    const cardH = card.offsetHeight || 220;
+    if (top + cardH + pad > vh) top = Math.max(pad, r.top - cardH - 26);
+    top = Math.max(pad, top);
+    card.style.left = left+'px'; card.style.top = top+'px';
+    card.style.bottom = ''; card.style.right = '';
+    placeArrowBelow(left, top, cardH);
+
+  } else if (pos === 'right') {
+    // Card placed to the right of the target, arrow points left toward the target
+    let left = r.right + 28;
+    const cardH = card.offsetHeight || 240;
+    // If no room on right, flip to left
+    if (left + cw + pad > vw) left = Math.max(pad, r.left - cw - 28);
+    let top = Math.max(pad, r.top + r.height/2 - cardH/2);
+    top = Math.min(top, vh - cardH - pad);
+    card.style.left = left+'px'; card.style.top = top+'px';
+    card.style.bottom = ''; card.style.right = '';
+
+    // Vertical nub position on the card (points horizontally toward target)
+    const cy = r.top + r.height/2;
+    const nubMin = 20, nubMax = (cardH || 240) - 20;
+    const rawNub = cy - top - 6;
+    const nubPos = Math.min(Math.max(rawNub, nubMin), nubMax);
+
+    arrow.style.top = nubPos + 'px';
+    arrow.style.bottom = '';
+    if (left >= r.right) {
+      // card is to the right -> arrow nub on left side
+      arrow.style.left = '-7px'; arrow.style.right = '';
+      arrow.style.borderTop = 'none'; arrow.style.borderRight = 'none';
+      arrow.style.borderBottom = '1px solid var(--ac)'; arrow.style.borderLeft = '1px solid var(--ac)';
+    } else {
+      // card flipped to left -> arrow nub on right side
+      arrow.style.right = '-7px'; arrow.style.left = '';
+      arrow.style.borderBottom = 'none'; arrow.style.borderLeft = 'none';
+      arrow.style.borderTop = '1px solid var(--ac)'; arrow.style.borderRight = '1px solid var(--ac)';
+    }
+    arrow.style.display = 'block';
+  } else {
+    patcherCenterCard(card, arrow);
+  }
+}
+
+function patcherCenterCard(card, arrow) {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  card.style.left = (vw/2 - 180)+'px';
+  card.style.top = (vh/2 - 100)+'px';
+  card.style.bottom = ''; card.style.right = '';
+  if (arrow) arrow.style.display = 'none';
+}
+
+document.getElementById('patcherTutorialNext').addEventListener('click', () => {
+  if (patcherTutIdx < patcherTutSteps.length-1) {
+    patcherTutIdx++;
+    showPatcherTutStep(patcherTutIdx);
+  } else {
+    endPatcherTutorial();
+  }
+});
+document.getElementById('patcherTutorialBack').addEventListener('click', () => {
+  if (patcherTutIdx > 0) { patcherTutIdx--; showPatcherTutStep(patcherTutIdx); }
+});
+document.getElementById('patcherTutorialSkip').addEventListener('click', endPatcherTutorial);
+
+// ── Preset downloads ──
+function downloadBaseGUST() {
+  if (sourceLoaded && sourceHTML) {
+    triggerDownload(sourceHTML, 'GUST.html');
+    return;
+  }
+  // Source not loaded yet — fetch directly
+  const btn = document.getElementById('presetBaseBtn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching…'; }
+  fetch('https://cdn.jsdelivr.net/gh/nautilus-os/GUST@main/index.html', {cache:'no-store'})
+    .then(r => { if (!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+    .then(text => { triggerDownload(text, 'GUST.html'); })
+    .catch(() => { window.open('https://github.com/nautilus-os/GUST/raw/refs/heads/main/index.html','_blank'); })
+    .finally(() => { if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-download"></i> Download Base GUST'; } });
+}
+
+const LITE_PATCHES = [
+  'threads','webrtc-block','media-headers',
+  'spellcheck','search-favicon','ua-request','ua-page',
+  'dev-logs','dev-inspector','metrics','language'
+];
+
+function downloadLite() {
+  if (!sourceLoaded || !sourceHTML) {
+    alert('Source not loaded yet.');
+    return;
+  }
+  const saved = {};
+  document.querySelectorAll('.patch-check[data-patch]').forEach(el => {
+    saved[el.dataset.patch] = el.classList.contains('checked');
+  });
+  document.querySelectorAll('.patch-check[data-patch]').forEach(el => {
+    el.classList.toggle('checked', LITE_PATCHES.includes(el.dataset.patch));
+  });
+  const removed = [
+    ...[...document.querySelectorAll('.patch-check[data-patch]')]
+      .filter(e => !e.classList.contains('checked'))
+      .map(e => e.dataset.patch),
+    ...[...document.querySelectorAll('.sidebar-master-check[data-patch]')]
+      .filter(e => !e.classList.contains('checked'))
+      .map(e => e.dataset.patch)
+  ];
+  let html = sourceHTML;
+  const patchScript = buildPatchScript(removed);
+  if (patchScript) {
+    if (html.includes('</head>')) {
+      html = html.replace('</head>', patchScript + '</head>');
+    } else {
+      const firstScript = html.indexOf('<script');
+      if (firstScript !== -1) html = html.slice(0, firstScript) + patchScript + html.slice(firstScript);
+    }
+  }
+  const stamp = '<!-- GUST Patcher preset:lite build ' + new Date().toISOString() + ' -->';
+  html = html.replace(/<!doctype html>/i, '<!doctype html>\n' + stamp);
+  document.querySelectorAll('.patch-check[data-patch]').forEach(el => {
+    el.classList.toggle('checked', saved[el.dataset.patch]);
+  });
+  updateCounts();
+  triggerDownload(html, 'GUST-Lite.html');
+}
+
+function triggerDownload(content, filename) {
+  const blob = new Blob([content], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+function updatePresetButtons() {
+  const can = sourceLoaded && !!sourceHTML;
+  const s = document.getElementById('presetLiteBtn');
+  if (s) s.disabled = !can;
+}
+
+fetchSource();
+updateCounts();
+// Initialize master switch child dimming on load
+document.querySelectorAll('.patch-check[data-master-for]').forEach(master => {
+  applyMasterState(master, master.classList.contains('checked'));
+});
+</script>
+</body>
+</html>
