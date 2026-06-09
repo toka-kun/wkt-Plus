@@ -7,6 +7,11 @@ router.get("/", (req, res) => {
   res.render("tools/home");
 });
 
+// --- 埋め込み画面 ---
+router.get("/emb", (req, res) => {
+  res.render("tools/emb");
+});
+
 // tool
 router.get("/tool/:id", (req, res) => {
   res.render(`tools/tool/${req.params.id}`);
