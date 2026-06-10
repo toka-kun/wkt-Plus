@@ -7,6 +7,14 @@
   <script src="/js/tailwindcss.js"></script>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex items-center justify-center transition-colors duration-300">
+
+  <button class="back-button fixed top-5 left-5 z-50 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out flex items-center space-x-2" onclick="window.location.href='/tools'">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      <span>戻る</span>
+  </button>
+
   <div class="w-full max-w-md p-8 bg-gray-800 rounded-xl shadow-xl">
     <div class="text-center">
       <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600 mb-6">HTML Proxy</h1>
@@ -21,7 +29,8 @@
 
   <script>
     document.getElementById('redirectButton').addEventListener('click', () => {
-      const url = document.getElementById('searchBar').value.trim(); // サーチバーからURLを取得
+      const url = document.getElementById('searchBar').value.trim();
+      // サーチバーからURLを取得
       if (!url) {
         alert('URLを入力してください');
         return;
