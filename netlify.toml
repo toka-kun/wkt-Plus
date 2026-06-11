@@ -13,3 +13,9 @@
   from = "/*"
   to = "/.netlify/functions/server"
   status = 200
+
+[images]
+  remote_images = [
+    "https://i.ytimg.com/.*",
+    "https://yt3.ggpht.com/.*"
+  ]
