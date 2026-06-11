@@ -58,17 +58,8 @@ router.get('/suggest', (req, res) => {
     request.end();
 });
 
-// ★ サムネイル取得のフォールバックロジックを追加
+// ★ サムネイル取得（NetlifyのCDN委譲＋フォールバックの完全ハイブリッド化）
 router.get("/vi*", async (req, res) => {
-
-  // Netlifyでは画像CDNへ委譲
-  if (isNetlify) {
-    const urlPath = req.url.split("?")[0];
-    return redirectNetlifyImage(
-      res,
-      `https://i.ytimg.com${urlPath}`
-    );
-  }
   const range = req.headers.range;
   const urlPath = req.url.split("?")[0];
   const parts = urlPath.split("/");
@@ -115,6 +106,15 @@ router.get("/vi*", async (req, res) => {
       
       // 画像が存在した場合 (200 OK または 206 Partial Content)
       if (request.statusCode === 200 || request.statusCode === 206) {
+        
+        // 【Netlify環境の場合】
+        // 存在するURL（画質）が確定した時点で、Netlify Image CDNへリダイレクトして終了！
+        if (isNetlify) {
+          await request.body.dump(); // 読みかけのレスポンスボディを破棄
+          return redirectNetlifyImage(res, targetUrl);
+        }
+
+        // 【ローカルなどの通常環境の場合】
         res.status(request.statusCode);
         if (!headersForwarded) {
           for (const h of ["Accept-Ranges", "Content-Type", "Content-Range", "Content-Length", "Cache-Control"]) {
@@ -140,8 +140,13 @@ router.get("/vi*", async (req, res) => {
     }
   }
   
-  // 全ての画質が取得できなかった場合の最終手段（minigetでのフォールバック）
+  // 全ての画質が取得できなかった場合の最終手段
   if (!success) {
+    if (isNetlify) {
+      // Netlifyで万が一全て失敗した場合は、デフォルトURLを投げて委譲
+      return redirectNetlifyImage(res, `https://i.ytimg.com${urlPath}`);
+    }
+
     try {
       const stream = miniget(`https://i.ytimg.com${urlPath}`, {
         headers: {
@@ -161,7 +166,7 @@ router.get("/vi*", async (req, res) => {
 
 router.get(["/yt3/*", "/ytc/*"], async (req, res) => {
 
-  // Netlifyでは画像CDNへ委譲
+  // Netlifyでは画像CDNへ委譲 (netlify.tomlで許可されているため動作します)
   if (isNetlify) {
     let url;
 
