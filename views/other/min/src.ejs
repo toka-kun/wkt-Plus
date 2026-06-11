@@ -6,7 +6,6 @@
     <title>Public Domain List</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Sora:wght@400;600;800&display=swap');
-
         :root {
             --bg: #0d0f14;
             --surface: #151821;
@@ -27,7 +26,8 @@
 
         *, *::before, *::after { box-sizing: border-box; }
         body {
-            margin: 0; padding: 0;
+            margin: 0;
+            padding: 0;
             background: var(--bg);
             color: var(--text-main);
             font-family: var(--font-display);
@@ -61,7 +61,8 @@
             padding: 4px 12px; border-radius: 4px; margin-bottom: 16px;
         }
         h1 {
-            font-size: 40px; font-weight: 800;
+            font-size: 40px;
+            font-weight: 800;
             color: var(--text-main); margin: 0 0 10px;
             letter-spacing: -0.03em;
         }
@@ -70,19 +71,23 @@
 
         /* Speed bar */
         .speed-status {
-            background: var(--surface); border: 1px solid var(--border);
+            background: var(--surface);
+            border: 1px solid var(--border);
             border-radius: 12px; padding: 16px 20px;
             margin-bottom: 20px;
             display: flex; align-items: center; gap: 16px;
-            font-size: 13px; font-family: var(--font-mono);
+            font-size: 13px;
+            font-family: var(--font-mono);
         }
         .speed-status-label { color: var(--text-sub); white-space: nowrap; }
         .speed-progress-bar {
-            flex: 1; height: 4px;
+            flex: 1;
+            height: 4px;
             background: var(--surface2); border-radius: 99px; overflow: hidden;
         }
         .speed-progress-fill {
-            height: 100%; width: 0%;
+            height: 100%;
+            width: 0%;
             background: linear-gradient(90deg, var(--accent), var(--fast));
             border-radius: 99px;
             transition: width 0.3s ease;
@@ -92,7 +97,8 @@
 
         /* Controls */
         .controls {
-            background: var(--surface); border: 1px solid var(--border);
+            background: var(--surface);
+            border: 1px solid var(--border);
             border-radius: 16px; padding: 20px;
             margin-bottom: 28px;
             display: flex; flex-direction: column; gap: 16px;
@@ -100,11 +106,13 @@
 
         .search-box { position: relative; }
         .search-box input {
-            width: 100%; background: var(--surface2);
+            width: 100%;
+            background: var(--surface2);
             border: 1px solid var(--border); border-radius: 8px;
             padding: 11px 16px 11px 40px;
             font-size: 14px; font-family: var(--font-display);
-            color: var(--text-main); transition: 0.2s;
+            color: var(--text-main);
+            transition: 0.2s;
         }
         .search-box input::placeholder { color: var(--text-sub); }
         .search-box input:focus {
@@ -117,10 +125,12 @@
         .filter-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
         .filter-label { font-size: 11px; font-family: var(--font-mono); color: var(--text-sub); letter-spacing: 0.08em; text-transform: uppercase; margin-right: 4px; }
         .filter-chip {
-            background: var(--surface2); border: 1px solid var(--border);
+            background: var(--surface2);
+            border: 1px solid var(--border);
             padding: 6px 14px; border-radius: 99px;
             font-size: 12px; font-weight: 600; font-family: var(--font-mono);
-            color: var(--text-sub); cursor: pointer; transition: 0.15s;
+            color: var(--text-sub); cursor: pointer;
+            transition: 0.15s;
         }
         .filter-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
         .filter-chip:hover:not(.active) { border-color: var(--border-hover); color: var(--text-main); }
@@ -130,7 +140,8 @@
             background: var(--surface2); border: 1px solid var(--border);
             padding: 6px 14px; border-radius: 8px;
             font-size: 12px; font-weight: 600; font-family: var(--font-mono);
-            color: var(--text-sub); cursor: pointer; transition: 0.15s;
+            color: var(--text-sub);
+            cursor: pointer; transition: 0.15s;
             display: flex; align-items: center; gap: 6px;
             min-width: 110px; justify-content: center;
         }
@@ -145,10 +156,12 @@
         }
 
         .domain-card {
-            background: var(--surface); border: 1px solid var(--border);
+            background: var(--surface);
+            border: 1px solid var(--border);
             border-radius: 12px; padding: 18px;
             transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-            display: flex; flex-direction: column; gap: 10px;
+            display: flex; flex-direction: column;
+            gap: 10px;
             position: relative; overflow: hidden;
         }
         .domain-card::before {
@@ -166,7 +179,8 @@
         .card-top { display: flex; justify-content: space-between; align-items: center; }
 
         .server-badge {
-            font-size: 10px; font-weight: 700; font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 700; font-family: var(--font-mono);
             text-transform: uppercase; padding: 3px 8px;
             border-radius: 4px; letter-spacing: 0.08em;
         }
@@ -309,7 +323,8 @@
 
   let allDomains = [];
   let currentFilter = 'all';
-  let sortMode = 'speed'; // 'speed' | 'newest' | 'oldest'
+  let sortMode = 'speed';
+  // 'speed' | 'newest' | 'oldest'
   let measuredCount = 0;
 
   // ── Speed measurement ────────────────────────────────────────────────────
@@ -317,19 +332,24 @@
 
   async function measureLatency(url) {
     const start = performance.now();
+
     try {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
       await fetch(url, {
         method: 'HEAD',
         mode: 'no-cors',
         cache: 'no-store',
         signal: controller.signal
       });
+
       clearTimeout(timer);
       return Math.round(performance.now() - start);
     } catch (e) {
+      // If aborted = timeout, mark as dead
       if (e.name === 'AbortError') return null;
+      // Other network errors: still got a response time (CORS block = server replied)
       const elapsed = Math.round(performance.now() - start);
       return elapsed < TIMEOUT_MS ? elapsed : null;
     }
@@ -354,6 +374,7 @@
     return ms + ' ms';
   }
 
+  // Latency bar: max visible width at 2000ms
   function latencyWidth(ms) {
     if (ms === null) return 100;
     return Math.min(100, (ms / 2000) * 100);
@@ -362,12 +383,13 @@
   // ── Render ───────────────────────────────────────────────────────────────
   function getSortedFiltered() {
     const search = document.getElementById('searchInput').value.toLowerCase();
+
     let list = allDomains.filter(d => {
       const matchSearch = d.url.toLowerCase().includes(search);
       const matchFilter = currentFilter === 'all' || d.server === currentFilter;
       return matchSearch && matchFilter;
     });
-    
+
     if (sortMode === 'speed') {
       list = list.slice().sort((a, b) => {
         if (a.latency === null && b.latency === null) return 0;
@@ -430,10 +452,11 @@
       const snapshot = await get(child(dbRef, 'public_domains'));
       if (snapshot.exists()) {
         const data = snapshot.val();
-        allDomains = Object.values(data).map(item => ({
+        allDomains = Object.values(data).map(item => 
+        ({
           ...item,
           server: detectServer(item.url),
-          latency: undefined
+          latency: undefined   // undefined = not yet measured
         }));
         renderList();
         startSpeedMeasurement();
@@ -456,6 +479,7 @@
     statusEl.style.display = 'flex';
     countEl.innerHTML = `<span>0</span> / ${total}`;
 
+    // Measure concurrently (limit to 5 at a time)
     const CONCURRENCY = 5;
     const queue = [...allDomains];
     const workers = Array(Math.min(CONCURRENCY, total)).fill(null).map(async () => {
@@ -466,12 +490,13 @@
         const pct = (measuredCount / total) * 100;
         fillEl.style.width = pct + '%';
         countEl.innerHTML = `<span>${measuredCount}</span> / ${total}`;
-        renderList();
+        renderList(); // live update
       }
     });
 
     await Promise.all(workers);
 
+    // Done
     statusEl.innerHTML = `<span style="color:var(--fast);font-family:var(--font-mono);font-size:13px;">✓ 計測完了 — ${total}件のドメインを測定しました</span>`;
     setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
   }
