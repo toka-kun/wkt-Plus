@@ -195,6 +195,6 @@ window.addEventListener('DOMContentLoaded', () => {
     accaiiScript.async = true;
 
     // 3. <body> の最初（先頭）にそれぞれを追加
-    document.body.prepend(counterDiv);
-    document.body.prepend(accaiiScript);
+    document.head.prepend(counterDiv);
+    document.head.prepend(accaiiScript);
 });
