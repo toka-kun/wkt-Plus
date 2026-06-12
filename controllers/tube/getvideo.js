@@ -6,7 +6,7 @@ const axios = require("axios");
 
 const user_agent = process.env.USER_AGENT || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36";
 
-// サーバーリスト
+// サーバーリスト (この順番でメモリキャッシュを探しに行きます)
 const serverUrls = ['invidious', 'acethinker', 'siawaseok', 'yudlp', 'ytdlpinstance-vercel', 'senninytdlp', 'min-tube2-api', 'xeroxyt-nt-apiv1', 'simple-yt-stream', 'freemake'];
 
 // ▼▼▼ 10分間のメモリキャッシュ & 同時リクエスト防止用変数 ▼▼▼
@@ -27,21 +27,48 @@ router.get('/:id', async (req, res) => {
     }
 
     const selectedApi = req.query.server;
-    const cacheKey = `${videoId}_${selectedApi || 'auto'}`;
+    
+    let cachedData = null;
+    let hitCacheKey = null;
 
-    // 1. すでに取得完了したキャッシュがあるか確認
-    const cachedData = videoCache.get(cacheKey);
-    if (cachedData && (Date.now() - cachedData.timestamp < CACHE_TTL)) {
-        console.log(`🚀 メモリキャッシュヒット (外部通信スキップ): ${cacheKey}`);
+    // 1. メモリキャッシュの確認
+    if (selectedApi) {
+        // API指定がある場合は、そのAPIのキャッシュだけを確認
+        hitCacheKey = `${videoId}_${selectedApi}`;
+        const data = videoCache.get(hitCacheKey);
+        if (data && (Date.now() - data.timestamp < CACHE_TTL)) {
+            cachedData = data;
+        }
+    } else {
+        // API指定がない場合、Invidiousから順番にメモリキャッシュを確認する
+        for (const api of serverUrls) {
+            const key = `${videoId}_${api}`;
+            const data = videoCache.get(key);
+            if (data && (Date.now() - data.timestamp < CACHE_TTL)) {
+                hitCacheKey = key;
+                cachedData = data;
+                break; // 最初に見つかった有効なキャッシュを使用する
+            }
+        }
+    }
+
+    // キャッシュが見つかった場合は即座に返す
+    if (cachedData) {
+        console.log(`🚀 メモリキャッシュヒット (外部通信スキップ): ${hitCacheKey}`);
+        res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=30');
         return res.render('tube/watch.ejs', cachedData.renderData);
     }
 
     // 2. 他のリクエストが現在データを取得中なら、APIを叩かずにその完了を待つ (F5連打対策)
-    if (activeRequests.has(cacheKey)) {
-        console.log(`⏳ 同時リクエスト発生: 代表リクエストの取得完了を待機中... (${cacheKey})`);
+    // 待機用のキー。指定があればそのAPI名で、なければ auto で待機グループを作る
+    const requestKey = selectedApi ? `${videoId}_${selectedApi}` : `${videoId}_auto`;
+
+    if (activeRequests.has(requestKey)) {
+        console.log(`⏳ 同時リクエスト発生: 代表リクエストの取得完了を待機中... (${requestKey})`);
         try {
             // 先行リクエストが解決されるのをここで待つ
-            const renderData = await activeRequests.get(cacheKey);
+            const renderData = await activeRequests.get(requestKey);
+            res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=30');
             return res.render('tube/watch.ejs', renderData);
         } catch (error) {
             // 先行リクエストが失敗した場合はこちらもエラー画面を返す
@@ -54,13 +81,14 @@ router.get('/:id', async (req, res) => {
         let baseUrl = selectedApi || 'invidious'; 
         let apiToUse = selectedApi || 'invidious'; 
         let fallbackMessage = null; 
-        
+
         // ログ出力でどのルートを通ったか明確にするための変数
         let cacheSource = selectedApi ? `${selectedApi} (明示指定)` : "Invidious (デフォルト)";
 
         // ▼▼▼ パラメータ指定がない場合の自動キャッシュ検索ロジック ▼▼▼
         if (!selectedApi) {
             const reqOptions = { timeout: 5000, headers: { "User-Agent": user_agent } };
+            // メモリキャッシュになかったので、リモートキャッシュを取りに行く
             const [siaRes, yudRes, katuoRes, senninRes] = await Promise.allSettled([
                 axios.get('https://siawaseok.f5.si/api/cache', reqOptions),
                 axios.get('https://yudlp.vercel.app/cache', reqOptions),
@@ -89,7 +117,7 @@ router.get('/:id', async (req, res) => {
                 cacheSource = "リモートキャッシュ (senninytdlp)";
                 console.log(`🎯 リモートキャッシュヒット: senninytdlp (${videoId})`);
             } else {
-                // リモートキャッシュがどこにもなかった場合（Invidiousを使用）
+                // リモートキャッシュにもなかった場合、デフォルトのInvidiousを新たに取得しに行く
                 cacheSource = "Invidious (リモートキャッシュなし)";
                 console.log(`ℹ️ リモートキャッシュなし: デフォルトの invidious を使用 (${videoId})`);
             }
@@ -117,19 +145,21 @@ router.get('/:id', async (req, res) => {
         
         const renderData = { videoData, videoInfo, videoId, baseUrl, fallbackMessage };
 
-        // 取得に成功したら、Invidious のデータであっても必ず 10分間メモリキャッシュに保存
-        videoCache.set(cacheKey, {
+        // ★ 指定なしでアクセスしてきても、最終的に使ったAPI名をキーにして保存する
+        const saveCacheKey = `${videoId}_${apiToUse}`;
+
+        videoCache.set(saveCacheKey, {
             timestamp: Date.now(),
             renderData: renderData
         });
-        console.log(`💾 メモリキャッシュに新規保存しました [ソース: ${cacheSource}] -> キー: ${cacheKey}`);
+        console.log(`💾 メモリキャッシュに新規保存しました [ソース: ${cacheSource}] -> キー: ${saveCacheKey}`);
 
         // 10分経過後にメモリから自動削除
         setTimeout(() => {
-            const currentCache = videoCache.get(cacheKey);
+            const currentCache = videoCache.get(saveCacheKey);
             if (currentCache && (Date.now() - currentCache.timestamp >= CACHE_TTL)) {
-                videoCache.delete(cacheKey);
-                console.log(`🗑️ メモリキャッシュの期限が切れたため解放しました: ${cacheKey}`);
+                videoCache.delete(saveCacheKey);
+                console.log(`🗑️ メモリキャッシュの期限が切れたため解放しました: ${saveCacheKey}`);
             }
         }, CACHE_TTL);
 
@@ -137,7 +167,7 @@ router.get('/:id', async (req, res) => {
     })();
 
     // 他の同時リクエストが相乗りできるように、現在取得中として Promise を登録
-    activeRequests.set(cacheKey, fetchPromise);
+    activeRequests.set(requestKey, fetchPromise);
 
     try {
         // 取得完了を待って画面を描画
@@ -149,7 +179,7 @@ router.get('/:id', async (req, res) => {
         return renderError(res, videoId, selectedApi || 'invidious', error);
     } finally {
         // 成功しても失敗しても、「取得中」リストからは必ず削除する
-        activeRequests.delete(cacheKey);
+        activeRequests.delete(requestKey);
     }
 });
 
