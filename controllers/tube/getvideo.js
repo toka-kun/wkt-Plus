@@ -9,6 +9,10 @@ const user_agent = process.env.USER_AGENT || "Mozilla/5.0 (Windows NT 10.0; Win6
 // サーバーリスト
 const serverUrls = ['invidious', 'acethinker', 'siawaseok', 'yudlp', 'ytdlpinstance-vercel', 'senninytdlp', 'min-tube2-api', 'xeroxyt-nt-apiv1', 'simple-yt-stream', 'freemake'];
 
+// ▼▼▼ 10秒間のメモリキャッシュ用変数 ▼▼▼
+const videoCache = new Map();
+const CACHE_TTL = 10 * 1000; // 10秒(10000ms)
+
 router.get('/:id', async (req, res) => {
     const videoId = req.params.id;
     const cookies = parseCookies(req);
@@ -25,6 +29,16 @@ router.get('/:id', async (req, res) => {
     let baseUrl = selectedApi || 'invidious'; 
     let apiToUse = selectedApi || 'invidious'; 
     let fallbackMessage = null; 
+
+    // ▼▼▼ メモリキャッシュの確認 (API負荷軽減) ▼▼▼
+    const cacheKey = `${videoId}_${selectedApi || 'auto'}`;
+    const cachedData = videoCache.get(cacheKey);
+    
+    if (cachedData && (Date.now() - cachedData.timestamp < CACHE_TTL)) {
+        console.log(`🚀 メモリキャッシュヒット (10秒以内): ${cacheKey}`);
+        return res.render('tube/watch.ejs', cachedData.renderData);
+    }
+    // ▲▲▲ ここまで ▲▲▲
 
     try {
         // ▼▼▼ パラメータ指定がない場合の自動キャッシュ検索ロジック ▼▼▼
@@ -98,7 +112,25 @@ router.get('/:id', async (req, res) => {
             watch_next_feed: watch_next_feed,
         };
         
-        res.render('tube/watch.ejs', { videoData, videoInfo, videoId, baseUrl, fallbackMessage });
+        const renderData = { videoData, videoInfo, videoId, baseUrl, fallbackMessage };
+
+        // ▼▼▼ 取得したデータを10秒間メモリキャッシュに保存 ▼▼▼
+        videoCache.set(cacheKey, {
+            timestamp: Date.now(),
+            renderData: renderData
+        });
+
+        // 10秒後に自動的にキャッシュを削除してメモリを解放
+        setTimeout(() => {
+            const currentCache = videoCache.get(cacheKey);
+            // 上書きされておらず、本当に10秒経過している場合のみ削除
+            if (currentCache && (Date.now() - currentCache.timestamp >= CACHE_TTL)) {
+                videoCache.delete(cacheKey);
+            }
+        }, CACHE_TTL);
+        // ▲▲▲ ここまで ▲▲▲
+
+        res.render('tube/watch.ejs', renderData);
         
     } catch (error) {
         // シャッフル処理を削除し、そのまま渡すように変更
