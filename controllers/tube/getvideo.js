@@ -142,6 +142,8 @@ router.get('/:id', async (req, res) => {
     try {
         // 取得完了を待って画面を描画
         const renderData = await fetchPromise;
+        // Vercel、NetlifyのCDNキャッシュ用
+        res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=30');
         res.render('tube/watch.ejs', renderData);
     } catch (error) {
         return renderError(res, videoId, selectedApi || 'invidious', error);
