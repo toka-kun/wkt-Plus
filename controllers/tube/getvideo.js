@@ -32,7 +32,7 @@ router.get('/:id', async (req, res) => {
     // 1. すでに取得完了したキャッシュがあるか確認
     const cachedData = videoCache.get(cacheKey);
     if (cachedData && (Date.now() - cachedData.timestamp < CACHE_TTL)) {
-        console.log(`🚀 メモリキャッシュヒット (10分以内): ${cacheKey}`);
+        console.log(`🚀 メモリキャッシュヒット (外部通信スキップ): ${cacheKey}`);
         return res.render('tube/watch.ejs', cachedData.renderData);
     }
 
@@ -54,6 +54,9 @@ router.get('/:id', async (req, res) => {
         let baseUrl = selectedApi || 'invidious'; 
         let apiToUse = selectedApi || 'invidious'; 
         let fallbackMessage = null; 
+        
+        // ログ出力でどのルートを通ったか明確にするための変数
+        let cacheSource = selectedApi ? `${selectedApi} (明示指定)` : "Invidious (デフォルト)";
 
         // ▼▼▼ パラメータ指定がない場合の自動キャッシュ検索ロジック ▼▼▼
         if (!selectedApi) {
@@ -68,20 +71,26 @@ router.get('/:id', async (req, res) => {
             if (siaRes.status === 'fulfilled' && siaRes.value.data && siaRes.value.data[videoId]) {
                 apiToUse = 'siawaseok'; baseUrl = 'siawaseok';
                 fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
+                cacheSource = "リモートキャッシュ (siawaseok)";
                 console.log(`🎯 リモートキャッシュヒット: siawaseok (${videoId})`);
             } else if (yudRes.status === 'fulfilled' && yudRes.value.data && yudRes.value.data.video && yudRes.value.data.video.includes(videoId)) {
                 apiToUse = 'yudlp'; baseUrl = 'yudlp';
                 fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
+                cacheSource = "リモートキャッシュ (yudlp)";
                 console.log(`🎯 リモートキャッシュヒット: yudlp (${videoId})`);
             } else if (katuoRes.status === 'fulfilled' && katuoRes.value.data && katuoRes.value.data[videoId]) {
                 apiToUse = 'ytdlpinstance-vercel'; baseUrl = 'ytdlpinstance-vercel';
                 fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
+                cacheSource = "リモートキャッシュ (ytdlpinstance-vercel)";
                 console.log(`🎯 リモートキャッシュヒット: ytdlpinstance-vercel (${videoId})`);
             } else if (senninRes.status === 'fulfilled' && senninRes.value.data && senninRes.value.data[videoId]) {
                 apiToUse = 'senninytdlp'; baseUrl = 'senninytdlp';
                 fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
+                cacheSource = "リモートキャッシュ (senninytdlp)";
                 console.log(`🎯 リモートキャッシュヒット: senninytdlp (${videoId})`);
             } else {
+                // リモートキャッシュがどこにもなかった場合（Invidiousを使用）
+                cacheSource = "Invidious (リモートキャッシュなし)";
                 console.log(`ℹ️ リモートキャッシュなし: デフォルトの invidious を使用 (${videoId})`);
             }
         }
@@ -108,17 +117,19 @@ router.get('/:id', async (req, res) => {
         
         const renderData = { videoData, videoInfo, videoId, baseUrl, fallbackMessage };
 
-        // 取得に成功したらキャッシュ用マップに10分間保存
+        // 取得に成功したら、Invidious のデータであっても必ず 10分間メモリキャッシュに保存
         videoCache.set(cacheKey, {
             timestamp: Date.now(),
             renderData: renderData
         });
+        console.log(`💾 メモリキャッシュに新規保存しました [ソース: ${cacheSource}] -> キー: ${cacheKey}`);
 
         // 10分経過後にメモリから自動削除
         setTimeout(() => {
             const currentCache = videoCache.get(cacheKey);
             if (currentCache && (Date.now() - currentCache.timestamp >= CACHE_TTL)) {
                 videoCache.delete(cacheKey);
+                console.log(`🗑️ メモリキャッシュの期限が切れたため解放しました: ${cacheKey}`);
             }
         }, CACHE_TTL);
 
