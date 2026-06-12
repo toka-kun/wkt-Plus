@@ -9,9 +9,10 @@ const user_agent = process.env.USER_AGENT || "Mozilla/5.0 (Windows NT 10.0; Win6
 // サーバーリスト
 const serverUrls = ['invidious', 'acethinker', 'siawaseok', 'yudlp', 'ytdlpinstance-vercel', 'senninytdlp', 'min-tube2-api', 'xeroxyt-nt-apiv1', 'simple-yt-stream', 'freemake'];
 
-// ▼▼▼ 10秒間のメモリキャッシュ用変数 ▼▼▼
-const videoCache = new Map();
-const CACHE_TTL = 10 * 1000; // 10秒(10000ms)
+// ▼▼▼ 10分間のメモリキャッシュ & 同時リクエスト防止用変数 ▼▼▼
+const videoCache = new Map();      // 取得済みのデータを保存するマップ
+const activeRequests = new Map();  // 現在取得中の「処理(Promise)」を保存するマップ
+const CACHE_TTL = 10 * 60 * 1000;  // 10分 (600,000ms)
 
 router.get('/:id', async (req, res) => {
     const videoId = req.params.id;
@@ -26,30 +27,37 @@ router.get('/:id', async (req, res) => {
     }
 
     const selectedApi = req.query.server;
-    let baseUrl = selectedApi || 'invidious'; 
-    let apiToUse = selectedApi || 'invidious'; 
-    let fallbackMessage = null; 
-
-    // ▼▼▼ メモリキャッシュの確認 (API負荷軽減) ▼▼▼
     const cacheKey = `${videoId}_${selectedApi || 'auto'}`;
+
+    // 1. すでに取得完了したキャッシュがあるか確認
     const cachedData = videoCache.get(cacheKey);
-    
     if (cachedData && (Date.now() - cachedData.timestamp < CACHE_TTL)) {
-        console.log(`🚀 メモリキャッシュヒット (10秒以内): ${cacheKey}`);
+        console.log(`🚀 メモリキャッシュヒット (10分以内): ${cacheKey}`);
         return res.render('tube/watch.ejs', cachedData.renderData);
     }
-    // ▲▲▲ ここまで ▲▲▲
 
-    try {
+    // 2. 他のリクエストが現在データを取得中なら、APIを叩かずにその完了を待つ (F5連打対策)
+    if (activeRequests.has(cacheKey)) {
+        console.log(`⏳ 同時リクエスト発生: 代表リクエストの取得完了を待機中... (${cacheKey})`);
+        try {
+            // 先行リクエストが解決されるのをここで待つ
+            const renderData = await activeRequests.get(cacheKey);
+            return res.render('tube/watch.ejs', renderData);
+        } catch (error) {
+            // 先行リクエストが失敗した場合はこちらもエラー画面を返す
+            return renderError(res, videoId, selectedApi || 'invidious', error);
+        }
+    }
+
+    // 3. 自分自身が最初のリクエストなら、取得処理（Promise）を作成して代表になる
+    const fetchPromise = (async () => {
+        let baseUrl = selectedApi || 'invidious'; 
+        let apiToUse = selectedApi || 'invidious'; 
+        let fallbackMessage = null; 
+
         // ▼▼▼ パラメータ指定がない場合の自動キャッシュ検索ロジック ▼▼▼
         if (!selectedApi) {
-            // タイムアウト5秒(5000ms) + User-Agent指定
-            const reqOptions = { 
-                timeout: 5000, 
-                headers: { "User-Agent": user_agent } 
-            };
-
-            // 4つのサーバーのキャッシュを完全に並列でチェック
+            const reqOptions = { timeout: 5000, headers: { "User-Agent": user_agent } };
             const [siaRes, yudRes, katuoRes, senninRes] = await Promise.allSettled([
                 axios.get('https://siawaseok.f5.si/api/cache', reqOptions),
                 axios.get('https://yudlp.vercel.app/cache', reqOptions),
@@ -57,37 +65,24 @@ router.get('/:id', async (req, res) => {
                 axios.get('https://senninytdlp-42jz.vercel.app/cache', reqOptions)
             ]);
 
-            // 優先順位1: siawaseok (キーが動画ID)
             if (siaRes.status === 'fulfilled' && siaRes.value.data && siaRes.value.data[videoId]) {
-                apiToUse = 'siawaseok';
-                baseUrl = 'siawaseok';
+                apiToUse = 'siawaseok'; baseUrl = 'siawaseok';
                 fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
-                console.log(`🎯 キャッシュヒット: siawaseok (${videoId})`);
-            }
-            // 優先順位2: yudlp (video配列の中に動画IDがあるか)
-            else if (yudRes.status === 'fulfilled' && yudRes.value.data && yudRes.value.data.video && yudRes.value.data.video.includes(videoId)) {
-                apiToUse = 'yudlp';
-                baseUrl = 'yudlp';
+                console.log(`🎯 リモートキャッシュヒット: siawaseok (${videoId})`);
+            } else if (yudRes.status === 'fulfilled' && yudRes.value.data && yudRes.value.data.video && yudRes.value.data.video.includes(videoId)) {
+                apiToUse = 'yudlp'; baseUrl = 'yudlp';
                 fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
-                console.log(`🎯 キャッシュヒット: yudlp (${videoId})`);
-            } 
-            // 優先順位3: ytdlpinstance-vercel (キーが動画ID)
-            else if (katuoRes.status === 'fulfilled' && katuoRes.value.data && katuoRes.value.data[videoId]) {
-                apiToUse = 'ytdlpinstance-vercel';
-                baseUrl = 'ytdlpinstance-vercel';
+                console.log(`🎯 リモートキャッシュヒット: yudlp (${videoId})`);
+            } else if (katuoRes.status === 'fulfilled' && katuoRes.value.data && katuoRes.value.data[videoId]) {
+                apiToUse = 'ytdlpinstance-vercel'; baseUrl = 'ytdlpinstance-vercel';
                 fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
-                console.log(`🎯 キャッシュヒット: ytdlpinstance-vercel (${videoId})`);
-            } 
-            // 優先順位4: senninytdlp (キーが動画ID)
-            else if (senninRes.status === 'fulfilled' && senninRes.value.data && senninRes.value.data[videoId]) {
-                apiToUse = 'senninytdlp';
-                baseUrl = 'senninytdlp';
+                console.log(`🎯 リモートキャッシュヒット: ytdlpinstance-vercel (${videoId})`);
+            } else if (senninRes.status === 'fulfilled' && senninRes.value.data && senninRes.value.data[videoId]) {
+                apiToUse = 'senninytdlp'; baseUrl = 'senninytdlp';
                 fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
-                console.log(`🎯 キャッシュヒット: senninytdlp (${videoId})`);
-            }
-            // どれにもキャッシュがない場合
-            else {
-                console.log(`ℹ️ キャッシュなし: デフォルトの invidious を使用 (${videoId})`);
+                console.log(`🎯 リモートキャッシュヒット: senninytdlp (${videoId})`);
+            } else {
+                console.log(`ℹ️ リモートキャッシュなし: デフォルトの invidious を使用 (${videoId})`);
             }
         }
         // ▲▲▲ ここまで ▲▲▲
@@ -96,7 +91,6 @@ router.get('/:id', async (req, res) => {
         const Info = await serverYt.infoGet(videoId);
         
         const watch_next_feed = serverYt.normalizeWatchNextFeed(Info.watch_next_feed);
-
         const channels = serverYt.extractChannels(Info);
         const videoInfo = {
             title: Info.primary_info.title.text || "",
@@ -114,34 +108,47 @@ router.get('/:id', async (req, res) => {
         
         const renderData = { videoData, videoInfo, videoId, baseUrl, fallbackMessage };
 
-        // ▼▼▼ 取得したデータを10秒間メモリキャッシュに保存 ▼▼▼
+        // 取得に成功したらキャッシュ用マップに10分間保存
         videoCache.set(cacheKey, {
             timestamp: Date.now(),
             renderData: renderData
         });
 
-        // 10秒後に自動的にキャッシュを削除してメモリを解放
+        // 10分経過後にメモリから自動削除
         setTimeout(() => {
             const currentCache = videoCache.get(cacheKey);
-            // 上書きされておらず、本当に10秒経過している場合のみ削除
             if (currentCache && (Date.now() - currentCache.timestamp >= CACHE_TTL)) {
                 videoCache.delete(cacheKey);
             }
         }, CACHE_TTL);
-        // ▲▲▲ ここまで ▲▲▲
 
+        return renderData;
+    })();
+
+    // 他の同時リクエストが相乗りできるように、現在取得中として Promise を登録
+    activeRequests.set(cacheKey, fetchPromise);
+
+    try {
+        // 取得完了を待って画面を描画
+        const renderData = await fetchPromise;
         res.render('tube/watch.ejs', renderData);
-        
     } catch (error) {
-        // シャッフル処理を削除し、そのまま渡すように変更
-        res.status(500).render('tube/mattev.ejs', { 
-            videoId, baseUrl, 
-            serverUrls: serverUrls, // そのまま渡す
-            error: '動画を取得できませんでした。サーバーを変更して再試行してください。', 
-            details: error.message 
-        });
+        return renderError(res, videoId, selectedApi || 'invidious', error);
+    } finally {
+        // 成功しても失敗しても、「取得中」リストからは必ず削除する
+        activeRequests.delete(cacheKey);
     }
 });
+
+// エラー画面描画用の共通関数
+function renderError(res, videoId, baseUrl, error) {
+    res.status(500).render('tube/mattev.ejs', { 
+        videoId, baseUrl, 
+        serverUrls: serverUrls,
+        error: '動画を取得できませんでした。サーバーを変更して再試行してください。', 
+        details: error.message 
+    });
+}
 
 function parseCookies(request) {
     const list = {};
