@@ -1,78 +1,35 @@
-<html lang="ja"><head>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>サイト埋め込み</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
- 
-        #urlContainer {
-            display: flex;
-            padding: 10px;
-            background-color: #f4f4f4;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
- 
-        #urlInput {
-            flex: 1;
-            height: 20px;
-            font-size: 16px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-right: 10px;
-        }
- 
-        #loadButton {
-            height: 40px;
-            font-size: 16px;
-            padding: 0 15px;
-            background-color: #007bff;
-            color: #ffffff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
- 
-        #loadButton:hover {
-            background-color: #0056b3;
-        }
- 
-        #iframeContainer {
-            flex: 1;
-            width: 80%;
-            height: 63%
-            overflow: hidden;
-        }
- 
-        #siteFrame {
-            width: 100%;
-            height: 63%;
-            border: none;
-        }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
- 
-    <div id="urlContainer">
-        <input type="text" id="urlInput" placeholder="URLを入力してください">
-        <button id="loadButton">読み込む</button>
+<body class="flex flex-col h-screen bg-slate-50 font-sans text-slate-800">
+
+    <div id="urlContainer" class="flex items-center gap-3 p-4 bg-white border-b border-slate-200 shadow-sm z-10">
+        <input 
+            type="text" 
+            id="urlInput" 
+            placeholder="URLを入力してください (例: google.com)" 
+            class="flex-1 px-4 py-2 text-base border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder-slate-400"
+        >
+        <button 
+            id="loadButton" 
+            class="px-6 py-2 text-base font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 active:scale-98 transition-all shadow-sm whitespace-nowrap"
+        >
+            読み込む
+        </button>
     </div>
- 
-    <div id="iframeContainer">
-        <iframe id="siteFrame"></iframe>
+
+    <div id="iframeContainer" class="flex-1 w-full bg-slate-100">
+        <iframe id="siteFrame" class="w-full h-full border-none"></iframe>
     </div>
- 
+
     <script>
         function loadSite() {
-            var url = document.getElementById('urlInput').value;
+            var url = document.getElementById('urlInput').value.trim();
             if (url) {
                 if (!url.startsWith('http://') && !url.startsWith('https://')) {
                     url = 'https://' + url;
@@ -82,15 +39,14 @@
                 alert('URLを入力してください');
             }
         }
- 
+
         document.getElementById('loadButton').addEventListener('click', loadSite);
- 
+
         document.getElementById('urlInput').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 loadSite();
             }
         });
     </script>
- 
- 
-</body></html>
+</body>
+</html>
