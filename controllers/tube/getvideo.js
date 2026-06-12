@@ -9,10 +9,34 @@ const user_agent = process.env.USER_AGENT || "Mozilla/5.0 (Windows NT 10.0; Win6
 // サーバーリスト (この順番でメモリキャッシュを探しに行きます)
 const serverUrls = ['invidious', 'acethinker', 'siawaseok', 'yudlp', 'ytdlpinstance-vercel', 'senninytdlp', 'min-tube2-api', 'xeroxyt-nt-apiv1', 'simple-yt-stream', 'freemake'];
 
-// ▼▼▼ 10分間のメモリキャッシュ & 同時リクエスト防止用変数 ▼▼▼
+// ▼▼▼ APIごとのキャッシュ生存期間 (秒) ▼▼▼
+const apiTtlSettings = {
+    'invidious': 14200,
+    'acethinker': 14200,
+    'siawaseok': 600,
+    'yudlp': 13600,
+    'ytdlpinstance-vercel': 600,
+    'senninytdlp': 600,
+    'min-tube2-api': 14200,
+    'xeroxyt-nt-apiv1': 14200,
+    'simple-yt-stream': 14200,
+    'freemake': 600
+};
+
+// 指定したAPIのTTL(ミリ秒)を返す関数。設定になければデフォルトで600秒(10分)
+function getTtlMs(apiName) {
+    const seconds = apiTtlSettings[apiName] || 600;
+    return seconds * 1000;
+}
+
+// 指定したAPIのTTL(秒)を返す関数（Cache-Controlヘッダー用）
+function getTtlSec(apiName) {
+    return apiTtlSettings[apiName] || 600;
+}
+
+// ▼▼▼ メモリキャッシュ & 同時リクエスト防止用変数 ▼▼▼
 const videoCache = new Map();      // 取得済みのデータを保存するマップ
 const activeRequests = new Map();  // 現在取得中の「処理(Promise)」を保存するマップ
-const CACHE_TTL = 10 * 60 * 1000;  // 10分 (600,000ms)
 
 router.get('/:id', async (req, res) => {
     const videoId = req.params.id;
@@ -30,23 +54,26 @@ router.get('/:id', async (req, res) => {
     
     let cachedData = null;
     let hitCacheKey = null;
+    let hitApiName = null; // ヒットしたAPIの名前を記憶しておく（CDNのCache-Control設定用）
 
     // 1. メモリキャッシュの確認
     if (selectedApi) {
         // API指定がある場合は、そのAPIのキャッシュだけを確認
         hitCacheKey = `${videoId}_${selectedApi}`;
         const data = videoCache.get(hitCacheKey);
-        if (data && (Date.now() - data.timestamp < CACHE_TTL)) {
+        if (data && (Date.now() - data.timestamp < getTtlMs(selectedApi))) {
             cachedData = data;
+            hitApiName = selectedApi;
         }
     } else {
         // API指定がない場合、Invidiousから順番にメモリキャッシュを確認する
         for (const api of serverUrls) {
             const key = `${videoId}_${api}`;
             const data = videoCache.get(key);
-            if (data && (Date.now() - data.timestamp < CACHE_TTL)) {
+            if (data && (Date.now() - data.timestamp < getTtlMs(api))) {
                 hitCacheKey = key;
                 cachedData = data;
+                hitApiName = api;
                 break; // 最初に見つかった有効なキャッシュを使用する
             }
         }
@@ -55,7 +82,8 @@ router.get('/:id', async (req, res) => {
     // キャッシュが見つかった場合は即座に返す
     if (cachedData) {
         console.log(`🚀 メモリキャッシュヒット (外部通信スキップ): ${hitCacheKey}`);
-        res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=30');
+        const ttlSec = getTtlSec(hitApiName);
+        res.setHeader('Cache-Control', `public, s-maxage=${ttlSec}, stale-while-revalidate=30`);
         return res.render('tube/watch.ejs', cachedData.renderData);
     }
 
@@ -67,8 +95,9 @@ router.get('/:id', async (req, res) => {
         console.log(`⏳ 同時リクエスト発生: 代表リクエストの取得完了を待機中... (${requestKey})`);
         try {
             // 先行リクエストが解決されるのをここで待つ
-            const renderData = await activeRequests.get(requestKey);
-            res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=30');
+            const { renderData, usedApi } = await activeRequests.get(requestKey);
+            const ttlSec = getTtlSec(usedApi);
+            res.setHeader('Cache-Control', `public, s-maxage=${ttlSec}, stale-while-revalidate=30`);
             return res.render('tube/watch.ejs', renderData);
         } catch (error) {
             // 先行リクエストが失敗した場合はこちらもエラー画面を返す
@@ -81,7 +110,7 @@ router.get('/:id', async (req, res) => {
         let baseUrl = selectedApi || 'invidious'; 
         let apiToUse = selectedApi || 'invidious'; 
         let fallbackMessage = null; 
-
+        
         // ログ出力でどのルートを通ったか明確にするための変数
         let cacheSource = selectedApi ? `${selectedApi} (明示指定)` : "Invidious (デフォルト)";
 
@@ -147,23 +176,25 @@ router.get('/:id', async (req, res) => {
 
         // ★ 指定なしでアクセスしてきても、最終的に使ったAPI名をキーにして保存する
         const saveCacheKey = `${videoId}_${apiToUse}`;
+        const cacheTtlMs = getTtlMs(apiToUse);
 
         videoCache.set(saveCacheKey, {
             timestamp: Date.now(),
             renderData: renderData
         });
-        console.log(`💾 メモリキャッシュに新規保存しました [ソース: ${cacheSource}] -> キー: ${saveCacheKey}`);
+        console.log(`💾 メモリキャッシュに新規保存しました [ソース: ${cacheSource}] -> キー: ${saveCacheKey} (TTL: ${cacheTtlMs / 1000}秒)`);
 
-        // 10分経過後にメモリから自動削除
+        // APIごとの設定時間が経過後にメモリから自動削除
         setTimeout(() => {
             const currentCache = videoCache.get(saveCacheKey);
-            if (currentCache && (Date.now() - currentCache.timestamp >= CACHE_TTL)) {
+            if (currentCache && (Date.now() - currentCache.timestamp >= cacheTtlMs)) {
                 videoCache.delete(saveCacheKey);
                 console.log(`🗑️ メモリキャッシュの期限が切れたため解放しました: ${saveCacheKey}`);
             }
-        }, CACHE_TTL);
+        }, cacheTtlMs);
 
-        return renderData;
+        // 同時待機しているリクエストにも、どのAPIが使われたかを伝えるために包んで返す
+        return { renderData, usedApi: apiToUse };
     })();
 
     // 他の同時リクエストが相乗りできるように、現在取得中として Promise を登録
@@ -171,9 +202,10 @@ router.get('/:id', async (req, res) => {
 
     try {
         // 取得完了を待って画面を描画
-        const renderData = await fetchPromise;
-        // Vercel、NetlifyのCDNキャッシュ用
-        res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=30');
+        const { renderData, usedApi } = await fetchPromise;
+        const ttlSec = getTtlSec(usedApi);
+        // Vercel、NetlifyのCDNキャッシュ用にも、使ったAPIごとのTTL秒数を設定する
+        res.setHeader('Cache-Control', `public, s-maxage=${ttlSec}, stale-while-revalidate=30`);
         res.render('tube/watch.ejs', renderData);
     } catch (error) {
         return renderError(res, videoId, selectedApi || 'invidious', error);
