@@ -229,6 +229,7 @@ pinned: false
   - Proxy Wiki 開発
 - [@dinguschan-owo](https://github.com/dinguschan-owo)
   - Helios 開発
+- [@nautilus-os](https://github.com/nautilus-os)
   - GUST 開発
 - [@Hikari_5544-1](https://gitlab.com/Hikari_5544-1) (GitLab)
   - ゲーム
