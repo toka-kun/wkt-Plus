@@ -84,7 +84,15 @@ router.get('/:id', async (req, res) => {
         console.log(`🚀 メモリキャッシュヒット (外部通信スキップ): ${hitCacheKey}`);
         const ttlSec = getTtlSec(hitApiName);
         res.setHeader('Cache-Control', `public, s-maxage=${ttlSec}, stale-while-revalidate=30`);
-        return res.render('tube/watch.ejs', cachedData.renderData);
+        
+        // ★ 修正ポイント: メモリキャッシュヒット時もメッセージを追加
+        // 保存されている元の renderData をコピーして、メッセージだけ上書きする
+        const renderDataWithMsg = { 
+            ...cachedData.renderData, 
+            fallbackMessage: `キャッシュを確認したため、自動的に「${hitApiName}」を使用しました。` 
+        };
+        
+        return res.render('tube/watch.ejs', renderDataWithMsg);
     }
 
     // 2. 他のリクエストが現在データを取得中なら、APIを叩かずにその完了を待つ (F5連打対策)
@@ -98,7 +106,14 @@ router.get('/:id', async (req, res) => {
             const { renderData, usedApi } = await activeRequests.get(requestKey);
             const ttlSec = getTtlSec(usedApi);
             res.setHeader('Cache-Control', `public, s-maxage=${ttlSec}, stale-while-revalidate=30`);
-            return res.render('tube/watch.ejs', renderData);
+            
+            // ★ 同時待機していたリクエストにもメッセージを追加
+            const renderDataWithMsg = { 
+                ...renderData, 
+                fallbackMessage: `キャッシュを確認したため、自動的に「${usedApi}」を使用しました。` 
+            };
+            
+            return res.render('tube/watch.ejs', renderDataWithMsg);
         } catch (error) {
             // 先行リクエストが失敗した場合はこちらもエラー画面を返す
             return renderError(res, videoId, selectedApi || 'invidious', error);
@@ -178,6 +193,7 @@ router.get('/:id', async (req, res) => {
         const saveCacheKey = `${videoId}_${apiToUse}`;
         const cacheTtlMs = getTtlMs(apiToUse);
 
+        // メモリには純粋なデータのみを保存（メッセージは表示時に付与するため、ここで消しても構いませんが、元の処理のまま保存します）
         videoCache.set(saveCacheKey, {
             timestamp: Date.now(),
             renderData: renderData
@@ -235,15 +251,6 @@ function parseCookies(request) {
         });
     }
     return list;
-}
-
-// 念のため残す（旧わかめtubeではエラー画面に表示されるサーバー一覧をシャッフルするために使用）
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
 }
 
 module.exports = router;
