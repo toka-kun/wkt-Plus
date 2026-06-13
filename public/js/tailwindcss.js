@@ -194,7 +194,7 @@ window.addEventListener('DOMContentLoaded', () => {
     accaiiScript.src = "//accaii.com/wktplus/script.js";
     accaiiScript.async = true;
 
-    // 3. <body> の最初（先頭）にそれぞれを追加
-    document.head.prepend(counterDiv);
+    // 3. <body> と <head> の最初（先頭）にそれぞれを追加
+    document.body.prepend(counterDiv);
     document.head.prepend(accaiiScript);
 });
