@@ -313,67 +313,69 @@
         <div id="tabSettings" class="tab-button px-4 py-2 cursor-pointer text-gray-400 hover:text-white rounded-t-lg" data-target="settingsTab">設定</div>
     </div>
     <div id="controlTab" class="tab-content active">
-    <div class="control-section mb-4">
-        <button id="reloadVideo" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">🔄 再読み込み</button>
-        <div class="checkbox-container w-full bg-gray-700 py-2 hover:text-white rounded mb-2 flex items-center justify-center">
-            <label for="loopToggle" class="ml-2 cursor-pointer select-none">🔁 ループ再生</label>
-            <input type="checkbox" id="loopToggle" class="form-checkbox text-green-500 ml-2">
+        <div class="control-section mb-4">
+            <button id="reloadVideo" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">🔄 再読み込み</button>
+            <div class="checkbox-container w-full bg-gray-700 py-2 hover:text-white rounded mb-2 flex items-center justify-center">
+                <label for="loopToggle" class="ml-2 cursor-pointer select-none">🔁 ループ再生</label>
+                <input type="checkbox" id="loopToggle" class="form-checkbox text-green-500 ml-2">
+            </div>
+        </div>
+        <% if (videoData.streamUrls && videoData.streamUrls.length > 0) { %>
+        <div class="control-section mb-4">
+            <label class="block mb-2">画質を選択:
+                <select id="qualitySelect" class="w-full bg-gray-800 text-white p-2 rounded">
+                    <option value="<%= videoData.stream_url %>" data-container="mp4" data-is-auto="true">統合ストリーム</option>
+                    <% if (videoData.streamUrls && videoData.streamUrls.length > 0) { %>
+                        <% videoData.streamUrls.forEach(function(stream) { %>
+                            <option value="<%= stream.url %>">
+                                <%= stream.resolution %><%= stream.fps ? stream.fps : '' %> (<%= stream.container %>)
+                            </option>
+                        <% }); %>
+                    <% } %>
+                </select>
+            </label>
+
+            <label class="block mb-2">音声を選択:
+                <select id="audioSelect" class="w-full bg-gray-800 text-white p-2 rounded">
+                    <% if (videoData.audioUrls && videoData.audioUrls.length > 0) { %>
+                        <% videoData.audioUrls.forEach(function(audio) { %>
+                            <option value="<%= audio.url %>"><%= audio.name %></option>
+                        <% }); %>
+                    <% } else if (videoData.audioUrl) { %>
+                        <option value="<%= videoData.audioUrl %>">Default</option>
+                    <% } else { %>
+                        <option value="">オーディオなし</option>
+                    <% } %>
+                </select>
+            </label>
+            <button id="qualityReset" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">画質をリセット</button>
+        </div>
+        <% } %>
+        <div class="control-section mb-4">
+            <p class="block mb-2">使用したサーバー: <strong><%= baseUrl.replace('https://', '').replace('.glitch.me', '') %></strong></p>
+            <label class="block mb-2">サーバーを変える:
+                <select id="serverSelect" class="w-full bg-gray-800 text-white p-2 rounded">
+                    <optgroup label="🐇 高速サーバー群">
+                        <option value="invidious" <%= baseUrl === 'invidious' ? 'selected' : '' %>>Invidious API</option>
+                        <option value="acethinker" <%= baseUrl === 'acethinker' ? 'selected' : '' %>>AceThinker API</option>
+                        <option value="siawaseok" <%= baseUrl === 'siawaseok' ? 'selected' : '' %>>SiaTube API</option>
+                        <option value="yudlp" <%= baseUrl === 'yudlp' ? 'selected' : '' %>>YuZuTube API</option>
+                        <option value="senninytdlp" <%= baseUrl === 'senninytdlp' ? 'selected' : '' %>>SenninTube Plus API</option>
+                        <option value="ytdlpinstance-vercel" <%= baseUrl === 'ytdlpinstance-vercel' ? 'selected' : '' %>>KatuoTube API</option>
+                        <option value="min-tube2-api" <%= baseUrl === 'min-tube2-api' ? 'selected' : '' %>>MIN-Tube2 API</option>
+                    </optgroup>
+                    <optgroup label="🐢 低速サーバー群">
+                        <option value="simple-yt-stream" <%= baseUrl === 'simple-yt-stream' ? 'selected' : '' %>>Wista Stream API</option>
+                        <option value="xeroxyt-nt-apiv1" <%= baseUrl === 'xeroxyt-nt-apiv1' ? 'selected' : '' %>>XeroxYT-NT APIv1</option>
+                    </optgroup>
+                    <optgroup label="🎲 予備サーバー群">
+                        <option value="freemake" <%= baseUrl === 'freemake' ? 'selected' : '' %>>Freemake API</option>
+                    </optgroup>
+                </select>
+            </label>
+            <button id="changeServer" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">🔃 サーバーを変更</button>
         </div>
     </div>
-    <% if (videoData.streamUrls && videoData.streamUrls.length > 0) { %>
-    <div class="control-section mb-4">
-        <label class="block mb-2">画質を選択:
-            <select id="qualitySelect" class="w-full bg-gray-800 text-white p-2 rounded">
-                <option value="<%= videoData.stream_url %>" data-container="mp4" data-is-auto="true">統合ストリーム</option>
-                <% if (videoData.streamUrls && videoData.streamUrls.length > 0) { %>
-                    <% videoData.streamUrls.forEach(function(stream) { %>
-                        <option value="<%= stream.url %>">
-                            <%= stream.resolution %><%= stream.fps ? stream.fps : '' %> (<%= stream.container %>)
-                        </option>
-                    <% }); %>
-                <% } %>
-            </select>
-        </label>
-
-        <label class="block mb-2">音声を選択:
-            <select id="audioSelect" class="w-full bg-gray-800 text-white p-2 rounded">
-                <% if (videoData.audioUrls && videoData.audioUrls.length > 0) { %>
-                    <% videoData.audioUrls.forEach(function(audio) { %>
-                        <option value="<%= audio.url %>"><%= audio.name %></option>
-                    <% }); %>
-                <% } else { %>
-                    <option value="">オーディオなし</option>
-                <% } %>
-            </select>
-        </label>
-        <button id="qualityReset" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">画質をリセット</button>
-    </div>
-    <% } %>
-    <div class="control-section mb-4">
-        <p class="block mb-2">使用したサーバー: <strong><%= baseUrl.replace('https://', '').replace('.glitch.me', '') %></strong></p>
-        <label class="block mb-2">サーバーを変える:
-            <select id="serverSelect" class="w-full bg-gray-800 text-white p-2 rounded">
-                <optgroup label="🐇 高速サーバー群">
-                    <option value="invidious" <%= baseUrl === 'invidious' ? 'selected' : '' %>>Invidious API</option>
-                    <option value="acethinker" <%= baseUrl === 'acethinker' ? 'selected' : '' %>>AceThinker API</option>
-                    <option value="siawaseok" <%= baseUrl === 'siawaseok' ? 'selected' : '' %>>SiaTube API</option>
-                    <option value="yudlp" <%= baseUrl === 'yudlp' ? 'selected' : '' %>>YuZuTube API</option>
-                    <option value="senninytdlp" <%= baseUrl === 'senninytdlp' ? 'selected' : '' %>>SenninTube Plus API</option>
-                    <option value="ytdlpinstance-vercel" <%= baseUrl === 'ytdlpinstance-vercel' ? 'selected' : '' %>>KatuoTube API</option>
-                    <option value="min-tube2-api" <%= baseUrl === 'min-tube2-api' ? 'selected' : '' %>>MIN-Tube2 API</option>
-                </optgroup>
-                <optgroup label="🐢 低速サーバー群">
-                    <option value="simple-yt-stream" <%= baseUrl === 'simple-yt-stream' ? 'selected' : '' %>>Wista Stream API</option>
-                    <option value="xeroxyt-nt-apiv1" <%= baseUrl === 'xeroxyt-nt-apiv1' ? 'selected' : '' %>>XeroxYT-NT APIv1</option>
-                </optgroup>
-                <optgroup label="🎲 予備サーバー群">
-                    <option value="freemake" <%= baseUrl === 'freemake' ? 'selected' : '' %>>Freemake API</option>
-                </optgroup>
-            </select>
-        </label>
-        <button id="changeServer" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">🔃 サーバーを変更</button>
-    </div>
-</div>
 <div id="settingsTab" class="tab-content hidden">
     <h2 class="text-lg font-semibold mb-3">再生方法の変更</h2>
     <p class="mb-4 text-gray-600">動画のデフォルトの再生方法を設定できます。埋め込みで見れるなら埋め込みで見た方が良いですよ。</p>
@@ -813,118 +815,160 @@ $(document).ready(function() {
     });
 
     // ★ 画質変更（映像のみ + 裏で音声を再生）
-$('#qualitySelect').change(function() {
-    const selectedOption = $(this).find(':selected');
-    const container = selectedOption.attr('data-container') || 'mp4';
-    const isAuto = selectedOption.attr('data-is-auto') === 'true'; 
-    const newUrl = selectedOption.val();
+    $('#qualitySelect').change(function() {
+        const selectedOption = $(this).find(':selected');
+        const container = selectedOption.attr('data-container') || 'mp4';
+        const isAuto = selectedOption.attr('data-is-auto') === 'true'; // ★ 判定追加
+        const newUrl = selectedOption.val();
 
-    // ★ 処理を始める前に、一旦映像も音声も完全に止める！
-    video.pause();
-    audio.pause();
-    
-    // 再生位置を記憶
-    const currentTime = video.currentTime;
+        // ★ 処理を始める前に、一旦映像も音声も完全に止める！
+        video.pause();
+        audio.pause();
+        
+        // 再生位置を記憶
+        const currentTime = video.currentTime;
 
-    // ★ m3u8の場合は正しいHLS形式としてブラウザに認識させる
-    if (container === 'm3u8') {
-        videoSrc.type = "application/x-mpegURL";
-    } else {
-        videoSrc.type = "video/" + container;
-    }
-    videoSrc.src = newUrl;
+        // ★ m3u8の場合は正しいHLS形式としてブラウザに認識させる
+        if (container === 'm3u8') {
+            videoSrc.type = "application/x-mpegURL";
+        } else {
+            videoSrc.type = "video/" + container;
+        }
+        videoSrc.src = newUrl;
 
-    // ★ 動画が「統合ストリーム」または「m3u8(ライブ等)」なら、裏の音声を無効化
-    if (isAuto || newUrl.includes("manifest") || newUrl.includes(".m3u8")) {
-        audio.src = "";
-    } else {
-        // ★ それ以外（映像のみ）なら、選択されている音声、またはリストの一番最初の音声を裏で鳴らす
-        audio.src = $('#audioSelect').val() || $('#audioSelect option:first').val() || '';
-    }
+        // ★ 動画が「統合ストリーム」または「m3u8(ライブ等)」なら、裏の音声を無効化
+        // （manifest または .m3u8 が含まれているかで判定）
+        if (isAuto || newUrl.includes("manifest") || newUrl.includes(".m3u8")) {
+            audio.src = "";
+        } else {
+            // ★ それ以外（映像のみ）なら、選択されている「音質」を裏で鳴らす
+            audio.src = $('#audioSelect').val() || "<%- videoData.audioUrl || '' %>";
+        }
 
-    $('#controlPanel').removeClass('open');
-    video.load();
-    
-    if (audio.src && audio.src !== window.location.href) {
-        audio.load();
-        audio.currentTime = currentTime; // 音声の位置を合わせる
-    }
-    video.currentTime = currentTime; // 映像の位置を合わせる
+        $('#controlPanel').removeClass('open');
+        video.load();
+        
+        if (audio.src && audio.src !== window.location.href) {
+            audio.load();
+            audio.currentTime = currentTime; // 音声の位置を合わせる
+        }
+        video.currentTime = currentTime; // 映像の位置を合わせる
 
-    // 読み込みが完了したら自動で再開させる
-    video.play().catch(e => console.error(e));
-});
-
-// ★ 音質変更
-$('#audioSelect').change(function() {
-    const selectedQuality = $('#qualitySelect').find(':selected');
-    const isAuto = selectedQuality.attr('data-is-auto') === 'true';
-    const currentVideoUrl = selectedQuality.val();
-    const newAudioUrl = $(this).val();
-
-    // 映像が「統合ストリーム」や「m3u8」の時は、裏の音声を動かさないので切り替え不要
-    if (isAuto || currentVideoUrl.includes("manifest") || currentVideoUrl.includes(".m3u8")) {
-        return;
-    }
-
-    const currentTime = video.currentTime;
-    const wasPlaying = !video.paused;
-
-    // ★ 処理を始める前に一旦止める！
-    video.pause();
-    audio.pause();
-
-    audio.src = newAudioUrl;
-    audio.load();
-    audio.currentTime = currentTime;
-
-    if (wasPlaying) {
+        // 読み込みが完了したら自動で再開させる
         video.play().catch(e => console.error(e));
-    }
-});
+    });
 
-// ★ 画質をリセットボタン
-$('#qualityReset').click(function() {
-    video.pause();
-    audio.pause();
+    // ★ 音質変更
+    $('#audioSelect').change(function() {
+        const selectedQuality = $('#qualitySelect').find(':selected');
+        const isAuto = selectedQuality.attr('data-is-auto') === 'true';
+        const currentVideoUrl = selectedQuality.val();
+        const newAudioUrl = $(this).val();
 
-    const currentTime = video.currentTime;
+        // 映像が「統合ストリーム」や「m3u8」の時は、裏の音声を動かさないので切り替え不要
+        // （manifest または .m3u8 が含まれているかで判定）
+        if (isAuto || currentVideoUrl.includes("manifest") || currentVideoUrl.includes(".m3u8")) {
+            return;
+        }
 
-    videoSrc.type = "video/mp4";
-    // ★ 統合ストリームに戻す
-    videoSrc.src = "<%- videoData.stream_url %>"; 
-    
-    // 統合なので別音声は空
-    audio.src = ""; 
-    
-    $('#controlPanel').removeClass('open');
-    // セレクトボックスの見た目も一番上の「統合ストリーム」に戻す
-    $('#qualitySelect').prop('selectedIndex', 0);
-    
-    video.load();
-    video.currentTime = currentTime;
-    
-    video.play().catch(e => console.error(e));
-});
+        const currentTime = video.currentTime;
+        const wasPlaying = !video.paused;
 
-$('#changeServer').click(function() {
-    const server = $('#serverSelect').val();
-    $('#controlPanel').removeClass('open');
-    showMessage(`サーバーを「${server}」に移動します☑️`);
-    window.location.href = `/wkt/watch/<%= videoId %>?server=${server}`;
-});
+        // ★ 処理を始める前に一旦止める！
+        video.pause();
+        audio.pause();
 
-$('#saveSettings').click(function() {
-    $('#controlPanel').removeClass('open');
-    const mode = $('input[name="playbackMode"]:checked').val();
-    document.cookie = `playbackMode=${mode}; path=/; max-age=31536000`;
-    showMessage(`再生方法を${mode}に変更します☑️`);
-    window.location.href = `/wkt/redirect/mode/<%= videoId %>?mode=${mode}`;
+        audio.src = newAudioUrl;
+        audio.load();
+        audio.currentTime = currentTime;
+
+        if (wasPlaying) {
+            video.play().catch(e => console.error(e));
+        }
+    });
+
+    // ★ 画質をリセットボタン
+    $('#qualityReset').click(function() {
+        video.pause();
+        audio.pause();
+
+        const currentTime = video.currentTime;
+
+        videoSrc.type = "video/mp4";
+        // ★ 統合ストリームに戻す
+        videoSrc.src = "<%- videoData.stream_url %>"; 
+        
+        // 統合なので別音声は空
+        audio.src = ""; 
+        
+        $('#controlPanel').removeClass('open');
+        // セレクトボックスの見た目も一番上の「統合ストリーム」に戻す
+        $('#qualitySelect').prop('selectedIndex', 0);
+        
+        video.load();
+        video.currentTime = currentTime;
+        
+        video.play().catch(e => console.error(e));
+    });
+
+    $('#changeServer').click(function() {
+        const server = $('#serverSelect').val();
+        $('#controlPanel').removeClass('open');
+        showMessage(`サーバーを「${server}」に移動します☑️`);
+        window.location.href = `/wkt/watch/<%= videoId %>?server=${server}`;
+    });
+
+    $('#saveSettings').click(function() {
+        $('#controlPanel').removeClass('open');
+        const mode = $('input[name="playbackMode"]:checked').val();
+        document.cookie = `playbackMode=${mode}; path=/; max-age=31536000`;
+        showMessage(`再生方法を${mode}に変更します☑️`);
+        window.location.href = `/wkt/redirect/mode/<%= videoId %>?mode=${mode}`;
+    });
 });
 
 // ツールバー
 $('#toggleToolbar').click(() => $('#toolbar').addClass('open'));
 $('#closeToolbar').click(() => $('#toolbar').removeClass('open'));
+
+// 高画質
+$('#hdToggle').change(function() {
+    const video = document.getElementById('video');
+    const audio = document.getElementById('audio');
+    const videoSrc = document.getElementById('videoSrc');
+    
+    const currentTime = video.currentTime;
+    const wasPlaying = !video.paused;
+
+    if (this.checked) {
+        videoSrc.type = "video/webm";
+        videoSrc.src = "<%- videoData.highstreamUrl %>";
+        
+        // ★ マニフェスト判定
+        if ("<%- videoData.highstreamUrl %>".startsWith("https://manifest.googlevideo.com/")) {
+            audio.src = "";
+        } else {
+            audio.src = "<%- videoData.audioUrl || '' %>";
+        }
+        
+        video.load();
+        if (audio.src && audio.src !== window.location.href) {
+            audio.load();
+            audio.currentTime = currentTime;
+        }
+    } else {
+        videoSrc.type = "video/mp4";
+        videoSrc.src = "<%- videoData.stream_url %>";
+        audio.pause();
+        audio.src = '';
+        video.load();
+    }
+    
+    video.currentTime = currentTime;
+    if (wasPlaying) {
+        video.play().catch(error => console.error("動画の再生エラー:", error));
+    }
+});
   
 //wakelock
 let wakeLock = null;
