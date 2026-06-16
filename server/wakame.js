@@ -3,7 +3,7 @@ const axios = require('axios');
 let apis = null;
 let xeroxApis = null;
 let minTubeApis = null;
-let aceThinkerApis = null; // ★ 新規追加
+let aceThinkerApis = null;
 const MAX_API_WAIT_TIME = 5000; 
 const MAX_TIME = 10000;       // 高速サーバー用 (10秒)
 const MAX_TIME_SLOW = 20000;  // 低速サーバー用 (20秒)
@@ -55,7 +55,6 @@ async function getInvidious(videoId) {
     
     const formatStreams = videoInfo.formatStreams || [];
     
-    // ★ 修正ポイント: 18や22を優先し、マニフェスト等(m3u8等)の変なURLは統合ストリームに入れない
     const defaultStream = formatStreams.find(s => String(s.itag) === '18' && s.url) || 
                           formatStreams.find(s => String(s.itag) === '22' && s.url) || 
                           formatStreams.find(s => s.container === 'mp4' && s.url && !s.url.includes('manifest') && !s.url.includes('.m3u8')) ||
@@ -63,14 +62,8 @@ async function getInvidious(videoId) {
                           
     let streamUrl = defaultStream ? defaultStream.url : '';
     
-    // 元の audioStreams は映像と音声が混ざった adaptiveFormats なので変数名を整理
     const adaptiveFormats = videoInfo.adaptiveFormats || [];
     
-    // 音声URLも「.url」が確実に存在するものだけを取得
-    const audioUrl = adaptiveFormats.find(s => String(s.itag) === '251' && s.url)?.url || 
-                     adaptiveFormats.find(s => s.container === 'm4a' && s.url)?.url || '';
-
-    // audioQuality (AUDIO_QUALITY_MEDIUMなど) を使ってスッキリ表示
     const audioUrls = adaptiveFormats
         .filter(stream => !stream.resolution && (stream.container === 'webm' || stream.container === 'm4a') && stream.url)
         .map(stream => {
@@ -97,12 +90,11 @@ async function getInvidious(videoId) {
             fps: stream.fps || null
         }));
         
-    // 統合ストリーム (streamUrl) が空っぽで取得できなかった時"だけ" hlsUrl を代わりに入れる
     if (!streamUrl && videoInfo.hlsUrl) {
         streamUrl = videoInfo.hlsUrl; 
     }
     
-    return { stream_url: streamUrl, audioUrl, audioUrls, streamUrls };
+    return { stream_url: streamUrl, audioUrls, streamUrls };
 }
 
 // =========================================
@@ -115,11 +107,6 @@ async function getSiaTube(videoId) {
         const streams = Array.isArray(response.data) ? response.data : (response.data.formats || []);
         
         console.log(`✅ 使用したAPI (SiaTube): ${apiUrl}`);
-
-        const audioStream = streams.find(s => String(s.format_id) === '251' || String(s.itag) === '251') || 
-                            streams.find(s => s.vcodec === 'none' && s.acodec === 'opus') || 
-                            streams.find(s => s.vcodec === 'none');
-        const audioUrl = audioStream?.url || '';
 
         const audioUrls = streams
             .filter(s => s.vcodec === 'none' && (s.ext === 'webm' || s.ext === 'm4a'))
@@ -152,7 +139,6 @@ async function getSiaTube(videoId) {
 
         return {
             stream_url: streamUrl || streamUrls[0]?.url || '',
-            audioUrl: audioUrl,
             audioUrls: audioUrls,
             streamUrls: streamUrls
         };
@@ -171,10 +157,6 @@ async function getYuZuTube(videoId) {
         const streams = Array.isArray(response.data) ? response.data : (response.data.formats || []);
         
         console.log(`✅ 使用したAPI (YuZuTube): ${apiUrl}`);
-
-        const audioStream = streams.find(s => String(s.format_id) === '251' || String(s.itag) === '251') || 
-                            streams.find(s => s.resolution === 'audio only');
-        const audioUrl = audioStream?.url || '';
 
         const audioUrls = streams
             .filter(s => s.resolution === 'audio only' && (s.ext === 'webm' || s.ext === 'm4a'))
@@ -206,7 +188,6 @@ async function getYuZuTube(videoId) {
 
         return {
             stream_url: streamUrl || streamUrls[0]?.url || '',
-            audioUrl: audioUrl,
             audioUrls: audioUrls,
             streamUrls: streamUrls
         };
@@ -226,10 +207,6 @@ async function getKatuoTube(videoId) {
         
         console.log(`✅ 使用したAPI (KatuoTube): ${apiUrl}`);
 
-        const audioStream = streams.find(s => String(s.format_id) === '251' || String(s.itag) === '251') || 
-                            streams.find(s => s.resolution === 'audio only' || s.vcodec === 'none');
-        const audioUrl = audioStream?.url || '';
-
         const audioUrls = streams
             .filter(s => (s.resolution === 'audio only' || s.vcodec === 'none') && (s.ext === 'webm' || s.ext === 'm4a'))
             .map(s => ({
@@ -260,7 +237,6 @@ async function getKatuoTube(videoId) {
 
         return {
             stream_url: streamUrl || streamUrls[0]?.url || '',
-            audioUrl: audioUrl,
             audioUrls: audioUrls,
             streamUrls: streamUrls
         };
@@ -280,10 +256,6 @@ async function getSenninTube(videoId) {
         
         console.log(`✅ 使用したAPI (SenninTube Plus): ${apiUrl}`);
 
-        const audioStream = streams.find(s => String(s.format_id) === '251' || String(s.itag) === '251') || 
-                            streams.find(s => s.resolution === 'audio only' || s.vcodec === 'none');
-        const audioUrl = audioStream?.url || '';
-
         const audioUrls = streams
             .filter(s => (s.resolution === 'audio only' || s.vcodec === 'none') && (s.ext === 'webm' || s.ext === 'm4a'))
             .map(s => ({
@@ -314,7 +286,6 @@ async function getSenninTube(videoId) {
 
         return {
             stream_url: streamUrl || streamUrls[0]?.url || '',
-            audioUrl: audioUrl,
             audioUrls: audioUrls,
             streamUrls: streamUrls
         };
@@ -352,16 +323,9 @@ async function getAceThinker(videoId) {
                 console.log(`✅ 使用したAPI (AceThinker): ${apiUrl}`);
                 const formats = resData.formats;
 
-                // 統合ストリーム: acodecもvcodecもnoneではないもの
                 const combinedStream = formats.find(f => f.acodec !== 'none' && f.vcodec !== 'none');
                 const streamUrl = combinedStream?.url || '';
 
-                // 標準オーディオ
-                const audioStream = formats.find(f => f.vcodec === 'none' && String(f.itag) === '251') || 
-                                    formats.find(f => f.vcodec === 'none');
-                const audioUrl = audioStream?.url || '';
-
-                // 音声リスト: vcodecがnoneのもの
                 const audioUrls = formats
                     .filter(f => f.vcodec === 'none')
                     .map(f => ({
@@ -370,19 +334,17 @@ async function getAceThinker(videoId) {
                         container: f.ext
                     }));
 
-                // 映像リスト: acodecがnoneのもの
                 const streamUrls = formats
                     .filter(f => f.acodec === 'none')
                     .map(f => ({
                         url: f.url,
                         resolution: f.quality || '',
                         container: f.ext || 'mp4',
-                        fps: null // jsonにfpsフィールドがないためnull固定
+                        fps: null
                     }));
 
                 return {
                     stream_url: streamUrl || streamUrls[0]?.url || '',
-                    audioUrl: audioUrl,
                     audioUrls: audioUrls,
                     streamUrls: streamUrls
                 };
@@ -404,7 +366,6 @@ async function getFreemake(videoId) {
         const response = await axios.get(apiUrl, { timeout: MAX_TIME });
         const data = response.data;
 
-        // データ自体が存在しない場合のみエラーにする
         if (!data) {
             throw new Error("データが空です");
         }
@@ -412,11 +373,9 @@ async function getFreemake(videoId) {
         console.log(`✅ 使用したAPI (Freemake): ${apiUrl}`);
         const qualities = data.qualities || [];
 
-        // 統合ストリーム: itagが18のもの
         const combinedStream = qualities.find(q => q.qualityInfo && String(q.qualityInfo.itag) === '18');
         const streamUrl = combinedStream?.url || '';
 
-        // 映像リスト: audioBitrateが0のもの
         const videoStreams = qualities.filter(q => q.qualityInfo && Number(q.qualityInfo.audioBitrate) === 0);
         const streamUrls = videoStreams.map(q => ({
             url: q.url,
@@ -425,13 +384,7 @@ async function getFreemake(videoId) {
             fps: null
         }));
 
-        // 音声リスト: audioBitrateが0ではない かつ itagが18ではないもの
         const audioStreams = qualities.filter(q => q.qualityInfo && Number(q.qualityInfo.audioBitrate) !== 0 && String(q.qualityInfo.itag) !== '18');
-        
-        // 標準オーディオURLの選出
-        const audioStream = audioStreams[0];
-        const audioUrl = audioStream?.url || '';
-
         const audioUrls = audioStreams.map(q => ({
             url: q.url,
             name: q.qualityInfo.audioBitrate ? `${q.qualityInfo.format} (${q.qualityInfo.audioBitrate}kbps)` : q.qualityInfo.format,
@@ -440,7 +393,6 @@ async function getFreemake(videoId) {
 
         return {
             stream_url: streamUrl || streamUrls[0]?.url || '',
-            audioUrl: audioUrl,
             audioUrls: audioUrls,
             streamUrls: streamUrls
         };
@@ -477,7 +429,6 @@ async function getXeroxNT(videoId) {
             if (data && data.streamingUrl) {
                 console.log(`✅ 使用したAPI (XeroxYT-NT): ${apiUrl}`);
                 
-                // formatsから画質リストを抽出
                 const streamUrls = (data.formats || []).map(f => ({
                     url: f.url,
                     resolution: f.quality || (f.height ? f.height + 'p' : 'Auto'),
@@ -485,11 +436,12 @@ async function getXeroxNT(videoId) {
                     fps: null
                 }));
                 
-                // audioUrlsを空にすることで、画面側で data.audioUrl を「標準オーディオ」として表示させる
+                // 元々単独URLだったものを配列として格納
+                const audioUrls = data.audioUrl ? [{ url: data.audioUrl, name: 'Default Audio', container: 'Auto' }] : [];
+
                 return {
                     stream_url: data.streamingUrl, 
-                    audioUrl: data.audioUrl || '',
-                    audioUrls: [],
+                    audioUrls: audioUrls,
                     streamUrls: streamUrls
                 };
             }
@@ -533,11 +485,12 @@ async function getMinTube2(videoId) {
                     streamUrls.push({ url: data.highstreamUrl, resolution: 'High Quality', container: 'mp4', fps: null });
                 }
 
-                // audioUrlsを空にし、EJSで「Default」と表示させる
+                // 元々単独URLだったものを配列として格納
+                const audioUrls = data.audioUrl ? [{ url: data.audioUrl, name: 'Default Audio', container: 'Auto' }] : [];
+
                 return {
                     stream_url: data.stream_url, 
-                    audioUrl: data.audioUrl || '',
-                    audioUrls: [], 
+                    audioUrls: audioUrls, 
                     streamUrls: streamUrls
                 };
             }
@@ -559,10 +512,6 @@ async function getWistaStream(videoId) {
         const streams = response.data.streams || [];
         
         console.log(`✅ 使用したAPI (Wista Stream): ${apiUrl}`);
-
-        // fpsがnullのものを音声ストリームとして取得
-        const audioStream = streams.find(s => s.fps === null);
-        const audioUrl = audioStream?.url || '';
 
         const audioUrls = streams
             .filter(s => s.fps === null)
@@ -594,7 +543,6 @@ async function getWistaStream(videoId) {
 
         return {
             stream_url: streamUrl || streamUrls[0]?.url || '',
-            audioUrl: audioUrl,
             audioUrls: audioUrls,
             streamUrls: streamUrls
         };
@@ -619,7 +567,6 @@ async function getYouTube(videoId, apiType = 'invidious') {
     } else if (apiType === 'acethinker') {
         result = await getAceThinker(videoId);
     } else if (apiType === 'freemake') {
-        // ★ Freemake API への振り分け
         result = await getFreemake(videoId);
     } else if (apiType === 'xeroxyt-nt-apiv1') {
         result = await getXeroxNT(videoId);
@@ -635,8 +582,6 @@ async function getYouTube(videoId, apiType = 'invidious') {
         const newStreamUrls = [];
         const seenUrls = new Set(); 
 
-        // 統合ストリームのURLを予め重複リストに追加し、
-        // 画質メニューで同じURLが「統合ストリーム」と「360p」などで被るのを防ぐ
         if (result.stream_url) {
             seenUrls.add(result.stream_url);
         }
@@ -654,7 +599,6 @@ async function getYouTube(videoId, apiType = 'invidious') {
                 containerType = 'm3u8';
             }
 
-            // URLが全く同じ無駄なデータだけを弾き、それ以外はそのままリストに追加
             if (stream.url && !seenUrls.has(stream.url)) {
                 seenUrls.add(stream.url);
                 newStreamUrls.push({
@@ -670,10 +614,9 @@ async function getYouTube(videoId, apiType = 'invidious') {
         result.streamUrls = [];
     }
 
-    // 音声URLに manifest や .m3u8 が紛れ込んでいたら消す
-    if (result.audioUrl && (result.audioUrl.includes('manifest') || result.audioUrl.includes('.m3u8'))) {
-        result.audioUrl = null;
-        result.audioUrls = [];
+    // 音声リストの中に manifest や .m3u8 が紛れ込んでいるものを除外
+    if (result.audioUrls && result.audioUrls.length > 0) {
+        result.audioUrls = result.audioUrls.filter(a => !(a.url.includes('manifest') || a.url.includes('.m3u8')));
     }
 
     return result;
