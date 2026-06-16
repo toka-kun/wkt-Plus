@@ -85,14 +85,15 @@ router.get('/:id', async (req, res) => {
         const ttlSec = getTtlSec(hitApiName);
         res.setHeader('Cache-Control', `public, s-maxage=${ttlSec}, stale-while-revalidate=30`);
         
-        // ★ 修正ポイント: メモリキャッシュヒット時もメッセージを追加
-        // 保存されている元の renderData をコピーして、メッセージだけ上書きする
-        const renderDataWithMsg = { 
-            ...cachedData.renderData, 
-            fallbackMessage: `キャッシュを確認したため、自動的に「${hitApiName}」を使用しました。` 
-        };
+        // ★ 保存されているデータをコピーし、サーバー指定の有無でメッセージを出し分ける
+        const finalRenderData = { ...cachedData.renderData };
+        if (selectedApi) {
+            finalRenderData.fallbackMessage = null; // サーバー指定時は出さない
+        } else {
+            finalRenderData.fallbackMessage = `キャッシュを確認したため、自動的に「${hitApiName}」を使用しました。`;
+        }
         
-        return res.render('tube/watch.ejs', renderDataWithMsg);
+        return res.render('tube/watch.ejs', finalRenderData);
     }
 
     // 2. 他のリクエストが現在データを取得中なら、APIを叩かずにその完了を待つ (F5連打対策)
@@ -107,13 +108,15 @@ router.get('/:id', async (req, res) => {
             const ttlSec = getTtlSec(usedApi);
             res.setHeader('Cache-Control', `public, s-maxage=${ttlSec}, stale-while-revalidate=30`);
             
-            // ★ 同時待機していたリクエストにもメッセージを追加
-            const renderDataWithMsg = { 
-                ...renderData, 
-                fallbackMessage: `キャッシュを確認したため、自動的に「${usedApi}」を使用しました。` 
-            };
+            // ★ 同時待機していたリクエストにも、サーバー指定の有無でメッセージを出し分ける
+            const finalRenderData = { ...renderData };
+            if (selectedApi) {
+                finalRenderData.fallbackMessage = null; // サーバー指定時は出さない
+            } else {
+                finalRenderData.fallbackMessage = `キャッシュを確認したため、自動的に「${usedApi}」を使用しました。`;
+            }
             
-            return res.render('tube/watch.ejs', renderDataWithMsg);
+            return res.render('tube/watch.ejs', finalRenderData);
         } catch (error) {
             // 先行リクエストが失敗した場合はこちらもエラー画面を返す
             return renderError(res, videoId, selectedApi || 'invidious', error);
