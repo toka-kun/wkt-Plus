@@ -341,10 +341,8 @@
                         <% videoData.audioUrls.forEach(function(audio) { %>
                             <option value="<%= audio.url %>"><%= audio.name %></option>
                         <% }); %>
-                    <% } else if (videoData.audioUrl) { %>
-                        <option value="<%= videoData.audioUrl %>">Default</option>
                     <% } else { %>
-                        <option value="">オーディオなし</option>
+                       <option value="">オーディオなし</option>
                     <% } %>
                 </select>
             </label>
@@ -842,7 +840,7 @@ $(document).ready(function() {
             audio.src = "";
         } else {
             // ★ それ以外（映像のみ）なら、選択されている「音質」を裏で鳴らす
-            audio.src = $('#audioSelect').val() || "<%- videoData.audioUrl || '' %>";
+            audio.src = $('#audioSelect').val();
         }
 
         $('#controlPanel').removeClass('open');
@@ -930,45 +928,6 @@ $(document).ready(function() {
 // ツールバー
 $('#toggleToolbar').click(() => $('#toolbar').addClass('open'));
 $('#closeToolbar').click(() => $('#toolbar').removeClass('open'));
-
-// 高画質
-$('#hdToggle').change(function() {
-    const video = document.getElementById('video');
-    const audio = document.getElementById('audio');
-    const videoSrc = document.getElementById('videoSrc');
-    
-    const currentTime = video.currentTime;
-    const wasPlaying = !video.paused;
-
-    if (this.checked) {
-        videoSrc.type = "video/webm";
-        videoSrc.src = "<%- videoData.highstreamUrl %>";
-        
-        // ★ マニフェスト判定
-        if ("<%- videoData.highstreamUrl %>".startsWith("https://manifest.googlevideo.com/")) {
-            audio.src = "";
-        } else {
-            audio.src = "<%- videoData.audioUrl || '' %>";
-        }
-        
-        video.load();
-        if (audio.src && audio.src !== window.location.href) {
-            audio.load();
-            audio.currentTime = currentTime;
-        }
-    } else {
-        videoSrc.type = "video/mp4";
-        videoSrc.src = "<%- videoData.stream_url %>";
-        audio.pause();
-        audio.src = '';
-        video.load();
-    }
-    
-    video.currentTime = currentTime;
-    if (wasPlaying) {
-        video.play().catch(error => console.error("動画の再生エラー:", error));
-    }
-});
   
 //wakelock
 let wakeLock = null;
