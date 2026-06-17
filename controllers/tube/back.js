@@ -4,6 +4,7 @@ const router = express.Router();
 const path = require("path");
 const http = require('http');
 const undici = require("undici");
+const miniget = require("miniget");
 const bodyParser = require("body-parser");
 const serverYt = require("../../server/youtube.js");
 const wakamess = require("../../server/wakame.js");
@@ -89,6 +90,7 @@ router.get("/vi*", async (req, res) => {
   });
   
   let headersForwarded = false;
+  let success = false;
   
   for (const quality of qualitiesToTry) {
     const targetUrl = videoId ? `https://i.ytimg.com/vi/${videoId}/${quality}` : `https://i.ytimg.com${urlPath}`;
@@ -106,8 +108,9 @@ router.get("/vi*", async (req, res) => {
       if (request.statusCode === 200 || request.statusCode === 206) {
         
         // 【Netlify環境の場合】
+        // 存在するURL（画質）が確定した時点で、Netlify Image CDNへリダイレクトして終了！
         if (isNetlify) {
-          await request.body.dump();
+          await request.body.dump(); // 読みかけのレスポンスボディを破棄
           return redirectNetlifyImage(res, targetUrl);
         }
 
@@ -125,32 +128,64 @@ router.get("/vi*", async (req, res) => {
           console.error(err);
           if (!res.headersSent) res.status(500).send(err.toString());
         });
-        return; // 成功したので終了
+        success = true;
+        break; // 成功したため、フォールバックのループを抜ける
       } else {
+        // 404などで画像がない場合はデータを破棄して次の画質へ
         await request.body.dump();
       }
     } catch (err) {
       console.error(`Fetch failed for ${targetUrl}:`, err.message);
+      // エラー時も次の画質を試す
     }
   }
   
-  // 見つからなかった場合は404などを返す
-  if (!res.headersSent) res.status(404).send('Not Found');
+  // 全ての画質が取得できなかった場合の最終手段
+  if (!success) {
+    if (isNetlify) {
+      // Netlifyで万が一全て失敗した場合は、デフォルトURLを投げて委譲
+      return redirectNetlifyImage(res, `https://i.ytimg.com${urlPath}`);
+    }
+
+    try {
+      const stream = miniget(`https://i.ytimg.com${urlPath}`, {
+        headers: {
+          "User-Agent": user_agent
+        }
+      });
+      stream.on('error', err => {
+        console.error("minigetエラー:", err);
+        if (!res.headersSent) res.status(500).send(err.toString());
+      });
+      stream.pipe(res);
+    } catch (err) {
+      if (!res.headersSent) res.status(500).send(err.toString());
+    }
+  }
 });
 
 router.get(["/yt3/*", "/ytc/*"], async (req, res) => {
+
   // Netlifyでは画像CDNへ委譲 (netlify.tomlで許可されているため動作します)
   if (isNetlify) {
     let url;
+
     if (req.url.startsWith("/yt3/")) {
       url = "https://yt3.ggpht.com" + req.url.slice(4);
     } else {
       url = "https://yt3.ggpht.com" + req.url;
     }
+
     return redirectNetlifyImage(res, url);
   }
-  
-  let url = req.url.startsWith("/yt3/") ? req.url.slice(4) : req.url;
+  let url = null;
+  if (req.url.startsWith("/yt3/")){
+    url = req.url.slice(4);
+  }else{
+    url = req.url;
+  }
+  let headersForwarded = false;
+  let errLength = 0;
   const range = req.headers.range;
   try {
     const request = await undici.request("https://yt3.ggpht.com" + url, {
@@ -160,11 +195,14 @@ router.get(["/yt3/*", "/ytc/*"], async (req, res) => {
       },
       maxRedirections: 4
     })
-    res.status(request.statusCode);
-    for (const h of ["Accept-Ranges", "Content-Type", "Content-Range", "Content-Length", "Cache-Control"]) {
-      const headerValue = request.headers[h.toLowerCase()];
-      if (headerValue) res.setHeader(h, headerValue);
+    if (!headersForwarded) {
+      res.status(request.statusCode);
+      for (const h of ["Accept-Ranges", "Content-Type", "Content-Range", "Content-Length", "Cache-Control"]) {
+        const headerValue = request.headers[h.toLowerCase()];
+        if (headerValue) res.setHeader(h, headerValue);
+      }
     }
+    errLength = 0;
     request.body.pipe(res);
   } catch (err) {
     res.destroy();
