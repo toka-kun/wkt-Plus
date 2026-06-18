@@ -14,10 +14,14 @@ router.use(express.json());
 
 const user_agent = process.env.USER_AGENT || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36";
 
-const isNetlify = !!process.env.NETLIFY;
+// ★ 修正ポイント: 環境変数に依存せず、Netlify特有のリクエストヘッダーで動的に確実に判定する
+function isNetlifyReq(req) {
+  return process.env.NETLIFY === 'true' || !!req.headers['x-nf-request-id'];
+}
 
 function redirectNetlifyImage(res, url) {
   return res.redirect(
+    302, 
     `/.netlify/images?url=${encodeURIComponent(url)}`
   );
 }
@@ -60,6 +64,7 @@ router.get('/suggest', (req, res) => {
 
 // ★ サムネイル取得（NetlifyのCDN委譲＋フォールバックの完全ハイブリッド化）
 router.get("/vi*", async (req, res) => {
+  const isNetlify = isNetlifyReq(req); // 動的判定
   const range = req.headers.range;
   const urlPath = req.url.split("?")[0];
   const parts = urlPath.split("/");
@@ -165,6 +170,7 @@ router.get("/vi*", async (req, res) => {
 });
 
 router.get(["/yt3/*", "/ytc/*"], async (req, res) => {
+  const isNetlify = isNetlifyReq(req); // 動的判定
 
   // Netlifyでは画像CDNへ委譲 (netlify.tomlで許可されているため動作します)
   if (isNetlify) {
@@ -178,6 +184,7 @@ router.get(["/yt3/*", "/ytc/*"], async (req, res) => {
 
     return redirectNetlifyImage(res, url);
   }
+
   let url = null;
   if (req.url.startsWith("/yt3/")){
     url = req.url.slice(4);
