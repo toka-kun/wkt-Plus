@@ -39,19 +39,24 @@
         <div class="flex w-full justify-center mb-6">
             <img src="/wkt/back/vi/<%= videoId %>/mqdefault.jpg" class="rounded-lg shadow-md max-w-full">
         </div>
-        <p class="text-center text-lg mb-6">現在のサーバー: <strong><%= typeof baseUrl !== 'undefined' ? baseUrl.replace('https://', '').replace('.glitch.me', '') : '未設定' %></strong></p>
+        
         <div class="text-center">
-            <label for="serverSelect" class="text-xl">サーバーを変更:</label>
-            <select id="serverSelect" class="mt-2 p-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <% if (typeof serverUrls !== 'undefined' && Array.isArray(serverUrls)) { %>
+            <% if (typeof serverUrls !== 'undefined' && Array.isArray(serverUrls) && serverUrls.length > 0) { %>
+                <p class="text-center text-lg mb-6">現在のサーバー: <strong><%= typeof baseUrl !== 'undefined' ? baseUrl.replace('https://', '').replace('.glitch.me', '') : '未設定' %></strong></p>
+                <label for="serverSelect" class="text-xl">サーバーを変更:</label>
+                <select id="serverSelect" class="mt-2 p-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <% serverUrls.forEach(server => { %>
                         <option value="<%= server.replace('https://', '').replace('.glitch.me', '') %>" class="bg-gray-800 hover:bg-gray-700"><%= server.replace('https://', '').replace('.glitch.me', '') %></option>
                     <% }); %>
-                <% } %>
-            </select>
-            <button onclick="changeServer()" class="mt-4 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">変更</button>
-          </div><br>
-        <p class="text-center text-lg mb-6">サーバーは上から順番に試して下さい。デフォルトでInvidiousを使っているので、無理だった場合はAceThinkerから試してみてね</p>
+                </select>
+                <button onclick="changeServer()" class="mt-4 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">変更</button>
+                <br>
+                <p class="text-center text-lg mb-6 mt-6">サーバーは上から順番に試して下さい。デフォルトでInvidiousを使っているので、無理だった場合はAceThinkerから試してみてね</p>
+            <% } else { %>
+                <p class="text-xl font-semibold text-yellow-400 mt-4">埋め込み再生を選択中です</p>
+                <p class="text-center text-gray-400 mt-4 text-sm">おそらくサーバーレス環境のため、YouTubeから動画情報をうまく取得できませんでした。<br>時間をおいて試してみて下さい。</p>
+            <% } %>
+        </div>
     </div>
 
     <div style="height:480px;" class="w-full max-w-3xl mx-auto mt-8 px-4">
@@ -60,7 +65,9 @@
 
     <script>
 function changeServer() {
-    const server = document.getElementById('serverSelect').value;
+    const serverSelect = document.getElementById('serverSelect');
+    if (!serverSelect) return;
+    const server = serverSelect.value;
     showMessage(`サーバーを${server}に変更します☑️`)
     window.location.href = `/wkt/watch/<%= videoId %>?server=${server}`;
 }
