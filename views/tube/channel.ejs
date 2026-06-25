@@ -11,8 +11,9 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="/js/tube.js"></script>
     <style>
-        .tab-btn { transition: all 0.2s; cursor: pointer; }
+        .tab-btn  { transition: all 0.2s; cursor: pointer; }
         .sort-btn { transition: all 0.2s; cursor: pointer; }
+        .result-item { position: relative; }
     </style>
 </head>
 <body class="bg-gray-900 text-white">
@@ -45,6 +46,7 @@
         <p class="text-gray-400 mt-4"><%- channel.metadata.description || "" %></p>
     </div>
 
+    <%# ===== タブバー（トレンドページと同スタイル）===== %>
     <div class="flex space-x-6 mb-6 border-b border-gray-700 text-lg overflow-x-auto whitespace-nowrap mt-6" id="channel-tabs">
         <button class="tab-btn pb-2 text-white font-bold border-b-2 border-blue-500" data-tab="home">ホーム</button>
         <button class="tab-btn pb-2 text-gray-400 font-bold hover:text-white" data-tab="videos">動画</button>
@@ -54,8 +56,8 @@
         <button class="tab-btn pb-2 text-gray-400 font-bold hover:text-white" data-tab="playlists">再生リスト</button>
     </div>
 
-    <%# ===== ホームタブ（サーバーサイド描画） ===== %>
-    <div id="tab-home" class="tab-content mt-4">
+    <%# ===== ホームタブ（サーバーサイド描画）===== %>
+    <div id="tab-home" class="tab-content">
         <% if (shelves && shelves.length > 0) { %>
             <% shelves.forEach(shelf => { %>
                 <% const shelfItems = shelf.content?.items || shelf.content?.playlists || []; %>
@@ -64,60 +66,110 @@
                     <h2 class="text-xl font-bold mb-3"><%= shelf.title?.text || '' %></h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                         <% shelfItems.forEach(item => { %>
-                            <% const itemType = item.type || ''; %>
-                            <% if (itemType.endsWith('Video') || itemType === 'LockupView') { %>
-                                <% const vid = item; %>
-                                <% const vidId = vid.id || vid.content_id || vid.video_id || vid.endpoint?.payload?.videoId || vid.navigationEndpoint?.watchEndpoint?.videoId || ''; %>
-                                <% const vidTitle = vid.title?.text || vid.metadata?.title?.text || vid.title || ''; %>
-                                <% const vidDuration = vid.duration?.text || (typeof vid.duration === 'string' ? vid.duration : ''); %>
-                                <% const vidViews = vid.short_view_count?.text || vid.view_count?.text || vid.views?.text || ''; %>
-                                <% const vidPublished = vid.published?.text || (typeof vid.published === 'string' ? vid.published : ''); %>
+                            <%
+                              const itemType = item.type || '';
+                              // RichItem ラッパーを展開
+                              const actualItem = (itemType === 'RichItem' && item.content) ? item.content : item;
+                              const actualType = actualItem.type || '';
+                            %>
+
+                            <%# ── 動画カード ── %>
+                            <% if (actualType.endsWith('Video') || actualType === 'LockupView') { %>
+                                <%
+                                  const vidId = actualItem.content_id
+                                             || actualItem.id
+                                             || actualItem.video_id
+                                             || actualItem.endpoint?.payload?.videoId || '';
+                                  const vidTitle = actualItem.metadata?.title?.text
+                                               || actualItem.title?.text
+                                               || (typeof actualItem.title === 'string' ? actualItem.title : '') || '';
+                                  // 再生時間（LockupView: overlays のバッジ）
+                                  let vidDur = actualItem.duration?.text || (typeof actualItem.duration === 'string' ? actualItem.duration : '');
+                                  if (!vidDur) {
+                                    for (const ov of (actualItem.content_image?.overlays || [])) {
+                                      for (const b of (ov.badges || [])) {
+                                        if (b.text && /^\d/.test(b.text)) { vidDur = b.text; break; }
+                                      }
+                                      if (vidDur) break;
+                                    }
+                                  }
+                                  // 視聴回数・投稿日時
+                                  const rows = actualItem.metadata?.metadata?.metadata_rows || [];
+                                  const allTexts = [];
+                                  for (const row of rows) {
+                                    for (const p of (row?.metadata_parts || [])) {
+                                      if (p?.text?.text) allTexts.push(p.text.text);
+                                    }
+                                  }
+                                  let vidViews = actualItem.short_view_count?.text || actualItem.view_count?.text || '';
+                                  let vidPub   = actualItem.published?.text || (typeof actualItem.published === 'string' ? actualItem.published : '') || '';
+                                  for (const t of allTexts) {
+                                    if (!vidViews && /回|view/i.test(t)) vidViews = t;
+                                    else if (!vidPub && /ago|前|年|ヶ月|週|日|時間/i.test(t)) vidPub = t;
+                                    else if (!vidPub && !vidViews) vidPub = t;
+                                  }
+                                %>
                                 <% if (vidId) { %>
                                 <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
                                     <a href="/wkt/watch/<%= vidId %>" class="block relative group">
                                         <img loading="lazy" src="/wkt/back/vi/<%= vidId %>/mqdefault.jpg" alt="<%= vidTitle %>" class="w-full h-auto rounded aspect-video object-cover">
-                                        <% if (vidDuration) { %>
-                                        <span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium"><%= vidDuration %></span>
-                                        <% } %>
+                                        <% if (vidDur) { %><span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium"><%= vidDur %></span><% } %>
                                         <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
                                     </a>
                                     <div class="mt-3">
                                         <a href="/wkt/watch/<%= vidId %>">
                                             <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= vidTitle %></p>
                                         </a>
-                                        <p class="text-gray-500 text-xs"><%= vidViews %><% if (vidPublished) { %> • <%= vidPublished %><% } %></p>
+                                        <p class="text-gray-500 text-xs"><%= vidViews %><% if (vidPub) { %> • <%= vidPub %><% } %></p>
                                     </div>
                                 </div>
                                 <% } %>
-                            <% } else if (itemType.endsWith('Playlist')) { %>
-                                <% const pl = item; %>
-                                <% const plTitle = pl.title?.text || pl.title || ''; %>
-                                <% const plCount = pl.video_count?.text || ''; %>
-                                <% const plThumb = pl.thumbnails?.[0]?.url || ''; %>
+
+                            <%# ── 再生リストカード ── %>
+                            <% } else if (actualType.includes('Playlist')) { %>
+                                <%
+                                  const plId    = actualItem.id || actualItem.content_id || '';
+                                  const plTitle = actualItem.title?.text || (typeof actualItem.title === 'string' ? actualItem.title : '') || '';
+                                  const plCount = actualItem.video_count?.text || '';
+                                  const plThumb = actualItem.thumbnails?.[0]?.url || '';
+                                %>
+                                <% if (plId) { %>
                                 <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
-                                    <a href="/wkt/p/<%= pl.id %>" class="block relative group">
+                                    <a href="/wkt/p/<%= plId %>" class="block relative group">
                                         <% if (plThumb) { %>
                                         <img loading="lazy" src="<%= plThumb %>" alt="<%= plTitle %>" class="w-full h-auto rounded aspect-video object-cover">
+                                        <% } else { %>
+                                        <div class="w-full rounded aspect-video bg-gray-700"></div>
                                         <% } %>
                                         <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
                                     </a>
                                     <div class="mt-3">
-                                        <a href="/wkt/p/<%= pl.id %>">
+                                        <a href="/wkt/p/<%= plId %>">
                                             <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= plTitle %></p>
                                         </a>
                                         <p class="text-gray-500 text-xs">再生リスト<% if (plCount) { %> • <%= plCount %>本<% } %></p>
                                     </div>
                                 </div>
-                            <% } else if (itemType.endsWith('Channel')) { %>
-                                <div class="result-item bg-gray-700 p-4 rounded-lg shadow hover:bg-gray-600 transition duration-200">
-                                    <a href="/wkt/c/<%= item.author?.id || item.id %>">
-                                        <% if (item.author?.thumbnails?.[0]?.url) { %>
-                                        <img src="<%= item.author.thumbnails[0].url %>" alt="<%= item.author?.name %>" class="w-16 h-16 rounded-full mx-auto">
-                                        <% } %>
+                                <% } %>
+
+                            <%# ── チャンネルカード（search.ejsと同スタイル）── %>
+                            <% } else if (actualType.endsWith('Channel')) { %>
+                                <%
+                                  const chId    = actualItem.author?.id || actualItem.id || '';
+                                  const chThumb = actualItem.author?.thumbnails?.[0]?.url || '';
+                                  const chName  = actualItem.author?.name || '';
+                                  const chDesc  = actualItem.description_snippet?.text || '';
+                                  const chSubsc = actualItem.subscriber_count?.text || actualItem.subscribers?.text || '';
+                                  const chVids  = actualItem.videos?.text || actualItem.video_count?.text || '';
+                                %>
+                                <div class="result-item bg-gray-600 p-4 rounded">
+                                    <a href="/wkt/c/<%= chId %>">
+                                        <img src="<%= chThumb %>" alt="<%= chName %>" class="w-full h-auto rounded">
                                     </a>
-                                    <div class="mt-2 text-center">
-                                        <p class="font-bold text-sm"><%= item.author?.name || '' %></p>
-                                        <p class="text-gray-400 text-xs"><%= item.subscriber_count?.text || '' %></p>
+                                    <div class="mt-2">
+                                        <p class="text-lg font-bold"><%= chName %></p>
+                                        <% if (chDesc) { %><p class="text-sm text-gray-400"><%= chDesc %></p><% } %>
+                                        <p class="text-xs text-gray-500"><%= chSubsc %><% if (chVids) { %> • <%= chVids %><% } %></p>
                                     </div>
                                 </div>
                             <% } %>
@@ -168,64 +220,65 @@
 
 <script>
 const CHANNEL_ID = '<%= channelId %>';
-const tabCache = {};
-let activeTab = 'home';
-let activeSort = 'newest';
+const tabCache   = {};
+let activeTab    = 'home';
+let activeSort   = 'newest';
 
-/* ---------- タブ切り替え ---------- */
-const tabBtns = document.querySelectorAll('[data-tab]');
+/* =====================================================
+   タブ切り替え
+   ===================================================== */
+const tabBtns    = document.querySelectorAll('[data-tab]');
 const tabContents = document.querySelectorAll('.tab-content');
 
-tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-});
+tabBtns.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
 
 function switchTab(tab) {
     activeTab = tab;
     tabBtns.forEach(b => {
         const on = b.dataset.tab === tab;
-        b.classList.toggle('text-white', on);
-        b.classList.toggle('border-b-2', on);
-        b.classList.toggle('border-blue-500', on);
-        b.classList.toggle('text-gray-400', !on);
+        b.classList.toggle('text-white',       on);
+        b.classList.toggle('border-b-2',       on);
+        b.classList.toggle('border-blue-500',  on);
+        b.classList.toggle('text-gray-400',   !on);
     });
-    tabContents.forEach(c => {
-        c.classList.toggle('hidden', c.id !== 'tab-' + tab);
-    });
+    tabContents.forEach(c => c.classList.toggle('hidden', c.id !== 'tab-' + tab));
     if (tab !== 'home') loadTab(tab, tab === 'videos' ? activeSort : null);
 }
 
-/* ---------- 動画ソート切り替え ---------- */
+/* =====================================================
+   動画ソート切り替え
+   ===================================================== */
 const sortBtns = document.querySelectorAll('.sort-btn');
-sortBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        activeSort = btn.dataset.sort;
-        sortBtns.forEach(b => {
-            const on = b.dataset.sort === activeSort;
-            b.classList.toggle('text-white', on);
-            b.classList.toggle('border-b-2', on);
-            b.classList.toggle('border-blue-500', on);
-            b.classList.toggle('text-gray-400', !on);
-        });
-        loadTab('videos', activeSort, true);
+sortBtns.forEach(btn => btn.addEventListener('click', () => {
+    activeSort = btn.dataset.sort;
+    sortBtns.forEach(b => {
+        const on = b.dataset.sort === activeSort;
+        b.classList.toggle('text-white',       on);
+        b.classList.toggle('border-b-2',       on);
+        b.classList.toggle('border-blue-500',  on);
+        b.classList.toggle('text-gray-400',   !on);
     });
-});
+    loadTab('videos', activeSort, true);
+}));
 
-/* ---------- タブデータ読み込み ---------- */
+/* =====================================================
+   タブデータ AJAX 読み込み
+   ===================================================== */
 async function loadTab(tab, sort, forceReload) {
     const key = tab + (sort ? ':' + sort : '');
+    const container = getContainer(tab);
+    if (!container) return;
+
     if (!forceReload && tabCache[key]) {
         renderItems(tab, tabCache[key]);
         return;
     }
 
-    const container = getContainer(tab);
-    if (!container) return;
-    const colSpan = tab === 'shorts' ? 'col-span-2 md:col-span-3 lg:col-span-4' : 'col-span-3';
-    container.innerHTML = `<div class="${colSpan} text-center py-12 text-gray-400">読み込み中...</div>`;
+    const emptySpan = tab === 'shorts' ? 'col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5' : 'col-span-3';
+    container.innerHTML = `<div class="${emptySpan} text-center py-12 text-gray-400">読み込み中...</div>`;
 
     try {
-        const url = `/wkt/c/${CHANNEL_ID}/tab/${tab}${sort ? '?sort=' + sort : ''}`;
+        const url = `/wkt/c/${encodeURIComponent(CHANNEL_ID)}/tab/${tab}${sort ? '?sort=' + sort : ''}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
@@ -233,97 +286,60 @@ async function loadTab(tab, sort, forceReload) {
         tabCache[key] = items;
         renderItems(tab, items);
     } catch (err) {
-        const colSpan2 = tab === 'shorts' ? 'col-span-2 md:col-span-3 lg:col-span-4' : 'col-span-3';
-        container.innerHTML = `<div class="${colSpan2} text-center py-12 text-red-400">読み込みに失敗しました。<br><button onclick="loadTab('${tab}','${sort||''}',true)" class="mt-2 px-4 py-1 bg-gray-700 rounded hover:bg-gray-600 text-white text-sm">再試行</button></div>`;
+        console.error('Tab load error:', tab, err);
+        container.innerHTML = `<div class="${emptySpan} text-center py-12 text-red-400">読み込みに失敗しました。<br>
+            <button onclick="loadTab('${tab}','${sort||''}',true)"
+                    class="mt-2 px-4 py-1 bg-gray-700 rounded hover:bg-gray-600 text-white text-sm">再試行</button></div>`;
     }
 }
 
-function getContainer(tab) {
-    return document.getElementById(tab + '-container');
-}
+function getContainer(tab) { return document.getElementById(tab + '-container'); }
 
-/* ---------- アイテム描画 ---------- */
+/* =====================================================
+   アイテム描画（サーバー正規化済みデータを前提）
+   ===================================================== */
 function renderItems(tab, items) {
     const container = getContainer(tab);
     if (!container) return;
 
+    const emptySpan = tab === 'shorts' ? 'col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5' : 'col-span-3';
+
     if (!items || items.length === 0) {
-        const colSpan = tab === 'shorts' ? 'col-span-2 md:col-span-3 lg:col-span-4' : 'col-span-3';
-        container.innerHTML = `<div class="${colSpan} text-center py-12 text-gray-400">コンテンツがありません。</div>`;
+        container.innerHTML = `<div class="${emptySpan} text-center py-12 text-gray-400">コンテンツがありません。</div>`;
         return;
     }
 
     let html = '';
     for (const item of items) {
-        if (!item) continue;
-        const type = item.type || '';
-        if (tab === 'playlists' || type.includes('Playlist')) {
-            html += renderPlaylistCard(item);
-        } else if (tab === 'shorts' || type === 'ReelItem' || type === 'ShortsLockupView') {
-            html += renderShortCard(item);
-        } else {
-            html += renderVideoCard(item);
-        }
+        if (!item || !item.id) continue;
+        if      (item.itemType === 'playlist') html += renderPlaylistCard(item);
+        else if (item.itemType === 'short')    html += renderShortCard(item);
+        else                                   html += renderVideoCard(item);
     }
-    container.innerHTML = html || `<div class="col-span-3 text-center py-12 text-gray-400">コンテンツがありません。</div>`;
+    container.innerHTML = html || `<div class="${emptySpan} text-center py-12 text-gray-400">コンテンツがありません。</div>`;
 }
 
-/* ---------- ユーティリティ ---------- */
+/* =====================================================
+   ユーティリティ
+   ===================================================== */
 function esc(str) {
     return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function getId(v) {
-    if (!v) return '';
-    return v.id || v.video_id || v.content_id
-        || v.endpoint?.payload?.videoId
-        || v.navigationEndpoint?.watchEndpoint?.videoId
-        || '';
-}
-
-function getTitle(v) {
-    if (!v) return '';
-    if (typeof v.title === 'string') return v.title;
-    return v.title?.text
-        || v.title?.runs?.[0]?.text
-        || v.accessibility_title
-        || v.headline?.text
-        || '';
-}
-
-function getViews(v) {
-    return v.short_view_count?.text
-        || v.view_count?.text
-        || v.views?.text
-        || (typeof v.views === 'string' ? v.views : '')
-        || '';
-}
-
-function getPublished(v) {
-    return v.published?.text
-        || (typeof v.published === 'string' ? v.published : '')
-        || '';
-}
-
-function getDuration(v) {
-    return v.duration?.text
-        || (typeof v.duration === 'string' ? v.duration : '')
-        || '';
-}
-
-/* ---------- 動画カード ---------- */
+/* =====================================================
+   動画カード（16:9）
+   ===================================================== */
 function renderVideoCard(v) {
-    const id = esc(getId(v));
-    const title = esc(getTitle(v));
-    const duration = esc(getDuration(v));
-    const views = esc(getViews(v));
-    const published = esc(getPublished(v));
-    const meta = [views, published].filter(Boolean).join(' • ');
+    const id       = esc(v.id       || '');
+    const title    = esc(v.title    || '');
+    const duration = esc(v.duration || '');
+    const meta     = [v.views, v.published].filter(Boolean).map(esc).join(' • ');
 
     return `
 <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
     <a href="/wkt/watch/${id}" class="block relative group">
-        <img loading="lazy" src="/wkt/back/vi/${id}/mqdefault.jpg" alt="${title}" class="w-full h-auto rounded aspect-video object-cover">
+        <img loading="lazy" src="/wkt/back/vi/${id}/mqdefault.jpg" alt="${title}"
+             class="w-full h-auto rounded aspect-video object-cover">
         ${duration ? `<span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium">${duration}</span>` : ''}
         <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
     </a>
@@ -336,16 +352,19 @@ function renderVideoCard(v) {
 </div>`;
 }
 
-/* ---------- ショートカード ---------- */
+/* =====================================================
+   ショートカード（9:16）
+   ===================================================== */
 function renderShortCard(v) {
-    const id = esc(getId(v));
-    const title = esc(getTitle(v));
-    const views = esc(getViews(v));
+    const id    = esc(v.id    || '');
+    const title = esc(v.title || '');
+    const views = esc(v.views || '');
 
     return `
 <div class="result-item bg-gray-800 p-2 rounded-lg shadow hover:bg-gray-700 transition duration-200">
     <a href="/wkt/watch/${id}" class="block relative group">
-        <img loading="lazy" src="/wkt/back/vi/${id}/mqdefault.jpg" alt="${title}" class="w-full rounded object-cover" style="aspect-ratio:9/16">
+        <img loading="lazy" src="/wkt/back/vi/${id}/mqdefault.jpg" alt="${title}"
+             class="w-full rounded object-cover" style="aspect-ratio:9/16">
         <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
     </a>
     <div class="mt-2 px-1">
@@ -357,14 +376,16 @@ function renderShortCard(v) {
 </div>`;
 }
 
-/* ---------- 再生リストカード ---------- */
-function renderPlaylistCard(pl) {
-    const id = esc(getId(pl));
-    const title = esc(getTitle(pl));
-    const count = esc(pl.video_count?.text || '');
-    const thumb = pl.thumbnails?.[0]?.url || '';
+/* =====================================================
+   再生リストカード
+   ===================================================== */
+function renderPlaylistCard(v) {
+    const id    = esc(v.id    || '');
+    const title = esc(v.title || '');
+    const count = esc(v.count || '');
+    const thumb = v.thumbnail ? esc(v.thumbnail) : '';
     const thumbHtml = thumb
-        ? `<img loading="lazy" src="${esc(thumb)}" alt="${title}" class="w-full h-auto rounded aspect-video object-cover">`
+        ? `<img loading="lazy" src="${thumb}" alt="${title}" class="w-full h-auto rounded aspect-video object-cover">`
         : `<div class="w-full rounded aspect-video bg-gray-700 flex items-center justify-center text-gray-500 text-sm">サムネなし</div>`;
 
     return `
