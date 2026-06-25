@@ -110,11 +110,28 @@ router.get("/ss", async (req, res) => {
         }
 });
 
+router.get("/c/:id/tab/:tabName", async (req, res) => {
+  const { id, tabName } = req.params;
+  const sort = req.query.sort || 'newest';
+  try {
+    const data = await serverYt.getChannelTab(id, tabName, sort);
+    res.json(data);
+  } catch (err) {
+    console.error("Tab fetch failed:", tabName, err);
+    res.status(500).json({ items: [], error: err.message });
+  }
+});
+
 router.get("/c/:id", async (req, res) => {
   try {
-    const channel = await serverYt.getChannel(req.params.id);
-    
-    res.render("tube/channel.ejs", channel);
+    const data = await serverYt.getChannel(req.params.id);
+    if (!data) {
+      return res.status(404).render("error.ejs", {
+        title: "チャンネルが見つかりません",
+        content: "チャンネル情報を取得できませんでした。"
+      });
+    }
+    res.render("tube/channel.ejs", { ...data, channelId: req.params.id });
   } catch (err) {
     console.error("Failed to fetch channel", req.params.id, err);
     res.status(500).render("error.ejs", {
