@@ -21,7 +21,7 @@
   },
   "description": "wakame",
   "engines": {
-    "node": "20.x"
+    "node": "24.x"
   },
   "author": "toka-kun",
   "bugs": {
