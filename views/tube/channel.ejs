@@ -3,169 +3,375 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%- channel.metadata.title || "存在しないチャンネル" %></title>
+    <title><%- channel.metadata.title || "チャンネル" %></title>
     <link rel="stylesheet" href="/css/page.css">
     <script src="/js/tailwindcss.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="/js/tube.js"></script>
+    <style>
+        .tab-btn { transition: all 0.2s; cursor: pointer; }
+        .sort-btn { transition: all 0.2s; cursor: pointer; }
+    </style>
 </head>
 <body class="bg-gray-900 text-white">
-    <header class="bg-gray-800 p-4 flex justify-between items-center">
-        <form action="/wkt/s" method="get" class="w-1/2" id="searchForm">
-            <input type="text" name="q" id="searchbox" placeholder="検索" class="searchbox w-full p-2 rounded bg-gray-700 text-white">
-        </form>
-        <nav class="space-x-4">
-            <a href="/wkt" class="text-gray-300 hover:text-white">ホーム</a>
-            <a href="/wkt/trend" class="text-gray-300 hover:text-white">トレンド</a>
-            <a href="/wkt/cl/fav" class="text-gray-300 hover:text-white">お気に入り</a>
-            <a href="/wkt/cl/history" class="text-gray-300 hover:text-white">再生履歴</a>
-        </nav>
-    </header>
-  
-    <div class="container mx-auto p-3 pt-2">
-      　<img src="<%- channel.header?.content?.banner?.image?.[0]?.url || ""  %>" class="w-full h-auto mr-4">
-        <div class="bg-gray-800 p-8 rounded-lg shadow-lg mt-4">
-            <div class="flex items-center mb-6">
-                <img src="<%- channel.metadata.avatar[0].url || ""  %>" class="w-20 h-20 rounded-full mr-4">
-                <div>
-                    <h1 class="text-3xl font-bold"><%- channel.metadata.title %></h1>
-                    <p class="text-gray-400 text-sm"><%- channel.header?.content?.metadata?.metadata_rows?.[0]?.metadata_parts?.[0]?.text || "" %>  -  <%- channel.header?.content?.metadata?.metadata_rows?.[1]?.metadata_parts?.[1]?.text || "" %></p>
-                    <p class="text-gray-500 text-sm mt-2"><%- channel.header?.content?.metadata?.metadata_rows?.[1]?.metadata_parts?.[0]?.text || "" %></p>
-                </div>
-            </div>
-          <p class="text-gray-400 mt-4"><%- channel.metadata.description || ""  %></p>
-        </div>
 
-<div class="mt-6">
-    <div class="relative inline-block w-full">
-        <button id="dropdownButton" class="bg-gray-800 text-white px-4 py-2 rounded w-full text-left">
-            <span id="selectedTab">最近の動画</span>
-            <span class="float-right">▼</span>
-        </button>
-        <ul id="dropdownMenu" class="absolute w-full bg-gray-800 text-white mt-2 rounded hidden z-10">
-            <% if (recentVideos && recentVideos.items && recentVideos.items.length > 0) { %><li class="p-2 hover:bg-gray-700 cursor-pointer" onclick="selectRecentVideos()">
-                最近の動画
-            </li><% } %>
-            <% channel.shelves?.forEach((shelf, index) => { %>
-                <li class="p-2 hover:bg-gray-700 cursor-pointer" onclick="selectTab('<%= shelf.title.text %>', <%= index %>)">
-                    <%= shelf.title.text %>
-                </li>
-            <% }); %>
-        </ul>
-    </div>
-    
-<% if (recentVideos && recentVideos.items && recentVideos.items.length > 0) { %>
-  <div class="recent-videos mt-4" id="recentVideos">
-    <h2 class="text-xl font-bold text-white mb-2">最近の動画</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-      <% recentVideos.items.forEach(video => { %>
-        <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
-          <a href="/wkt/watch/<%= video.id %>" class="block relative group">
-            <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title %>" class="w-full h-auto rounded aspect-video object-cover">
-            <% if (video.duration) { %>
-            <span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium"><%= video.duration %></span>
+<header class="bg-gray-800 p-4 flex justify-between items-center">
+    <form action="/wkt/s" method="get" class="w-1/2 relative" id="searchForm">
+        <input type="text" name="q" id="searchbox" placeholder="検索" class="searchbox w-full p-2 pr-10 rounded bg-gray-700 text-white">
+        <button type="button" id="clearBtn" class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center h-6 w-6 rounded-full hover:bg-gray-400 text-white text-lg leading-none hidden">×</button>
+    </form>
+    <nav class="hidden md:flex space-x-4 ml-4">
+        <a href="/wkt" class="text-gray-300 hover:text-white">ホーム</a>
+        <a href="/wkt/trend" class="text-gray-300 hover:text-white">トレンド</a>
+        <a href="/wkt/cl/fav" class="text-gray-300 hover:text-white">お気に入り</a>
+        <a href="/wkt/cl/history" class="text-gray-300 hover:text-white">再生履歴</a>
+    </nav>
+</header>
+
+<div class="container mx-auto p-3">
+
+    <% if (channel.header?.content?.banner?.image?.[0]?.url) { %>
+    <img src="<%= channel.header.content.banner.image[0].url %>" class="w-full h-auto rounded-lg mb-4" alt="バナー">
+    <% } %>
+
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+        <div class="flex items-center gap-4">
+            <% if (channel.metadata.avatar?.[0]?.url) { %>
+            <img src="<%= channel.metadata.avatar[0].url %>" class="w-20 h-20 rounded-full flex-shrink-0" alt="アイコン">
             <% } %>
-            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
-          </a>
-          <div class="mt-3">
-            <a href="/wkt/watch/<%= video.id %>">
-              <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= video.title %></p>
-            </a>
-          </div>
-        </div>
-      <% }) %>
-    </div>
-  </div>
-<% } %>
-    
-    <% channel.shelves?.forEach((shelf, index) => { %>
-        <div class="shelf-content mt-4 <%= index === 0 ? '' : 'hidden' %>" id="shelf-<%= index %>" data-tab-index="<%= index %>">
-            <h2 class="text-xl font-bold text-white mb-2"><%= shelf.title.text %></h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                <% shelf.content?.items?.forEach(video => { %>
-                  <% if (video.type.endsWith("Video")) { %>
-                    <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
-                        <a href="/wkt/watch/<%= video.id %>" class="block relative group">
-                            <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title %>" class="w-full h-auto rounded aspect-video object-cover">
-                            <% if (video.duration) { %>
-                            <span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium"><%= video.duration %></span>
-                            <% } %>
-                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
-                        </a>
-                        <div class="mt-3">
-                            <a href="/wkt/watch/<%= video.id %>">
-                                <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= video.title %></p>
-                            </a>
-                            <p class="text-gray-500 text-xs"><%= video.short_view_count || video.views %> • <%= video.published %></p>
-                        </div>
-                    </div>
-              <% } else if (video.type.endsWith("Playlist")) { %>
-                <div class="bg-gray-600 p-4 rounded">
-                  <a href="/wkt/p/<%= video.id %>">
-                    <img src="/vi/<%= video?.endpoint?.payload?.videoId || video.first_videos[0]?.id %>/mqdefault.jpg" alt="<%= video.title.text %>" class="w-full h-auto rounded">
-                  </a>
-                    <div class="mt-2">
-                        <p class="text-sm text-gray-400"><a href="/wkt/u/<%= video.author.id %>"><%= video.author.name %></a></p>
-                        <p class="text-lg font-bold">プレイリスト(<%= video.video_count?.text %>本以上の動画)</p>
-                    </div>
-                </div>
-            <% } else if (video.type.endsWith("Channel")) { %>
-                <div class="bg-gray-700 p-4 rounded">
-                  <a href="/wkt/c/<%= video.author.id %>">
-                    <img src="<%= video.author.thumbnails[0].url %>" alt="<%= video.author.name %>" class="w-full h-auto rounded">
-                  </a>
-                    <div class="mt-2">
-                        <p class="text-lg font-bold"><%= video.author.name %></p>
-                        <p class="text-xs text-gray-500"><%= video.subscribers?.text %> • <%= video.videos?.text || video.video_count?.text %></p>
-                    </div>
-                </div>
-              <% } %>
-                <% }); %>
+            <div class="min-w-0">
+                <h1 class="text-2xl font-bold"><%- channel.metadata.title %></h1>
+                <p class="text-gray-400 text-sm mt-1">
+                    <%= channel.header?.content?.metadata?.metadata_rows?.[0]?.metadata_parts?.[0]?.text || "" %>
+                    <% if (channel.header?.content?.metadata?.metadata_rows?.[1]?.metadata_parts?.[0]?.text) { %>
+                    　・　<%= channel.header.content.metadata.metadata_rows[1].metadata_parts[0].text %>
+                    <% } %>
+                </p>
+                <% if (channel.header?.content?.metadata?.metadata_rows?.[1]?.metadata_parts?.[1]?.text) { %>
+                <p class="text-gray-500 text-sm"><%= channel.header.content.metadata.metadata_rows[1].metadata_parts[1].text %></p>
+                <% } %>
             </div>
         </div>
-    <% }); %>
+        <% if (channel.metadata.description) { %>
+        <p class="text-gray-400 mt-4 text-sm whitespace-pre-line"><%- channel.metadata.description %></p>
+        <% } %>
+    </div>
+
+    <div class="flex space-x-1 mt-6 border-b border-gray-700 overflow-x-auto whitespace-nowrap text-sm" id="channel-tabs">
+        <button class="tab-btn pb-2 px-3 text-white font-bold border-b-2 border-blue-500" data-tab="home">ホーム</button>
+        <button class="tab-btn pb-2 px-3 text-gray-400 font-bold hover:text-white" data-tab="videos">動画</button>
+        <button class="tab-btn pb-2 px-3 text-gray-400 font-bold hover:text-white" data-tab="shorts">ショート</button>
+        <button class="tab-btn pb-2 px-3 text-gray-400 font-bold hover:text-white" data-tab="live">ライブ</button>
+        <button class="tab-btn pb-2 px-3 text-gray-400 font-bold hover:text-white" data-tab="releases">リリース</button>
+        <button class="tab-btn pb-2 px-3 text-gray-400 font-bold hover:text-white" data-tab="playlists">再生リスト</button>
+    </div>
+
+    <%# ===== ホームタブ（サーバーサイド描画） ===== %>
+    <div id="tab-home" class="tab-content mt-4">
+        <% if (shelves && shelves.length > 0) { %>
+            <% shelves.forEach(shelf => { %>
+                <% const shelfItems = shelf.content?.items || shelf.content?.playlists || []; %>
+                <% if (shelfItems.length > 0) { %>
+                <div class="mb-8">
+                    <h2 class="text-xl font-bold mb-3"><%= shelf.title?.text || '' %></h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        <% shelfItems.forEach(item => { %>
+                            <% const itemType = item.type || ''; %>
+                            <% if (itemType.endsWith('Video') || itemType === 'LockupView') { %>
+                                <% const vid = item; %>
+                                <% const vidTitle = vid.title?.text || vid.title || ''; %>
+                                <% const vidDuration = vid.duration?.text || (typeof vid.duration === 'string' ? vid.duration : ''); %>
+                                <% const vidViews = vid.short_view_count?.text || vid.view_count?.text || vid.views?.text || ''; %>
+                                <% const vidPublished = vid.published?.text || (typeof vid.published === 'string' ? vid.published : ''); %>
+                                <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
+                                    <a href="/wkt/watch/<%= vid.id %>" class="block relative group">
+                                        <img loading="lazy" src="/wkt/back/vi/<%= vid.id %>/mqdefault.jpg" alt="<%= vidTitle %>" class="w-full h-auto rounded aspect-video object-cover">
+                                        <% if (vidDuration) { %>
+                                        <span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium"><%= vidDuration %></span>
+                                        <% } %>
+                                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
+                                    </a>
+                                    <div class="mt-3">
+                                        <a href="/wkt/watch/<%= vid.id %>">
+                                            <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= vidTitle %></p>
+                                        </a>
+                                        <p class="text-gray-500 text-xs"><%= vidViews %><% if (vidPublished) { %> • <%= vidPublished %><% } %></p>
+                                    </div>
+                                </div>
+                            <% } else if (itemType.endsWith('Playlist')) { %>
+                                <% const pl = item; %>
+                                <% const plTitle = pl.title?.text || pl.title || ''; %>
+                                <% const plCount = pl.video_count?.text || ''; %>
+                                <% const plThumb = pl.thumbnails?.[0]?.url || ''; %>
+                                <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
+                                    <a href="/wkt/p/<%= pl.id %>" class="block relative group">
+                                        <% if (plThumb) { %>
+                                        <img loading="lazy" src="<%= plThumb %>" alt="<%= plTitle %>" class="w-full h-auto rounded aspect-video object-cover">
+                                        <% } %>
+                                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
+                                    </a>
+                                    <div class="mt-3">
+                                        <a href="/wkt/p/<%= pl.id %>">
+                                            <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= plTitle %></p>
+                                        </a>
+                                        <p class="text-gray-500 text-xs">再生リスト<% if (plCount) { %> • <%= plCount %>本<% } %></p>
+                                    </div>
+                                </div>
+                            <% } else if (itemType.endsWith('Channel')) { %>
+                                <div class="result-item bg-gray-700 p-4 rounded-lg shadow hover:bg-gray-600 transition duration-200">
+                                    <a href="/wkt/c/<%= item.author?.id || item.id %>">
+                                        <% if (item.author?.thumbnails?.[0]?.url) { %>
+                                        <img src="<%= item.author.thumbnails[0].url %>" alt="<%= item.author?.name %>" class="w-16 h-16 rounded-full mx-auto">
+                                        <% } %>
+                                    </a>
+                                    <div class="mt-2 text-center">
+                                        <p class="font-bold text-sm"><%= item.author?.name || '' %></p>
+                                        <p class="text-gray-400 text-xs"><%= item.subscriber_count?.text || '' %></p>
+                                    </div>
+                                </div>
+                            <% } %>
+                        <% }); %>
+                    </div>
+                </div>
+                <% } %>
+            <% }); %>
+        <% } else { %>
+            <p class="text-gray-400 py-8 text-center">コンテンツがありません。</p>
+        <% } %>
+    </div>
+
+    <%# ===== 動画タブ ===== %>
+    <div id="tab-videos" class="tab-content hidden mt-4">
+        <div class="flex space-x-4 mb-4 border-b border-gray-700 overflow-x-auto whitespace-nowrap text-sm">
+            <button class="sort-btn pb-2 px-1 text-white font-medium border-b-2 border-blue-500" data-sort="newest">新しい順</button>
+            <button class="sort-btn pb-2 px-1 text-gray-400 font-medium hover:text-white" data-sort="popular">人気順</button>
+            <button class="sort-btn pb-2 px-1 text-gray-400 font-medium hover:text-white" data-sort="oldest">古い順</button>
+        </div>
+        <div id="videos-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    </div>
+
+    <%# ===== ショートタブ ===== %>
+    <div id="tab-shorts" class="tab-content hidden mt-4">
+        <div id="shorts-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3"></div>
+    </div>
+
+    <%# ===== ライブタブ ===== %>
+    <div id="tab-live" class="tab-content hidden mt-4">
+        <div id="live-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    </div>
+
+    <%# ===== リリースタブ ===== %>
+    <div id="tab-releases" class="tab-content hidden mt-4">
+        <div id="releases-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    </div>
+
+    <%# ===== 再生リストタブ ===== %>
+    <div id="tab-playlists" class="tab-content hidden mt-4">
+        <div id="playlists-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    </div>
+
+    <div style="height:480px;" class="w-full max-w-3xl mx-auto mt-8">
+        <script src="//accaii.com/wktplus/widget.js" async></script>
+    </div>
 </div>
 
-        <div style="height:480px;" class="w-full max-w-3xl mx-auto mt-8">
-            <script src="//accaii.com/wktplus/widget.js" async></script>
-        </div>
-    </div>
-
 <script>
-const dropdownButton = document.getElementById("dropdownButton");
-const dropdownMenu = document.getElementById("dropdownMenu");
-const selectedTab = document.getElementById("selectedTab");
-const shelves = document.querySelectorAll(".shelf-content");
-const recentVideosContainer = document.getElementById("recentVideos");
+const CHANNEL_ID = '<%= channelId %>';
+const tabCache = {};
+let activeTab = 'home';
+let activeSort = 'newest';
 
-dropdownButton.addEventListener("click", () => {
-    dropdownMenu.classList.toggle("hidden");
+/* ---------- タブ切り替え ---------- */
+const tabBtns = document.querySelectorAll('[data-tab]');
+const tabContents = document.querySelectorAll('.tab-content');
+
+tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
 
-function selectTab(title, index) {
-    selectedTab.textContent = title;
-    dropdownMenu.classList.add("hidden");
-    shelves.forEach((shelf, i) => {
-        shelf.classList.toggle("hidden", i !== index);
+function switchTab(tab) {
+    activeTab = tab;
+    tabBtns.forEach(b => {
+        const on = b.dataset.tab === tab;
+        b.classList.toggle('text-white', on);
+        b.classList.toggle('border-b-2', on);
+        b.classList.toggle('border-blue-500', on);
+        b.classList.toggle('text-gray-400', !on);
     });
-    recentVideosContainer.classList.add("hidden");
+    tabContents.forEach(c => {
+        c.classList.toggle('hidden', c.id !== 'tab-' + tab);
+    });
+    if (tab !== 'home') loadTab(tab, tab === 'videos' ? activeSort : null);
 }
 
-function selectRecentVideos() {
-    selectedTab.textContent = '最近の動画';
-    dropdownMenu.classList.add("hidden");
-    shelves.forEach(shelf => shelf.classList.add("hidden"));
-    recentVideosContainer.classList.remove("hidden");
-}
-
-document.addEventListener("click", (event) => {
-    if (!dropdownButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
-        dropdownMenu.classList.add("hidden");
-    }
+/* ---------- 動画ソート切り替え ---------- */
+const sortBtns = document.querySelectorAll('.sort-btn');
+sortBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        activeSort = btn.dataset.sort;
+        sortBtns.forEach(b => {
+            const on = b.dataset.sort === activeSort;
+            b.classList.toggle('text-white', on);
+            b.classList.toggle('border-b-2', on);
+            b.classList.toggle('border-blue-500', on);
+            b.classList.toggle('text-gray-400', !on);
+        });
+        loadTab('videos', activeSort, true);
+    });
 });
+
+/* ---------- タブデータ読み込み ---------- */
+async function loadTab(tab, sort, forceReload) {
+    const key = tab + (sort ? ':' + sort : '');
+    if (!forceReload && tabCache[key]) {
+        renderItems(tab, tabCache[key]);
+        return;
+    }
+
+    const container = getContainer(tab);
+    if (!container) return;
+    const colSpan = tab === 'shorts' ? 'col-span-2 md:col-span-3 lg:col-span-4' : 'col-span-3';
+    container.innerHTML = `<div class="${colSpan} text-center py-12 text-gray-400">読み込み中...</div>`;
+
+    try {
+        const url = `/wkt/c/${CHANNEL_ID}/tab/${tab}${sort ? '?sort=' + sort : ''}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        const items = data.items || [];
+        tabCache[key] = items;
+        renderItems(tab, items);
+    } catch (err) {
+        const colSpan2 = tab === 'shorts' ? 'col-span-2 md:col-span-3 lg:col-span-4' : 'col-span-3';
+        container.innerHTML = `<div class="${colSpan2} text-center py-12 text-red-400">読み込みに失敗しました。<br><button onclick="loadTab('${tab}','${sort||''}',true)" class="mt-2 px-4 py-1 bg-gray-700 rounded hover:bg-gray-600 text-white text-sm">再試行</button></div>`;
+    }
+}
+
+function getContainer(tab) {
+    return document.getElementById(tab + '-container');
+}
+
+/* ---------- アイテム描画 ---------- */
+function renderItems(tab, items) {
+    const container = getContainer(tab);
+    if (!container) return;
+
+    if (!items || items.length === 0) {
+        const colSpan = tab === 'shorts' ? 'col-span-2 md:col-span-3 lg:col-span-4' : 'col-span-3';
+        container.innerHTML = `<div class="${colSpan} text-center py-12 text-gray-400">コンテンツがありません。</div>`;
+        return;
+    }
+
+    let html = '';
+    for (const item of items) {
+        if (!item) continue;
+        const type = item.type || '';
+        if (tab === 'playlists' || type.includes('Playlist')) {
+            html += renderPlaylistCard(item);
+        } else if (tab === 'shorts' || type === 'ReelItem' || type === 'ShortsLockupView') {
+            html += renderShortCard(item);
+        } else {
+            html += renderVideoCard(item);
+        }
+    }
+    container.innerHTML = html || `<div class="col-span-3 text-center py-12 text-gray-400">コンテンツがありません。</div>`;
+}
+
+/* ---------- ユーティリティ ---------- */
+function esc(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function getTitle(v) {
+    if (!v) return '';
+    if (typeof v.title === 'string') return v.title;
+    return v.title?.text || v.title?.runs?.[0]?.text || v.accessibility_title || '';
+}
+
+function getViews(v) {
+    return v.short_view_count?.text || v.view_count?.text || v.views?.text || '';
+}
+
+function getPublished(v) {
+    return v.published?.text || (typeof v.published === 'string' ? v.published : '');
+}
+
+function getDuration(v) {
+    return v.duration?.text || (typeof v.duration === 'string' ? v.duration : '');
+}
+
+/* ---------- 動画カード ---------- */
+function renderVideoCard(v) {
+    const id = esc(v.id || '');
+    const title = esc(getTitle(v));
+    const duration = esc(getDuration(v));
+    const views = esc(getViews(v));
+    const published = esc(getPublished(v));
+    const meta = [views, published].filter(Boolean).join(' • ');
+
+    return `
+<div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
+    <a href="/wkt/watch/${id}" class="block relative group">
+        <img loading="lazy" src="/wkt/back/vi/${id}/mqdefault.jpg" alt="${title}" class="w-full h-auto rounded aspect-video object-cover">
+        ${duration ? `<span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium">${duration}</span>` : ''}
+        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
+    </a>
+    <div class="mt-3">
+        <a href="/wkt/watch/${id}">
+            <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition">${title}</p>
+        </a>
+        ${meta ? `<p class="text-gray-500 text-xs">${meta}</p>` : ''}
+    </div>
+</div>`;
+}
+
+/* ---------- ショートカード ---------- */
+function renderShortCard(v) {
+    const id = esc(v.id || '');
+    const title = esc(getTitle(v));
+    const views = esc(getViews(v));
+
+    return `
+<div class="result-item bg-gray-800 p-2 rounded-lg shadow hover:bg-gray-700 transition duration-200">
+    <a href="/wkt/watch/${id}" class="block relative group">
+        <img loading="lazy" src="/wkt/back/vi/${id}/mqdefault.jpg" alt="${title}" class="w-full rounded object-cover" style="aspect-ratio:9/16">
+        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
+    </a>
+    <div class="mt-2 px-1">
+        <a href="/wkt/watch/${id}">
+            <p class="text-white font-bold text-xs leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition">${title}</p>
+        </a>
+        ${views ? `<p class="text-gray-500 text-xs">${views}</p>` : ''}
+    </div>
+</div>`;
+}
+
+/* ---------- 再生リストカード ---------- */
+function renderPlaylistCard(pl) {
+    const id = esc(pl.id || '');
+    const title = esc(getTitle(pl));
+    const count = esc(pl.video_count?.text || '');
+    const thumb = pl.thumbnails?.[0]?.url || '';
+    const thumbHtml = thumb
+        ? `<img loading="lazy" src="${esc(thumb)}" alt="${title}" class="w-full h-auto rounded aspect-video object-cover">`
+        : `<div class="w-full rounded aspect-video bg-gray-700 flex items-center justify-center text-gray-500 text-sm">サムネなし</div>`;
+
+    return `
+<div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
+    <a href="/wkt/p/${id}" class="block relative group">
+        ${thumbHtml}
+        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
+    </a>
+    <div class="mt-3">
+        <a href="/wkt/p/${id}">
+            <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition">${title}</p>
+        </a>
+        <p class="text-gray-500 text-xs">再生リスト${count ? ' • ' + count + '本' : ''}</p>
+    </div>
+</div>`;
+}
 </script>
-                    
 </body>
 </html>
