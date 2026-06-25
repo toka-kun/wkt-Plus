@@ -1,5 +1,5 @@
-# Node.js 20系の軽量版を使用
-FROM node:20-slim
+# Node.js 24系の軽量版を使用
+FROM node:24-slim
 
 WORKDIR /app
 
