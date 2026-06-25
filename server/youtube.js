@@ -40,51 +40,167 @@ async function getChannel(id) {
   }
 }
 
+// youtubei.js v17 のチャンネルアイテムを統一フォーマットに正規化
+function normalizeChannelItem(raw, tabName) {
+  if (!raw) return null;
+
+  // RichItem ラッパーを展開
+  const item = (raw.type === 'RichItem' && raw.content) ? raw.content : raw;
+  if (!item) return null;
+
+  const type = item.type || '';
+
+  // ── ShortsLockupView (ショート) ──────────────────────────
+  if (type === 'ShortsLockupView') {
+    // entity_id は "shorts-shelf-item-{videoId}" 形式なのでプレフィックスを除去
+    const id = (item.entity_id || '').replace(/^shorts-shelf-item-/, '');
+    if (!id) return null;
+    const om = item.overlay_metadata || {};
+    const title = om.primary_text?.text
+               || (item.accessibility_text || '').split(',')[0].trim()
+               || '';
+    const views = om.secondary_text?.text || '';
+    return { itemType: 'short', id, title, views };
+  }
+
+  // ── LockupView (動画/ライブ/リリース/再生リスト) ────────────
+  if (type === 'LockupView') {
+    const id = item.content_id || '';
+    if (!id) return null;
+
+    const contentType = item.content_type || 'VIDEO';
+    const title = item.metadata?.title?.text || '';
+
+    if (contentType === 'PLAYLIST') {
+      const thumb = item.content_image?.image?.sources?.[0]?.url
+                 || item.content_image?.image?.image?.[0]?.url || '';
+      return { itemType: 'playlist', id, title, count: '', thumbnail: thumb };
+    }
+
+    // 動画時間 → content_image.overlays のバッジから取得
+    let duration = '';
+    for (const overlay of (item.content_image?.overlays || [])) {
+      for (const badge of (overlay.badges || [])) {
+        if (badge.text && /^\d/.test(badge.text)) { duration = badge.text; break; }
+      }
+      if (duration) break;
+    }
+
+    // 視聴回数・投稿日時 → metadata_rows から収集
+    const rows = item.metadata?.metadata?.metadata_rows || [];
+    const allTexts = [];
+    for (const row of rows) {
+      const parts = row?.metadata_parts || [];
+      for (const part of parts) {
+        const t = part?.text?.text;
+        if (t) allTexts.push(String(t));
+      }
+      // metadata_parts が無い場合は行自体の text を試す
+      if (row?.text?.text) allTexts.push(String(row.text.text));
+    }
+
+    let views = '', published = '';
+    for (const t of allTexts) {
+      if (!views && /回|view/i.test(t))                              views     = t;
+      else if (!published && /ago|前|年|ヶ月|週|日|時間|秒/i.test(t)) published = t;
+      else if (!published && !views)                                  published = t;
+    }
+
+    const itemType = tabName === 'shorts' ? 'short' : 'video';
+    return { itemType, id, title, duration, views, published };
+  }
+
+  // ── 旧形式動画 (GridVideo / CompactVideo / Video) ──────────
+  if (type.endsWith('Video') || type === 'Video') {
+    const id = item.id || item.video_id || '';
+    if (!id) return null;
+    return {
+      itemType: tabName === 'shorts' ? 'short' : 'video',
+      id,
+      title:     item.title?.text || (typeof item.title === 'string' ? item.title : '') || '',
+      duration:  item.duration?.text || (typeof item.duration === 'string' ? item.duration : '') || '',
+      views:     item.short_view_count?.text || item.view_count?.text || '',
+      published: item.published?.text || (typeof item.published === 'string' ? item.published : '') || ''
+    };
+  }
+
+  // ── 再生リスト (GridPlaylist など) ────────────────────────
+  if (type.includes('Playlist') || tabName === 'playlists') {
+    const id = item.id || item.content_id || '';
+    if (!id) return null;
+    return {
+      itemType:  'playlist',
+      id,
+      title:     item.title?.text || (typeof item.title === 'string' ? item.title : '') || '',
+      count:     item.video_count?.text || '',
+      thumbnail: item.thumbnails?.[0]?.url || ''
+    };
+  }
+
+  return null;
+}
+
 // チャンネルの各タブを取得（AJAX用）
 async function getChannelTab(id, tab, sort) {
   const ch = await client.getChannel(id);
-  let items = [];
+  let t = null;
+  let rawContents = [];
 
   try {
-    if (tab === 'videos') {
-      let t = await ch.getVideos();
-      const rawFilters = t.filters || [];
-      const filterLabels = rawFilters.map(f =>
-        typeof f === 'string' ? f : f?.label || String(f)
-      );
+    switch (tab) {
+      case 'videos':
+        t = await ch.getVideos();
+        // ソートフィルターが使える場合だけ適用
+        if (sort === 'popular' || sort === 'oldest') {
+          const filters = t.filters || [];
+          if (filters.length > 0) {
+            const target = sort === 'popular' ? /popular|人気/i : /oldest|古い/i;
+            const f = filters.find(fi =>
+              target.test(typeof fi === 'string' ? fi : (fi?.label || fi?.title || ''))
+            );
+            if (f) {
+              try { t = await t.applyFilter(f); } catch (_) {}
+            }
+          }
+        }
+        break;
+      case 'shorts':
+        t = await ch.getShorts();
+        break;
+      case 'live':
+        t = await ch.getLiveStreams();
+        break;
+      case 'releases':
+        if (typeof ch.getReleases === 'function') t = await ch.getReleases();
+        break;
+      case 'playlists':
+        t = await ch.getPlaylists();
+        break;
+    }
 
-      if (sort === 'popular') {
-        const f = rawFilters[filterLabels.findIndex(s => /popular/i.test(s))];
-        if (f != null) t = await t.applyFilter(f);
-      } else if (sort === 'oldest') {
-        const f = rawFilters[filterLabels.findIndex(s => /oldest|古/i.test(s))];
-        if (f != null) t = await t.applyFilter(f);
+    if (t) {
+      const content = t.current_tab?.content;
+      if (content?.type === 'SectionList') {
+        // 再生リストタブ: SectionList -> ItemSection -> Grid -> items
+        for (const section of (content.contents || [])) {
+          for (const inner of (section.contents || [])) {
+            if (inner?.type === 'Grid') {
+              rawContents.push(...(inner.items || []));
+            } else if (inner) {
+              rawContents.push(inner);
+            }
+          }
+        }
+      } else {
+        rawContents = content?.contents || content?.items
+                   || t.videos || t.items || t.playlists || [];
       }
-
-      items = t?.videos || t?.items || [];
-
-    } else if (tab === 'shorts') {
-      const t = await ch.getShorts();
-      items = t?.videos || t?.items || [];
-
-    } else if (tab === 'live') {
-      const t = await ch.getLiveStreams();
-      items = t?.videos || t?.items || [];
-
-    } else if (tab === 'releases') {
-      if (typeof ch.getReleases === 'function') {
-        const t = await ch.getReleases();
-        items = t?.videos || t?.items || [];
-      }
-
-    } else if (tab === 'playlists') {
-      const t = await ch.getPlaylists();
-      items = t?.playlists || t?.items || [];
     }
   } catch (err) {
     console.error(`Tab "${tab}" 取得失敗:`, err.message);
   }
 
+  const items = rawContents.map(i => normalizeChannelItem(i, tab)).filter(Boolean);
   return { items, tab, sort };
 }
 
