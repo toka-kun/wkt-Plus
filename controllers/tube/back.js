@@ -5,6 +5,12 @@ const path = require("path");
 const http = require('http');
 const undici = require("undici");
 const miniget = require("miniget");
+
+// undici v6以降は maxRedirections を request() に渡せないため
+// redirect interceptor を使ったディスパッチャーを作成する
+const redirectDispatcher = new undici.Agent().compose(
+  undici.interceptors.redirect({ maxRedirections: 4 })
+);
 const bodyParser = require("body-parser");
 const serverYt = require("../../server/youtube.js");
 const wakamess = require("../../server/wakame.js");
@@ -106,7 +112,7 @@ router.get("/vi*", async (req, res) => {
           "User-Agent": user_agent,
           ...(range && { range })
         },
-        maxRedirections: 4
+        dispatcher: redirectDispatcher
       });
       
       // 画像が存在した場合 (200 OK または 206 Partial Content)
@@ -200,7 +206,7 @@ router.get(["/yt3/*", "/ytc/*"], async (req, res) => {
         "User-Agent": user_agent,
         range
       },
-      maxRedirections: 4
+      dispatcher: redirectDispatcher
     })
     if (!headersForwarded) {
       res.status(request.statusCode);
@@ -246,18 +252,18 @@ router.get('/next/:id', async (req, res) => {
 
 router.get("/info/:id", async (req, res) => {
   try {
-		res.json(await serverYt.infoGet(req.params.id));
-	} catch (error) {
-		console.error(error);
-		try {
-			res.status(500).render("error.ejs", {
-				title: "youtube.js Error",
-				content: error
-			});
-		} catch (error) {
-			console.error(error);
-		}
-	}
+                res.json(await serverYt.infoGet(req.params.id));
+        } catch (error) {
+                console.error(error);
+                try {
+                        res.status(500).render("error.ejs", {
+                                title: "youtube.js Error",
+                                content: error
+                        });
+                } catch (error) {
+                        console.error(error);
+                }
+        }
 });
 
 router.get("/nextvideo/:id", async (req, res) => {
@@ -268,17 +274,17 @@ router.get("/nextvideo/:id", async (req, res) => {
     }
     
     throw new Error(`Failed to get nextvideo`);
-	} catch (error) {
-		console.error(error);
-		try {
-			res.status(500).render("error.ejs", {
-				title: "youtube.js Error",
-				content: error
-			});
-		} catch (error) {
-			console.error(error);
-		}
-	}
+        } catch (error) {
+                console.error(error);
+                try {
+                        res.status(500).render("error.ejs", {
+                                title: "youtube.js Error",
+                                content: error
+                        });
+                } catch (error) {
+                        console.error(error);
+                }
+        }
 });
 
 router.get('/stream/api/:id', async (req, res) => {
@@ -291,42 +297,42 @@ router.get('/stream/api/:id', async (req, res) => {
 });
 
 router.get("/search", async (req, res) => {
-	let query = req.query.q;
-	let page = Number(req.query.p || 1);
+        let query = req.query.q;
+        let page = Number(req.query.p || 1);
     try {
-		res.render("tube/back/search.ejs", {
-			res: await serverYt.search(query),
-			query: query,
-			page
-		});
-	} catch (error) {
-		console.error(error);
-		try {
-			res.status(500).render("error.ejs", {
-				title: "ytsr Error",
-				content: error
-			});
-		} catch (error) {
-			console.error(error);
-		}
-	}
+                res.render("tube/back/search.ejs", {
+                        res: await serverYt.search(query),
+                        query: query,
+                        page
+                });
+        } catch (error) {
+                console.error(error);
+                try {
+                        res.status(500).render("error.ejs", {
+                                title: "ytsr Error",
+                                content: error
+                        });
+                } catch (error) {
+                        console.error(error);
+                }
+        }
 });
 
 router.get("/wakame/refresh", async (req, res) => {
   try {
     await serverYt.getapis();
-		res.json("ok");
-	} catch (error) {
-		console.error(error);
-		try {
-			res.status(500).render("error.ejs", {
-				title: "Error",
-				content: error
-			});
-		} catch (error) {
-			console.error(error);
-		}
-	}
+                res.json("ok");
+        } catch (error) {
+                console.error(error);
+                try {
+                        res.status(500).render("error.ejs", {
+                                title: "Error",
+                                content: error
+                        });
+                } catch (error) {
+                        console.error(error);
+                }
+        }
 });
 
 module.exports = router;
