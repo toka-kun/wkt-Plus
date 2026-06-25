@@ -32,40 +32,26 @@
 
 <div class="container mx-auto p-3">
 
-    <% if (channel.header?.content?.banner?.image?.[0]?.url) { %>
-    <img src="<%= channel.header.content.banner.image[0].url %>" class="w-full h-auto rounded-lg mb-4" alt="バナー">
-    <% } %>
-
-    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
-        <div class="flex items-center gap-4">
-            <% if (channel.metadata.avatar?.[0]?.url) { %>
-            <img src="<%= channel.metadata.avatar[0].url %>" class="w-20 h-20 rounded-full flex-shrink-0" alt="アイコン">
-            <% } %>
-            <div class="min-w-0">
-                <h1 class="text-2xl font-bold"><%- channel.metadata.title %></h1>
-                <p class="text-gray-400 text-sm mt-1">
-                    <%= channel.header?.content?.metadata?.metadata_rows?.[0]?.metadata_parts?.[0]?.text || "" %>
-                    <% if (channel.header?.content?.metadata?.metadata_rows?.[1]?.metadata_parts?.[0]?.text) { %>
-                    　・　<%= channel.header.content.metadata.metadata_rows[1].metadata_parts[0].text %>
-                    <% } %>
-                </p>
-                <% if (channel.header?.content?.metadata?.metadata_rows?.[1]?.metadata_parts?.[1]?.text) { %>
-                <p class="text-gray-500 text-sm"><%= channel.header.content.metadata.metadata_rows[1].metadata_parts[1].text %></p>
-                <% } %>
+    <img src="<%- channel.header?.content?.banner?.image?.[0]?.url || "" %>" class="w-full h-auto mr-4">
+    <div class="bg-gray-800 p-8 rounded-lg shadow-lg mt-4">
+        <div class="flex items-center mb-6">
+            <img src="<%- channel.metadata.avatar?.[0]?.url || "" %>" class="w-20 h-20 rounded-full mr-4">
+            <div>
+                <h1 class="text-3xl font-bold"><%- channel.metadata.title %></h1>
+                <p class="text-gray-400 text-sm"><%- channel.header?.content?.metadata?.metadata_rows?.[0]?.metadata_parts?.[0]?.text || "" %>  -  <%- channel.header?.content?.metadata?.metadata_rows?.[1]?.metadata_parts?.[1]?.text || "" %></p>
+                <p class="text-gray-500 text-sm mt-2"><%- channel.header?.content?.metadata?.metadata_rows?.[1]?.metadata_parts?.[0]?.text || "" %></p>
             </div>
         </div>
-        <% if (channel.metadata.description) { %>
-        <p class="text-gray-400 mt-4 text-sm whitespace-pre-line"><%- channel.metadata.description %></p>
-        <% } %>
+        <p class="text-gray-400 mt-4"><%- channel.metadata.description || "" %></p>
     </div>
 
-    <div class="flex space-x-1 mt-6 border-b border-gray-700 overflow-x-auto whitespace-nowrap text-sm" id="channel-tabs">
-        <button class="tab-btn pb-2 px-3 text-white font-bold border-b-2 border-blue-500" data-tab="home">ホーム</button>
-        <button class="tab-btn pb-2 px-3 text-gray-400 font-bold hover:text-white" data-tab="videos">動画</button>
-        <button class="tab-btn pb-2 px-3 text-gray-400 font-bold hover:text-white" data-tab="shorts">ショート</button>
-        <button class="tab-btn pb-2 px-3 text-gray-400 font-bold hover:text-white" data-tab="live">ライブ</button>
-        <button class="tab-btn pb-2 px-3 text-gray-400 font-bold hover:text-white" data-tab="releases">リリース</button>
-        <button class="tab-btn pb-2 px-3 text-gray-400 font-bold hover:text-white" data-tab="playlists">再生リスト</button>
+    <div class="flex space-x-6 mb-6 border-b border-gray-700 text-lg overflow-x-auto whitespace-nowrap mt-6" id="channel-tabs">
+        <button class="tab-btn pb-2 text-white font-bold border-b-2 border-blue-500" data-tab="home">ホーム</button>
+        <button class="tab-btn pb-2 text-gray-400 font-bold hover:text-white" data-tab="videos">動画</button>
+        <button class="tab-btn pb-2 text-gray-400 font-bold hover:text-white" data-tab="shorts">ショート</button>
+        <button class="tab-btn pb-2 text-gray-400 font-bold hover:text-white" data-tab="live">ライブ</button>
+        <button class="tab-btn pb-2 text-gray-400 font-bold hover:text-white" data-tab="releases">リリース</button>
+        <button class="tab-btn pb-2 text-gray-400 font-bold hover:text-white" data-tab="playlists">再生リスト</button>
     </div>
 
     <%# ===== ホームタブ（サーバーサイド描画） ===== %>
@@ -284,27 +270,47 @@ function esc(str) {
     return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function getId(v) {
+    if (!v) return '';
+    return v.id || v.video_id || v.content_id
+        || v.endpoint?.payload?.videoId
+        || v.navigationEndpoint?.watchEndpoint?.videoId
+        || '';
+}
+
 function getTitle(v) {
     if (!v) return '';
     if (typeof v.title === 'string') return v.title;
-    return v.title?.text || v.title?.runs?.[0]?.text || v.accessibility_title || '';
+    return v.title?.text
+        || v.title?.runs?.[0]?.text
+        || v.accessibility_title
+        || v.headline?.text
+        || '';
 }
 
 function getViews(v) {
-    return v.short_view_count?.text || v.view_count?.text || v.views?.text || '';
+    return v.short_view_count?.text
+        || v.view_count?.text
+        || v.views?.text
+        || (typeof v.views === 'string' ? v.views : '')
+        || '';
 }
 
 function getPublished(v) {
-    return v.published?.text || (typeof v.published === 'string' ? v.published : '');
+    return v.published?.text
+        || (typeof v.published === 'string' ? v.published : '')
+        || '';
 }
 
 function getDuration(v) {
-    return v.duration?.text || (typeof v.duration === 'string' ? v.duration : '');
+    return v.duration?.text
+        || (typeof v.duration === 'string' ? v.duration : '')
+        || '';
 }
 
 /* ---------- 動画カード ---------- */
 function renderVideoCard(v) {
-    const id = esc(v.id || '');
+    const id = esc(getId(v));
     const title = esc(getTitle(v));
     const duration = esc(getDuration(v));
     const views = esc(getViews(v));
@@ -329,7 +335,7 @@ function renderVideoCard(v) {
 
 /* ---------- ショートカード ---------- */
 function renderShortCard(v) {
-    const id = esc(v.id || '');
+    const id = esc(getId(v));
     const title = esc(getTitle(v));
     const views = esc(getViews(v));
 
@@ -350,7 +356,7 @@ function renderShortCard(v) {
 
 /* ---------- 再生リストカード ---------- */
 function renderPlaylistCard(pl) {
-    const id = esc(pl.id || '');
+    const id = esc(getId(pl));
     const title = esc(getTitle(pl));
     const count = esc(pl.video_count?.text || '');
     const thumb = pl.thumbnails?.[0]?.url || '';
