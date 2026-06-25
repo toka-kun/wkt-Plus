@@ -1,5 +1,4 @@
 let client = null;
-const ytpl = require("ytpl");
 
 function setClient(newClient) {
   client = newClient;
@@ -7,8 +6,7 @@ function setClient(newClient) {
 
 async function infoGet(id) {
   try {
-    let info = await client.getInfo(id);
-    return info;
+    return await client.getInfo(id);
   } catch (error) {
     return;
   }
@@ -17,7 +15,7 @@ async function infoGet(id) {
 async function search(q, page, limit) {
   if (!q) return;
   try {
-    return(await client.search(q, {type: "all"}));
+    return await client.search(q, {type: "all"});
   } catch (error) {
     return null;
   }
@@ -26,29 +24,68 @@ async function search(q, page, limit) {
 async function getComments(id) {
   if (!id) return;
   try {
-    return(await client.getComments(id));
+    return await client.getComments(id);
   } catch (error) {
     return null;
   }
 }
 
 async function getChannel(id) {
-  let channel = null;
-  let recentVideos = null;
   try {
-    channel = await client.getChannel(id);
+    const channel = await client.getChannel(id);
+    return { channel, shelves: channel.shelves || [] };
   } catch (err) {
     console.error("channel取得失敗:", err);
-  }
-  try {
-    recentVideos = await ytpl(id, { pages: 1 });
-  } catch (err) {
-    console.error("recentVideos取得失敗:", err);
-  }
-  if (!channel && !recentVideos) {
     return null;
   }
-  return({channel, recentVideos});
+}
+
+// チャンネルの各タブを取得（AJAX用）
+async function getChannelTab(id, tab, sort) {
+  const ch = await client.getChannel(id);
+  let items = [];
+
+  try {
+    if (tab === 'videos') {
+      let t = await ch.getVideos();
+      const rawFilters = t.filters || [];
+      const filterLabels = rawFilters.map(f =>
+        typeof f === 'string' ? f : f?.label || String(f)
+      );
+
+      if (sort === 'popular') {
+        const f = rawFilters[filterLabels.findIndex(s => /popular/i.test(s))];
+        if (f != null) t = await t.applyFilter(f);
+      } else if (sort === 'oldest') {
+        const f = rawFilters[filterLabels.findIndex(s => /oldest|古/i.test(s))];
+        if (f != null) t = await t.applyFilter(f);
+      }
+
+      items = t?.videos || t?.items || [];
+
+    } else if (tab === 'shorts') {
+      const t = await ch.getShorts();
+      items = t?.videos || t?.items || [];
+
+    } else if (tab === 'live') {
+      const t = await ch.getLiveStreams();
+      items = t?.videos || t?.items || [];
+
+    } else if (tab === 'releases') {
+      if (typeof ch.getReleases === 'function') {
+        const t = await ch.getReleases();
+        items = t?.videos || t?.items || [];
+      }
+
+    } else if (tab === 'playlists') {
+      const t = await ch.getPlaylists();
+      items = t?.playlists || t?.items || [];
+    }
+  } catch (err) {
+    console.error(`Tab "${tab}" 取得失敗:`, err.message);
+  }
+
+  return { items, tab, sort };
 }
 
 // watch_next_feed を正規化する共通関数
@@ -56,7 +93,6 @@ async function getChannel(id) {
 function normalizeWatchNextFeed(rawFeed) {
   const feed = Array.isArray(rawFeed) ? rawFeed : [];
 
-  // CompactAutoplay の中にある動画を展開する
   const expanded = [];
   for (const item of feed) {
     if (!item || !item.type) continue;
@@ -69,7 +105,6 @@ function normalizeWatchNextFeed(rawFeed) {
     }
   }
 
-  // LockupView（YouTube新形式）を CompactVideo 互換形式に変換する
   return expanded.map(item => {
     if (!item || !item.type) return null;
     if (item.type !== 'LockupView') return item;
@@ -80,8 +115,6 @@ function normalizeWatchNextFeed(rawFeed) {
     const rawViewCount = rows[1]?.metadata_parts?.[0]?.text?.text || '';
     const publishedText = rows[1]?.metadata_parts?.[1]?.text?.text || '';
 
-    // 「25万」のように単位なしで返ってくる場合は「回視聴」を補完する
-    // すでに「視聴」が含まれている場合（「回視聴」「人が視聴中」等）はそのまま
     const viewCountText = rawViewCount && !rawViewCount.includes('視聴')
       ? rawViewCount + '回視聴'
       : rawViewCount;
@@ -91,12 +124,9 @@ function normalizeWatchNextFeed(rawFeed) {
 
     if (!videoId) return null;
 
-    // チャンネルIDはアバターのrenderer_contextに格納されている
     const channelId = item.metadata?.image?.renderer_context?.command_context?.on_tap?.payload?.browseId || '';
-    // チャンネルアイコンはアバター画像から取得
     const channelThumbUrl = item.metadata?.image?.avatar?.image?.[0]?.url || '';
 
-    // サムネイルオーバーレイ（ThumbnailOverlayBadgeView / ThumbnailBottomOverlayView）から再生時間を取得
     let durationText = '';
     for (const overlay of (item.content_image?.overlays || [])) {
       for (const badge of (overlay.badges || [])) {
@@ -125,11 +155,9 @@ function normalizeWatchNextFeed(rawFeed) {
 }
 
 // コラボ動画を含む全チャンネルを channels 配列として抽出する
-// 戻り値: [{id, name, icon, subsc}] (primary が先頭、collab チャンネルが続く)
 function extractChannels(Info) {
   const owner = Info.secondary_info?.owner;
 
-  // コラボ動画の判定: author.id が 'N/A' のとき、showDialogCommand でチャンネル一覧が渡される
   if (owner?.author?.id === 'N/A') {
     try {
       const listItems = owner.author?.endpoint?.payload
@@ -146,7 +174,6 @@ function extractChannels(Info) {
                          ?.browseEndpoint?.browseId || '';
           const icon = lvm.leadingAccessory?.avatarViewModel?.image?.sources?.[0]?.url || '';
 
-          // subtitle: "⁨@handle⁩ • ⁨チャンネル登録者数 X万人⁩" → "チャンネル登録者数 X万人"
           const rawSubtitle = lvm.subtitle?.content || '';
           const subsc = rawSubtitle.includes('•')
             ? rawSubtitle.split('•').slice(1).join('•')
@@ -162,7 +189,6 @@ function extractChannels(Info) {
     } catch (_) {}
   }
 
-  // 通常動画 (チャンネル1つ)
   const primary = {
     id:    owner?.author?.id    || '',
     name:  owner?.author?.name  || '',
@@ -173,11 +199,12 @@ function extractChannels(Info) {
 }
 
 module.exports = {
-  infoGet, 
+  infoGet,
   setClient,
   search,
   getComments,
   getChannel,
+  getChannelTab,
   normalizeWatchNextFeed,
   extractChannels
 };
