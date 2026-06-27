@@ -314,6 +314,57 @@ function extractChannels(Info) {
   return [primary];
 }
 
+// YouTube v17 では動画が PlaylistVideo ではなく LockupView で返る。
+// page_contents → ItemSection → LockupView[] を直接取得して正規化する。
+async function getPlaylist(id) {
+  try {
+    const pl = await client.getPlaylist(id);
+
+    const rawItems = [];
+    for (const section of (pl.page_contents?.contents || [])) {
+      for (const inner of (section.contents || [])) {
+        if (inner?.type === 'LockupView' && inner.content_type === 'VIDEO') {
+          rawItems.push(inner);
+        }
+      }
+    }
+
+    const items = rawItems.map((item, idx) => {
+      const videoId = item.content_id || '';
+      if (!videoId) return null;
+
+      const title = item.metadata?.title?.text || '';
+
+      // 再生時間 → content_image.overlays のバッジ
+      let duration = '';
+      for (const overlay of (item.content_image?.overlays || [])) {
+        for (const badge of (overlay.badges || [])) {
+          if (badge.text && /^\d/.test(badge.text)) { duration = badge.text; break; }
+        }
+        if (duration) break;
+      }
+
+      // row0 = チャンネル名、row1 = [視聴回数, 投稿日時]
+      const rows     = item.metadata?.metadata?.metadata_rows || [];
+      const channelName = rows[0]?.metadata_parts?.[0]?.text?.text || '';
+      const row1parts   = rows[1]?.metadata_parts || [];
+      const views       = row1parts[0]?.text?.text || '';
+      const published   = row1parts[1]?.text?.text || '';
+
+      // チャンネルID → metadata.image の renderer_context
+      const channelId = item.metadata?.image?.renderer_context
+        ?.command_context?.on_tap?.payload?.browseId || '';
+
+      return { id: videoId, title, duration, views, published, channelName, channelId, index: idx + 1 };
+    }).filter(Boolean);
+
+    return { info: pl.info, items, has_continuation: pl.has_continuation };
+  } catch (err) {
+    console.error('playlist取得失敗:', err);
+    return null;
+  }
+}
+
 module.exports = {
   infoGet,
   setClient,
@@ -321,6 +372,7 @@ module.exports = {
   getComments,
   getChannel,
   getChannelTab,
+  getPlaylist,
   normalizeWatchNextFeed,
   extractChannels
 };
