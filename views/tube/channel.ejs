@@ -45,14 +45,14 @@
         <p class="text-gray-400 mt-4"><%- channel.metadata.description || "" %></p>
     </div>
 
-    <%# ===== タブバー（トレンドページと同スタイル）===== %>
+    <%# ===== タブバー（trend.ejs同様にデータ属性でカラーを設定）===== %>
     <div class="flex space-x-6 mb-6 border-b border-gray-700 text-lg overflow-x-auto whitespace-nowrap mt-6" id="channel-tabs">
-        <button class="tab-btn pb-2 text-white font-bold border-b-2 border-blue-500" data-tab="home">ホーム</button>
-        <button class="tab-btn pb-2 text-gray-400 font-bold hover:text-white" data-tab="videos">動画</button>
-        <button class="tab-btn pb-2 text-gray-400 font-bold hover:text-white" data-tab="shorts">ショート</button>
-        <button class="tab-btn pb-2 text-gray-400 font-bold hover:text-white" data-tab="live">ライブ</button>
-        <button class="tab-btn pb-2 text-gray-400 font-bold hover:text-white" data-tab="releases">リリース</button>
-        <button class="tab-btn pb-2 text-gray-400 font-bold hover:text-white" data-tab="playlists">再生リスト</button>
+        <button class="tab-btn pb-2 text-white font-bold border-b-2 border-blue-500" data-tab="home" data-color="border-blue-500">ホーム</button>
+        <button class="tab-btn pb-2 text-gray-400 font-bold hover:text-white" data-tab="videos" data-color="border-green-500">動画</button>
+        <button class="tab-btn pb-2 text-gray-400 font-bold hover:text-white" data-tab="shorts" data-color="border-red-500">ショート</button>
+        <button class="tab-btn pb-2 text-gray-400 font-bold hover:text-white" data-tab="live" data-color="border-yellow-500">ライブ</button>
+        <button class="tab-btn pb-2 text-gray-400 font-bold hover:text-white" data-tab="releases" data-color="border-purple-500">リリース</button>
+        <button class="tab-btn pb-2 text-gray-400 font-bold hover:text-white" data-tab="playlists" data-color="border-pink-500">再生リスト</button>
     </div>
 
     <%# ===== ホームタブ（サーバーサイド描画）===== %>
@@ -66,10 +66,10 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                         <% shelfItems.forEach(item => { %>
                             <%
-                              const itemType = item.type || '';
-                              // RichItem ラッパーを展開
-                              const actualItem = (itemType === 'RichItem' && item.content) ? item.content : item;
-                              const actualType = actualItem.type || '';
+                                const itemType = item.type || '';
+                                // RichItem ラッパーを展開
+                                const actualItem = (itemType === 'RichItem' && item.content) ? item.content : item;
+                                const actualType = actualItem.type || '';
                             %>
 
                             <%# ── 動画カード ── %>
@@ -136,9 +136,9 @@
                                 <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
                                     <a href="/wkt/p/<%= plId %>" class="block relative group">
                                         <% if (plThumb) { %>
-                                        <img loading="lazy" src="<%= plThumb %>" alt="<%= plTitle %>" class="w-full h-auto rounded aspect-video object-cover">
+                                            <img loading="lazy" src="<%= plThumb %>" alt="<%= plTitle %>" class="w-full h-auto rounded aspect-video object-cover">
                                         <% } else { %>
-                                        <div class="w-full rounded aspect-video bg-gray-700"></div>
+                                            <div class="w-full rounded aspect-video bg-gray-700"></div>
                                         <% } %>
                                         <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
                                     </a>
@@ -151,7 +151,7 @@
                                 </div>
                                 <% } %>
 
-                            <%# ── チャンネルカード（search.ejsと同スタイル）── %>
+                            <%# ── チャンネルカード ── %>
                             <% } else if (actualType.endsWith('Channel')) { %>
                                 <%
                                   const chId    = actualItem.author?.id || actualItem.id || '';
@@ -218,21 +218,25 @@ const tabCache   = {};
 let activeTab = 'home';
 
 /* =====================================================
-   タブ切り替え
+   タブ切り替え（データ属性からカラークラスを動的に処理）
    ===================================================== */
 const tabBtns    = document.querySelectorAll('[data-tab]');
 const tabContents = document.querySelectorAll('.tab-content');
-
 tabBtns.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
 
 function switchTab(tab) {
     activeTab = tab;
     tabBtns.forEach(b => {
         const on = b.dataset.tab === tab;
-        b.classList.toggle('text-white',       on);
-        b.classList.toggle('border-b-2',       on);
-        b.classList.toggle('border-blue-500',  on);
-        b.classList.toggle('text-gray-400',   !on);
+        const activeColor = b.dataset.color || 'border-blue-500';
+
+        if (on) {
+            b.classList.add('text-white', 'border-b-2', activeColor);
+            b.classList.remove('text-gray-400');
+        } else {
+            b.classList.remove('text-white', 'border-b-2', activeColor);
+            b.classList.add('text-gray-400');
+        }
     });
     tabContents.forEach(c => c.classList.toggle('hidden', c.id !== 'tab-' + tab));
     if (tab !== 'home') loadTab(tab, null);
@@ -280,7 +284,6 @@ function renderItems(tab, items) {
     if (!container) return;
 
     const emptySpan = tab === 'shorts' ? 'col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5' : 'col-span-3';
-
     if (!items || items.length === 0) {
         container.innerHTML = `<div class="${emptySpan} text-center py-12 text-gray-400">コンテンツがありません。</div>`;
         return;
@@ -336,7 +339,6 @@ function renderShortCard(v) {
     const id    = esc(v.id    || '');
     const title = esc(v.title || '');
     const views = esc(v.views || '');
-
     return `
 <div class="result-item bg-gray-800 p-2 rounded-lg shadow hover:bg-gray-700 transition duration-200">
     <a href="/wkt/watch/${id}" class="block relative group">
@@ -364,7 +366,6 @@ function renderPlaylistCard(v) {
     const thumbHtml = thumb
         ? `<img loading="lazy" src="${thumb}" alt="${title}" class="w-full h-auto rounded aspect-video object-cover">`
         : `<div class="w-full rounded aspect-video bg-gray-700 flex items-center justify-center text-gray-500 text-sm">サムネなし</div>`;
-
     return `
 <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
     <a href="/wkt/p/${id}" class="block relative group">
