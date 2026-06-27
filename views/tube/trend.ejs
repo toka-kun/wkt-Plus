@@ -33,14 +33,10 @@
 <body class="bg-gray-900 text-white font-sans antialiased pt-20">
 
   <header class="bg-gray-800 p-4 flex justify-between items-center fixed top-0 left-0 w-full z-50 shadow-md">
-      <form action="/wkt/s" method="get" class="w-1/2 relative" id="searchForm">
+      <form action="/wkt/s" method="get" class="w-1/2" id="searchForm">
           <input type="text" name="q" id="searchbox" placeholder="検索" 
                  value="<%= typeof query !== 'undefined' ? query : '' %>" 
-                 class="searchbox w-full p-2 pr-10 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow">
-          
-          <button type="button" id="clearBtn" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white hidden transition-colors" title="クリア">
-              ✕
-          </button>
+                 class="searchbox w-full p-2 rounded bg-gray-700 text-white">
       </form>
       
       <nav class="space-x-4 flex items-center text-sm md:text-base">
@@ -73,27 +69,7 @@
 
   <script>
   /* -----------------------------------------------
-     1. UI制御: 検索ボックスのクリアボタン
-  ----------------------------------------------- */
-  const searchBox = document.getElementById('searchbox');
-  const clearBtn = document.getElementById('clearBtn');
-  function toggleClearButton() {
-      if(clearBtn) clearBtn.style.display = searchBox.value ? 'block' : 'none';
-  }
-  if(searchBox) {
-      searchBox.addEventListener('input', toggleClearButton);
-      toggleClearButton();
-  }
-  if(clearBtn) {
-      clearBtn.addEventListener('click', () => {
-         searchBox.value = '';
-         searchBox.focus();
-         toggleClearButton();
-      });
-  }
-
-  /* -----------------------------------------------
-     2. データ描画: トレンド動画とタブの制御
+     1. データ描画: トレンド動画とタブの制御
   ----------------------------------------------- */
   document.addEventListener("DOMContentLoaded", () => {
       
@@ -148,7 +124,7 @@
       }
 
       /* =========================================
-         タブ切り替えロジック
+          タブ切り替えロジック
       ========================================= */
       const tabs = [
           { btn: tabTrend, container: trendContainer, activeColor: "border-blue-500" },
@@ -180,7 +156,7 @@
 
 
       /* =========================================
-         描画・フォーマット関数群
+          描画・フォーマット関数群
       ========================================= */
       function timeAgo(publishedAt) {
           if (!publishedAt) return "";
@@ -326,7 +302,7 @@
   });
 
   /* -----------------------------------------------
-     3. 機能維持: jQuery Autocomplete (サジェスト)
+     2. 機能維持: jQuery Autocomplete (サジェスト)
   ----------------------------------------------- */
   $(function () {
       $('#searchbox').autocomplete({
