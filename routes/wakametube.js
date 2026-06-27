@@ -110,6 +110,25 @@ router.get("/ss", async (req, res) => {
         }
 });
 
+router.get("/p/:id", async (req, res) => {
+  try {
+    const data = await serverYt.getPlaylist(req.params.id);
+    if (!data) {
+      return res.status(404).render("error.ejs", {
+        title: "再生リストが見つかりません",
+        content: "再生リスト情報を取得できませんでした。"
+      });
+    }
+    res.render("tube/playlist.ejs", { ...data, playlistId: req.params.id });
+  } catch (err) {
+    console.error("Failed to fetch playlist", req.params.id, err);
+    res.status(500).render("error.ejs", {
+      title: "エラー",
+      content: "再生リストの取得に失敗しました:\n" + err.toString()
+    });
+  }
+});
+
 router.get("/c/:id/tab/:tabName", async (req, res) => {
   const { id, tabName } = req.params;
   const sort = req.query.sort || 'newest';
