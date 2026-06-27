@@ -30,27 +30,26 @@
   </style>
 </head>
 
-<body class="bg-gray-900 text-white font-sans antialiased">
+<body class="bg-gray-900 text-white font-sans antialiased pt-20">
 
   <header class="bg-gray-800 p-4 flex justify-between items-center fixed top-0 left-0 w-full z-50 shadow-md">
       <form action="/wkt/s" method="get" class="w-1/2 relative" id="searchForm">
           <input type="text" name="q" id="searchbox" placeholder="検索" 
-                 class="searchbox w-full p-2 pr-10 rounded bg-gray-700 text-white">
-          <button type="button" id="clearBtn" class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center h-6 w-6 rounded-full hover:bg-gray-400 text-white text-lg leading-none hidden">
-            ×
+                 value="<%= typeof query !== 'undefined' ? query : '' %>" 
+                 class="searchbox w-full p-2 pr-10 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow">
+          
+          <button type="button" id="clearBtn" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white hidden transition-colors" title="クリア">
+              ✕
           </button>
       </form>
-
-      <nav class="hidden md:flex space-x-6 ml-4">
-          <a href="/wkt" class="text-gray-300 hover:text-white transition font-medium">ホーム</a>
-          <a href="/wkt/cl/fav" class="text-gray-300 hover:text-white transition font-medium">お気に入り</a>
-          <a href="/wkt/cl/history" class="text-gray-300 hover:text-white transition font-medium">再生履歴</a>
-          <a href="/wkt/cl/shistory" class="text-gray-300 hover:text-white transition font-medium">検索履歴</a>
-      </nav>
       
-      <div class="md:hidden ml-2">
-        <a href="/wkt" class="text-gray-300 hover:text-white text-sm font-medium">ホーム</a>
-      </div>
+      <nav class="space-x-4 flex items-center text-sm md:text-base">
+          <a href="/wkt" class="text-gray-300 hover:text-white transition-colors">ホーム</a>
+          <a href="/wkt/trend" class="text-gray-300 hover:text-white transition-colors">トレンド</a>
+          <a href="/wkt/cl/fav" class="text-gray-300 hover:text-white transition-colors">お気に入り</a>
+          <a href="/wkt/cl/history" class="text-gray-300 hover:text-white transition-colors">再生履歴</a>
+          <a href="/wkt/cl/shistory" class="text-gray-300 hover:text-white transition-colors">検索履歴</a>
+      </nav>
   </header>
   
   <div class="container mx-auto p-4 pt-24"> 
@@ -79,18 +78,20 @@
   ----------------------------------------------- */
   const searchBox = document.getElementById('searchbox');
   const clearBtn = document.getElementById('clearBtn');
-
   function toggleClearButton() {
-      clearBtn.style.display = searchBox.value ? 'block' : 'none';
+      if(clearBtn) clearBtn.style.display = searchBox.value ? 'block' : 'none';
   }
-
-  searchBox.addEventListener('input', toggleClearButton);
-  clearBtn.addEventListener('click', () => {
-      searchBox.value = '';
-      searchBox.focus();
+  if(searchBox) {
+      searchBox.addEventListener('input', toggleClearButton);
       toggleClearButton();
-  });
-  toggleClearButton();
+  }
+  if(clearBtn) {
+      clearBtn.addEventListener('click', () => {
+         searchBox.value = '';
+         searchBox.focus();
+         toggleClearButton();
+      });
+  }
 
   /* -----------------------------------------------
      2. データ描画: トレンド動画とタブの制御
@@ -117,7 +118,6 @@
 
       let sourceTrend = "none";
       let trendingList = [];
-
       // ① 急上昇(Trending)、ゲーム、音楽のデータ割り当て
       if (base64Data && base64Data.trending && base64Data.trending.length > 0) {
           sourceTrend = "base64";
@@ -135,7 +135,7 @@
       
       // 急上昇を描画
       renderVideos(trendingList, trendContainer, sourceTrend);
-
+      
       // ② ライブのデータ割り当て (Invidious)
       if (invData && invData.length > 0) {
           tabLive.classList.remove("hidden");
@@ -158,7 +158,7 @@
           { btn: tabLive, container: liveContainer, activeColor: "border-yellow-500" },
           { btn: tabShell, container: shellContainer, activeColor: "border-purple-500" }
       ];
-
+      
       function switchTab(selectedBtn) {
           tabs.forEach(tab => {
               if (tab.btn === selectedBtn) {
@@ -209,10 +209,8 @@
 
       function parseDuration(duration) {
           if (duration === undefined || duration === null || duration === "") return "";
-          
           if (typeof duration === "number" || /^\d+$/.test(duration)) {
               const totalSeconds = parseInt(duration, 10);
-              
               const h = Math.floor(totalSeconds / 3600);
               const m = Math.floor((totalSeconds % 3600) / 60);
               const s = totalSeconds % 60;
@@ -222,7 +220,6 @@
 
           const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
           if (!match) return "";
-          
           const hours = (match[1] || '').replace('H', '');
           const minutes = (match[2] || '').replace('M', '');
           const seconds = (match[3] || '').replace('S', '');
@@ -258,13 +255,11 @@
                   title = item.title;
                   channel = item.author;
                   channelId = item.authorId;
-                  publishedAt = item.publishedText || timeAgo(item.published * 1000); 
-                  
+                  publishedAt = item.publishedText || timeAgo(item.published * 1000);
                   isLive = (item.lengthSeconds === 0 || item.lengthSeconds === "0");
                   durationText = parseDuration(item.lengthSeconds);
 
                   viewCount = item.viewCount ? Number(item.viewCount).toLocaleString() : "";
-                  
                   if (item.authorThumbnails && item.authorThumbnails.length > 0) {
                       const sortedThumbs = [...item.authorThumbnails].sort((a, b) => (b.height || 0) - (a.height || 0));
                       channelIcon = sortedThumbs[0].url;
@@ -291,7 +286,6 @@
               // ライブかどうかでバッジのスタイルとテキストを分ける
               const badgeClass = isLive ? "bg-red-600 bg-opacity-90" : "bg-black bg-opacity-80";
               const badgeText = isLive ? "ライブ" : durationText;
-
               const html = `
                 <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
                     <a href="/wkt/watch/${id}" class="block relative group">
