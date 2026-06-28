@@ -185,7 +185,11 @@
     <%# ===== 動画タブ ===== %>
     <div id="tab-videos" class="tab-content hidden mt-4">
         <div id="videos-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
-        <%const uploadsPlaylistId = channelId.replace(/^UC/, 'UU');%>
+
+        <% 
+           // チャンネルIDの先頭の "UC" を "UU" に置換してプレイリストIDを生成
+           const uploadsPlaylistId = channelId.replace(/^UC/, 'UU'); 
+        %>
         <div class="flex justify-center mt-10 mb-6">
             <a class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-blue-700 transition"
                href="/wkt/p/<%= uploadsPlaylistId %>">
@@ -197,25 +201,11 @@
     <%# ===== ショートタブ ===== %>
     <div id="tab-shorts" class="tab-content hidden mt-4">
         <div id="shorts-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3"></div>
-        <%const uploadsPlaylistId = channelId.replace(/^UC/, 'UU');%>
-        <div class="flex justify-center mt-10 mb-6">
-            <a class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-blue-700 transition"
-               href="/wkt/p/<%= uploadsPlaylistId %>">
-              もっと読み込む
-            </a>
-        </div>
     </div>
 
     <%# ===== ライブタブ ===== %>
     <div id="tab-live" class="tab-content hidden mt-4">
         <div id="live-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
-        <%const uploadsPlaylistId = channelId.replace(/^UC/, 'UU');%>
-        <div class="flex justify-center mt-10 mb-6">
-            <a class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-blue-700 transition"
-               href="/wkt/p/<%= uploadsPlaylistId %>">
-              もっと読み込む
-            </a>
-        </div>
     </div>
 
     <%# ===== リリースタブ ===== %>
