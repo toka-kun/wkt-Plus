@@ -3,7 +3,7 @@ const router = express.Router();
 const path = require("path");
 
 // 対応させたいパスのリスト
-const targets = ["sia", "xerox", "wista", "labo5", "player", "min", "yuto"];
+const targets = ["sia", "xerox", "wista", "nkys", "uow", "labo5", "player", "min", "yuto"];
 
 router.get("/", (req, res) => {
   res.render("other/home");
