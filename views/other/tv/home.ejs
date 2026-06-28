@@ -93,8 +93,8 @@
             });
         }
 
-        // 動画再生のロジック
-        function playMedia(hlsUrl, fallbackVideoId) {
+        // 動画再生のロジック (非同期対応のため async を追加)
+        async function playMedia(hlsUrl, fallbackVideoId) {
             // 前のHLSインスタンスを破棄してメモリリークを防ぐ
             if (currentHls) {
                 currentHls.destroy();
@@ -123,7 +123,21 @@
                 }
             } else if (fallbackVideoId && fallbackVideoId.trim() !== "") {
                 // HLSが無く、Fallbackがある場合（YouTubeの埋め込み）
-                const embedUrl = `https://www.youtubeeducation.com/embed/${fallbackVideoId}`;
+                let paramText = "";
+                
+                try {
+                    // /wkt/yt/edurl からURLパラメータを取得
+                    const response = await fetch('/wkt/yt/edurl');
+                    if (response.ok) {
+                        paramText = await response.text();
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch YouTube URL parameters:", error);
+                }
+
+                // 取得した文字列を動画IDの後ろに結合
+                const embedUrl = `https://www.youtubeeducation.com/embed/${fallbackVideoId}${paramText.trim()}`;
+                
                 playerContainer.innerHTML = `
                     <iframe 
                         src="${embedUrl}" 
@@ -133,7 +147,7 @@
                     </iframe>
                 `;
             } else {
-                // どちらもない場合の処理 (サーバーサイドで弾いていますが念のため)
+                // どちらもない場合の処理
                 playerContainer.innerHTML = `<p class="text-gray-400 text-lg">再生可能なメディアがありません。</p>`;
             }
         }
