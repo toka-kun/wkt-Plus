@@ -177,7 +177,7 @@ pinned: false
 - 2026/06/18 - ちゃんとできてなかったのでNetlifyでサムネイルが表示されるように修正。
 - 2026/06/25 - Nodeのバージョンを24に更新、Replitでデプロイできなくなっていたので修正
 - 2026/06/27 - チャンネルページを改善、再生リストページを追加、各ページの微調整
-- 2026/06/28 - ゲーム・ツールを追加、うおtube、Nakayosi Tubeを追加、ニュースを追加
+- 2026/06/28 - ゲーム・ツールを追加、うおtube、仲良しtubeを追加、ニュースを追加
 
 ---
 
@@ -216,7 +216,7 @@ pinned: false
   - MIN-Tube2 API
 - [@yuto1106110](https://github.com/yuto1106110)
   - YouTube Plus+ 開発
-- [@banana-coco](https://github.com/banana-coco)
+- [@banana-coco](https://github.com/banana-coco) [@kuru-bana](https://github.com/kuru-bana)
   - Vercel & CodeSandbox デプロイ対応
 - [@woolisbest-4520](https://github.com/woolisbest-4520)
   - Wista 開発
@@ -225,6 +225,7 @@ pinned: false
 - [@senninsugar](https://github.com/senninsugar)
   - SenninTube Plus API
   - KatuoTube API
+  - うおtube 開発
   - Proxy Wiki 開発
 - [@dinguschan-owo](https://github.com/dinguschan-owo)
   - Helios 開発
