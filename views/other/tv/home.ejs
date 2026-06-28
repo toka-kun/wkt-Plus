@@ -17,13 +17,13 @@
         <span>戻る</span>
     </button>
 
-    <div class="flex-grow w-full h-screen pt-20 pb-4 px-4 box-border flex gap-4">
+    <div class="flex-grow w-full h-screen pt-20 pb-4 px-4 box-border flex flex-col lg:flex-row gap-4">
         
-        <div class="w-[75%] h-full bg-black rounded-2xl shadow-lg border-none flex items-center justify-center overflow-hidden" id="player-container">
-            <p class="text-gray-400 text-lg">右のリストからチャンネルを選択してください</p>
+        <div class="w-full lg:w-[75%] aspect-video lg:aspect-auto lg:h-full bg-black rounded-2xl shadow-lg border-none flex items-center justify-center overflow-hidden flex-shrink-0" id="player-container">
+            <p class="text-gray-400 text-lg">リストからチャンネルを選択してください</p>
         </div>
 
-        <div class="w-[25%] h-full bg-gray-800 rounded-2xl shadow-lg p-4 flex flex-col">
+        <div class="w-full lg:w-[25%] flex-grow lg:h-full bg-gray-800 rounded-2xl shadow-lg p-4 flex flex-col min-h-0">
             <h2 class="text-xl font-bold mb-3 border-b border-gray-600 pb-2 flex-shrink-0">チャンネル一覧</h2>
             
             <div id="region-nav" class="flex flex-wrap gap-2 mb-4 flex-shrink-0">
@@ -110,13 +110,11 @@
                 btn.onclick = (e) => {
                     const currentBtn = e.currentTarget;
 
-                    // 1. 他のすべてのチャンネルボタンの選択状態を解除 (ring-inset を追加)
                     document.querySelectorAll('.channel-btn').forEach(b => {
                         b.classList.remove('bg-blue-600', 'hover:bg-blue-500', 'ring-2', 'ring-inset', 'ring-blue-400');
                         b.classList.add('bg-gray-700', 'hover:bg-gray-600');
                     });
 
-                    // 2. 現在クリックされたボタンに選択状態のスタイルを適用 (ring-inset を追加)
                     currentBtn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
                     currentBtn.classList.add('bg-blue-600', 'hover:bg-blue-500', 'ring-2', 'ring-inset', 'ring-blue-400');
 
