@@ -5,7 +5,7 @@ const path = require("path");
 // 対応させたいパスのリスト
 const targets = ["sia", "xerox", "wista", "nkys", "uow", "labo5", "player", "min", "yuto"];
 
-// キャッシュ用の変数と24時間の有効期限設定
+// キャッシュ用の変数と24時間の有効期限設定 (コンテナ生存期間用)
 let tvCache = { data: null, timestamp: 0 };
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24時間 (ミリ秒)
 const GITHUB_RAW_URL = "https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/apis/hlsUrls.json";
@@ -39,6 +39,11 @@ router.get("/tv", async (req, res) => {
       if (!tvCache.data) tvCache.data = {};
     }
   }
+
+  // Vercel / Netlify の CDNエッジでキャッシュするためのヘッダーを設定
+  // s-maxage=86400 : CDN側で24時間 (86400秒) キャッシュする
+  // stale-while-revalidate=86400 : キャッシュ切れでも次の1日は古いキャッシュを返しつつ、裏で非同期更新する
+  res.setHeader("Cache-Control", "public, max-age=0, s-maxage=86400, stale-while-revalidate=86400");
 
   // 取得・フィルタリング済みのデータをEJSに渡す
   res.render("other/tv/home", { tvData: JSON.stringify(tvCache.data) });
