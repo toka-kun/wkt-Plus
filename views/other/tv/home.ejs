@@ -79,15 +79,16 @@
             const navBtn = document.createElement('button');
             navBtn.className = "text-xs bg-gray-600 hover:bg-gray-500 text-white py-1.5 px-3 rounded-full transition-colors duration-200";
             navBtn.textContent = regionName;
-            navBtn.onclick = () => {
+            navBtn.onclick = (e) => {
                 const targetHeader = document.getElementById(`region-${regionCode}`);
                 if (targetHeader) {
                     targetHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
+                e.currentTarget.blur(); // クリック後にフォーカスを外す
             };
             regionNav.appendChild(navBtn);
 
-            // --- 地域ヘッダーの作成 (idを付与) ---
+            // --- 地域ヘッダーの作成 ---
             const regionHeader = document.createElement('h3');
             regionHeader.id = `region-${regionCode}`; 
             regionHeader.className = `text-lg font-semibold text-blue-400 mb-2 ${channelList.children.length === 0 ? '' : 'mt-6'}`;
@@ -106,7 +107,10 @@
                     <span class="text-xs text-gray-400 mt-1 px-2 py-1 bg-gray-900 rounded inline-block w-max">${genreLabel}</span>
                 `;
 
-                btn.onclick = () => playMedia(item.hlsUrl, item.fallbackVideoId);
+                btn.onclick = (e) => {
+                    playMedia(item.hlsUrl, item.fallbackVideoId);
+                    e.currentTarget.blur(); // 【重要】クリック後にボタンからフォーカスを外す
+                };
                 channelList.appendChild(btn);
             });
         }
@@ -163,11 +167,11 @@
             }
         }
 
-        // --- キーボードショートカットの追加 ---
+        // --- キーボードショートカット ---
         document.addEventListener('keydown', (e) => {
             const video = document.getElementById('hls-video');
             
-            // hls-videoが存在しない（YouTube埋め込み等の）場合は処理しない
+            // hls-videoが存在しない場合は処理しない
             if (!video) return;
 
             // 左右キーで10秒スキップ
@@ -179,28 +183,34 @@
             // Fキーでフルスクリーン切り替え
             else if (e.key === 'f' || e.key === 'F') {
                 if (!document.fullscreenElement) {
-                    // 全画面にする
                     video.requestFullscreen().catch(err => {
                         console.error(`フルスクリーン表示に失敗しました: ${err.message}`);
                     });
                 } else {
-                    // 全画面を解除する
                     document.exitFullscreen();
+                }
+            }
+            // スペースキーで再生・一時停止の切り替え
+            else if (e.key === ' ' || e.key === 'Spacebar') {
+                e.preventDefault(); // スペースキーによるブラウザ自体のスクロールを防ぐ
+                if (video.paused) {
+                    video.play();
+                } else {
+                    video.pause();
                 }
             }
         });
     </script>
 
     <style>
-        /* 右側リストのスクロールバーを少し見栄え良くするための追加CSS */
         .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(31, 41, 55, 1); /* bg-gray-800 */
+            background: rgba(31, 41, 55, 1); 
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: rgba(75, 85, 99, 1); /* bg-gray-600 */
+            background-color: rgba(75, 85, 99, 1); 
             border-radius: 10px;
         }
     </style>
