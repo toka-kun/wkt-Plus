@@ -29,7 +29,7 @@
             <div id="region-nav" class="flex flex-wrap gap-2 mb-4 flex-shrink-0">
             </div>
 
-            <div id="channel-list" class="space-y-4 overflow-y-auto flex-grow pr-2 custom-scrollbar">
+            <div id="channel-list" class="space-y-4 overflow-y-auto flex-grow px-1 custom-scrollbar">
             </div>
         </div>
 
@@ -98,7 +98,6 @@
             // --- チャンネルボタンの作成 ---
             items.forEach(item => {
                 const btn = document.createElement('button');
-                // 識別と一括処理のために 'channel-btn' クラスを付与
                 btn.className = "channel-btn w-full text-left bg-gray-700 hover:bg-gray-600 p-3 rounded-lg transition duration-200 flex flex-col mb-2";
                 
                 const genreLabel = genresMap[item.genre] || item.genre;
@@ -111,15 +110,15 @@
                 btn.onclick = (e) => {
                     const currentBtn = e.currentTarget;
 
-                    // 1. 他のすべてのチャンネルボタンの選択状態（青スタイル）を解除して元のグレーに戻す
+                    // 1. 他のすべてのチャンネルボタンの選択状態を解除 (ring-inset を追加)
                     document.querySelectorAll('.channel-btn').forEach(b => {
-                        b.classList.remove('bg-blue-600', 'hover:bg-blue-500', 'ring-2', 'ring-blue-400');
+                        b.classList.remove('bg-blue-600', 'hover:bg-blue-500', 'ring-2', 'ring-inset', 'ring-blue-400');
                         b.classList.add('bg-gray-700', 'hover:bg-gray-600');
                     });
 
-                    // 2. 現在クリックされたボタンに選択状態のスタイルを適用
+                    // 2. 現在クリックされたボタンに選択状態のスタイルを適用 (ring-inset を追加)
                     currentBtn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
-                    currentBtn.classList.add('bg-blue-600', 'hover:bg-blue-500', 'ring-2', 'ring-blue-400');
+                    currentBtn.classList.add('bg-blue-600', 'hover:bg-blue-500', 'ring-2', 'ring-inset', 'ring-blue-400');
 
                     playMedia(item.hlsUrl, item.fallbackVideoId);
                     currentBtn.blur(); 
