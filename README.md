@@ -227,6 +227,8 @@ pinned: false
   - KatuoTube API
   - うおtube 開発
   - Proxy Wiki 開発
+- [@c00lkimx01-creator](https://github.com/c00lkimx01-creator)
+  - 仲良しtube 開発
 - [@dinguschan-owo](https://github.com/dinguschan-owo)
   - Helios 開発
 - [@nautilus-os](https://github.com/nautilus-os)
