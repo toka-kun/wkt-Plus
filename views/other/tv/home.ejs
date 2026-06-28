@@ -27,10 +27,10 @@
             <h2 class="text-xl font-bold mb-3 border-b border-gray-600 pb-2 flex-shrink-0">チャンネル一覧</h2>
             
             <div id="region-nav" class="flex flex-wrap gap-2 mb-4 flex-shrink-0">
-                </div>
+            </div>
 
             <div id="channel-list" class="space-y-4 overflow-y-auto flex-grow pr-2 custom-scrollbar">
-                </div>
+            </div>
         </div>
 
     </div>
@@ -84,7 +84,7 @@
                 if (targetHeader) {
                     targetHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
-                e.currentTarget.blur(); // クリック後にフォーカスを外す
+                e.currentTarget.blur(); 
             };
             regionNav.appendChild(navBtn);
 
@@ -98,7 +98,8 @@
             // --- チャンネルボタンの作成 ---
             items.forEach(item => {
                 const btn = document.createElement('button');
-                btn.className = "w-full text-left bg-gray-700 hover:bg-gray-600 p-3 rounded-lg transition duration-200 flex flex-col mb-2";
+                // 識別と一括処理のために 'channel-btn' クラスを付与
+                btn.className = "channel-btn w-full text-left bg-gray-700 hover:bg-gray-600 p-3 rounded-lg transition duration-200 flex flex-col mb-2";
                 
                 const genreLabel = genresMap[item.genre] || item.genre;
                 
@@ -108,8 +109,20 @@
                 `;
 
                 btn.onclick = (e) => {
+                    const currentBtn = e.currentTarget;
+
+                    // 1. 他のすべてのチャンネルボタンの選択状態（青スタイル）を解除して元のグレーに戻す
+                    document.querySelectorAll('.channel-btn').forEach(b => {
+                        b.classList.remove('bg-blue-600', 'hover:bg-blue-500', 'ring-2', 'ring-blue-400');
+                        b.classList.add('bg-gray-700', 'hover:bg-gray-600');
+                    });
+
+                    // 2. 現在クリックされたボタンに選択状態のスタイルを適用
+                    currentBtn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+                    currentBtn.classList.add('bg-blue-600', 'hover:bg-blue-500', 'ring-2', 'ring-blue-400');
+
                     playMedia(item.hlsUrl, item.fallbackVideoId);
-                    e.currentTarget.blur(); // 【重要】クリック後にボタンからフォーカスを外す
+                    currentBtn.blur(); 
                 };
                 channelList.appendChild(btn);
             });
@@ -171,16 +184,13 @@
         document.addEventListener('keydown', (e) => {
             const video = document.getElementById('hls-video');
             
-            // hls-videoが存在しない場合は処理しない
             if (!video) return;
 
-            // 左右キーで10秒スキップ
             if (e.key === 'ArrowRight') {
                 video.currentTime += 10;
             } else if (e.key === 'ArrowLeft') {
                 video.currentTime -= 10;
             } 
-            // Fキーでフルスクリーン切り替え
             else if (e.key === 'f' || e.key === 'F') {
                 if (!document.fullscreenElement) {
                     video.requestFullscreen().catch(err => {
@@ -190,9 +200,8 @@
                     document.exitFullscreen();
                 }
             }
-            // スペースキーで再生・一時停止の切り替え
             else if (e.key === ' ' || e.key === 'Spacebar') {
-                e.preventDefault(); // スペースキーによるブラウザ自体のスクロールを防ぐ
+                e.preventDefault(); 
                 if (video.paused) {
                     video.play();
                 } else {
