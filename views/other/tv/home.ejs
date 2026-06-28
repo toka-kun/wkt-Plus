@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV</title>
+    <script src="/js/tailwindcss.js"></script>
+    <link rel="stylesheet" href="/css/page.css">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body class="bg-gray-900 font-sans min-h-screen flex flex-col m-0 p-0 overflow-hidden text-white">
+    
+    <button class="back-button fixed top-5 left-5 z-50 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out flex items-center space-x-2" onclick="window.location.href='/wkt'">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        <span>戻る</span>
+    </button>
+
+    <div class="flex-grow w-full h-screen pt-20 pb-4 px-4 box-border flex gap-4">
+        
+        <div class="w-[75%] h-full bg-black rounded-2xl shadow-lg border-none flex items-center justify-center overflow-hidden" id="player-container">
+            <p class="text-gray-400 text-lg">右のリストからチャンネルを選択してください</p>
+        </div>
+
+        <div class="w-[25%] h-full bg-gray-800 rounded-2xl shadow-lg p-4 overflow-y-auto">
+            <h2 class="text-xl font-bold mb-4 border-b border-gray-600 pb-2">チャンネル一覧</h2>
+            <div id="channel-list" class="space-y-4">
+                </div>
+        </div>
+
+    </div>
+
+    <script>
+        // サーバーから渡されたJSONデータを取得
+        const tvData = <%- tvData %>;
+        
+        // 翻訳マッピング
+        const regionsMap = {
+            "na": "北米",
+            "eu": "ヨーロッパ",
+            "latam": "中南米",
+            "asia": "アジア",
+            "me": "中東",
+            "africa": "アフリカ",
+            "oc": "オセアニア"
+        };
+
+        const genresMap = {
+            "full": "全ジャンル",
+            "tech": "テクノロジー・ビジネス",
+            "optional": "その他"
+        };
+
+        const channelList = document.getElementById('channel-list');
+        const playerContainer = document.getElementById('player-container');
+        let currentHls = null; // HLSインスタンス管理用
+
+        // データを地域(Region)ごとに整理
+        const groupedData = {};
+        for (const [key, item] of Object.entries(tvData)) {
+            const regionCode = key.split('/')[0];
+            if (!groupedData[regionCode]) {
+                groupedData[regionCode] = [];
+            }
+            groupedData[regionCode].push(item);
+        }
+
+        // 右側のリストを生成
+        for (const [regionCode, items] of Object.entries(groupedData)) {
+            const regionName = regionsMap[regionCode] || regionCode;
+            
+            // 地域ヘッダー
+            const regionHeader = document.createElement('h3');
+            regionHeader.className = "text-lg font-semibold text-blue-400 mt-4 mb-2";
+            regionHeader.textContent = regionName;
+            channelList.appendChild(regionHeader);
+
+            // チャンネルボタン
+            items.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left bg-gray-700 hover:bg-gray-600 p-3 rounded-lg transition duration-200 flex flex-col mb-2";
+                
+                const genreLabel = genresMap[item.genre] || item.genre;
+                
+                btn.innerHTML = `
+                    <span class="font-bold text-white text-md">${item.name}</span>
+                    <span class="text-xs text-gray-400 mt-1 px-2 py-1 bg-gray-900 rounded inline-block w-max">${genreLabel}</span>
+                `;
+
+                btn.onclick = () => playMedia(item.hlsUrl, item.fallbackVideoId);
+                channelList.appendChild(btn);
+            });
+        }
+
+        // 動画再生のロジック
+        function playMedia(hlsUrl, fallbackVideoId) {
+            // 前のHLSインスタンスを破棄してメモリリークを防ぐ
+            if (currentHls) {
+                currentHls.destroy();
+                currentHls = null;
+            }
+
+            if (hlsUrl && hlsUrl.trim() !== "") {
+                // HLS URLがある場合（videoタグ + hls.js）
+                playerContainer.innerHTML = `<video id="hls-video" class="w-full h-full bg-black rounded-2xl outline-none" controls autoplay></video>`;
+                const video = document.getElementById('hls-video');
+                
+                if (Hls.isSupported()) {
+                    currentHls = new Hls();
+                    currentHls.loadSource(hlsUrl);
+                    currentHls.attachMedia(video);
+                    currentHls.on(Hls.Events.MANIFEST_PARSED, function() {
+                        video.play();
+                    });
+                }
+                // SafariなどHLSネイティブサポートブラウザ向け
+                else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = hlsUrl;
+                    video.addEventListener('loadedmetadata', function() {
+                        video.play();
+                    });
+                }
+            } else if (fallbackVideoId && fallbackVideoId.trim() !== "") {
+                // HLSが無く、Fallbackがある場合（YouTubeの埋め込み）
+                const embedUrl = `https://www.youtubeeducation.com/embed/${fallbackVideoId}`;
+                playerContainer.innerHTML = `
+                    <iframe 
+                        src="${embedUrl}" 
+                        class="w-full h-full rounded-2xl shadow-lg border-none bg-black"
+                        allow="fullscreen; autoplay"
+                        title="YouTube Education Video">
+                    </iframe>
+                `;
+            } else {
+                // どちらもない場合の処理 (サーバーサイドで弾いていますが念のため)
+                playerContainer.innerHTML = `<p class="text-gray-400 text-lg">再生可能なメディアがありません。</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
