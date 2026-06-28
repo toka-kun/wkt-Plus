@@ -82,7 +82,6 @@
             navBtn.onclick = () => {
                 const targetHeader = document.getElementById(`region-${regionCode}`);
                 if (targetHeader) {
-                    // 対象の要素までスムーズにスクロール
                     targetHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             };
@@ -90,8 +89,7 @@
 
             // --- 地域ヘッダーの作成 (idを付与) ---
             const regionHeader = document.createElement('h3');
-            regionHeader.id = `region-${regionCode}`; // ジャンプ先の目印
-            // 最初のヘッダー以外は少し上の余白を大きくする
+            regionHeader.id = `region-${regionCode}`; 
             regionHeader.className = `text-lg font-semibold text-blue-400 mb-2 ${channelList.children.length === 0 ? '' : 'mt-6'}`;
             regionHeader.textContent = regionName;
             channelList.appendChild(regionHeader);
@@ -164,6 +162,33 @@
                 playerContainer.innerHTML = `<p class="text-gray-400 text-lg">再生可能なメディアがありません。</p>`;
             }
         }
+
+        // --- キーボードショートカットの追加 ---
+        document.addEventListener('keydown', (e) => {
+            const video = document.getElementById('hls-video');
+            
+            // hls-videoが存在しない（YouTube埋め込み等の）場合は処理しない
+            if (!video) return;
+
+            // 左右キーで10秒スキップ
+            if (e.key === 'ArrowRight') {
+                video.currentTime += 10;
+            } else if (e.key === 'ArrowLeft') {
+                video.currentTime -= 10;
+            } 
+            // Fキーでフルスクリーン切り替え
+            else if (e.key === 'f' || e.key === 'F') {
+                if (!document.fullscreenElement) {
+                    // 全画面にする
+                    video.requestFullscreen().catch(err => {
+                        console.error(`フルスクリーン表示に失敗しました: ${err.message}`);
+                    });
+                } else {
+                    // 全画面を解除する
+                    document.exitFullscreen();
+                }
+            }
+        });
     </script>
 
     <style>
