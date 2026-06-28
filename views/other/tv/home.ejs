@@ -23,9 +23,13 @@
             <p class="text-gray-400 text-lg">右のリストからチャンネルを選択してください</p>
         </div>
 
-        <div class="w-[25%] h-full bg-gray-800 rounded-2xl shadow-lg p-4 overflow-y-auto">
-            <h2 class="text-xl font-bold mb-4 border-b border-gray-600 pb-2">チャンネル一覧</h2>
-            <div id="channel-list" class="space-y-4">
+        <div class="w-[25%] h-full bg-gray-800 rounded-2xl shadow-lg p-4 flex flex-col">
+            <h2 class="text-xl font-bold mb-3 border-b border-gray-600 pb-2 flex-shrink-0">チャンネル一覧</h2>
+            
+            <div id="region-nav" class="flex flex-wrap gap-2 mb-4 flex-shrink-0">
+                </div>
+
+            <div id="channel-list" class="space-y-4 overflow-y-auto flex-grow pr-2 custom-scrollbar">
                 </div>
         </div>
 
@@ -52,9 +56,10 @@
             "optional": "その他"
         };
 
+        const regionNav = document.getElementById('region-nav');
         const channelList = document.getElementById('channel-list');
         const playerContainer = document.getElementById('player-container');
-        let currentHls = null; // HLSインスタンス管理用
+        let currentHls = null; 
 
         // データを地域(Region)ごとに整理
         const groupedData = {};
@@ -66,17 +71,32 @@
             groupedData[regionCode].push(item);
         }
 
-        // 右側のリストを生成
+        // 右側のリストとジャンプボタンを生成
         for (const [regionCode, items] of Object.entries(groupedData)) {
             const regionName = regionsMap[regionCode] || regionCode;
             
-            // 地域ヘッダー
+            // --- ジャンプボタンの作成 ---
+            const navBtn = document.createElement('button');
+            navBtn.className = "text-xs bg-gray-600 hover:bg-gray-500 text-white py-1.5 px-3 rounded-full transition-colors duration-200";
+            navBtn.textContent = regionName;
+            navBtn.onclick = () => {
+                const targetHeader = document.getElementById(`region-${regionCode}`);
+                if (targetHeader) {
+                    // 対象の要素までスムーズにスクロール
+                    targetHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            };
+            regionNav.appendChild(navBtn);
+
+            // --- 地域ヘッダーの作成 (idを付与) ---
             const regionHeader = document.createElement('h3');
-            regionHeader.className = "text-lg font-semibold text-blue-400 mt-4 mb-2";
+            regionHeader.id = `region-${regionCode}`; // ジャンプ先の目印
+            // 最初のヘッダー以外は少し上の余白を大きくする
+            regionHeader.className = `text-lg font-semibold text-blue-400 mb-2 ${channelList.children.length === 0 ? '' : 'mt-6'}`;
             regionHeader.textContent = regionName;
             channelList.appendChild(regionHeader);
 
-            // チャンネルボタン
+            // --- チャンネルボタンの作成 ---
             items.forEach(item => {
                 const btn = document.createElement('button');
                 btn.className = "w-full text-left bg-gray-700 hover:bg-gray-600 p-3 rounded-lg transition duration-200 flex flex-col mb-2";
@@ -93,16 +113,14 @@
             });
         }
 
-        // 動画再生のロジック (非同期対応のため async を追加)
+        // 動画再生のロジック
         async function playMedia(hlsUrl, fallbackVideoId) {
-            // 前のHLSインスタンスを破棄してメモリリークを防ぐ
             if (currentHls) {
                 currentHls.destroy();
                 currentHls = null;
             }
 
             if (hlsUrl && hlsUrl.trim() !== "") {
-                // HLS URLがある場合（videoタグ + hls.js）
                 playerContainer.innerHTML = `<video id="hls-video" class="w-full h-full bg-black rounded-2xl outline-none" controls autoplay></video>`;
                 const video = document.getElementById('hls-video');
                 
@@ -114,7 +132,6 @@
                         video.play();
                     });
                 }
-                // SafariなどHLSネイティブサポートブラウザ向け
                 else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                     video.src = hlsUrl;
                     video.addEventListener('loadedmetadata', function() {
@@ -122,11 +139,9 @@
                     });
                 }
             } else if (fallbackVideoId && fallbackVideoId.trim() !== "") {
-                // HLSが無く、Fallbackがある場合（YouTubeの埋め込み）
                 let paramText = "";
                 
                 try {
-                    // /wkt/yt/edurl からURLパラメータを取得
                     const response = await fetch('/wkt/yt/edurl');
                     if (response.ok) {
                         paramText = await response.text();
@@ -135,7 +150,6 @@
                     console.error("Failed to fetch YouTube URL parameters:", error);
                 }
 
-                // 取得した文字列を動画IDの後ろに結合
                 const embedUrl = `https://www.youtubeeducation.com/embed/${fallbackVideoId}${paramText.trim()}`;
                 
                 playerContainer.innerHTML = `
@@ -147,10 +161,23 @@
                     </iframe>
                 `;
             } else {
-                // どちらもない場合の処理
                 playerContainer.innerHTML = `<p class="text-gray-400 text-lg">再生可能なメディアがありません。</p>`;
             }
         }
     </script>
+
+    <style>
+        /* 右側リストのスクロールバーを少し見栄え良くするための追加CSS */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(31, 41, 55, 1); /* bg-gray-800 */
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(75, 85, 99, 1); /* bg-gray-600 */
+            border-radius: 10px;
+        }
+    </style>
 </body>
 </html>
