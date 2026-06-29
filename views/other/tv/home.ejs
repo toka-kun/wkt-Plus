@@ -77,14 +77,29 @@
             
             // --- ジャンプボタンの作成 ---
             const navBtn = document.createElement('button');
-            navBtn.className = "text-xs bg-gray-600 hover:bg-gray-500 text-white py-1.5 px-3 rounded-full transition-colors duration-200";
+            // 'region-btn' クラスを付与し、一括でスタイル変更できるようにする
+            navBtn.className = "region-btn text-xs bg-gray-600 hover:bg-gray-500 text-white py-1.5 px-3 rounded-full transition-colors duration-200";
             navBtn.textContent = regionName;
+            
             navBtn.onclick = (e) => {
+                const currentNavBtn = e.currentTarget;
+
+                // 1. 他のすべての地域ボタンの選択状態を解除して元のグレーに戻す
+                document.querySelectorAll('.region-btn').forEach(b => {
+                    b.classList.remove('bg-blue-600', 'ring-2', 'ring-blue-400');
+                    b.classList.add('bg-gray-600', 'hover:bg-gray-500');
+                });
+
+                // 2. 現在クリックされた地域ボタンに選択状態のスタイル（青背景・枠線）を適用
+                currentNavBtn.classList.remove('bg-gray-600', 'hover:bg-gray-500');
+                currentNavBtn.classList.add('bg-blue-600', 'ring-2', 'ring-blue-400');
+
+                // スクロール処理
                 const targetHeader = document.getElementById(`region-${regionCode}`);
                 if (targetHeader) {
                     targetHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
-                e.currentTarget.blur(); 
+                currentNavBtn.blur(); 
             };
             regionNav.appendChild(navBtn);
 
