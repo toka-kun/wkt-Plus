@@ -178,6 +178,7 @@ pinned: false
 - 2026/06/25 - Nodeのバージョンを24に更新、Replitでデプロイできなくなっていたので修正
 - 2026/06/27 - チャンネルページを改善、再生リストページを追加、各ページの微調整
 - 2026/06/28 - ゲーム・ツールを追加、うおtube、仲良しtubeを追加、ニュースを追加
+- 2026/06/29 - ニュースページを改善
 
 ---
 
@@ -209,7 +210,7 @@ pinned: false
   - YuZuTube API
 - [@Xerox-Pro](https://github.com/Xerox-Pro)
   - XeroxYT-NT 開発
-  - XeroxYT-NT API 
+  - XeroxYT-NT APIv1
 - [@mino-hobby-pro](https://github.com/mino-hobby-pro)
   - MIN-Tube-Pro 開発
   - LABO5 開発
