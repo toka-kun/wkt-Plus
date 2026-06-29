@@ -29,7 +29,7 @@
             <div id="region-nav" class="flex flex-wrap gap-2 mb-4 flex-shrink-0">
             </div>
 
-            <div id="channel-list" class="space-y-4 overflow-y-auto flex-grow px-1 custom-scrollbar">
+            <div id="channel-list" class="space-y-4 overflow-y-auto flex-grow px-1 custom-scrollbar relative">
             </div>
         </div>
 
@@ -71,35 +71,39 @@
             groupedData[regionCode].push(item);
         }
 
+        // --- 地域ボタンの強調を更新する共通関数 ---
+        function updateActiveRegionBtn(activeRegionCode) {
+            document.querySelectorAll('.region-btn').forEach(b => {
+                if (b.dataset.region === activeRegionCode) {
+                    b.classList.remove('bg-gray-600', 'hover:bg-gray-500');
+                    b.classList.add('bg-blue-600', 'ring-2', 'ring-blue-400');
+                } else {
+                    b.classList.remove('bg-blue-600', 'ring-2', 'ring-blue-400');
+                    b.classList.add('bg-gray-600', 'hover:bg-gray-500');
+                }
+            });
+        }
+
         // 右側のリストとジャンプボタンを生成
         for (const [regionCode, items] of Object.entries(groupedData)) {
             const regionName = regionsMap[regionCode] || regionCode;
             
             // --- ジャンプボタンの作成 ---
             const navBtn = document.createElement('button');
-            // 'region-btn' クラスを付与し、一括でスタイル変更できるようにする
             navBtn.className = "region-btn text-xs bg-gray-600 hover:bg-gray-500 text-white py-1.5 px-3 rounded-full transition-colors duration-200";
             navBtn.textContent = regionName;
+            navBtn.dataset.region = regionCode; // 識別用のデータ属性を追加
             
             navBtn.onclick = (e) => {
-                const currentNavBtn = e.currentTarget;
-
-                // 1. 他のすべての地域ボタンの選択状態を解除して元のグレーに戻す
-                document.querySelectorAll('.region-btn').forEach(b => {
-                    b.classList.remove('bg-blue-600', 'ring-2', 'ring-blue-400');
-                    b.classList.add('bg-gray-600', 'hover:bg-gray-500');
-                });
-
-                // 2. 現在クリックされた地域ボタンに選択状態のスタイル（青背景・枠線）を適用
-                currentNavBtn.classList.remove('bg-gray-600', 'hover:bg-gray-500');
-                currentNavBtn.classList.add('bg-blue-600', 'ring-2', 'ring-blue-400');
+                // 強調表示の更新
+                updateActiveRegionBtn(regionCode);
 
                 // スクロール処理
                 const targetHeader = document.getElementById(`region-${regionCode}`);
                 if (targetHeader) {
                     targetHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
-                currentNavBtn.blur(); 
+                e.currentTarget.blur(); 
             };
             regionNav.appendChild(navBtn);
 
@@ -133,12 +137,54 @@
                     currentBtn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
                     currentBtn.classList.add('bg-blue-600', 'hover:bg-blue-500', 'ring-2', 'ring-inset', 'ring-blue-400');
 
+                    // チャンネルクリック時にも対象地域の地域ボタンを強調する
+                    updateActiveRegionBtn(regionCode);
+
                     playMedia(item.hlsUrl, item.fallbackVideoId);
                     currentBtn.blur(); 
                 };
                 channelList.appendChild(btn);
             });
         }
+
+        // 初期表示時：一番最初の地域ボタンを強調
+        const initialRegion = Object.keys(groupedData)[0];
+        if (initialRegion) {
+            updateActiveRegionBtn(initialRegion);
+        }
+
+        // --- スクロールスパイ（スクロール位置に応じた地域ボタンの更新） ---
+        channelList.addEventListener('scroll', () => {
+            const containerRect = channelList.getBoundingClientRect();
+            const headers = document.querySelectorAll('h3[id^="region-"]');
+            let activeRegionCode = null;
+
+            // リストの一番下までスクロールしきった場合の判定
+            const isAtBottom = channelList.scrollHeight - channelList.scrollTop - channelList.clientHeight <= 10;
+
+            if (isAtBottom && headers.length > 0) {
+                activeRegionCode = headers[headers.length - 1].id.replace('region-', '');
+            } else {
+                // 下から順にヘッダーをチェックし、コンテナの上部付近を越えているものを探す
+                for (let i = headers.length - 1; i >= 0; i--) {
+                    const headerRect = headers[i].getBoundingClientRect();
+                    // 80pxの余裕を持たせて、画面に十分入ったら切り替わるようにする
+                    if (headerRect.top <= containerRect.top + 80) {
+                        activeRegionCode = headers[i].id.replace('region-', '');
+                        break;
+                    }
+                }
+            }
+
+            // どれにも引っかからなかった場合（一番上にいる場合など）は最初の要素を選択
+            if (!activeRegionCode && headers.length > 0) {
+                activeRegionCode = headers[0].id.replace('region-', '');
+            }
+
+            if (activeRegionCode) {
+                updateActiveRegionBtn(activeRegionCode);
+            }
+        });
 
         // 動画再生のロジック
         async function playMedia(hlsUrl, fallbackVideoId) {
