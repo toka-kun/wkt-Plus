@@ -29,7 +29,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "start": "node --dns-result-order=ipv4first server.js",
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   }
 }
