@@ -47,9 +47,10 @@ pinned: false
 4. [Railway](https://railway.com/dashboard) （Portは8080にしてね）
 5. [Koyeb](#-koyebでのデプロイ手順)
 6. [CodeSandbox](#-codesandboxでのデプロイ手順)
-7. [Replit](https://replit.com/) （なんと全部自動でAIが最適化してくれます。無料枠はCodeSandboxよりもちょっと多いくらい）
-8. [Kuberns](https://dashboard.kuberns.com/) （トライアル期間のみ無料。2時間で止まるので手動で動かす必要がある）
-9. [Hugging Face Spaces](#-hugging-face-spacesでのデプロイ手順) （YouTubei.jsが使えないので中身のないただの箱になります）
+7. [Replit](https://replit.com/) （無料枠はCodeSandboxよりもちょっと多いくらい）
+8. [Kuberns](https://dashboard.kuberns.com/) （トライアル期間は1週間のみ。2時間で止まるので手動で動かす必要がある）
+9. [Back4App](https://dashboard.back4app.com/apps) （60分間有効なURLを発行できる。メモリが極小なので重い。Dockerfileでデプロイしてね）
+10. [Hugging Face Spaces](#-hugging-face-spacesでのデプロイ手順) （YouTubei.jsが使えないので中身のないただの箱になります）
 
 ---
 
