@@ -4,9 +4,17 @@
   publish = "public"
 
 [functions]
+  external_node_modules = [
+    "youtubei.js",
+    "@bufbuild/protobuf",
+    "meriyah"
+  ]
   included_files = [
     "views/**",
-    "node_modules/ejs/**"
+    "node_modules/ejs/**",
+    "node_modules/youtubei.js/**",
+    "node_modules/@bufbuild/protobuf/**",
+    "node_modules/meriyah/**"
   ]
 
 [[redirects]]
