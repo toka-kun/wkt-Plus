@@ -4,8 +4,6 @@
   publish = "public"
 
 [functions]
-  node_bundler = "esbuild"
-  external_node_modules = ["youtubei.js"]
   included_files = [
     "views/**",
     "node_modules/ejs/**"
