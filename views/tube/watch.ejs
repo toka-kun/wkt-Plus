@@ -314,11 +314,11 @@
     </div>
     <div id="controlTab" class="tab-content active">
         <div class="control-section mb-4">
+            <button id="reloadVideo" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">🔄 再読み込み</button>
             <div class="checkbox-container w-full bg-gray-700 py-2 hover:text-white rounded mb-2 flex items-center justify-center">
                 <label for="loopToggle" class="ml-2 cursor-pointer select-none">🔁 ループ再生</label>
                 <input type="checkbox" id="loopToggle" class="form-checkbox text-green-500 ml-2">
             </div>
-            <button id="proxyPlay" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">☁️ プロキシ経由で再生</button>
         </div>
         <% if (videoData.streamUrls && videoData.streamUrls.length > 0) { %>
         <div class="control-section mb-4">
@@ -625,87 +625,7 @@ async function fetchComments() {
 
 document.getElementById("retryButton").addEventListener("click", fetchComments);
 fetchComments();
-
-// プロキシ経由で再生する処理
-const proxyPlayBtn = document.getElementById('proxyPlay');
-if (proxyPlayBtn) {
-    proxyPlayBtn.addEventListener('click', function() {
-        // キャッシュから前回のURLを取得
-        let savedProxy = localStorage.getItem('videoProxyUrl') || '';
-        let proxyUrl = prompt('使用する動画プロキシのURLを入力して下さい。（例: https://example.om/?url=）', savedProxy);
-        
-        if (proxyUrl !== null && proxyUrl.trim() !== '') {
-            // 入力されたURLをキャッシュに保存
-            localStorage.setItem('videoProxyUrl', proxyUrl.trim());
-            
-            const proxyBase = proxyUrl.trim();
-
-            // 1. 映像のデフォルトソースを書き換え
-            const videoSrc = document.getElementById('videoSrc');
-            if (videoSrc) {
-                if (!videoSrc.dataset.originalSrc) {
-                    videoSrc.dataset.originalSrc = videoSrc.src;
-                }
-                videoSrc.src = proxyBase + encodeURIComponent(videoSrc.dataset.originalSrc);
-            }
-
-            // 2. 画質選択リスト(映像)の全URLを書き換え
-            const qualitySelect = document.getElementById('qualitySelect');
-            if (qualitySelect) {
-                Array.from(qualitySelect.options).forEach(opt => {
-                    if (opt.value) {
-                        if (!opt.dataset.originalVal) opt.dataset.originalVal = opt.value;
-                        opt.value = proxyBase + encodeURIComponent(opt.dataset.originalVal);
-                    }
-                });
-            }
-
-            // 3. 音声選択リストの全URLを書き換え
-            const audioSelect = document.getElementById('audioSelect');
-            if (audioSelect) {
-                Array.from(audioSelect.options).forEach(opt => {
-                    if (opt.value) {
-                        if (!opt.dataset.originalVal) opt.dataset.originalVal = opt.value;
-                        opt.value = proxyBase + encodeURIComponent(opt.dataset.originalVal);
-                    }
-                });
-            }
-
-            // --- 動画と音声を新しいURLで再読み込みして再生 ---
-            const video = document.getElementById('video');
-            const audio = document.getElementById('audio');
-            
-            // 現在の再生位置を保持
-            const currentTime = video.currentTime;
-            const isPaused = video.paused;
-            
-            // 映像の再読み込み
-            if (qualitySelect && qualitySelect.value) {
-                 video.src = qualitySelect.value;
-            } else if (videoSrc) {
-                 video.src = videoSrc.src;
-            }
-            video.load();
-            video.currentTime = currentTime;
-
-            // 音声の再読み込み
-            if (audioSelect && audioSelect.value) {
-                 audio.src = audioSelect.value;
-                 audio.load();
-                 audio.currentTime = currentTime;
-            }
-            
-            // 再生状態を復元
-            if (!isPaused) {
-                video.play();
-                if (audioSelect && audioSelect.value) audio.play();
-            }
-            
-            alert('プロキシを適用しました。');
-        }
-    });
-}
-
+  
 //ループ
 const loopToggle = document.getElementById('loopToggle');
 const video = document.getElementById('video');
