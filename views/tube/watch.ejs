@@ -314,10 +314,13 @@
     </div>
     <div id="controlTab" class="tab-content active">
         <div class="control-section mb-4">
-            <button id="proxyPlaybackBtn" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">☁️ プロキシ経由で再生</button>
             <div class="checkbox-container w-full bg-gray-700 py-2 hover:text-white rounded mb-2 flex items-center justify-center">
                 <label for="loopToggle" class="ml-2 cursor-pointer select-none">🔁 ループ再生</label>
                 <input type="checkbox" id="loopToggle" class="form-checkbox text-green-500 ml-2">
+            </div>
+            <div class="checkbox-container w-full bg-gray-700 py-2 hover:text-white rounded mb-2 flex items-center justify-center">
+                <label for="proxyToggle" class="ml-2 cursor-pointer select-none">☁️ プロキシ経由で再生</label>
+                <input type="checkbox" id="proxyToggle" class="form-checkbox text-green-500 ml-2">
             </div>
         </div>
         <% if (videoData.streamUrls && videoData.streamUrls.length > 0) { %>
@@ -637,11 +640,69 @@ loopToggle.addEventListener('change', function() {
     localStorage.setItem('videoLoop', this.checked);
 });
   
+//プロキシ経由再生
+const proxyToggle = document.getElementById('proxyToggle');
+function getProxyUrl() {
+    return localStorage.getItem('videoProxyUrl') || '';
+}
+function isProxyEnabled() {
+    return localStorage.getItem('videoProxyEnabled') === 'true' && !!getProxyUrl();
+}
+function applyProxy(url) {
+    if (!url) return url;
+    if (!isProxyEnabled()) return url;
+    return getProxyUrl() + encodeURIComponent(url);
+}
+// 初期状態を反映
+proxyToggle.checked = isProxyEnabled();
+// 初期の映像URLをプロキシ経由に書き換え
+(function initProxyRewrite() {
+    const vs = document.getElementById('videoSrc');
+    if (vs && vs.getAttribute('src')) {
+        const original = vs.getAttribute('data-original-src') || vs.getAttribute('src');
+        vs.setAttribute('data-original-src', original);
+        vs.src = applyProxy(original);
+        video.load();
+    }
+})();
+proxyToggle.addEventListener('change', function() {
+    if (this.checked) {
+        const cached = getProxyUrl();
+        const input = window.prompt('使用する動画プロキシのURLを入力して下さい。（例: https://example.om/?url=）', cached);
+        if (!input) {
+            this.checked = false;
+            localStorage.setItem('videoProxyEnabled', 'false');
+            return;
+        }
+        localStorage.setItem('videoProxyUrl', input);
+        localStorage.setItem('videoProxyEnabled', 'true');
+    } else {
+        localStorage.setItem('videoProxyEnabled', 'false');
+    }
+    // 再読み込み処理: 現在の映像/音声URLを再適用
+    const vs = document.getElementById('videoSrc');
+    const audioEl = document.getElementById('audio');
+    const currentTime = video.currentTime;
+    const wasPlaying = !video.paused;
+    if (vs) {
+        const original = vs.getAttribute('data-original-src') || vs.getAttribute('src');
+        vs.setAttribute('data-original-src', original);
+        vs.src = applyProxy(original);
+    }
+    if (audioEl && audioEl.getAttribute('data-original-src')) {
+        const originalA = audioEl.getAttribute('data-original-src');
+        audioEl.src = applyProxy(originalA);
+        audioEl.load();
+    }
+    video.load();
+    video.currentTime = currentTime;
+    if (audioEl && audioEl.src) audioEl.currentTime = currentTime;
+    if (wasPlaying) video.play().catch(e => console.error(e));
+});
   
 //エラー処理
 video.addEventListener('error', function() {
-    const errorMessage = video.error?.message || '不明なエラー';
-    showerrorMessage(`動画の読み込みに失敗しました: ${errorMessage}`);
+    showerrorMessage(`動画の読み込みに失敗しました: ${error}`);
     let lastCurrentTime = video.currentTime;
     video.load();
     video.addEventListener('loadedmetadata', function() {
@@ -780,46 +841,6 @@ $(document).ready(function() {
     const audio = document.getElementById('audio');
     const videoSrc = document.getElementById('videoSrc');
 
-    const PROXY_STORAGE_KEY = 'videoProxyUrl';
-    const DEFAULT_STREAM_URL = "<%- videoData.stream_url %>";
-
-    function getProxyBaseUrl() {
-        return (localStorage.getItem(PROXY_STORAGE_KEY) || '').trim();
-    }
-
-    function setProxyBaseUrl(url) {
-        const cleaned = (url || '').trim();
-        if (cleaned) {
-            localStorage.setItem(PROXY_STORAGE_KEY, cleaned);
-        } else {
-            localStorage.removeItem(PROXY_STORAGE_KEY);
-        }
-    }
-
-    function proxifyUrl(rawUrl) {
-        const proxyBase = getProxyBaseUrl();
-        if (!proxyBase) return rawUrl;
-        return proxyBase + encodeURIComponent(rawUrl);
-    }
-
-    function getSelectedVideoUrl() {
-        const selectedOption = $('#qualitySelect').find(':selected');
-        if (!selectedOption.length) return DEFAULT_STREAM_URL;
-
-        const isAuto = selectedOption.attr('data-is-auto') === 'true';
-        const selectedUrl = selectedOption.val();
-
-        if (isAuto || !selectedUrl) return DEFAULT_STREAM_URL;
-        return selectedUrl;
-    }
-
-    function getSelectedAudioUrl() {
-        const selectedAudio = $('#audioSelect').val();
-        return selectedAudio ? selectedAudio : '';
-    }
-
-    videoSrc.src = proxifyUrl(DEFAULT_STREAM_URL);
-
     // ★ 音声と映像の同期処理（イベントが重複して重くならないよう、ここで1回だけ設定！）
     function syncAudioPlay() {
         if (audio.src && audio.src !== window.location.href) {
@@ -853,37 +874,47 @@ $(document).ready(function() {
     $('#qualitySelect').change(function() {
         const selectedOption = $(this).find(':selected');
         const container = selectedOption.attr('data-container') || 'mp4';
-        const isAuto = selectedOption.attr('data-is-auto') === 'true';
-        const rawVideoUrl = selectedOption.val() || DEFAULT_STREAM_URL;
+        const isAuto = selectedOption.attr('data-is-auto') === 'true'; // ★ 判定追加
+        const newUrl = selectedOption.val();
 
+        // ★ 処理を始める前に、一旦映像も音声も完全に止める！
         video.pause();
         audio.pause();
-
+        
+        // 再生位置を記憶
         const currentTime = video.currentTime;
 
+        // ★ m3u8の場合は正しいHLS形式としてブラウザに認識させる
         if (container === 'm3u8') {
             videoSrc.type = "application/x-mpegURL";
         } else {
             videoSrc.type = "video/" + container;
         }
-        videoSrc.src = proxifyUrl(rawVideoUrl);
+        videoSrc.setAttribute('data-original-src', newUrl);
+        videoSrc.src = applyProxy(newUrl);
 
-        const selectedAudioUrl = getSelectedAudioUrl();
-
-        if (isAuto || rawVideoUrl.includes("manifest") || rawVideoUrl.includes(".m3u8")) {
+        // ★ 動画が「統合ストリーム」または「m3u8(ライブ等)」なら、裏の音声を無効化
+        // （manifest または .m3u8 が含まれているかで判定）
+        if (isAuto || newUrl.includes("manifest") || newUrl.includes(".m3u8")) {
+            audio.removeAttribute('data-original-src');
             audio.src = "";
         } else {
-            audio.src = selectedAudioUrl ? proxifyUrl(selectedAudioUrl) : "";
+            // ★ それ以外（映像のみ）なら、選択されている「音質」を裏で鳴らす
+            const aUrl = $('#audioSelect').val();
+            audio.setAttribute('data-original-src', aUrl);
+            audio.src = applyProxy(aUrl);
         }
 
         $('#controlPanel').removeClass('open');
         video.load();
-
+        
         if (audio.src && audio.src !== window.location.href) {
             audio.load();
-            audio.currentTime = currentTime;
+            audio.currentTime = currentTime; // 音声の位置を合わせる
         }
-        video.currentTime = currentTime;
+        video.currentTime = currentTime; // 映像の位置を合わせる
+
+        // 読み込みが完了したら自動で再開させる
         video.play().catch(e => console.error(e));
     });
 
@@ -891,9 +922,11 @@ $(document).ready(function() {
     $('#audioSelect').change(function() {
         const selectedQuality = $('#qualitySelect').find(':selected');
         const isAuto = selectedQuality.attr('data-is-auto') === 'true';
-        const currentVideoUrl = getSelectedVideoUrl();
+        const currentVideoUrl = selectedQuality.val();
         const newAudioUrl = $(this).val();
 
+        // 映像が「統合ストリーム」や「m3u8」の時は、裏の音声を動かさないので切り替え不要
+        // （manifest または .m3u8 が含まれているかで判定）
         if (isAuto || currentVideoUrl.includes("manifest") || currentVideoUrl.includes(".m3u8")) {
             return;
         }
@@ -901,10 +934,12 @@ $(document).ready(function() {
         const currentTime = video.currentTime;
         const wasPlaying = !video.paused;
 
+        // ★ 処理を始める前に一旦止める！
         video.pause();
         audio.pause();
 
-        audio.src = proxifyUrl(newAudioUrl);
+        audio.setAttribute('data-original-src', newAudioUrl);
+        audio.src = applyProxy(newAudioUrl);
         audio.load();
         audio.currentTime = currentTime;
 
@@ -921,71 +956,23 @@ $(document).ready(function() {
         const currentTime = video.currentTime;
 
         videoSrc.type = "video/mp4";
-        videoSrc.src = proxifyUrl(DEFAULT_STREAM_URL);
+        // ★ 統合ストリームに戻す
+        const resetUrl = "<%- videoData.stream_url %>";
+        videoSrc.setAttribute('data-original-src', resetUrl);
+        videoSrc.src = applyProxy(resetUrl);
 
-        audio.src = "";
-
+        // 統合なので別音声は空
+        audio.removeAttribute('data-original-src');
+        audio.src = ""; 
+        
         $('#controlPanel').removeClass('open');
+        // セレクトボックスの見た目も一番上の「統合ストリーム」に戻す
         $('#qualitySelect').prop('selectedIndex', 0);
-
+        
         video.load();
         video.currentTime = currentTime;
-
+        
         video.play().catch(e => console.error(e));
-    });
-
-    $('#proxyPlaybackBtn').click(function() {
-        const currentProxy = getProxyBaseUrl();
-        const input = prompt(
-            '使用する動画プロキシのURLを入力して下さい。（例: https://example.om/?url=）',
-            currentProxy
-        );
-
-        if (input === null) return;
-
-        const proxyBase = input.trim();
-        setProxyBaseUrl(proxyBase);
-
-        const currentTime = video.currentTime;
-        const wasPlaying = !video.paused;
-        const selectedOption = $('#qualitySelect').find(':selected');
-        const container = selectedOption.attr('data-container') || 'mp4';
-        const isAuto = selectedOption.attr('data-is-auto') === 'true';
-        const rawVideoUrl = getSelectedVideoUrl() || DEFAULT_STREAM_URL;
-
-        video.pause();
-        audio.pause();
-
-        if (container === 'm3u8') {
-            videoSrc.type = "application/x-mpegURL";
-        } else {
-            videoSrc.type = "video/" + container;
-        }
-
-        videoSrc.src = proxifyUrl(rawVideoUrl);
-
-        const selectedAudioUrl = getSelectedAudioUrl();
-
-        if (isAuto || rawVideoUrl.includes("manifest") || rawVideoUrl.includes(".m3u8")) {
-            audio.src = "";
-        } else {
-            audio.src = selectedAudioUrl ? proxifyUrl(selectedAudioUrl) : "";
-        }
-
-        video.load();
-
-        if (audio.src && audio.src !== window.location.href) {
-            audio.load();
-            audio.currentTime = currentTime;
-        }
-
-        video.currentTime = currentTime;
-
-        if (wasPlaying) {
-            video.play().catch(err => console.error(err));
-        }
-
-        showMessage('動画プロキシを保存しました☑️');
     });
 
     $('#changeServer').click(function() {
