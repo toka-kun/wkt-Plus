@@ -869,6 +869,10 @@ $(document).ready(function() {
             }
         }
     });
+    // 再生速度を音声にも同期
+    video.addEventListener('ratechange', () => {
+        if (audio) audio.playbackRate = video.playbackRate;
+    });
 
     // ★ 画質変更（映像のみ + 裏で音声を再生）
     $('#qualitySelect').change(function() {
