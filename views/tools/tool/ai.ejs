@@ -800,17 +800,27 @@
     <script>
         // Global state
         const availableModels = [
+            // 無料モデル
+            { apiName: 'google/gemma-3n-e2b-it:free', displayName: 'Gemma 3N E2B IT (Free)', shortName: 'Gemma 3n 2B' },
+
             // OpenAI モデル
+            { apiName: 'openai/gpt-5.4-nano', displayName: 'GPT-5.4 Nano', shortName: 'GPT-5.4 Nano' },
             { apiName: 'openai/gpt-5.4-mini', displayName: 'GPT-5.4 Mini', shortName: 'GPT-5.4 Mini' },
             { apiName: 'openai/gpt-5.4', displayName: 'GPT-5.4', shortName: 'GPT-5.4' },
-            
+            { apiName: 'openai/gpt-5.5', displayName: 'GPT-5.5', shortName: 'GPT-5.5' },
+
+            // Google モデル
+            { apiName: 'google/gemma-4-26b-a4b-it', displayName: 'Gemma 4 26B A4B IT', shortName: 'Gemma 4 26B A4B' },
+            { apiName: 'google/gemma-4-31b-it', displayName: 'Gemma 4 31B IT', shortName: 'Gemma 4 31B' },
+            { apiName: 'google/gemini-3.1-flash-lite', displayName: 'Gemini 3.1 Flash Lite', shortName: '3.1 Flash Lite' },
+            { apiName: 'google/gemini-3-flash-preview', displayName: 'Gemini 3 Flash Preview', shortName: '3 Flash' },
+            { apiName: 'google/gemini-3.5-flash', displayName: 'Gemini 3.5 Flash', shortName: '3.5 Flash' },
+            { apiName: 'google/gemini-3.1-pro-preview', displayName: 'Gemini 3.1 Pro Preview', shortName: '3.1 Pro' },
+
             // Anthropic モデル
             { apiName: 'anthropic/claude-haiku-4-5', displayName: 'Claude Haiku 4.5', shortName: 'Haiku 4.5' },
             { apiName: 'anthropic/claude-sonnet-5', displayName: 'Claude Sonnet 5', shortName: 'Sonnet 5' },
-            
-            // Google モデル
-            { apiName: 'google/gemini-3.5-flash', displayName: 'Gemini 3.5 Flash', shortName: '3.5 Flash' },
-            { apiName: 'google/gemini-3.1-pro-preview', displayName: 'Gemini 3.1 Pro Preview', shortName: '3.1 Pro' }
+            { apiName: 'anthropic/claude-opus-4-8', displayName: 'Claude Opus 4.8', shortName: 'Opus 4.8' },
         ];
         let currentModel = availableModels[0].apiName;
         let chatHistory = [];
