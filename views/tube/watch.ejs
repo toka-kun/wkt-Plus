@@ -642,6 +642,7 @@ loopToggle.addEventListener('change', function() {
   
 //プロキシ経由再生
 const proxyToggle = document.getElementById('proxyToggle');
+const DEFAULT_PROXY_URL = 'https://publer-media-downloader.kalemi-code4806.workers.dev/?noDownload=true&url=';
 function getProxyUrl() {
     return localStorage.getItem('videoProxyUrl') || '';
 }
@@ -668,7 +669,7 @@ proxyToggle.checked = isProxyEnabled();
 proxyToggle.addEventListener('change', function() {
     if (this.checked) {
         const cached = getProxyUrl();
-        const input = window.prompt('プロキシを使用することで視聴できない特定の動画が見れるようになる、ということはありません。https://*.googlevideo.com がブロックされている人用です。\n\n使用する動画プロキシのURLを入力して下さい。（例: https://example.om/?url=）', cached);
+        const input = window.prompt('プロキシを使用することで視聴できない特定の動画が見れるようになる、ということはありません。https://*.googlevideo.com がブロックされている人用です。\n\n使用する動画プロキシのURLを入力して下さい。（例: https://example.om/?url=）', cached || DEFAULT_PROXY_URL);
         if (!input) {
             this.checked = false;
             localStorage.setItem('videoProxyEnabled', 'false');
