@@ -1,7 +1,4 @@
 "use strict";
-const dns = require("dns");
-dns.setDefaultResultOrder("ipv4first"); // ★追加: IPv6優先解決によるfetch失敗を回避
-
 const express = require("express");
 const path = require("path");
 const compression = require("compression");
