@@ -1,4 +1,7 @@
 "use strict";
+const dns = require("dns");
+dns.setDefaultResultOrder("ipv4first"); // ★追加: IPv6優先解決によるfetch失敗を回避
+
 const express = require("express");
 const path = require("path");
 const compression = require("compression");
@@ -20,7 +23,18 @@ app.use(cors());
 app.set("trust proxy", 1);
 app.use(cookieParser());
 
+// ★追加: デバッグ用ルート（認証ミドルウェアより前に置く）
+app.get('/debug/net', async (req, res) => {
+  try {
+    const r = await fetch('https://www.youtube.com', { method: 'HEAD' });
+    res.send(`status: ${r.status}`);
+  } catch (e) {
+    res.status(500).send(`error: ${e.message}\ncause: ${JSON.stringify(e.cause)}`);
+  }
+});
+
 app.use((req, res, next) => {
+    if (req.path.startsWith('/debug')) return next(); // ★追加: debugパスは認証除外
     if (req.cookies.loginok !== 'ok' && !req.path.includes('login') && !req.path.includes('back')) {
         return res.redirect('/login');
     } else {
@@ -89,7 +103,8 @@ async function initInnerTube() {
     serverYt.setClient(client);
     console.log("YouTube client initialized successfully");
   } catch (e) {
-    console.error("YouTube client initialization failed:", e.message);
+    // ★変更: causeも出力して原因を特定しやすくする
+    console.error("YouTube client initialization failed:", e.message, "cause:", e.cause);
     console.log("Server running without YouTube features. Retrying in 30s...");
     setTimeout(initInnerTube, 30000);
   }
