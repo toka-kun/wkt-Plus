@@ -180,6 +180,15 @@
         <% } else { %>
             <p class="text-gray-400 py-8 text-center">コンテンツがありません。</p>
         <% } %>
+
+        <%# ── ホームタブ用：UUボタンを追加 ── %>
+        <% const homePlaylistId = channelId.replace(/^UC/, 'UU'); %>
+        <div class="flex justify-center mt-10 mb-6">
+            <a class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-blue-700 transition"
+               href="/wkt/p/<%= homePlaylistId %>">
+              もっと読み込む (UU)
+            </a>
+        </div>
     </div>
 
     <%# ===== 動画タブ ===== %>
@@ -187,13 +196,17 @@
         <div id="videos-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
 
         <% 
-           // 動画タブ: チャンネルIDの先頭の "UC" を "UULF" に置換
            const videosPlaylistId = channelId.replace(/^UC/, 'UULF'); 
+           const videosPopularPlaylistId = channelId.replace(/^UC/, 'UULP'); 
         %>
-        <div class="flex justify-center mt-10 mb-6">
+        <div class="flex justify-center space-x-4 mt-10 mb-6">
             <a class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-blue-700 transition"
                href="/wkt/p/<%= videosPlaylistId %>">
               もっと読み込む
+            </a>
+            <a class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-blue-700 transition"
+               href="/wkt/p/<%= videosPopularPlaylistId %>">
+              人気順に読み込む
             </a>
         </div>
     </div>
@@ -203,13 +216,17 @@
         <div id="shorts-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3"></div>
 
         <% 
-           // ショートタブ: チャンネルIDの先頭の "UC" を "UUSH" に置換
            const shortsPlaylistId = channelId.replace(/^UC/, 'UUSH'); 
+           const shortsPopularPlaylistId = channelId.replace(/^UC/, 'UUPS'); 
         %>
-        <div class="flex justify-center mt-10 mb-6">
-            <a class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-red-700 transition"
+        <div class="flex justify-center space-x-4 mt-10 mb-6">
+            <a class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-red-700 transition"
                href="/wkt/p/<%= shortsPlaylistId %>">
               もっと読み込む
+            </a>
+            <a class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-blue-700 transition"
+               href="/wkt/p/<%= shortsPopularPlaylistId %>">
+              人気順に読み込む
             </a>
         </div>
     </div>
@@ -219,13 +236,17 @@
         <div id="live-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
 
         <% 
-           // ライブタブ: チャンネルIDの先頭の "UC" を "UULV" に置換
            const livePlaylistId = channelId.replace(/^UC/, 'UULV'); 
+           const livePopularPlaylistId = channelId.replace(/^UC/, 'UUPV'); 
         %>
-        <div class="flex justify-center mt-10 mb-6">
-            <a class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-yellow-700 transition"
+        <div class="flex justify-center space-x-4 mt-10 mb-6">
+            <a class="px-6 py-3 bg-yellow-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-yellow-700 transition"
                href="/wkt/p/<%= livePlaylistId %>">
               もっと読み込む
+            </a>
+            <a class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-blue-700 transition"
+               href="/wkt/p/<%= livePopularPlaylistId %>">
+              人気順に読み込む
             </a>
         </div>
     </div>
