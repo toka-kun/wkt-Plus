@@ -109,9 +109,36 @@
             display: none;
             z-index: 10;
         }
-        .loading-indicator img {
-            width: 75px;
-            height: 75px;
+        .container {
+            --uib-size: 40px;
+            --uib-color: black;
+            --uib-speed: .9s;
+            --uib-stroke: 5px;
+            --mask-size: calc(var(--uib-size) / 2 - var(--uib-stroke));
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            height: var(--uib-size);
+            width: var(--uib-size);
+            -webkit-mask: radial-gradient(
+              circle var(--mask-size),
+              transparent 99%,
+              #000 100%
+            );
+            mask: radial-gradient(circle var(--mask-size), transparent 99%, #000 100%);
+            background-image: conic-gradient(transparent 25%, var(--uib-color));
+            animation: spin calc(var(--uib-speed)) linear infinite;
+            border-radius: 50%;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
         .mobile-action-box {
             display: none;
@@ -157,7 +184,7 @@
         <div class="video-container" id="videoContainer">
         <div class="relative">
         <div class="loading-indicator">
-          <img src="https://www.benricho.org/loading_images/img-transparent/89-88.gif" alt="Loading...">
+          <div class="container"></div>
         </div>
           <video id="video" class="w-full h-auto max-h-screen" controls preload="auto" playsinline poster="/wkt/back/vi/<%= videoId %>/maxresdefault.jpg">
               <source id="videoSrc" src="<%- videoData.stream_url %>" type="video/mp4">
