@@ -132,8 +132,12 @@ router.get('/:id', async (req, res) => {
         // ログ出力でどのルートを通ったか明確にするための変数
         let cacheSource = selectedApi ? `${selectedApi} (明示指定)` : "Invidious (デフォルト)";
 
-        // ▼▼▼ パラメータ指定がない場合の自動キャッシュ検索ロジック ▼▼▼
-        if (!selectedApi) {
+        // ▼▼▼ パラメータ指定がない、または特定条件下での自動キャッシュ検索ロジック ▼▼▼
+        const remoteCacheServers = ['siawaseok', 'yudlp', 'ytdlpinstance-vercel', 'senninytdlp', 'xeroxyt-nt-apiv1', 'simple-yt-stream'];
+        // 指定されたサーバーが対象である、またはURLに ?trend パラメータが存在する場合にリモートキャッシュを取得しにいく
+        const shouldFetchRemoteCache = remoteCacheServers.includes(selectedApi) || req.query.trend !== undefined;
+
+        if (shouldFetchRemoteCache) {
             const reqOptions = { timeout: 5000, headers: { "User-Agent": user_agent } };
             // メモリキャッシュになかったので、リモートキャッシュを取りに行く
             const [siaRes, yudRes, katuoRes, senninRes] = await Promise.allSettled([
@@ -164,10 +168,18 @@ router.get('/:id', async (req, res) => {
                 cacheSource = "リモートキャッシュ (senninytdlp)";
                 console.log(`🎯 リモートキャッシュヒット: senninytdlp (${videoId})`);
             } else {
-                // リモートキャッシュにもなかった場合、デフォルトのInvidiousを新たに取得しに行く
-                cacheSource = "Invidious (リモートキャッシュなし)";
-                console.log(`ℹ️ リモートキャッシュなし: デフォルトの invidious を使用 (${videoId})`);
+                // リモートキャッシュにヒットしなかった場合、指定があればそれを使用
+                apiToUse = selectedApi || 'invidious';
+                baseUrl = selectedApi || 'invidious';
+                cacheSource = selectedApi ? `${selectedApi} (明示指定・リモートキャッシュなし)` : "Invidious (リモートキャッシュなし)";
+                console.log(`ℹ️ リモートキャッシュなし: ${apiToUse} を使用 (${videoId})`);
             }
+        } else {
+            // 通常時、または対象外サーバー指定のためリモートキャッシュをスキップ
+            apiToUse = selectedApi || 'invidious';
+            baseUrl = selectedApi || 'invidious';
+            cacheSource = selectedApi ? `${selectedApi} (明示指定・リモートキャッシュスキップ)` : "Invidious (通常時・リモートキャッシュスキップ)";
+            console.log(`ℹ️ リモートキャッシュスキップ: ${apiToUse} を使用 (${videoId})`);
         }
         // ▲▲▲ ここまで ▲▲▲
 
@@ -196,7 +208,7 @@ router.get('/:id', async (req, res) => {
         const saveCacheKey = `${videoId}_${apiToUse}`;
         const cacheTtlMs = getTtlMs(apiToUse);
 
-        // メモリには純粋なデータのみを保存（メッセージは表示時に付与するため、ここで消しても構いませんが、元の処理のまま保存します）
+        // メモリには純粋なデータのみを保存
         videoCache.set(saveCacheKey, {
             timestamp: Date.now(),
             renderData: renderData
