@@ -4,7 +4,8 @@ const axios = require('axios');
 // キャッシュ・ペナルティ設定
 // =========================================
 const CACHE_DURATION = 60 * 60 * 1000; // リストのキャッシュ期間 (1時間 = 3,600,000ms)
-const BLOCK_DURATION = 10 * 60 * 1000; // タイムアウトしたインスタンスのブロック期間 (10分 = 600,000ms)
+const BLOCK_DURATION = 10 * 60 * 1000; // タイムアウト集計期間＆ブロック期間 (10分 = 600,000ms)
+const MAX_FAILURES = 10;               // ブロックまでの連続タイムアウト回数
 
 let apis = null;
 let apisLastFetch = 0;
@@ -18,8 +19,9 @@ let minTubeLastFetch = 0;
 let aceThinkerApis = null;
 let aceThinkerLastFetch = 0;
 
-// ブロックリスト（キー: インスタンスURL, 値: ブロック解除時刻）
-const blockedInstances = new Map();
+// インスタンスのステータス管理
+// instanceUrl -> { fails: 連続タイムアウト回数, firstFailTime: 最初のタイムアウト時刻, blockedUntil: ブロック解除時刻 }
+const instanceStats = new Map();
 
 const MAX_API_WAIT_TIME = 5000; 
 const MAX_TIME = 10000;       // 高速サーバー用 (10秒)
@@ -40,20 +42,48 @@ function shuffleArray(array) {
 
 // インスタンスがブロックされているか判定する関数
 function isBlocked(instance) {
-    if (blockedInstances.has(instance)) {
-        if (Date.now() < blockedInstances.get(instance)) {
-            return true; // まだブロック期間中
-        } else {
-            blockedInstances.delete(instance); // 期間を過ぎたので解除
-        }
+    const stats = instanceStats.get(instance);
+    if (!stats) return false;
+    
+    if (stats.blockedUntil > Date.now()) {
+        return true; // ブロック期間中
     }
     return false;
 }
 
-// タイムアウトしたインスタンスをブロックリストに入れる関数
-function blockInstance(instance) {
-    console.log(`🚫 タイムアウトのためインスタンスを10分間ブロックします: ${instance}`);
-    blockedInstances.set(instance, Date.now() + BLOCK_DURATION);
+// 取得に成功した場合にカウントをリセットする関数
+function recordSuccess(instance) {
+    const stats = instanceStats.get(instance);
+    if (stats && stats.fails > 0) {
+        stats.fails = 0; // 1回でも成功したら連続タイムアウトをリセット
+    }
+}
+
+// タイムアウトを記録し、条件を満たせばブロックする関数
+function recordTimeout(instance) {
+    const now = Date.now();
+    let stats = instanceStats.get(instance);
+    
+    if (!stats) {
+        stats = { fails: 1, firstFailTime: now, blockedUntil: 0 };
+        instanceStats.set(instance, stats);
+        return;
+    }
+
+    // 最初のタイムアウトから10分以上経過していたら期間リセット
+    if (now - stats.firstFailTime > BLOCK_DURATION) {
+        stats.fails = 1;
+        stats.firstFailTime = now;
+    } else {
+        stats.fails++;
+    }
+
+    // 10分以内に10回連続でタイムアウトした場合、10分間ブロック
+    if (stats.fails >= MAX_FAILURES) {
+        console.log(`🚫 10分以内に10回タイムアウトしたため、インスタンスを10分間ブロックします: ${instance}`);
+        stats.blockedUntil = now + BLOCK_DURATION;
+        stats.fails = 0; // ブロック適用後はカウントをリセット
+    }
 }
 
 // =========================================
@@ -62,7 +92,7 @@ function blockInstance(instance) {
 async function getapis() {
     const now = Date.now();
     if (apis && (now - apisLastFetch < CACHE_DURATION)) {
-        return; // キャッシュ有効期限内なら何もしない
+        return; 
     }
     try {
         const response = await axios.get('https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/apis/Invidious/yes.json');
@@ -76,24 +106,24 @@ async function getapis() {
 
 async function ggvideo(videoId) {
     const startTime = Date.now();
-    await getapis(); // 中でキャッシュ判定が行われます
+    await getapis(); 
     if (!apis) throw new Error("InvidiousのAPIリストがありません");
 
     for (const instance of apis) {
-        if (isBlocked(instance)) continue; // ブロック中のサーバーはスキップ
+        if (isBlocked(instance)) continue; 
 
         try {
             const apiUrl = `${instance}/api/v1/videos/${videoId}`;
             const response = await axios.get(apiUrl, { timeout: MAX_API_WAIT_TIME });
             if (response.data && response.data.formatStreams) {
                 console.log(`✅ 使用したAPI (Invidious): ${apiUrl}`);
+                recordSuccess(instance); // 成功記録
                 return response.data;
             }
         } catch (error) {
             console.error(`❌ エラー: ${instance} - ${error.message}`);
-            // タイムアウトエラーの場合はペナルティ適用
             if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-                blockInstance(instance);
+                recordTimeout(instance); // タイムアウト記録
             }
         }
         if (Date.now() - startTime >= MAX_TIME) throw new Error("接続がタイムアウトしました");
@@ -370,7 +400,7 @@ async function getAceThinker(videoId) {
     const shuffledApis = shuffleArray([...aceThinkerApis]);
 
     for (const instance of shuffledApis) {
-        if (isBlocked(instance)) continue; // ブロック中のサーバーはスキップ
+        if (isBlocked(instance)) continue; 
 
         try {
             const apiUrl = `${instance}/api/dlapinewv2.php?url=https://www.youtube.com/watch?v=${videoId}`;
@@ -379,8 +409,9 @@ async function getAceThinker(videoId) {
             
             if (resData && resData.formats) {
                 console.log(`✅ 使用したAPI (AceThinker): ${apiUrl}`);
+                recordSuccess(instance); // 成功記録
+                
                 const formats = resData.formats;
-
                 const combinedStream = formats.find(f => f.acodec !== 'none' && f.vcodec !== 'none');
                 const streamUrl = combinedStream?.url || '';
 
@@ -410,7 +441,7 @@ async function getAceThinker(videoId) {
         } catch (error) {
             console.error(`❌ エラー: ${instance} - ${error.message}`);
             if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-                blockInstance(instance);
+                recordTimeout(instance); // タイムアウト記録
             }
         }
         if (Date.now() - startTime >= MAX_TIME) throw new Error("接続がタイムアウトしました");
@@ -487,7 +518,7 @@ async function getXeroxNT(videoId) {
     const shuffledApis = shuffleArray([...xeroxApis]);
 
     for (const instance of shuffledApis) {
-        if (isBlocked(instance)) continue; // ブロック中のサーバーはスキップ
+        if (isBlocked(instance)) continue; 
 
         try {
             const apiUrl = `${instance}/stream?id=${videoId}`;
@@ -496,6 +527,7 @@ async function getXeroxNT(videoId) {
             
             if (data && data.streamingUrl) {
                 console.log(`✅ 使用したAPI (XeroxYT-NT): ${apiUrl}`);
+                recordSuccess(instance); // 成功記録
                 
                 const streamUrls = (data.formats || []).map(f => ({
                     url: f.url,
@@ -515,7 +547,7 @@ async function getXeroxNT(videoId) {
         } catch (error) {
             console.error(`❌ エラー: ${instance} - ${error.message}`);
             if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-                blockInstance(instance);
+                recordTimeout(instance); // タイムアウト記録
             }
         }
         if (Date.now() - startTime >= MAX_TIME_SLOW) throw new Error("接続がタイムアウトしました");
@@ -548,7 +580,7 @@ async function getMinTube2(videoId) {
     const shuffledApis = shuffleArray([...minTubeApis]);
 
     for (const instance of shuffledApis) {
-        if (isBlocked(instance)) continue; // ブロック中のサーバーはスキップ
+        if (isBlocked(instance)) continue; 
 
         try {
             const apiUrl = `${instance}/api/video/${videoId}`;
@@ -557,6 +589,8 @@ async function getMinTube2(videoId) {
             
             if (data && data.stream_url) {
                 console.log(`✅ 使用したAPI (MIN-Tube2): ${apiUrl}`);
+                recordSuccess(instance); // 成功記録
+
                 const streamUrls = [];
                 if (data.highstreamUrl && data.highstreamUrl !== data.stream_url) {
                     streamUrls.push({ url: data.highstreamUrl, resolution: 'High Quality', container: 'mp4', fps: null });
@@ -573,7 +607,7 @@ async function getMinTube2(videoId) {
         } catch (error) {
             console.error(`❌ エラー: ${instance} - ${error.message}`);
             if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-                blockInstance(instance);
+                recordTimeout(instance); // タイムアウト記録
             }
         }
         if (Date.now() - startTime >= MAX_TIME) throw new Error("接続がタイムアウトしました");
