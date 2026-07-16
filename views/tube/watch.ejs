@@ -669,7 +669,7 @@ loopToggle.addEventListener('change', function() {
   
 //プロキシ経由再生
 const proxyToggle = document.getElementById('proxyToggle');
-const DEFAULT_PROXY_URL = 'https://publer-media-downloader.kalemi-code4806.workers.dev/?noDownload=true&url=';
+const DEFAULT_PROXY_URL = 'https://publer-media-downloader.kalemi-code4806.workers.dev/?noDownload=true&title=videoplayback&url=';
 function getProxyUrl() {
     return localStorage.getItem('videoProxyUrl') || '';
 }
@@ -696,7 +696,7 @@ proxyToggle.checked = isProxyEnabled();
 proxyToggle.addEventListener('change', function() {
     if (this.checked) {
         const cached = getProxyUrl();
-        const input = window.prompt('プロキシを使用することで視聴できない特定の動画が見れるようになる、ということはありません。https://*.googlevideo.com がブロックされている人用です。\n\n使用する動画プロキシのURLを入力して下さい。（例: https://example.om/?url=）', cached || DEFAULT_PROXY_URL);
+        const input = window.prompt('通常再生でさえブロックされてしまう人用の最終手段で、自分で作ったプロキシを使用することも可能です。プロキシを使用することで視聴できない特定の動画が見れるようになるということはなく、再生が不安定になるため、使用する必要がない場合は非推奨です。\n\n使用する動画プロキシのURLを入力して下さい。（例: https://example.om/?url=）', cached || DEFAULT_PROXY_URL);
         if (!input) {
             this.checked = false;
             localStorage.setItem('videoProxyEnabled', 'false');
@@ -1071,7 +1071,7 @@ function saveToHistory(videoId, channelId, channelName, videoTitle) {
     if (historyIndex !== -1) {
         history.splice(historyIndex, 1);
     }
-    if (history.length >= 30) {
+    if (history.length >= 100) {
         history.shift();
     }
     history.push({ videoId, channelId, channelName, videoTitle });
