@@ -1,13 +1,4 @@
 const axios = require('axios');
-const http = require('http');
-const https = require('https');
-
-// =========================================
-// IPv6による ENETUNREACH エラー回避設定
-// =========================================
-// すべてのAxiosリクエストをIPv4に強制する
-axios.defaults.httpAgent = new http.Agent({ family: 4 });
-axios.defaults.httpsAgent = new https.Agent({ family: 4 });
 
 // =========================================
 // キャッシュ・ペナルティ設定
