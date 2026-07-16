@@ -224,6 +224,7 @@ async function getSiaTube(videoId) {
             streamUrls: streamUrls
         };
     } catch (error) {
+        console.error(`❌ エラー (SiaTube): ${error.message}`);
         throw new Error("SiaTube APIからの取得に失敗: " + error.message);
     }
 }
@@ -273,6 +274,7 @@ async function getYuZuTube(videoId) {
             streamUrls: streamUrls
         };
     } catch (error) {
+        console.error(`❌ エラー (YuZuTube): ${error.message}`);
         throw new Error("YuZuTube APIからの取得に失敗: " + error.message);
     }
 }
@@ -322,6 +324,7 @@ async function getKatuoTube(videoId) {
             streamUrls: streamUrls
         };
     } catch (error) {
+        console.error(`❌ エラー (KatuoTube): ${error.message}`);
         throw new Error("KatuoTube APIからの取得に失敗: " + error.message);
     }
 }
@@ -371,6 +374,7 @@ async function getSenninTube(videoId) {
             streamUrls: streamUrls
         };
     } catch (error) {
+        console.error(`❌ エラー (SenninTube Plus): ${error.message}`);
         throw new Error("SenninTube Plus APIからの取得に失敗: " + error.message);
     }
 }
@@ -489,6 +493,7 @@ async function getFreemake(videoId) {
             streamUrls: streamUrls
         };
     } catch (error) {
+        console.error(`❌ エラー (Freemake): ${error.message}`);
         throw new Error("Freemake APIからの取得に失敗: " + error.message);
     }
 }
@@ -660,6 +665,7 @@ async function getWistaStream(videoId) {
             streamUrls: streamUrls
         };
     } catch (error) {
+        console.error(`❌ エラー (Wista Stream): ${error.message}`);
         throw new Error("Wista Stream APIからの取得に失敗: " + error.message);
     }
 }
@@ -669,26 +675,32 @@ async function getWistaStream(videoId) {
 // =========================================
 async function getYouTube(videoId, apiType = 'invidious') {
     let result;
-    if (apiType === 'siawaseok') {
-        result = await getSiaTube(videoId);
-    } else if (apiType === 'yudlp') {
-        result = await getYuZuTube(videoId);
-    } else if (apiType === 'ytdlpinstance-vercel') {
-        result = await getKatuoTube(videoId);
-    } else if (apiType === 'senninytdlp') {
-        result = await getSenninTube(videoId);
-    } else if (apiType === 'acethinker') {
-        result = await getAceThinker(videoId);
-    } else if (apiType === 'freemake') {
-        result = await getFreemake(videoId);
-    } else if (apiType === 'xeroxyt-nt-apiv1') {
-        result = await getXeroxNT(videoId);
-    } else if (apiType === 'min-tube2-api') {
-        result = await getMinTube2(videoId);
-    } else if (apiType === 'simple-yt-stream') {
-        result = await getWistaStream(videoId);
-    } else {
-        result = await getInvidious(videoId);
+    try {
+        if (apiType === 'siawaseok') {
+            result = await getSiaTube(videoId);
+        } else if (apiType === 'yudlp') {
+            result = await getYuZuTube(videoId);
+        } else if (apiType === 'ytdlpinstance-vercel') {
+            result = await getKatuoTube(videoId);
+        } else if (apiType === 'senninytdlp') {
+            result = await getSenninTube(videoId);
+        } else if (apiType === 'acethinker') {
+            result = await getAceThinker(videoId);
+        } else if (apiType === 'freemake') {
+            result = await getFreemake(videoId);
+        } else if (apiType === 'xeroxyt-nt-apiv1') {
+            result = await getXeroxNT(videoId);
+        } else if (apiType === 'min-tube2-api') {
+            result = await getMinTube2(videoId);
+        } else if (apiType === 'simple-yt-stream') {
+            result = await getWistaStream(videoId);
+        } else {
+            result = await getInvidious(videoId);
+        }
+    } catch (error) {
+        // API名 (apiType) と発生したエラーを完全にトレースしてコンソールに出力
+        console.error(`❌ API [${apiType}] の処理中にエラーが発生しました: ${error.message}`);
+        throw error; // 呼び出し元（ルーター側など）にエラーを上申する
     }
 
     if (result.streamUrls && result.streamUrls.length > 0) {
