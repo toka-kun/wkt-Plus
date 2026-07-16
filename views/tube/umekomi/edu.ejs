@@ -638,7 +638,7 @@ function saveToHistory(videoId, channelId, channelName, videoTitle) {
     if (historyIndex !== -1) {
         history.splice(historyIndex, 1);
     }
-    if (history.length >= 30) {
+    if (history.length >= 100) {
         history.shift();
     }
     history.push({ videoId, channelId, channelName, videoTitle });
