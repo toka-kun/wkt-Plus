@@ -224,7 +224,7 @@ async function getSiaTube(videoId) {
             streamUrls: streamUrls
         };
     } catch (error) {
-        console.error(`❌ エラー (SiaTube): ${error.message}`);
+        console.error(`❌ エラー: siawaseok_${videoId} - ${error.message}`);
         throw new Error("SiaTube APIからの取得に失敗: " + error.message);
     }
 }
@@ -274,7 +274,7 @@ async function getYuZuTube(videoId) {
             streamUrls: streamUrls
         };
     } catch (error) {
-        console.error(`❌ エラー (YuZuTube): ${error.message}`);
+        console.error(`❌ エラー: yudlp_${videoId} - ${error.message}`);
         throw new Error("YuZuTube APIからの取得に失敗: " + error.message);
     }
 }
@@ -324,7 +324,7 @@ async function getKatuoTube(videoId) {
             streamUrls: streamUrls
         };
     } catch (error) {
-        console.error(`❌ エラー (KatuoTube): ${error.message}`);
+        console.error(`❌ エラー: ytdlpinstance-vercel_${videoId} - ${error.message}`);
         throw new Error("KatuoTube APIからの取得に失敗: " + error.message);
     }
 }
@@ -374,7 +374,7 @@ async function getSenninTube(videoId) {
             streamUrls: streamUrls
         };
     } catch (error) {
-        console.error(`❌ エラー (SenninTube Plus): ${error.message}`);
+        console.error(`❌ エラー: senninytdlp_${videoId} - ${error.message}`);
         throw new Error("SenninTube Plus APIからの取得に失敗: " + error.message);
     }
 }
@@ -493,7 +493,7 @@ async function getFreemake(videoId) {
             streamUrls: streamUrls
         };
     } catch (error) {
-        console.error(`❌ エラー (Freemake): ${error.message}`);
+        console.error(`❌ エラー: freemake_${videoId} - ${error.message}`);
         throw new Error("Freemake APIからの取得に失敗: " + error.message);
     }
 }
@@ -665,7 +665,7 @@ async function getWistaStream(videoId) {
             streamUrls: streamUrls
         };
     } catch (error) {
-        console.error(`❌ エラー (Wista Stream): ${error.message}`);
+        console.error(`❌ エラー: simple-yt-stream_${videoId} - ${error.message}`);
         throw new Error("Wista Stream APIからの取得に失敗: " + error.message);
     }
 }
@@ -698,8 +698,8 @@ async function getYouTube(videoId, apiType = 'invidious') {
             result = await getInvidious(videoId);
         }
     } catch (error) {
-        // API名 (apiType) と発生したエラーを完全にトレースしてコンソールに出力
-        console.error(`❌ API [${apiType}] の処理中にエラーが発生しました: ${error.message}`);
+        // APIの最終エラーログを 待機用キー (apiType_videoId) の形式でコンソールに出力
+        console.error(`❌ エラー: ${apiType}_${videoId} - ${error.message}`);
         throw error; // 呼び出し元（ルーター側など）にエラーを上申する
     }
 
