@@ -6,6 +6,10 @@ router.get("/", (req, res) => {
   res.render("game/home");
 });
 
+router.get("/tw", (req, res) => {
+  res.render("game/tw");
+});
+
 router.get("/games", (req, res) => {
   res.render("game/games/home");
 });
