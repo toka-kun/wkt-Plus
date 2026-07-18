@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TW</title>
+    <script src="/js/tailwindcss.js"></script>
+    <link rel="stylesheet" href="/css/page.css">
+</head>
+<body class="bg-gray-900 font-sans min-h-screen flex flex-col m-0 p-0 overflow-hidden">
+    
+    <button class="back-button fixed top-5 left-5 z-50 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out flex items-center space-x-2" onclick="window.location.href='/game'">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        <span>戻る</span>
+    </button>
+
+    <button class="fixed top-5 right-5 z-50 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out flex items-center space-x-2" onclick="showHowToPlay()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>遊び方</span>
+    </button>
+
+    <div class="flex-grow w-full h-screen pt-20 pb-4 px-4 box-border relative">
+        <div id="loading-indicator" class="absolute inset-0 flex items-center justify-center text-white font-bold text-xl z-0">
+            通信可能なサーバーを探しています...
+        </div>
+
+        <iframe 
+            id="content-frame"
+            src="" 
+            class="w-full h-full rounded-2xl shadow-lg border-none bg-white relative z-10 hidden"
+            allow="camera;microphone;geolocation;fullscreen"
+            title="Embedded Content">
+        </iframe>
+    </div>
+
+    <div id="info-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-[60] flex items-center justify-center p-4 transition-opacity">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 class="text-xl font-bold text-gray-800">遊び方</h2>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-800 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-grow space-y-6">
+                <div>
+                    <h3 class="text-lg font-semibold text-blue-600 mb-2 border-b-2 border-blue-200 pb-1">使い方</h3>
+                    <div id="modal-instructions" class="whitespace-pre-wrap text-gray-700 text-sm leading-relaxed"></div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-green-600 mb-2 border-b-2 border-green-200 pb-1">メモとクレジット</h3>
+                    <div id="modal-description" class="whitespace-pre-wrap text-gray-700 text-sm leading-relaxed"></div>
+                </div>
+            </div>
+            <div class="p-4 border-t bg-gray-50 rounded-b-xl text-right">
+                <button onclick="closeModal()" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors">
+                    閉じる
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentProjectId = null; 
+
+        const siteMap = {
+            'au/class_1': `#668123415`,
+            'au/class_2': `#559213588`,
+            'au/class_3': `#557315349`,
+            'au/class_mega': `&size=660x360#1045090037`,
+            'au/class_all': `#658643933`,
+            'au/class_all2': `#1134100581`,
+            'au/jeste': `#717953555`,
+            'au/jeste_all': `#718067708`,
+            'au/jeste_back': `#781286687`,
+            'au/mod_1': `#557792234`,
+            'au/mod_2': `#1102670768`,
+            'au/mod_3': `#932765095`,
+            'spl/official': `#815938308`,
+            'spl/lite': `#843973388`,
+            'spl/mobile': `#839320473`,
+            'spl/x': `#925098639`,
+            'for/z_1': `#726942697`,
+            'for/z_2': `#1183256431`,
+            'for/z_3': `#1221386411`,
+            'for/tt_official': `#926627534`,
+            'for/tt_wide': `&clones=Infinity&size=640x360#986730836`,
+            'for/tt_ja': `#1186024383`,
+            'for/real': `&interpolate#834901360`,
+            'val/ja': `#1200062872`,
+            'val/2d': `#480712527`,
+            'mmo/mine_ja': `&interpolate#1221735904`,
+            'mmo/plat_1': `#612229554`,
+            'mmo/plat_2': `#392811906`,
+            'other/tact': `&fps=60#831274817`,
+            'other/dg2_1': `&fps=60&clones=Infinity&limitless&size=640x360#1115559391`,
+            'other/dg2_2': `&fps=60&clones=Infinity&limitless&size=640x360#1205006211`,
+            'other/rc_ja': `&interpolate#733440117`,
+            'other/rd_ja': `&interpolate#727045120`,
+            'other/hide': `&interpolate#1163834832`,
+            'other/hide_mega': `&interpolate&size=660x360#1169508520`
+        };
+
+        const FETCH_TIMEOUT_MS = 3000; 
+
+        const baseUrls = [
+            "https://mirror.turbowarp.xyz/embed?addons=pause&settings-button&hqpen&username=プレイヤー名",
+            "https://turbowarp-mirror.pages.dev/embed?addons=pause&settings-button&hqpen&username=プレイヤー名",
+            "https://html-api-turbo.remotewire.net/embed?addons=pause&settings-button&hqpen&username=プレイヤー名",
+            "https://turbomirror.smooth.ytalt.f5.si/embed?addons=pause&settings-button&hqpen&username=プレイヤー名"
+        ];
+
+        async function checkConnection(url) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+                
+                await fetch(url, { mode: 'no-cors', signal: controller.signal });
+                clearTimeout(timeoutId);
+                return true; 
+            } catch (error) {
+                return false;
+            }
+        }
+
+        async function getWorkingBaseUrl() {
+            for (const url of baseUrls) {
+                const isWorking = await checkConnection(url);
+                if (isWorking) return url;
+            }
+            return null; 
+        }
+
+        async function loadIframe() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetId = urlParams.get('id');
+            const iframe = document.getElementById('content-frame');
+            const loadingIndicator = document.getElementById('loading-indicator');
+
+            iframe.classList.add('hidden');
+            loadingIndicator.textContent = '通信可能なサーバーを探しています...';
+            loadingIndicator.classList.remove('hidden');
+
+            if (targetId && siteMap[targetId]) {
+                const match = siteMap[targetId].match(/#(\d+)/);
+                if (match) {
+                    currentProjectId = match[1]; 
+                }
+
+                const workingBaseUrl = await getWorkingBaseUrl();
+
+                if (workingBaseUrl) {
+                    iframe.src = workingBaseUrl + siteMap[targetId];
+                    loadingIndicator.classList.add('hidden');
+                    iframe.classList.remove('hidden');
+                } else {
+                    loadingIndicator.textContent = 'すべてのサーバーへの接続に失敗しました。';
+                }
+            } else {
+                loadingIndicator.textContent = '無効なIDが指定されました。';
+            }
+        }
+
+        // alert()の代わりにオリジナルのモーダルを開く
+        async function showHowToPlay() {
+            if (!currentProjectId) {
+                alert("プロジェクトが正しく読み込まれていないため、情報を取得できません。");
+                return;
+            }
+
+            try {
+                // ボタンのテキストを「取得中...」に変えて待機状態をわかりやすく
+                const modalInstructions = document.getElementById('modal-instructions');
+                const modalDescription = document.getElementById('modal-description');
+                const modal = document.getElementById('info-modal');
+
+                modalInstructions.textContent = "読み込み中...";
+                modalDescription.textContent = "読み込み中...";
+                modal.classList.remove('hidden');
+
+                const response = await fetch(`https://trampoline.turbowarp.org/api/projects/${currentProjectId}`);
+                if (!response.ok) {
+                    throw new Error(`APIリクエスト失敗: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                modalInstructions.textContent = data.instructions ? data.instructions : "(記載なし)";
+                modalDescription.textContent = data.description ? data.description : "(記載なし)";
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('modal-instructions').textContent = "情報の取得に失敗しました。";
+                document.getElementById('modal-description').textContent = "時間をおいて再度お試しください。";
+            }
+        }
+
+        // モーダルを閉じる処理
+        function closeModal() {
+            document.getElementById('info-modal').classList.add('hidden');
+        }
+
+        // モーダルの背景（黒い部分）をクリックしても閉じるようにする
+        document.getElementById('info-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', loadIframe);
+    </script>
+</body>
+</html>
