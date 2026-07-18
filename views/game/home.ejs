@@ -72,7 +72,11 @@
             color: #cbd5e0;
             padding: 1rem;
             text-align: center;
-            /* margin-top: 50px; を削除しました */
+        }
+        /* タブ用のスタイル */
+        .tab-btn {
+            transition: all 0.2s;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -86,50 +90,25 @@
 
     <div class="section flex-grow text-center pt-24 pb-10">
       
-        <div class="mt-6 mb-10 px-4">
+        <div class="mt-6 mb-6 px-4">
           <input type="text" id="search" placeholder="げーむを検索..." class="w-full max-w-md p-2 border rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
         </div>
-  
-        <section class="py-10 px-4 bg-gray-800 rounded-t-3xl mx-2 shadow-lg h-full">
 
+        <div class="flex space-x-6 mb-6 border-b border-gray-700 text-lg overflow-x-auto whitespace-nowrap justify-center px-4" id="tabs">
+            <button id="tab-popular" class="tab-btn pb-2 text-white font-bold border-b-2 border-blue-500">人気</button>
+            <button id="tab-au" class="tab-btn pb-2 text-gray-400 font-bold hover:text-white">Among Us</button>
+            <button id="tab-online" class="tab-btn pb-2 text-gray-400 font-bold hover:text-white">その他のオンラインゲーム</button>
+        </div>
+  
+        <section id="popular-container" class="py-10 px-4 bg-gray-800 rounded-t-3xl mx-2 shadow-lg h-full">
             <div class="mb-12">
                 <h2 class="text-white text-2xl font-bold mb-6 border-l-4 border-green-500 pl-4 text-left">旧わかめtubeにも搭載されていたゲーム</h2>
                 <div class="app-card-container">
-                    <div class="app-card">
-                        <a href="/game/games?id=snow">
-                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjltidAHWL4-H09EYtT_1QUcYNtCqXi2HcrA&s">
-                        </a>
-                        <h3 class="app-title">Snowball.io</h3>
-                        <p class="app-description">雪玉をぶつけ合うバトロワゲーム</p>
-                    </div>
-                    <div class="app-card">
-                        <a href="/game/games?id=paper">
-                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4qJVLuHb4EH8h7QU5C4k_Jb44aHgcxgTNKg&s">
-                        </a>
-                        <h3 class="app-title">Paper.io</h3>
-                        <p class="app-description">自分の陣地を広げるゲーム</p>
-                    </div>
-                    <div class="app-card">
-                        <a href="/game/games?id=drive">
-                        <img src="https://cdn.glitch.global/441c91ae-2a7f-4142-9ffb-ab0c7066dfa1/IMG_1488.jpeg?v=1719117561639">
-                        </a>
-                        <h3 class="app-title">ドライブゲーム</h3>
-                        <p class="app-description"><del>今にもぶっ壊れそうな</del>車の冒険</p>
-                    </div>
-                    <div class="app-card">
-                        <a href="/game/games?id=aiothello">
-                        <img src="https://cdn.glitch.global/441c91ae-2a7f-4142-9ffb-ab0c7066dfa1/IMG_1633.jpeg?v=1719809274004">
-                        </a>
-                        <h3 class="app-title">ひとりオセロ</h3>
-                        <p class="app-description">ばーさすつよつよAI</p>
-                    </div>
-                    <div class="app-card">
-                        <a href="/game/games?id=snowrider">
-                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTLvrbtbNiT6qcpsAgv8PBa49TLhIKH6XSZ6Q&s">
-                        </a>
-                        <h3 class="app-title">Snow Rider 3D</h3>
-                        <p class="app-description">スキーするゲーム？</p>
-                    </div>
+                    <div class="app-card"><a href="/game/games?id=snow"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjltidAHWL4-H09EYtT_1QUcYNtCqXi2HcrA&s"></a><h3 class="app-title">Snowball.io</h3><p class="app-description">雪玉をぶつけ合うバトロワゲーム</p></div>
+                    <div class="app-card"><a href="/game/games?id=paper"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4qJVLuHb4EH8h7QU5C4k_Jb44aHgcxgTNKg&s"></a><h3 class="app-title">Paper.io</h3><p class="app-description">自分の陣地を広げるゲーム</p></div>
+                    <div class="app-card"><a href="/game/games?id=drive"><img src="https://placehold.jp/150x150.png"></a><h3 class="app-title">ドライブゲーム</h3><p class="app-description"><del>今にもぶっ壊れそうな</del>車の冒険</p></div>
+                    <div class="app-card"><a href="/game/games?id=aiothello"><img src="https://placehold.jp/150x150.png"></a><h3 class="app-title">ひとりオセロ</h3><p class="app-description">ばーさすつよつよAI</p></div>
+                    <div class="app-card"><a href="/game/games?id=snowrider"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTLvrbtbNiT6qcpsAgv8PBa49TLhIKH6XSZ6Q&s"></a><h3 class="app-title">Snow Rider 3D</h3><p class="app-description">スキーするゲーム？</p></div>
                 </div>
             </div>
 
@@ -138,69 +117,15 @@
             <div class="mb-12">
                 <h2 class="text-white text-2xl font-bold mb-6 border-l-4 border-blue-500 pl-4 text-left">JWPから持ってきたミニゲーム集</h2>
                 <div class="app-card-container">
-                    <div class="app-card">
-                        <a href="/game/games?id=subway">
-                        <img src="https://img.poki-cdn.com/cdn-cgi/image/q=78,scq=50,width=1200,height=1200,fit=cover,f=png/9e89c8fe71f2e1179437b6b6d7e3a5a1/subway-surfers.png">
-                        </a>
-                        <h3 class="app-title">Subway Surfers</h3>
-                        <p class="app-description">線路を逆走しながら警察から逃げるやつ</p>
-                    </div>
-                    <div class="app-card">
-                        <a href="/game/games?id=monkey">
-                        <img src="https://img.poki-cdn.com/cdn-cgi/image/q=78,scq=50,width=1200,height=1200,fit=cover,f=png/93142510b4eb8a5b81fc264e31c00b88/monkey-mart.png">
-                        </a>
-                        <h3 class="app-title">Monkey Mart</h3>
-                        <p class="app-description">可愛いサルが農業と販売で店を広げる経営ゲーム</p>
-                    </div>
-                    <div class="app-card">
-                        <a href="/game/games?id=iron">
-                        <img src="https://img.poki-cdn.com/cdn-cgi/image/q=78,scq=50,width=1200,height=1200,fit=cover,f=png/b6cbf50f539ae0330a2840e501b91a28/iron-snout.png">
-                        </a>
-                        <h3 class="app-title">Iron Snout</h3>
-                        <p class="app-description">豚となって狼を殴り殺すゲーム</p>
-                    </div>
-                    <div class="app-card">
-                        <a href="/game/games?id=stickman">
-                        <img src="https://img.poki-cdn.com/cdn-cgi/image/q=78,scq=50,width=1200,height=1200,fit=cover,f=png/99e090d154caf30f3625df7e456d5984/stickman-hook.png">
-                        </a>
-                        <h3 class="app-title">Stickman Hook</h3>
-                        <p class="app-description">棒人間を操作して障害物を避け、ゴールを目指す、爽快感抜群の物理アクションゲーム</p>
-                    </div>
-                    <div class="app-card">
-                        <a href="/game/games?id=vex3">
-                        <img src="https://wsrv.nl/?url=https://gameforge.com/de-DE/littlegames/includes/images/games/12722_5eb3f9b8f3206.jpg">
-                        </a>
-                        <h3 class="app-title">Vex 3</h3>
-                        <p class="app-description">アスレチックアクションゲームVexの３作目</p>
-                    </div>
-                    <div class="app-card">
-                        <a href="/game/games?id=vex4">
-                        <img src="https://wsrv.nl/?url=https://gameforge.com/de-DE/littlegames/includes/images/games/10067_5eb3f071b2711.jpg">
-                        </a>
-                        <h3 class="app-title">Vex 4</h3>
-                        <p class="app-description">アスレチックアクションゲームVexの４作目</p>
-                    </div>
-                    <div class="app-card">
-                        <a href="/game/games?id=vex5">
-                        <img src="https://wsrv.nl/?url=https://gameforge.com/de-DE/littlegames/includes/images/games/19458_612750790e6e3.jpg">
-                        </a>
-                        <h3 class="app-title">Vex 5</h3>
-                        <p class="app-description">アスレチックアクションゲームVexの５作目</p>
-                    </div>
-                    <div class="app-card">
-                        <a href="/game/games?id=vex6">
-                        <img src="https://wsrv.nl/?url=https://gameforge.com/de-DE/littlegames/includes/images/games/19500_61b1cafd342b4.jpg">
-                        </a>
-                        <h3 class="app-title">Vex 6</h3>
-                        <p class="app-description">アスレチックアクションゲームVexの６作目</p>
-                    </div>
-                    <div class="app-card">
-                        <a href="/game/games?id=1v1">
-                        <img src="https://img.utdstc.com/icon/983/22a/98322a3b2be892eed31589906ffd949b68bcccc9a21ba562987965b5ec6bc6de:200">
-                        </a>
-                        <h3 class="app-title">1v1.LOL</h3>
-                        <p class="app-description">見たら分かる通りフォトナのパクリゲー</p>
-                    </div>
+                    <div class="app-card"><a href="/game/games?id=subway"><img src="https://img.poki-cdn.com/cdn-cgi/image/q=78,scq=50,width=1200,height=1200,fit=cover,f=png/9e89c8fe71f2e1179437b6b6d7e3a5a1/subway-surfers.png"></a><h3 class="app-title">Subway Surfers</h3><p class="app-description">線路を逆走しながら警察から逃げるやつ</p></div>
+                    <div class="app-card"><a href="/game/games?id=monkey"><img src="https://img.poki-cdn.com/cdn-cgi/image/q=78,scq=50,width=1200,height=1200,fit=cover,f=png/93142510b4eb8a5b81fc264e31c00b88/monkey-mart.png"></a><h3 class="app-title">Monkey Mart</h3><p class="app-description">可愛いサルが農業と販売で店を広げる経営ゲーム</p></div>
+                    <div class="app-card"><a href="/game/games?id=iron"><img src="https://img.poki-cdn.com/cdn-cgi/image/q=78,scq=50,width=1200,height=1200,fit=cover,f=png/b6cbf50f539ae0330a2840e501b91a28/iron-snout.png"></a><h3 class="app-title">Iron Snout</h3><p class="app-description">豚となって狼を殴り殺すゲーム</p></div>
+                    <div class="app-card"><a href="/game/games?id=stickman"><img src="https://img.poki-cdn.com/cdn-cgi/image/q=78,scq=50,width=1200,height=1200,fit=cover,f=png/99e090d154caf30f3625df7e456d5984/stickman-hook.png"></a><h3 class="app-title">Stickman Hook</h3><p class="app-description">棒人間を操作して障害物を避け、ゴールを目指す、爽快感抜群の物理アクションゲーム</p></div>
+                    <div class="app-card"><a href="/game/games?id=vex3"><img src="https://wsrv.nl/?url=https://gameforge.com/de-DE/littlegames/includes/images/games/12722_5eb3f9b8f3206.jpg"></a><h3 class="app-title">Vex 3</h3><p class="app-description">アスレチックアクションゲームVexの３作目</p></div>
+                    <div class="app-card"><a href="/game/games?id=vex4"><img src="https://wsrv.nl/?url=https://gameforge.com/de-DE/littlegames/includes/images/games/10067_5eb3f071b2711.jpg"></a><h3 class="app-title">Vex 4</h3><p class="app-description">アスレチックアクションゲームVexの４作目</p></div>
+                    <div class="app-card"><a href="/game/games?id=vex5"><img src="https://wsrv.nl/?url=https://gameforge.com/de-DE/littlegames/includes/images/games/19458_612750790e6e3.jpg"></a><h3 class="app-title">Vex 5</h3><p class="app-description">アスレチックアクションゲームVexの５作目</p></div>
+                    <div class="app-card"><a href="/game/games?id=vex6"><img src="https://wsrv.nl/?url=https://gameforge.com/de-DE/littlegames/includes/images/games/19500_61b1cafd342b4.jpg"></a><h3 class="app-title">Vex 6</h3><p class="app-description">アスレチックアクションゲームVexの６作目</p></div>
+                    <div class="app-card"><a href="/game/games?id=1v1"><img src="https://img.utdstc.com/icon/983/22a/98322a3b2be892eed31589906ffd949b68bcccc9a21ba562987965b5ec6bc6de:200"></a><h3 class="app-title">1v1.LOL</h3><p class="app-description">見たら分かる通りフォトナのパクリゲー</p></div>
                 </div>
             </div>
 
@@ -209,54 +134,154 @@
             <div>
                 <h2 class="text-white text-2xl font-bold mb-6 border-l-4 border-purple-500 pl-4 text-left">その他</h2>
                 <div class="app-card-container">
-                    <div class="app-card">
-                        <a href="http://combateggs.com/?midMonthGiveMeEggs" target="_blank" rel="noopener noreferrer">
-                        <img src="https://wsrv.nl/?url=https://www.shellshock.io/img/previewImage_shellShockers.webp">
-                        </a>
-                        <h3 class="app-title">Shell Shockers</h3>
-                        <p class="app-description">卵となって撃ち合うFPSアクションゲーム</p>
-                    </div>
-                    <div class="app-card">
-                        <a href="/game/games?id=lol">
-                        <img src="/wkt/back/vi/lUKiqFBLqKo/mqdefault.jpg">
-                        </a>
-                        <h3 class="app-title">LOLBeans.io</h3>
-                        <p class="app-description">Fall Guysの豆バージョン</p>
-                    </div>
-                    <div class="app-card">
-                        <a href="/game/games?id=kru">
-                        <img src="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://krunker.io&size=256">
-                        </a>
-                        <h3 class="app-title">Krunker.io</h3>
-                        <p class="app-description">有名なブラウザFPS</p>
-                    </div>
-                    <div class="app-card">
-                        <a href="/game/games?id=super">
-                        <img src="https://img.itch.zone/aW1nLzE1NDg4NjExLmpwZw==/original/I8%2BSy8.jpg">
-                        </a>
-                        <h3 class="app-title">Super Willie World</h3>
-                        <p class="app-description">ミッキーでマリオなアクションゲーム</p>
-                    </div>
-                    <div class="app-card">
-                        <a href="/game/games?id=super2">
-                        <img src="https://img.itch.zone/aW1nLzIzMzA4MDUxLmpwZw==/original/8IUcRW.jpg">
-                        </a>
-                        <h3 class="app-title">Super Willie World 2</h3>
-                        <p class="app-description">ミッキーでマリオなアクションゲームの続編?!</p>
-                    </div>
+                    <div class="app-card"><a href="http://combateggs.com/?midMonthGiveMeEggs" target="_blank" rel="noopener noreferrer"><img src="https://wsrv.nl/?url=https://www.shellshock.io/img/previewImage_shellShockers.webp"></a><h3 class="app-title">Shell Shockers</h3><p class="app-description">卵となって撃ち合うFPSアクションゲーム</p></div>
+                    <div class="app-card"><a href="/game/games?id=lol"><img src="/wkt/back/vi/lUKiqFBLqKo/mqdefault.jpg"></a><h3 class="app-title">LOLBeans.io</h3><p class="app-description">Fall Guysの豆バージョン</p></div>
+                    <div class="app-card"><a href="/game/games?id=kru"><img src="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://krunker.io&size=256"></a><h3 class="app-title">Krunker.io</h3><p class="app-description">有名なブラウザFPS</p></div>
+                    <div class="app-card"><a href="https://html-classic.itch.zone/html/10873132/index.html" target="_blank" rel="noopener noreferrer"><img src="https://img.itch.zone/aW1nLzE1NDg4NjExLmpwZw==/original/I8%2BSy8.jpg"></a><h3 class="app-title">Super Willie World</h3><p class="app-description">ミッキーでマリオなアクションゲーム</p></div>
+                    <div class="app-card"><a href="https://html-classic.itch.zone/html/15043641/index.html" target="_blank" rel="noopener noreferrer"><img src="https://img.itch.zone/aW1nLzIzMzA4MDUxLmpwZw==/original/8IUcRW.jpg"></a><h3 class="app-title">Super Willie World 2</h3><p class="app-description">ミッキーでマリオなアクションゲームの続編?!</p></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="au-container" class="hidden py-10 px-4 bg-gray-800 rounded-t-3xl mx-2 shadow-lg h-full">
+            <div class="mb-12">
+                <h2 class="text-white text-2xl font-bold mb-6 border-l-4 border-red-500 pl-4 text-left">クラシック</h2>
+                <div class="app-card-container">
+                    <div class="app-card"><a href="/game/tw?id=au/class_1"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/668123415.png"></a><h3 class="app-title">通常サーバー 1</h3><p class="app-description">日本で一番人数が多い。人が多すぎてよく落ちる。<br><br>@chachamaru1</p></div>
+                    <div class="app-card"><a href="/game/tw?id=au/class_2"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/559213588.png"></a><h3 class="app-title">通常サーバー 2</h3><p class="app-description">バージョンが少し古い。人が多すぎてよく落ちる。<br><br>@STARWARS-SUKI</p></div>
+                    <div class="app-card"><a href="/game/tw?id=au/class_3"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/557315349.png"></a><h3 class="app-title">通常サーバー 3</h3><p class="app-description">バージョンが少し古く、あんまり日本語じゃない。人が多すぎてよく落ちる。<br><br>@yuyuyu1023</p></div>
+                    <div class="app-card"><a href="/game/tw?id=au/class_mega"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/1045090037.png"></a><h3 class="app-title">メガサーバー</h3><p class="app-description">最大9部屋、横スクリーンに対応しているサーバー。友だちみんなで遊ぶならここ。<br><br>@K_WolFy_</p></div>
+                    <div class="app-card"><a href="/game/tw?id=au/class_all"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/658643933.png"></a><h3 class="app-title">完全日本語版 1</h3><p class="app-description">完全日本語版のパイオニア。チャットまで日本語だが重い。<br><br>@yosshi---</p></div>
+                    <div class="app-card"><a href="/game/tw?id=au/class_all2"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/1134100581.png"></a><h3 class="app-title">完全日本語版 2</h3><p class="app-description">もうひとつの完全日本語版。チャットまで日本語だが重い。<br><br>@Xx_Super_Master_xX</p></div>
                 </div>
             </div>
 
+            <hr class="border-gray-700 my-10">
+
+            <div class="mb-12">
+                <h2 class="text-white text-2xl font-bold mb-6 border-l-4 border-yellow-500 pl-4 text-left">ジェスターMOD（てるてるMOD）</h2>
+                <div class="app-card-container">
+                    <div class="app-card"><a href="/game/tw?id=au/jeste"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/717953555.png"></a><h3 class="app-title">通常サーバー</h3><p class="app-description">ジェスターMODだと一番人数が多い。<br><br>@chachamaru1</p></div>
+                    <div class="app-card"><a href="/game/tw?id=au/jeste_all"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/718067708.png"></a><h3 class="app-title">完全日本語版</h3><p class="app-description">チャットまで日本語だが重い。<br><br>@Pikurin</p></div>
+                    <div class="app-card"><a href="/game/tw?id=au/jeste_back"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/781286687.png"></a><h3 class="app-title">予備サーバー</h3><p class="app-description">最初の2つが満員のとき向け。あんまり日本語じゃない。<br><br>@RRR-scratch</p></div>
+                </div>
+            </div>
+
+            <hr class="border-gray-700 my-10">
+
+            <div>
+                <h2 class="text-white text-2xl font-bold mb-6 border-l-4 border-blue-500 pl-4 text-left">いろいろ入ってるMOD</h2>
+                <div class="app-card-container">
+                    <div class="app-card"><a href="/game/tw?id=au/mod_1"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/557792234.png"></a><h3 class="app-title">@yosshi---版</h3><p class="app-description">役職や陣営などがいろいろ追加されている名作。完全日本語版。<br><br>@yosshi---</p></div>
+                    <div class="app-card"><a href="/game/tw?id=au/mod_2"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/1102670768.png"></a><h3 class="app-title">@reimu010版</h3><p class="app-description">@yosshi---さんのやつにさらにいろいろ追加したやつ。<br><br>@reimu010版</p></div>
+                    <div class="app-card"><a href="/game/tw?id=au/mod_3"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/932765095.png"></a><h3 class="app-title">@KYMario4版</h3><p class="app-description">ほぼ英語のため、かなり上級者向け。<br><br>@KYMario4</p></div>
+                </div>
+            </div>
         </section>
-  </div>
+
+        <section id="online-container" class="hidden py-10 px-4 bg-gray-800 rounded-t-3xl mx-2 shadow-lg h-full">
+            <div class="mb-12">
+                <h2 class="text-white text-2xl font-bold mb-6 border-l-4 border-orange-500 pl-4 text-left">スプラトゥーン</h2>
+                <div class="app-card-container">
+                    <div class="app-card"><a href="/game/tw?id=spl/official"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/815938308.png"></a><h3 class="app-title">公式サーバー</h3><p class="app-description">FunnyAnimatorJimTVさんの名作。<br><br>@FunnyAnimatorJimTV</p></div>
+                    <div class="app-card"><a href="/game/tw?id=spl/lite"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/843973388.png"></a><h3 class="app-title">Lite</h3><p class="app-description">FunnyAnimatorJimTVさんが作った未完成の軽量版。<br><br>@FunnyAnimatorJimTV</p></div>
+                    <div class="app-card"><a href="/game/tw?id=spl/mobile"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/839320473.png"></a><h3 class="app-title">Mobile</h3><p class="app-description">モバイルでも遊べるように改良されたバージョン。<br><br>@prodforer</p></div>
+                    <div class="app-card"><a href="/game/tw?id=spl/x"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/925098639.png"></a><h3 class="app-title">Xマッチ</h3><p class="app-description">めちゃくちゃ軽量化されており一番人が多い。上級者が多いけど初心者にもおすすめ。<br><br>@-Terasu-</p></div>
+                </div>
+            </div>
+
+            <hr class="border-gray-700 my-10">
+
+            <div class="mb-12">
+                <h2 class="text-white text-2xl font-bold mb-6 border-l-4 border-purple-500 pl-4 text-left">フォートナイト</h2>
+                <div class="app-card-container">
+                    <div class="app-card"><a href="/game/tw?id=for/z_1"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/726942697.png"></a><h3 class="app-title">Fortnite Z シーズン 1</h3><p class="app-description">@FunnyAnimatorJimTVさんの名作の日本語版<br><br>@ok-scratch</p></div>
+                    <div class="app-card"><a href="/game/tw?id=for/z_2"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/1183256431.png"></a><h3 class="app-title">Fortnite Z シーズン 2 Beta</h3><p class="app-description">@FunnyAnimatorJimTVさんが途中で断念した幻のシーズン2の日本語版。<br><br>@K_WolFy_</p></div>
+                    <div class="app-card"><a href="/game/tw?id=for/z_3"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/1221386411.png"></a><h3 class="app-title">Fortnite Z 3D</h3><p class="app-description">@FunnyAnimatorJimTVさんの3Dテストの日本語版<br><br>@K_WolFy_</p></div>
+                    <div class="app-card"><a href="/game/tw?id=for/tt_official"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/926627534.png"></a><h3 class="app-title">Fortitude</h3><p class="app-description">無断コピーされまくり「Fortnite Online」や「Fortnite 2D」などとして広まった横スクロールフォトナの原作。<br><br>@ParaIIeI</p></div>
+                    <div class="app-card"><a href="/game/tw?id=for/tt_wide"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/986730836.png"></a><h3 class="app-title">Fortitude Wide</h3><p class="app-description">Fortitudeの横長バージョン<br><br>@Gamer1593</p></div>
+                    <div class="app-card"><a href="/game/tw?id=for/tt_ja"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/1186024383.png"></a><h3 class="app-title">Fortitude 日本語版</h3><p class="app-description">Fortitudeの日本語版<br><br>@K_WolFy_</p></div>
+                    <div class="app-card"><a href="/game/tw?id=for/real"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/829177828.png"></a><h3 class="app-title">Fortnite Real</h3><p class="app-description">@prodforerさんが作ったマジで3DのFortnite。原作が非公開になってしまったので無変更リミックスで埋めてます。<br><br>@prodforer</p></div>
+                </div>
+            </div>
+
+            <hr class="border-gray-700 my-10">
+
+            <div class="mb-12">
+                <h2 class="text-white text-2xl font-bold mb-6 border-l-4 border-red-600 pl-4 text-left">VALORANT</h2>
+                <div class="app-card-container">
+                    <div class="app-card"><a href="/game/tw?id=val/ja"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/1200062872.png"></a><h3 class="app-title">Valorant Scratch 完全日本語版</h3><p class="app-description">原作が非公開になってしまったValorantの完全日本語版。アナウンス以外の音声も日本語。<br><br>@K_WolFy_</p></div>
+                    <div class="app-card"><a href="/game/tw?id=val/2d"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/480712527.png"></a><h3 class="app-title">VALORANT 2D</h3><p class="app-description">デスマッチができる作品。<br><br>@high_digital</p></div>
+                </div>
+            </div>
+
+            <hr class="border-gray-700 my-10">
+
+            <div class="mb-12">
+                <h2 class="text-white text-2xl font-bold mb-6 border-l-4 border-green-600 pl-4 text-left">MMO（超大人数サーバー）</h2>
+                <div class="app-card-container">
+                    <div class="app-card"><a href="/game/tw?id=mmo/mine_ja"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/1221735904.png"></a><h3 class="app-title">マイクラ風 MMO 日本語版</h3><p class="app-description">@griffpatchさんが作ったマイクラ風MMOの日本語版<br><br>@K_WolFy_</p></div>
+                    <div class="app-card"><a href="/game/tw?id=mmo/plat_1"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/612229554.png"></a><h3 class="app-title">Platformer v1.3</h3><p class="app-description">大人数が参加できるMMOプラットフォーマー<br><br>@griffpatch</p></div>
+                    <div class="app-card"><a href="/game/tw?id=mmo/plat_2"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/392811906.png"></a><h3 class="app-title">Platformer v0.7</h3><p class="app-description">大人数が参加できるMMOプラットフォーマーのテストバージョン<br><br>@griffpatch</p></div>
+                </div>
+            </div>
+
+            <hr class="border-gray-700 my-10">
+
+            <div>
+                <h2 class="text-white text-2xl font-bold mb-6 border-l-4 border-gray-400 pl-4 text-left">Other</h2>
+                <div class="app-card-container">
+                    <div class="app-card"><a href="/game/tw?id=other/tact"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/831274817.png"></a><h3 class="app-title">TACT-AIM</h3><p class="app-description">国産シューティングゲーム<br><br>@uk-400</p></div>
+                    <div class="app-card"><a href="/game/tw?id=other/dg2_1"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/1115559391.png"></a><h3 class="app-title">Downgrade 2</h3><p class="app-description">様々なゲームを手掛ける@prodforerさんの名作の続編。<br><br>@prodforer</p></div>
+                    <div class="app-card"><a href="/game/tw?id=other/rc_ja"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/733440117.png"></a><h3 class="app-title">Robot Constructor日本語版</h3><p class="app-description">@KIKOKO_さんの名作の日本語版<br><br>@takutsuba</p></div>
+                    <div class="app-card"><a href="/game/tw?id=other/rd_ja"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/727045120.png"></a><h3 class="app-title">Robot Destructor 日本語版</h3><p class="app-description">Robot Constructorの続編<br><br>@takutsuba</p></div>
+                    <div class="app-card"><a href="/game/tw?id=other/hide"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/1163834832.png"></a><h3 class="app-title">かくれんぼオンライン</h3><p class="app-description">かくれんぼオンライン！<br><br>@pyure224</p></div>
+                    <div class="app-card"><a href="/game/tw?id=other/hide_mega"><img src="https://uploads.scratch.mit.edu/projects/thumbnails/1169508520.png"></a><h3 class="app-title">かくれんぼオンライン メガサーバー</h3><p class="app-description">かくれんぼオンラインの大人数＆大画面バージョン<br><br>@K_WolFy_</p></div>
+                </div>
+            </div>
+        </section>
+    </div>
 
     <footer class="mt-auto">
         <p>♪( ´▽｀)</p>
     </footer>
   
     <script>
+        // タブ切り替えロジック
+        const tabPopular = document.getElementById("tab-popular");
+        const tabAu = document.getElementById("tab-au");
+        const tabOnline = document.getElementById("tab-online");
+
+        const containerPopular = document.getElementById("popular-container");
+        const containerAu = document.getElementById("au-container");
+        const containerOnline = document.getElementById("online-container");
+
+        const tabs = [
+            { btn: tabPopular, container: containerPopular, activeColor: "border-blue-500" },
+            { btn: tabAu, container: containerAu, activeColor: "border-red-500" },
+            { btn: tabOnline, container: containerOnline, activeColor: "border-green-500" }
+        ];
+
+        function switchTab(selectedBtn) {
+            tabs.forEach(tab => {
+                if (tab.btn === selectedBtn) {
+                    tab.btn.classList.add("text-white", "border-b-2", tab.activeColor);
+                    tab.btn.classList.remove("text-gray-400");
+                    tab.container.classList.remove("hidden");
+                } else {
+                    tab.btn.classList.remove("text-white", "border-b-2", tab.activeColor);
+                    tab.btn.classList.add("text-gray-400");
+                    tab.container.classList.add("hidden");
+                }
+            });
+        }
+
+        tabPopular.addEventListener("click", () => switchTab(tabPopular));
+        tabAu.addEventListener("click", () => switchTab(tabAu));
+        tabOnline.addEventListener("click", () => switchTab(tabOnline));
+
+        // 検索ロジック
         const searchInput = document.getElementById('search');
-        const toolList = document.getElementById('app-list');
         const tools = document.querySelectorAll('.app-card');
 
         searchInput.addEventListener('input', function() {
