@@ -3,9 +3,10 @@ const axios = require('axios');
 // =========================================
 // キャッシュ・ペナルティ設定
 // =========================================
-const CACHE_DURATION = 60 * 60 * 1000; // リストのキャッシュ期間 (1時間 = 3,600,000ms)
-const BLOCK_DURATION = 30 * 60 * 1000; // ★ タイムアウト集計期間＆ブロック期間 (30分 = 1,800,000ms)
-const MAX_FAILURES = 3;                // ★ ブロックまでのタイムアウト回数
+const CACHE_DURATION = 60 * 60 * 1000; // リストのキャッシュ期間 (1時間)
+const FAIL_WINDOW = 10 * 60 * 1000;    // ★ タイムアウト集計期間 (10分 = 600,000ms)
+const BLOCK_DURATION = 30 * 60 * 1000; // ★ ブロック期間 (30分 = 1,800,000ms)
+const MAX_FAILURES = 3;                // ブロックまでの連続タイムアウト回数
 
 let apis = null;
 let apisLastFetch = 0;
@@ -60,7 +61,7 @@ function recordSuccess(instance) {
     }
 }
 
-// タイムアウトを記録し、条件を満たせばブロックする関数（★ログなどを修正）
+// タイムアウトを記録し、条件を満たせばブロックする関数
 function recordTimeout(instance) {
     const now = Date.now();
     let stats = instanceStats.get(instance);
@@ -71,17 +72,17 @@ function recordTimeout(instance) {
         return;
     }
 
-    // 最初のタイムアウトから設定期間（30分）以上経過していたら期間リセット
-    if (now - stats.firstFailTime > BLOCK_DURATION) {
+    // ★ 最初のタイムアウトから「10分（FAIL_WINDOW）」以上経過していたらカウントリセット
+    if (now - stats.firstFailTime > FAIL_WINDOW) {
         stats.fails = 1;
         stats.firstFailTime = now;
     } else {
         stats.fails++;
     }
 
-    // 指定回数（3回）タイムアウトした場合、指定期間（30分）ブロック
+    // ★ 10分以内に3回タイムアウトした場合、30分間ブロック（BLOCK_DURATION）
     if (stats.fails >= MAX_FAILURES) {
-        console.log(`🚫 ${MAX_FAILURES}回タイムアウトしたため、インスタンスを30分間ブロックします: ${instance}`);
+        console.log(`🚫 10分以内に${MAX_FAILURES}回タイムアウトしたため、インスタンスを30分間ブロックします: ${instance}`);
         stats.blockedUntil = now + BLOCK_DURATION;
         stats.fails = 0; // ブロック適用後はカウントをリセットして次回の判定に備える
     }
