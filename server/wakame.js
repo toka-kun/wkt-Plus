@@ -1,4 +1,6 @@
 const axios = require('axios');
+const crypto = require('crypto');
+const uuid = () => crypto.randomUUID();
 
 // =========================================
 // キャッシュ・ペナルティ設定
@@ -522,7 +524,31 @@ async function getAceThinker(videoId) {
 async function getFreemake(videoId) {
     try {
         const apiUrl = `https://downloader.freemake.com/api/videoinfo/${videoId}`;
-        const response = await axios.get(apiUrl, { timeout: MAX_TIME });
+        
+        // 指定されたヘッダーを定義
+        const headers = {
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "Origin": "https://www.freemake.com",
+            "Referer": "https://www.freemake.com/jp/free_video_downloader/",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+            "X-Analytics-Header": "UA-18256617-1",
+            "X-CF-Country": "JP",
+            "X-Experiments": "ss641.disabled;ss644_360p.disabled;ss656.disabled;ss661.enabled;cs210.media_element",
+            "X-Processing-Id": uuid(),
+            "X-Remote-Host": "www.freemake.com",
+            "X-Request-Attempt": "1",
+            "X-Session-Id": String(Math.floor(Math.random() * 2000000000)), // 毎回ランダム生成
+            "X-User-Browser": "Chrome",
+            "X-User-Id": uuid(), // 毎回ランダム生成
+            "X-User-Platform": "Windows x86_64"
+        };
+
+        // axiosリクエストに headers を追加
+        const response = await axios.get(apiUrl, { 
+            timeout: MAX_TIME,
+            headers: headers
+        });
+        
         const data = response.data;
 
         if (!data) {
