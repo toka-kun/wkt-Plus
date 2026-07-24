@@ -434,6 +434,35 @@ function renderPlaylistCard(v) {
     </div>
 </div>`;
 }
+
+/* =====================================================
+   ページロード時に全タブを並列取得し、空タブを非表示
+   ===================================================== */
+async function initAllTabs() {
+    const tabs = ['videos', 'shorts', 'live', 'releases', 'playlists'];
+    const results = await Promise.all(tabs.map(async tab => {
+        try {
+            const url = `/wkt/c/${encodeURIComponent(CHANNEL_ID)}/tab/${tab}`;
+            const res = await fetch(url);
+            if (!res.ok) return { tab, items: [] };
+            const data = await res.json();
+            return { tab, items: data.items || [] };
+        } catch (err) {
+            console.error('Tab preload error:', tab, err);
+            return { tab, items: [] };
+        }
+    }));
+
+    for (const { tab, items } of results) {
+        tabCache[tab] = items;
+        if (!items || items.length === 0) {
+            const btn = document.querySelector(`[data-tab="${tab}"]`);
+            if (btn) btn.style.display = 'none';
+        }
+    }
+}
+
+initAllTabs();
 </script>
 </body>
 </html>
