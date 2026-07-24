@@ -141,13 +141,14 @@ router.get('/:id', async (req, res) => {
             const reqOptions = { timeout: 5000, headers: { "User-Agent": user_agent } };
             // メモリキャッシュになかったので、リモートキャッシュを取りに行く
             const [siaRes, yudRes, katuoRes, senninRes] = await Promise.allSettled([
-                axios.get('https://siawaseok.f5.si/api/cache', reqOptions),
+                axios.get('https://siatube.com/api/stream/dashboard/status', reqOptions),
                 axios.get('https://yudlp.vercel.app/cache', reqOptions),
                 axios.get('https://ytdlpinstance-vercel.vercel.app/cache', reqOptions),
                 axios.get('https://senninytdlp-42jz.vercel.app/cache', reqOptions)
             ]);
-
-            if (siaRes.status === 'fulfilled' && siaRes.value.data && siaRes.value.data[videoId]) {
+            const siaItems = siaRes.status === 'fulfilled' ? siaRes.value.data?.cache?.items : null;
+            const isSiaCached = Array.isArray(siaItems) && siaItems.some(item => item.videoid === videoId);
+            if (isSiaCached) {
                 apiToUse = 'siawaseok'; baseUrl = 'siawaseok';
                 fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
                 cacheSource = "リモートキャッシュ (siawaseok)";
