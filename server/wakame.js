@@ -181,105 +181,115 @@ async function getInvidious(videoId) {
 }
 
 // =========================================
-// ② SiaTube API からの取得 (★修正完了: fetch使用 & m3u8・言語対応)
+// ② SiaTube API からの取得
 // =========================================
 async function getSiaTube(videoId) {
+    const apiUrl = `https://siatube.com/api/stream/${videoId}`;
+    let data;
+
     try {
-        const apiUrl = `https://siatube.com/api/stream/${videoId}`;
+        // 1. 通常のリクエスト(axios)を試行
+        const response = await axios.get(apiUrl, { timeout: MAX_TIME });
+        data = response.data;
+        console.log(`✅ 使用したAPI (SiaTube - 通常リクエスト): ${apiUrl}`);
+    } catch (initialError) {
+        console.log(`⚠️ 通常リクエスト失敗、fetch(カスタム設定)で再試行します: ${initialError.message}`);
         
-        // fetch 用の AbortController を準備
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), MAX_TIME);
+        // 2. fetch リクエスト
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), MAX_TIME);
 
-        // fetch でリクエストを送信
-        const response = await fetch(apiUrl, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json'
-            },
-            credentials: 'omit',
-            redirect: 'follow',
-            signal: controller.signal
-        });
+            const fetchResponse = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                },
+                credentials: 'omit',
+                redirect: 'follow',
+                signal: controller.signal
+            });
 
-        clearTimeout(timeoutId);
+            clearTimeout(timeoutId);
 
-        if (!response.ok) {
-            throw new Error(`HTTP Status: ${response.status}`);
+            if (!fetchResponse.ok) {
+                throw new Error(`HTTP Status: ${fetchResponse.status}`);
+            }
+
+            data = await fetchResponse.json();
+            console.log(`✅ 使用したAPI (SiaTube - fetchフォールバック): ${apiUrl}`);
+        } catch (fallbackError) {
+            console.error(`❌ エラー: siawaseok_${videoId} - ${fallbackError.message}`);
+            throw new Error("SiaTube APIからの取得に失敗 (両方の方法で失敗): " + fallbackError.message);
+        }
+    }
+
+    // --- パース処理 ---
+    const streams = data.streams || {};
+    const muxed = streams.muxed || [];
+    const videoOnly = streams.videoOnly || [];
+    const audioOnly = streams.audioOnly || [];
+    const m3u8Streams = streams.m3u8 || [];
+
+    // 音声ストリームのパース (拡張子 (ビットレート) - 言語)
+    const audioUrls = audioOnly.map(s => {
+        const abr = s.abr ? Math.round(s.abr) : null;
+        let name = abr ? `${s.ext} (${abr}kbps)` : s.ext;
+        if (s.language && s.language.name) {
+            name += ` - ${s.language.name}`;
+        }
+        return {
+            url: s.streamUrl || s.url,
+            name: name,
+            container: s.ext
+        };
+    });
+
+    // デフォルトストリーム
+    const combinedStream = muxed.find(s => String(s.formatId) === '18' || String(s.itag) === '18') || muxed[0];
+    const streamUrl = combinedStream?.streamUrl || combinedStream?.url || '';
+
+    // 通常の動画ストリームのパース
+    const streamUrls = videoOnly.map(s => {
+        let res = s.resolution || '';
+        if (res.includes('x')) res = res.split('x')[1] + 'p';
+        return {
+            url: s.streamUrl || s.url,
+            resolution: res,
+            container: s.ext || 'mp4',
+            fps: s.fps || null
+        };
+    });
+
+    // m3u8（HLS）ストリームのパース (画質 (m3u8) - 言語)
+    const parsedM3u8 = m3u8Streams.map(s => {
+        let res = s.resolution || '';
+        if (res.includes('x')) res = res.split('x')[1] + 'p';
+        
+        let resName = res;
+        if (s.fps) resName += `${s.fps}`;
+        resName += ` (m3u8)`;
+        
+        if (s.language && s.language.name) {
+            resName += ` - ${s.language.name}`;
         }
 
-        const data = await response.json();
-        console.log(`✅ 使用したAPI (SiaTube): ${apiUrl}`);
-
-        const streams = data.streams || {};
-        const muxed = streams.muxed || [];
-        const videoOnly = streams.videoOnly || [];
-        const audioOnly = streams.audioOnly || [];
-        const m3u8Streams = streams.m3u8 || [];
-
-        // 音声ストリームのパース (拡張子 (ビットレート) - 言語)
-        const audioUrls = audioOnly.map(s => {
-            const abr = s.abr ? Math.round(s.abr) : null;
-            let name = abr ? `${s.ext} (${abr}kbps)` : s.ext;
-            if (s.language && s.language.name) {
-                name += ` - ${s.language.name}`;
-            }
-            return {
-                url: s.streamUrl || s.url,
-                name: name,
-                container: s.ext
-            };
-        });
-
-        // デフォルトストリーム
-        const combinedStream = muxed.find(s => String(s.formatId) === '18' || String(s.itag) === '18') || muxed[0];
-        const streamUrl = combinedStream?.streamUrl || combinedStream?.url || '';
-
-        // 通常の動画ストリームのパース
-        const streamUrls = videoOnly.map(s => {
-            let res = s.resolution || '';
-            if (res.includes('x')) res = res.split('x')[1] + 'p';
-            return {
-                url: s.streamUrl || s.url,
-                resolution: res,
-                container: s.ext || 'mp4',
-                fps: s.fps || null
-            };
-        });
-
-        // m3u8（HLS）ストリームのパース (画質 FPS (m3u8) - 言語)
-        const parsedM3u8 = m3u8Streams.map(s => {
-            let res = s.resolution || '';
-            if (res.includes('x')) res = res.split('x')[1] + 'p';
-            
-            let resName = res;
-            if (s.fps) resName += ` ${s.fps}fps`;
-            resName += ` (m3u8)`;
-            
-            if (s.language && s.language.name) {
-                resName += ` - ${s.language.name}`;
-            }
-
-            return {
-                url: s.streamUrl || s.url,
-                resolution: resName,
-                container: 'm3u8',
-                fps: s.fps || null
-            };
-        });
-
-        // m3u8 ストリームも streamUrls に結合する
-        streamUrls.push(...parsedM3u8);
-
         return {
-            stream_url: streamUrl || streamUrls[0]?.url || '',
-            audioUrls: audioUrls,
-            streamUrls: streamUrls
+            url: s.streamUrl || s.url,
+            resolution: resName,
+            container: 'm3u8',
+            fps: s.fps || null
         };
-    } catch (error) {
-        console.error(`❌ エラー: siawaseok_${videoId} - ${error.message}`);
-        throw new Error("SiaTube APIからの取得に失敗: " + error.message);
-    }
+    });
+
+    // m3u8 ストリームも streamUrls に結合する
+    streamUrls.push(...parsedM3u8);
+
+    return {
+        stream_url: streamUrl || streamUrls[0]?.url || '',
+        audioUrls: audioUrls,
+        streamUrls: streamUrls
+    };
 }
 
 // =========================================
