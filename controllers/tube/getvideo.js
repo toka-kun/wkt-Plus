@@ -119,18 +119,18 @@ router.get('/:id', async (req, res) => {
             return res.render('tube/watch.ejs', finalRenderData);
         } catch (error) {
             // 先行リクエストが失敗した場合はこちらもエラー画面を返す
-            return renderError(res, videoId, selectedApi || 'invidious', error);
+            return renderError(res, videoId, selectedApi || 'freemake', error);
         }
     }
 
     // 3. 自分自身が最初のリクエストなら、取得処理（Promise）を作成して代表になる
     const fetchPromise = (async () => {
-        let baseUrl = selectedApi || 'invidious'; 
-        let apiToUse = selectedApi || 'invidious'; 
+        let baseUrl = selectedApi || 'freemake'; 
+        let apiToUse = selectedApi || 'freemake'; 
         let fallbackMessage = null; 
         
         // ログ出力でどのルートを通ったか明確にするための変数
-        let cacheSource = selectedApi ? `${selectedApi} (明示指定)` : "Invidious (デフォルト)";
+        let cacheSource = selectedApi ? `${selectedApi} (明示指定)` : "Freemake (デフォルト)";
 
         // ▼▼▼ パラメータ指定がない、または特定条件下での自動キャッシュ検索ロジック ▼▼▼
         const remoteCacheServers = ['siawaseok', 'yudlp', 'ytdlpinstance-vercel', 'senninytdlp', 'xeroxyt-nt-apiv1', 'simple-yt-stream'];
@@ -170,16 +170,16 @@ router.get('/:id', async (req, res) => {
                 console.log(`🎯 リモートキャッシュヒット: senninytdlp (${videoId})`);
             } else {
                 // リモートキャッシュにヒットしなかった場合、指定があればそれを使用
-                apiToUse = selectedApi || 'invidious';
-                baseUrl = selectedApi || 'invidious';
-                cacheSource = selectedApi ? `${selectedApi} (明示指定・リモートキャッシュなし)` : "Invidious (リモートキャッシュなし)";
+                apiToUse = selectedApi || 'freemake';
+                baseUrl = selectedApi || 'freemake';
+                cacheSource = selectedApi ? `${selectedApi} (明示指定・リモートキャッシュなし)` : "Freemake (リモートキャッシュなし)";
                 console.log(`ℹ️ リモートキャッシュなし: ${apiToUse} を使用 (${videoId})`);
             }
         } else {
             // 通常時、または対象外サーバー指定のためリモートキャッシュをスキップ
-            apiToUse = selectedApi || 'invidious';
-            baseUrl = selectedApi || 'invidious';
-            cacheSource = selectedApi ? `${selectedApi} (明示指定・リモートキャッシュスキップ)` : "Invidious (通常時・リモートキャッシュスキップ)";
+            apiToUse = selectedApi || 'freemake';
+            baseUrl = selectedApi || 'freemake';
+            cacheSource = selectedApi ? `${selectedApi} (明示指定・リモートキャッシュスキップ)` : "Freemake (通常時・リモートキャッシュスキップ)";
             console.log(`ℹ️ リモートキャッシュスキップ: ${apiToUse} を使用 (${videoId})`);
         }
         // ▲▲▲ ここまで ▲▲▲
@@ -240,7 +240,7 @@ router.get('/:id', async (req, res) => {
         res.setHeader('Cache-Control', `public, s-maxage=${ttlSec}, stale-while-revalidate=30`);
         res.render('tube/watch.ejs', renderData);
     } catch (error) {
-        return renderError(res, videoId, selectedApi || 'invidious', error);
+        return renderError(res, videoId, selectedApi || 'freemake', error);
     } finally {
         // 成功しても失敗しても、「取得中」リストからは必ず削除する
         activeRequests.delete(requestKey);
