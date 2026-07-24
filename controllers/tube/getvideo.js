@@ -7,7 +7,7 @@ const axios = require("axios");
 const user_agent = process.env.USER_AGENT || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36";
 
 // サーバーリスト (この順番でメモリキャッシュを探しに行きます)
-const serverUrls = ['invidious', 'acethinker', 'siawaseok', 'yudlp', 'ytdlpinstance-vercel', 'senninytdlp', 'min-tube2-api', 'xeroxyt-nt-apiv1', 'simple-yt-stream', 'freemake'];
+const serverUrls = ['freemake', 'invidious', 'acethinker', 'min-tube2-api', 'siawaseok', 'yudlp', 'ytdlpinstance-vercel', 'senninytdlp', 'xeroxyt-nt-apiv1', 'simple-yt-stream'];
 
 // ▼▼▼ APIごとのキャッシュ生存期間 (秒) ▼▼▼
 const apiTtlSettings = {
@@ -20,7 +20,7 @@ const apiTtlSettings = {
     'min-tube2-api': 14200,
     'xeroxyt-nt-apiv1': 14200,
     'simple-yt-stream': 14200,
-    'freemake': 600
+    'freemake': 3600 // 1時間に設定
 };
 
 // 指定したAPIのTTL(ミリ秒)を返す関数。設定になければデフォルトで600秒(10分)
@@ -66,7 +66,7 @@ router.get('/:id', async (req, res) => {
             hitApiName = selectedApi;
         }
     } else {
-        // API指定がない場合、Invidiousから順番にメモリキャッシュを確認する
+        // API指定がない場合、serverUrlsから順番にメモリキャッシュを確認する
         for (const api of serverUrls) {
             const key = `${videoId}_${api}`;
             const data = videoCache.get(key);
