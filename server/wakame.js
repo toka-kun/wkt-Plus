@@ -8,7 +8,7 @@ const uuid = () => crypto.randomUUID();
 const CACHE_DURATION = 60 * 60 * 1000; // リストのキャッシュ期間 (1時間)
 const FAIL_WINDOW = 10 * 60 * 1000;    // ★ タイムアウト集計期間 (10分 = 600,000ms)
 const BLOCK_DURATION = 30 * 60 * 1000; // ★ ブロック期間 (30分 = 1,800,000ms)
-const MAX_FAILURES = 3;                // ブロックまでの連続タイムアウト回数
+const MAX_FAILURES = 5;                // ブロックまでの連続タイムアウト回数
 
 let apis = null;
 let apisLastFetch = 0;
@@ -190,7 +190,6 @@ async function getSiaTube(videoId) {
     let data;
 
     try {
-        // 通常のリクエスト(axios)のみを使用
         const response = await axios.get(apiUrl, { timeout: MAX_TIME });
         data = response.data;
         console.log(`✅ 使用したAPI (SiaTube): ${apiUrl}`);
@@ -199,76 +198,138 @@ async function getSiaTube(videoId) {
         throw new Error("SiaTube APIからの取得に失敗: " + error.message);
     }
 
-    // --- パース処理 ---
-    const streams = data.streams || {};
-    
-    // プロパティが存在しない場合に備えて安全に配列化
-    const muxed = Array.isArray(streams.muxed) ? streams.muxed : [];
-    const videoOnly = Array.isArray(streams.videoOnly) ? streams.videoOnly : [];
-    const audioOnly = Array.isArray(streams.audioOnly) ? streams.audioOnly : [];
-    const m3u8Streams = Array.isArray(streams.m3u8) ? streams.m3u8 : [];
+    let streamUrl = '';
+    let audioUrls = [];
+    let streamUrls = [];
 
-    // 音声ストリームのパース (ファイル形式 (ビットレート) - 言語)
-    const audioUrls = audioOnly.map(s => {
-        // abrがない場合はbitrateから計算するフォールバック
-        const abr = s.abr ? Math.round(s.abr) : (s.bitrate ? Math.round(s.bitrate / 1000) : null);
-        const ext = s.ext || s.container || 'audio';
+    // --- 新しいJSONフォーマット (data.streams) の場合 ---
+    if (data.streams) {
+        const muxed = Array.isArray(data.streams.muxed) ? data.streams.muxed : [];
+        const videoOnly = Array.isArray(data.streams.videoOnly) ? data.streams.videoOnly : [];
+        const audioOnly = Array.isArray(data.streams.audioOnly) ? data.streams.audioOnly : [];
+        const m3u8Streams = Array.isArray(data.streams.m3u8) ? data.streams.m3u8 : [];
+
+        const combinedStream = muxed.find(s => String(s.formatId) === '18' || String(s.itag) === '18') || muxed[0];
+        streamUrl = combinedStream?.streamUrl || combinedStream?.url || '';
+
+        // 音声のパース: m4a (low) - 英語
+        audioUrls = audioOnly.map(s => {
+            const ext = s.ext || s.container || 'audio';
+            let quality = s.audioQuality ? s.audioQuality.replace('AUDIO_QUALITY_', '').toLowerCase() : null;
+            if (!quality) quality = s.formatNote || s.format_note;
+            if (!quality) quality = s.abr ? `${Math.round(s.abr)}kbps` : (s.bitrate ? `${Math.round(s.bitrate / 1000)}kbps` : null);
+            
+            let name = quality ? `${ext} (${quality})` : ext;
+            if (s.language && s.language.name) {
+                name += ` - ${s.language.name}`;
+            } else if (typeof s.language === 'string') {
+                name += ` - ${s.language}`;
+            }
+
+            return {
+                url: s.streamUrl || s.url || '',
+                name: name,
+                container: ext
+            };
+        }).filter(s => s.url);
+
+        // 映像のパース: 1080p60 (mp4) または 720p30 (m3u8) - 日本語
+        // 取得した順番を維持するため、そのまま結合して処理します
+        const allVideos = [...videoOnly, ...m3u8Streams];
+        streamUrls = allVideos.map(s => {
+            const isM3u8 = s.url && (s.url.includes('.m3u8') || s.url.includes('manifest') || s.protocol === 'm3u8_native');
+            let res = s.resolution || (s.height ? `${s.height}p` : (s.quality || 'Auto'));
+            if (res.includes('x')) res = res.split('x')[1] + 'p';
+            
+            let resName = res;
+            if (s.fps) resName += `${s.fps}`; // fpsを結合 (例: 1080p60)
+
+            const ext = isM3u8 ? 'm3u8' : (s.ext || s.container || 'mp4');
+            resName += ` (${ext})`;
+
+            if (s.language && s.language.name) {
+                resName += ` - ${s.language.name}`;
+            } else if (typeof s.language === 'string') {
+                resName += ` - ${s.language}`;
+            }
+
+            return {
+                url: s.streamUrl || s.url || '',
+                resolution: resName,
+                container: ext,
+                fps: s.fps || null
+            };
+        }).filter(s => s.url);
+
+    } 
+    // --- 古いフォーマット または フラットな配列の場合 ---
+    else {
+        const formats = Array.isArray(data) ? data : (data.formats || []);
         
-        let name = abr ? `${ext} (${abr}kbps)` : ext;
-        if (s.language && s.language.name) {
-            name += ` - ${s.language.name}`;
-        }
-        
-        return {
-            url: s.streamUrl || s.url || '',
-            name: name,
-            container: ext
-        };
-    }).filter(s => s.url); // URLが空の無効なデータを弾く
+        const combinedStream = formats.find(s => String(s.format_id) === '18' || String(s.itag) === '18' || (s.vcodec !== 'none' && s.acodec !== 'none'));
+        streamUrl = combinedStream?.streamUrl || combinedStream?.url || '';
 
-    // デフォルトストリーム (18 または muxed の先頭)
-    const combinedStream = muxed.find(s => String(s.formatId) === '18' || String(s.itag) === '18') || muxed[0];
-    const streamUrl = combinedStream?.streamUrl || combinedStream?.url || '';
+        // APIが返した配列の順番そのままにループ処理する
+        formats.forEach(s => {
+            const isAudioOnly = s.resolution === 'audio only' || s.vcodec === 'none';
+            const isM3u8 = s.url && (s.url.includes('.m3u8') || s.url.includes('manifest') || s.protocol === 'm3u8_native');
+            const isMuxed = (String(s.format_id) === '18' || String(s.itag) === '18') || (s.vcodec !== 'none' && s.acodec !== 'none');
 
-    // 通常の動画ストリームのパース
-    const streamUrls = videoOnly.map(s => {
-        let res = s.resolution || (s.height ? `${s.height}p` : (s.quality || 'Auto'));
-        if (res.includes('x')) res = res.split('x')[1] + 'p';
-        
-        return {
-            url: s.streamUrl || s.url || '',
-            resolution: res,
-            container: s.ext || s.container || 'mp4',
-            fps: s.fps || null
-        };
-    }).filter(s => s.url);
+            if (isAudioOnly) {
+                const ext = s.ext || s.container || 'audio';
+                let quality = s.audioQuality ? s.audioQuality.replace('AUDIO_QUALITY_', '').toLowerCase() : null;
+                if (!quality) quality = s.formatNote || s.format_note;
+                if (!quality) quality = s.abr ? `${Math.round(s.abr)}kbps` : (s.bitrate ? `${Math.round(s.bitrate / 1000)}kbps` : null);
+                
+                let name = quality ? `${ext} (${quality})` : ext;
+                if (s.language && s.language.name) {
+                    name += ` - ${s.language.name}`;
+                } else if (typeof s.language === 'string') {
+                    name += ` - ${s.language}`;
+                }
 
-    // m3u8（HLS）ストリームのパース (画質 FPS (m3u8) - 言語)
-    const parsedM3u8 = m3u8Streams.map(s => {
-        let res = s.resolution || (s.height ? `${s.height}p` : (s.quality || 'Auto'));
-        if (res.includes('x')) res = res.split('x')[1] + 'p';
-        
-        let resName = res;
-        if (s.fps) resName += ` ${s.fps}fps`;
-        resName += ` (m3u8)`;
-        
-        if (s.language && s.language.name) {
-            resName += ` - ${s.language.name}`;
-        }
+                if (s.url || s.streamUrl) {
+                    audioUrls.push({
+                        url: s.streamUrl || s.url,
+                        name: name,
+                        container: ext
+                    });
+                }
+            } else if (!isMuxed || isM3u8) {
+                let res = s.resolution || (s.height ? `${s.height}p` : (s.quality || 'Auto'));
+                if (res.includes('x')) res = res.split('x')[1] + 'p';
+                
+                let resName = res;
+                if (s.fps) resName += `${s.fps}`;
 
-        return {
-            url: s.streamUrl || s.url || '',
-            resolution: resName,
-            container: 'm3u8',
-            fps: s.fps || null
-        };
-    }).filter(s => s.url);
+                const ext = isM3u8 ? 'm3u8' : (s.ext || s.container || 'mp4');
+                resName += ` (${ext})`;
 
-    // m3u8 ストリームも streamUrls に結合する
-    streamUrls.push(...parsedM3u8);
+                if (s.language && s.language.name) {
+                    resName += ` - ${s.language.name}`;
+                } else if (typeof s.language === 'string') {
+                    resName += ` - ${s.language}`;
+                }
+
+                if (s.url || s.streamUrl) {
+                    streamUrls.push({
+                        url: s.streamUrl || s.url,
+                        resolution: resName,
+                        container: ext,
+                        fps: s.fps || null
+                    });
+                }
+            }
+        });
+    }
+
+    // もし stream_url が空っぽの場合は映像の最初をセット
+    if (!streamUrl && streamUrls.length > 0) {
+        streamUrl = streamUrls[0].url;
+    }
 
     return {
-        stream_url: streamUrl || streamUrls[0]?.url || '',
+        stream_url: streamUrl,
         audioUrls: audioUrls,
         streamUrls: streamUrls
     };
