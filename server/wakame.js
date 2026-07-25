@@ -186,7 +186,7 @@ async function getInvidious(videoId) {
 // ② SiaTube API からの取得
 // =========================================
 async function getSiaTube(videoId) {
-    const apiUrl = `https://siatube.com/api/stream/${videoId}`;
+    const apiUrl = `https://siatube.com/api/stream/${videoId}?origin=siatube`;
     let data;
 
     try {
