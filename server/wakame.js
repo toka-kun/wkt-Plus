@@ -6,8 +6,8 @@ const uuid = () => crypto.randomUUID();
 // キャッシュ・ペナルティ設定
 // =========================================
 const CACHE_DURATION = 60 * 60 * 1000; // リストのキャッシュ期間 (1時間)
-const FAIL_WINDOW = 10 * 60 * 1000;    // ★ タイムアウト集計期間 (10分 = 600,000ms)
-const BLOCK_DURATION = 30 * 60 * 1000; // ★ ブロック期間 (30分 = 1,800,000ms)
+const FAIL_WINDOW = 10 * 60 * 1000;    // タイムアウト集計期間 (10分 = 600,000ms)
+const BLOCK_DURATION = 30 * 60 * 1000; // ブロック期間 (30分 = 1,800,000ms)
 const MAX_FAILURES = 5;                // ブロックまでの連続タイムアウト回数
 
 let apis = null;
@@ -34,7 +34,6 @@ const MAX_TIME_SLOW = 20000;  // 低速サーバー用 (20秒)
 // ユーティリティ関数
 // =========================================
 
-// 配列をランダムにシャッフルする関数
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -43,27 +42,23 @@ function shuffleArray(array) {
     return array;
 }
 
-// インスタンスがブロックされているか判定する関数
 function isBlocked(instance) {
     const stats = instanceStats.get(instance);
     if (!stats) return false;
     
     if (stats.blockedUntil > Date.now()) {
-        return true; // ブロック期間中
+        return true; 
     }
     return false;
 }
 
-// 取得に成功した場合にカウントを減らす関数
 function recordSuccess(instance) {
     const stats = instanceStats.get(instance);
     if (stats && stats.fails > 0) {
-        // 1回成功するごとにペナルティを1つ減らす（0未満にはしない）
         stats.fails = Math.max(0, stats.fails - 1);
     }
 }
 
-// タイムアウトを記録し、条件を満たせばブロックする関数
 function recordTimeout(instance) {
     const now = Date.now();
     let stats = instanceStats.get(instance);
@@ -74,7 +69,6 @@ function recordTimeout(instance) {
         return;
     }
 
-    // 最初のタイムアウトから「10分（FAIL_WINDOW）」以上経過していたらカウントリセット
     if (now - stats.firstFailTime > FAIL_WINDOW) {
         stats.fails = 1;
         stats.firstFailTime = now;
@@ -82,11 +76,10 @@ function recordTimeout(instance) {
         stats.fails++;
     }
 
-    // 10分以内に指定回数タイムアウトした場合、指定期間ブロック
     if (stats.fails >= MAX_FAILURES) {
         console.log(`🚫 10分以内に${MAX_FAILURES}回タイムアウトしたため、インスタンスを30分間ブロックします: ${instance}`);
         stats.blockedUntil = now + BLOCK_DURATION;
-        stats.fails = 0; // ブロック適用後はカウントをリセットして次回の判定に備える
+        stats.fails = 0; 
     }
 }
 
@@ -121,13 +114,13 @@ async function ggvideo(videoId) {
             const response = await axios.get(apiUrl, { timeout: MAX_API_WAIT_TIME });
             if (response.data && response.data.formatStreams) {
                 console.log(`✅ 使用したAPI (Invidious): ${apiUrl}`);
-                recordSuccess(instance); // 成功記録
+                recordSuccess(instance); 
                 return response.data;
             }
         } catch (error) {
             console.error(`❌ エラー: ${instance} - ${error.message}`);
             if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-                recordTimeout(instance); // タイムアウト記録
+                recordTimeout(instance); 
             }
         }
         if (Date.now() - startTime >= MAX_TIME) throw new Error("接続がタイムアウトしました");
@@ -183,7 +176,7 @@ async function getInvidious(videoId) {
 }
 
 // =========================================
-// ② SiaTube API からの取得
+// ② SiaTube API からの取得 (徹底改修版)
 // =========================================
 async function getSiaTube(videoId) {
     const apiUrl = `https://siatube.com/api/stream/${videoId}?origin=siatube`;
@@ -209,6 +202,7 @@ async function getSiaTube(videoId) {
         const audioOnly = Array.isArray(data.streams.audioOnly) ? data.streams.audioOnly : [];
         const m3u8Streams = Array.isArray(data.streams.m3u8) ? data.streams.m3u8 : [];
 
+        // デフォルトストリームの取得
         const combinedStream = muxed.find(s => String(s.formatId) === '18' || String(s.itag) === '18') || muxed[0];
         streamUrl = combinedStream?.streamUrl || combinedStream?.url || '';
 
@@ -233,18 +227,15 @@ async function getSiaTube(videoId) {
             };
         }).filter(s => s.url);
 
-        // 映像のパース: 1080p60 (mp4) または 720p30 (m3u8) - 日本語
-        // 取得した順番を維持するため、そのまま結合して処理します
-        const allVideos = [...videoOnly, ...m3u8Streams];
-        streamUrls = allVideos.map(s => {
-            const isM3u8 = s.url && (s.url.includes('.m3u8') || s.url.includes('manifest') || s.protocol === 'm3u8_native');
+        // 映像のパース: 1080p60 (mp4) 
+        const parsedVideoOnly = videoOnly.map(s => {
             let res = s.resolution || (s.height ? `${s.height}p` : (s.quality || 'Auto'));
             if (res.includes('x')) res = res.split('x')[1] + 'p';
             
             let resName = res;
             if (s.fps) resName += `${s.fps}`; // fpsを結合 (例: 1080p60)
 
-            const ext = isM3u8 ? 'm3u8' : (s.ext || s.container || 'mp4');
+            const ext = s.ext || s.container || 'mp4';
             resName += ` (${ext})`;
 
             if (s.language && s.language.name) {
@@ -259,17 +250,41 @@ async function getSiaTube(videoId) {
                 container: ext,
                 fps: s.fps || null
             };
-        }).filter(s => s.url);
+        });
+
+        // m3u8のパース: 720p30 (m3u8) - 日本語
+        const parsedM3u8 = m3u8Streams.map(s => {
+            let res = s.resolution || (s.height ? `${s.height}p` : (s.quality || 'Auto'));
+            if (res.includes('x')) res = res.split('x')[1] + 'p';
+            
+            let resName = res;
+            if (s.fps) resName += `${s.fps}`;
+            resName += ` (m3u8)`;
+            
+            if (s.language && s.language.name) {
+                resName += ` - ${s.language.name}`;
+            } else if (typeof s.language === 'string') {
+                resName += ` - ${s.language}`;
+            }
+
+            return {
+                url: s.streamUrl || s.url || '',
+                resolution: resName,
+                container: 'm3u8',
+                fps: s.fps || null
+            };
+        });
+
+        // 映像とm3u8をそのまま結合して順番を維持
+        streamUrls = [...parsedVideoOnly, ...parsedM3u8].filter(s => s.url);
 
     } 
-    // --- 古いフォーマット または フラットな配列の場合 ---
+    // --- 古いフォーマット(フラット配列)の場合のフォールバック ---
     else {
         const formats = Array.isArray(data) ? data : (data.formats || []);
-        
         const combinedStream = formats.find(s => String(s.format_id) === '18' || String(s.itag) === '18' || (s.vcodec !== 'none' && s.acodec !== 'none'));
         streamUrl = combinedStream?.streamUrl || combinedStream?.url || '';
 
-        // APIが返した配列の順番そのままにループ処理する
         formats.forEach(s => {
             const isAudioOnly = s.resolution === 'audio only' || s.vcodec === 'none';
             const isM3u8 = s.url && (s.url.includes('.m3u8') || s.url.includes('manifest') || s.protocol === 'm3u8_native');
@@ -323,7 +338,6 @@ async function getSiaTube(videoId) {
         });
     }
 
-    // もし stream_url が空っぽの場合は映像の最初をセット
     if (!streamUrl && streamUrls.length > 0) {
         streamUrl = streamUrls[0].url;
     }
@@ -519,7 +533,7 @@ async function getAceThinker(videoId) {
             
             if (resData && resData.formats) {
                 console.log(`✅ 使用したAPI (AceThinker): ${apiUrl}`);
-                recordSuccess(instance); // 成功記録
+                recordSuccess(instance); 
                 
                 const formats = resData.formats;
                 const combinedStream = formats.find(f => f.acodec !== 'none' && f.vcodec !== 'none');
@@ -551,7 +565,7 @@ async function getAceThinker(videoId) {
         } catch (error) {
             console.error(`❌ エラー: ${instance} - ${error.message}`);
             if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-                recordTimeout(instance); // タイムアウト記録
+                recordTimeout(instance); 
             }
         }
         if (Date.now() - startTime >= MAX_TIME) throw new Error("接続がタイムアウトしました");
@@ -566,7 +580,6 @@ async function getFreemake(videoId) {
     try {
         const apiUrl = `https://downloader.freemake.com/api/videoinfo/${videoId}`;
         
-        // 指定されたヘッダーを定義
         const headers = {
             "Accept": "application/json, text/javascript, */*; q=0.01",
             "Origin": "https://www.freemake.com",
@@ -578,13 +591,12 @@ async function getFreemake(videoId) {
             "X-Processing-Id": uuid(),
             "X-Remote-Host": "www.freemake.com",
             "X-Request-Attempt": "1",
-            "X-Session-Id": String(Math.floor(Math.random() * 2000000000)), // 毎回ランダム生成
+            "X-Session-Id": String(Math.floor(Math.random() * 2000000000)),
             "X-User-Browser": "Chrome",
-            "X-User-Id": uuid(), // 毎回ランダム生成
+            "X-User-Id": uuid(), 
             "X-User-Platform": "Windows x86_64"
         };
 
-        // axiosリクエストに headers を追加
         const response = await axios.get(apiUrl, { 
             timeout: MAX_TIME,
             headers: headers
@@ -662,7 +674,7 @@ async function getXeroxNT(videoId) {
             
             if (data && data.streamingUrl) {
                 console.log(`✅ 使用したAPI (XeroxYT-NT): ${apiUrl}`);
-                recordSuccess(instance); // 成功記録
+                recordSuccess(instance); 
                 
                 const streamUrls = (data.formats || []).map(f => ({
                     url: f.url,
@@ -682,7 +694,7 @@ async function getXeroxNT(videoId) {
         } catch (error) {
             console.error(`❌ エラー: ${instance} - ${error.message}`);
             if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-                recordTimeout(instance); // タイムアウト記録
+                recordTimeout(instance); 
             }
         }
         if (Date.now() - startTime >= MAX_TIME_SLOW) throw new Error("接続がタイムアウトしました");
@@ -724,7 +736,7 @@ async function getMinTube2(videoId) {
             
             if (data && data.stream_url) {
                 console.log(`✅ 使用したAPI (MIN-Tube2): ${apiUrl}`);
-                recordSuccess(instance); // 成功記録
+                recordSuccess(instance); 
 
                 const streamUrls = [];
                 if (data.highstreamUrl && data.highstreamUrl !== data.stream_url) {
@@ -742,7 +754,7 @@ async function getMinTube2(videoId) {
         } catch (error) {
             console.error(`❌ エラー: ${instance} - ${error.message}`);
             if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-                recordTimeout(instance); // タイムアウト記録
+                recordTimeout(instance); 
             }
         }
         if (Date.now() - startTime >= MAX_TIME) throw new Error("接続がタイムアウトしました");
@@ -828,9 +840,8 @@ async function getYouTube(videoId, apiType = 'invidious') {
             result = await getInvidious(videoId);
         }
     } catch (error) {
-        // APIの最終エラーログを 待機用キー (apiType_videoId) の形式でコンソールに出力
         console.error(`❌ エラー: ${apiType}_${videoId} - ${error.message}`);
-        throw error; // 呼び出し元（ルーター側など）にエラーを上申する
+        throw error; 
     }
 
     if (result.streamUrls && result.streamUrls.length > 0) {
@@ -843,10 +854,14 @@ async function getYouTube(videoId, apiType = 'invidious') {
 
         result.streamUrls.forEach(stream => {
             let resName = stream.resolution || 'Auto';
-            resName = resName.replace(/ \(.+\)/g, '').trim();
+            
+            // ★ SiaTubeの場合、綺麗に整形した文字列を上書きで破壊しないようバイパスする
+            if (apiType !== 'siawaseok') {
+                resName = resName.replace(/ \(.+\)/g, '').trim();
 
-            if (stream.fps && resName.endsWith(stream.fps.toString())) {
-                resName = resName.slice(0, -stream.fps.toString().length);
+                if (stream.fps && resName.endsWith(stream.fps.toString())) {
+                    resName = resName.slice(0, -stream.fps.toString().length);
+                }
             }
 
             let containerType = stream.container || 'mp4';
@@ -869,9 +884,12 @@ async function getYouTube(videoId, apiType = 'invidious') {
         result.streamUrls = [];
     }
 
-    // 音声リストの中に manifest や .m3u8 が紛れ込んでいるものを除外
+    // 音声リストの中に manifest や .m3u8 が紛れ込んでいるものを除外する処理
     if (result.audioUrls && result.audioUrls.length > 0) {
-        result.audioUrls = result.audioUrls.filter(a => !(a.url.includes('manifest') || a.url.includes('.m3u8')));
+        // ★ SiaTubeは音声に manifest が含まれる場合もあるため、フィルタリングをバイパスする
+        if (apiType !== 'siawaseok') {
+            result.audioUrls = result.audioUrls.filter(a => !(a.url.includes('manifest') || a.url.includes('.m3u8')));
+        }
     }
 
     return result;
