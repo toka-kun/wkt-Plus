@@ -7,7 +7,7 @@ const axios = require("axios");
 const user_agent = process.env.USER_AGENT || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36";
 
 // サーバーリスト (この順番でメモリキャッシュを探しに行きます)
-const serverUrls = ['invidious', 'acethinker', 'freemake', 'min-tube2-api', 'siawaseok', 'yudlp', 'ytdlpinstance-vercel', 'senninytdlp', 'xeroxyt-nt-apiv1', 'simple-yt-stream'];
+const serverUrls = ['invidious', 'acethinker', 'freemake', 'min-tube2-api', 'siawaseok', 'yudlp', 'ytdlpinstance-vercel', 'senninytdlp', 'simple-yt-stream', 'xeroxyt-nt-apiv1'];
 
 // ▼▼▼ APIごとのキャッシュ生存期間 (秒) ▼▼▼
 const apiTtlSettings = {
@@ -138,6 +138,32 @@ router.get('/:id', async (req, res) => {
         const shouldFetchRemoteCache = remoteCacheServers.includes(selectedApi) || req.query.trend !== undefined;
 
         if (shouldFetchRemoteCache) {
+            // ▼▼▼ 追加: リモートキャッシュ通信を行う前に、対象サーバー群のメモリキャッシュが既に存在するか確認 ▼▼▼
+            let localCacheApi = null;
+            for (const api of remoteCacheServers) {
+                const key = `${videoId}_${api}`;
+                const data = videoCache.get(key);
+                if (data && (Date.now() - data.timestamp < getTtlMs(api))) {
+                    localCacheApi = api;
+                    break;
+                }
+            }
+
+            if (localCacheApi) {
+                console.log(`🎯 リモートキャッシュ通信をスキップ: メモリキャッシュを発見 (${localCacheApi}) - ${videoId}`);
+                const data = videoCache.get(`${videoId}_${localCacheApi}`);
+                const finalRenderData = { ...data.renderData };
+                
+                if (selectedApi && selectedApi === localCacheApi) {
+                    finalRenderData.fallbackMessage = null;
+                } else {
+                    finalRenderData.fallbackMessage = `キャッシュを確認したため、自動的に「${localCacheApi}」を使用しました。`;
+                }
+                
+                return { renderData: finalRenderData, usedApi: localCacheApi };
+            }
+            // ▲▲▲ 追加ここまで ▲▲▲
+
             const reqOptions = { timeout: 5000, headers: { "User-Agent": user_agent } };
             // メモリキャッシュになかったので、リモートキャッシュを取りに行く
             const [siaRes, yudRes, katuoRes, senninRes] = await Promise.allSettled([
