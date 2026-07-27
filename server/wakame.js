@@ -189,38 +189,100 @@ async function getSiaTube(videoId) {
     try {
         const apiUrl = `https://siatube.com/api/stream/${videoId}?origin=siatube`;
         const response = await axios.get(apiUrl, { timeout: MAX_TIME });
-        const streams = Array.isArray(response.data) ? response.data : (response.data.formats || []);
         
         console.log(`✅ 使用したAPI (SiaTube): ${apiUrl}`);
 
-        const audioUrls = streams
-            .filter(s => s.vcodec === 'none' && (s.ext === 'webm' || s.ext === 'm4a'))
-            .map(s => ({
-                url: s.url,
-                name: s.abr ? `${s.ext} (${s.abr}kbps)` : s.ext,
-                container: s.ext
-            }));
+        let streamUrl = '';
+        let audioUrls = [];
+        let streamUrls = [];
 
-        const combinedStream = streams.find(s => String(s.format_id) === '18' || String(s.itag) === '18') || 
-                               streams.find(s => s.vcodec !== 'none' && s.acodec !== 'none');
-        const streamUrl = combinedStream?.url || '';
+        // 新しい SiaTube レスポンス形式 (response.data.streams が存在する場合)
+        if (response.data && response.data.streams) {
+            const streamsObj = response.data.streams;
+            const muxed = streamsObj.muxed || [];
+            const videoOnly = streamsObj.videoOnly || [];
+            const audioOnly = streamsObj.audioOnly || [];
+            const m3u8 = streamsObj.m3u8 || [];
 
-        const videoStreams = streams.filter(s => {
-            if (!s.url || s.vcodec === 'none') return false;
-            if (s.url.includes('.m3u8') || s.url.includes('manifest')) return true;
-            return s.acodec === 'none';
-        });
+            // ① メイン再生用ストリーム (muxed から itag/formatId が 18 のものを優先、なければ最初の muxed)
+            const combinedStream = muxed.find(s => String(s.formatId || s.itag || s.format_id) === '18') || muxed[0];
+            streamUrl = combinedStream?.streamUrl || combinedStream?.url || '';
 
-        const streamUrls = videoStreams.map(s => {
-            let res = s.resolution || '';
-            if (res.includes('x')) res = res.split('x')[1] + 'p';
-            return {
-                url: s.url,
-                resolution: res,
-                container: s.ext || 'mp4',
-                fps: s.fps || null
-            };
-        });
+            // ② 音声ストリーム (audioOnly)
+            audioUrls = audioOnly
+                .filter(s => s.streamUrl || s.url)
+                .map(s => {
+                    const ext = s.ext || 'm4a';
+                    const url = s.streamUrl || s.url;
+                    return {
+                        url: url,
+                        name: s.abr ? `${ext} (${s.abr}kbps)` : ext,
+                        container: ext
+                    };
+                });
+
+            // ③ 映像/動画ストリーム (videoOnly + m3u8)
+            const combinedVideoStreams = [...videoOnly, ...m3u8];
+            streamUrls = combinedVideoStreams
+                .filter(s => s.streamUrl || s.url)
+                .map(s => {
+                    const url = s.streamUrl || s.url;
+                    
+                    // 解像度の整形 ("1920x1080" -> "1080p", "720p" はそのまま)
+                    let res = s.resolution || (s.height ? `${s.height}p` : s.formatNote || '');
+                    if (res.includes('x')) {
+                        res = res.split('x')[1] + 'p';
+                    }
+
+                    // コンテナ判定
+                    let container = s.ext || 'mp4';
+                    if (s.isM3u8 || s.protocol === 'm3u8_native' || url.includes('.m3u8') || url.includes('manifest')) {
+                        container = 'm3u8';
+                    }
+
+                    return {
+                        url: url,
+                        resolution: res,
+                        container: container,
+                        fps: s.fps || null
+                    };
+                });
+
+        } else {
+            // 従来の SiaTube レスポンス形式 (配列または response.data.formats) への互換フォールバック
+            const streams = Array.isArray(response.data) ? response.data : (response.data?.formats || []);
+
+            audioUrls = streams
+                .filter(s => s.vcodec === 'none' && (s.ext === 'webm' || s.ext === 'm4a'))
+                .map(s => ({
+                    url: s.url || s.streamUrl,
+                    name: s.abr ? `${s.ext} (${s.abr}kbps)` : s.ext,
+                    container: s.ext
+                }));
+
+            const combinedStream = streams.find(s => String(s.format_id || s.formatId || s.itag) === '18') || 
+                                   streams.find(s => s.vcodec !== 'none' && s.acodec !== 'none');
+            streamUrl = combinedStream?.url || combinedStream?.streamUrl || '';
+
+            const videoStreams = streams.filter(s => {
+                const url = s.url || s.streamUrl;
+                if (!url || s.vcodec === 'none') return false;
+                if (url.includes('.m3u8') || url.includes('manifest')) return true;
+                return s.acodec === 'none';
+            });
+
+            streamUrls = videoStreams.map(s => {
+                const url = s.url || s.streamUrl;
+                let res = s.resolution || '';
+                if (res.includes('x')) res = res.split('x')[1] + 'p';
+                return {
+                    url: url,
+                    resolution: res,
+                    container: s.ext || 'mp4',
+                    fps: s.fps || null
+                };
+            });
+        }
 
         return {
             stream_url: streamUrl || streamUrls[0]?.url || '',
