@@ -132,10 +132,10 @@ router.get('/:id', async (req, res) => {
         // ログ出力でどのルートを通ったか明確にするための変数
         let cacheSource = selectedApi ? `${selectedApi} (明示指定)` : "Invidious (デフォルト)";
 
-        // ▼▼▼ パラメータ指定がない、または特定条件下での自動キャッシュ検索ロジック ▼▼▼
+        // ▼▼▼ 特定条件下での自動キャッシュ検索ロジック ▼▼▼
         const remoteCacheServers = ['siawaseok', 'yudlp', 'ytdlpinstance-vercel', 'senninytdlp', 'xeroxyt-nt-apiv1', 'simple-yt-stream'];
-        // 指定されたサーバーが対象である、またはURLに ?trend パラメータが存在する場合にリモートキャッシュを取得しにいく
-        const shouldFetchRemoteCache = remoteCacheServers.includes(selectedApi) || req.query.trend !== undefined;
+        // URLに ?trend パラメータが存在する場合のみリモートキャッシュを取得しにいく
+        const shouldFetchRemoteCache = req.query.trend !== undefined;
 
         if (shouldFetchRemoteCache) {
             // ▼▼▼ 追加: リモートキャッシュ通信を行う前に、対象サーバー群のメモリキャッシュが既に存在するか確認 ▼▼▼
@@ -202,7 +202,7 @@ router.get('/:id', async (req, res) => {
                 console.log(`ℹ️ リモートキャッシュなし: ${apiToUse} を使用 (${videoId})`);
             }
         } else {
-            // 通常時、または対象外サーバー指定のためリモートキャッシュをスキップ
+            // trendパラメータなしのためリモートキャッシュをスキップ
             apiToUse = selectedApi || 'invidious';
             baseUrl = selectedApi || 'invidious';
             cacheSource = selectedApi ? `${selectedApi} (明示指定・リモートキャッシュスキップ)` : "Invidious (通常時・リモートキャッシュスキップ)";
