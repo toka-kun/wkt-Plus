@@ -17,6 +17,14 @@
         <span>戻る</span>
     </button>
 
+    <button class="fixed top-5 right-5 z-50 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out flex items-center space-x-2" onclick="openModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span>再生方法</span>
+    </button>
+
     <div class="flex-grow w-full h-screen pt-20 pb-4 px-4 box-border flex flex-col lg:flex-row gap-4">
         
         <div class="w-full lg:w-[75%] aspect-video lg:aspect-auto lg:h-full bg-black rounded-2xl shadow-lg border-none flex items-center justify-center overflow-hidden flex-shrink-0" id="player-container">
@@ -33,6 +41,33 @@
             </div>
         </div>
 
+    </div>
+
+    <div id="info-modal" class="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-gray-800 rounded-2xl max-w-md w-full max-h-[80vh] flex flex-col p-6 shadow-2xl border border-gray-700">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-3">
+                <h3 class="text-xl font-bold text-white">再生方法を選択</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white transition duration-200">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="overflow-y-auto space-y-3">
+                <p class="text-sm text-gray-300 mb-3">両方のソース（HLS / YouTube）に対応しているチャンネルの場合に優先する再生方法を選択します。</p>
+                
+                <button id="mode-btn-hls" onclick="setPlayMode('hls')" class="play-mode-option-btn w-full text-left bg-gray-700 hover:bg-gray-600 p-3 rounded-lg transition duration-200 flex flex-col mb-2">
+                    <span class="font-bold text-white text-md">通常</span>
+                    <span class="text-xs text-gray-400 mt-1 px-2 py-1 bg-gray-900 rounded inline-block w-max">通常のライブストリームURLを使用して再生します。</span>
+                </button>
+
+                <button id="mode-btn-education" onclick="setPlayMode('education')" class="play-mode-option-btn w-full text-left bg-gray-700 hover:bg-gray-600 p-3 rounded-lg transition duration-200 flex flex-col mb-2">
+                    <span class="font-bold text-white text-md">Education</span>
+                    <span class="text-xs text-gray-400 mt-1 px-2 py-1 bg-gray-900 rounded inline-block w-max">YouTubeEducationを埋め込んで再生します。</span>
+                </button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -60,6 +95,8 @@
         const channelList = document.getElementById('channel-list');
         const playerContainer = document.getElementById('player-container');
         let currentHls = null; 
+        let currentSelectedItem = null; // 現在選択中のチャンネル情報
+        let currentPlayMode = localStorage.getItem('tv_play_mode') || 'hls'; // 'hls' または 'education'
 
         // データを地域(Region)ごとに整理
         const groupedData = {};
@@ -140,6 +177,7 @@
                     // チャンネルクリック時にも対象地域の地域ボタンを強調する
                     updateActiveRegionBtn(regionCode);
 
+                    currentSelectedItem = item;
                     playMedia(item.hlsUrl, item.fallbackVideoId);
                     currentBtn.blur(); 
                 };
@@ -186,6 +224,48 @@
             }
         });
 
+        // --- 再生方法モーダルの操作 ---
+        function openModal() {
+            document.getElementById('info-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('info-modal').classList.add('hidden');
+        }
+
+        document.getElementById('info-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        function setPlayMode(mode) {
+            currentPlayMode = mode;
+            localStorage.setItem('tv_play_mode', mode);
+            updatePlayModeUI();
+            if (currentSelectedItem) {
+                playMedia(currentSelectedItem.hlsUrl, currentSelectedItem.fallbackVideoId);
+            }
+        }
+
+        function updatePlayModeUI() {
+            const btnHls = document.getElementById('mode-btn-hls');
+            const btnEdu = document.getElementById('mode-btn-education');
+
+            if (!btnHls || !btnEdu) return;
+
+            if (currentPlayMode === 'education') {
+                btnHls.className = "play-mode-option-btn w-full text-left bg-gray-700 hover:bg-gray-600 p-3 rounded-lg transition duration-200 flex flex-col mb-2";
+                btnEdu.className = "play-mode-option-btn w-full text-left bg-blue-600 hover:bg-blue-500 ring-2 ring-inset ring-blue-400 p-3 rounded-lg transition duration-200 flex flex-col mb-2";
+            } else {
+                btnHls.className = "play-mode-option-btn w-full text-left bg-blue-600 hover:bg-blue-500 ring-2 ring-inset ring-blue-400 p-3 rounded-lg transition duration-200 flex flex-col mb-2";
+                btnEdu.className = "play-mode-option-btn w-full text-left bg-gray-700 hover:bg-gray-600 p-3 rounded-lg transition duration-200 flex flex-col mb-2";
+            }
+        }
+
+        // 初期表示時にUI選択状態を同期
+        updatePlayModeUI();
+
         // 動画再生のロジック
         async function playMedia(hlsUrl, fallbackVideoId) {
             if (currentHls) {
@@ -193,7 +273,26 @@
                 currentHls = null;
             }
 
-            if (hlsUrl && hlsUrl.trim() !== "") {
+            const hasHls = hlsUrl && hlsUrl.trim() !== "";
+            const hasFallback = fallbackVideoId && fallbackVideoId.trim() !== "";
+
+            let useHls = false;
+            let useFallback = false;
+
+            // 両方のソースがある場合は選択されたモードを優先、片方のみの場合は存在する方を採用
+            if (hasHls && hasFallback) {
+                if (currentPlayMode === 'education') {
+                    useFallback = true;
+                } else {
+                    useHls = true;
+                }
+            } else if (hasHls) {
+                useHls = true;
+            } else if (hasFallback) {
+                useFallback = true;
+            }
+
+            if (useHls) {
                 playerContainer.innerHTML = `<video id="hls-video" class="w-full h-full bg-black rounded-2xl outline-none" controls autoplay></video>`;
                 const video = document.getElementById('hls-video');
                 
@@ -211,7 +310,7 @@
                         video.play();
                     });
                 }
-            } else if (fallbackVideoId && fallbackVideoId.trim() !== "") {
+            } else if (useFallback) {
                 let paramText = "";
                 
                 try {
