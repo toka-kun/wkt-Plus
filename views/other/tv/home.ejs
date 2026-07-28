@@ -322,7 +322,7 @@
                     console.error("Failed to fetch YouTube URL parameters:", error);
                 }
 
-                const embedUrl = `https://www.youtubeeducation.com/embed/${fallbackVideoId}${paramText.trim()}`;
+                const embedUrl = `https://www.youtubeeducation.com/embed/${fallbackVideoId}${paramText.trim()}&playlist=${fallbackVideoId}`;
                 
                 playerContainer.innerHTML = `
                     <iframe 
