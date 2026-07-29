@@ -9,15 +9,6 @@ const TTL_MS = TTL_SEC * 1000;
 let trendCache = null;      // 取得済みのデータを保存する変数
 let activeRequest = null;   // 現在取得中の「処理(Promise)」を保存する変数
 
-// 配列をランダムにシャッフルする関数
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
-
 router.get("/", async (req, res) => {
     try {
         // 1. メモリキャッシュの確認
@@ -60,9 +51,7 @@ router.get("/", async (req, res) => {
                     let instances = instancesRes.data;
 
                     if (Array.isArray(instances)) {
-                        // ★ インスタンスをランダムな順番にする
-                        instances = shuffleArray([...instances]);
-
+                        // 上から順番に試行する
                         for (const instance of instances) {
                             try {
                                 let baseUrl = typeof instance === 'string' ? instance : 
