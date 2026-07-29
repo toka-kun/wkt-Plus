@@ -30,15 +30,27 @@ router.get("/", async (req, res) => {
         const fetchPromise = (async () => {
             // 1. ajgpw のデータ取得処理 (急上昇・ゲーム・音楽)
             const base64Promise = axios.get("https://raw.githubusercontent.com/ajgpw/youtubedata/refs/heads/main/trend-base64.json")
-                .then(res => res.data)
+                .then(res => {
+                    let data = res.data;
+                    if (typeof data === 'string') {
+                        try { data = JSON.parse(data); } catch (e) { return {}; }
+                    }
+                    return (typeof data === 'object' && data !== null) ? data : {};
+                })
                 .catch(err => {
                     console.error('base64データの取得に失敗しました:', err.message);
-                    return [];
+                    return {};
                 });
 
             // 2. Shell Shockers データの取得処理
             const shellPromise = axios.get("https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/apis/shellTrend.json")
-                .then(res => res.data)
+                .then(res => {
+                    let data = res.data;
+                    if (typeof data === 'string') {
+                        try { data = JSON.parse(data); } catch (e) { return []; }
+                    }
+                    return Array.isArray(data) ? data : [];
+                })
                 .catch(err => {
                     console.error('shellデータの取得に失敗しました:', err.message);
                     return [];
@@ -51,7 +63,6 @@ router.get("/", async (req, res) => {
                     let instances = instancesRes.data;
 
                     if (Array.isArray(instances)) {
-                        // 上から順番に試行する
                         for (const instance of instances) {
                             try {
                                 let baseUrl = typeof instance === 'string' ? instance : 
@@ -59,17 +70,20 @@ router.get("/", async (req, res) => {
                                                (instance.uri || instance.domain || ""));
                                 
                                 if (!baseUrl) continue;
-                                
                                 if (!baseUrl.startsWith('http')) baseUrl = `https://${baseUrl}`;
                                 baseUrl = baseUrl.replace(/\/$/, '');
 
                                 const apiUrl = `${baseUrl}/api/v1/trending?type=Livestreams&region=JP`;
-                                
                                 const invRes = await axios.get(apiUrl, { timeout: 5000 });
                                 
-                                if (invRes.data) {
+                                let data = invRes.data;
+                                if (typeof data === 'string') {
+                                    try { data = JSON.parse(data); } catch (e) { continue; }
+                                }
+                                
+                                if (Array.isArray(data)) {
                                     console.log(`✅ Trend(Live)取得成功: ${baseUrl}`);
-                                    return invRes.data; 
+                                    return data; 
                                 }
                             } catch (e) {
                                 continue;
@@ -116,7 +130,7 @@ router.get("/", async (req, res) => {
     } catch (error) {
         console.error('予期せぬエラーが発生しました:', error);
         res.render("tube/trend.ejs", { 
-            topVideos_base64: [], 
+            topVideos_base64: {}, 
             topVideos_shell: [],
             topVideos_inv: [] 
         });
