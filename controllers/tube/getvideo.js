@@ -138,42 +138,18 @@ router.get('/:id', async (req, res) => {
         const shouldFetchRemoteCache = req.query.trend !== undefined;
 
         if (shouldFetchRemoteCache) {
-            // ▼▼▼ 追加: リモートキャッシュ通信を行う前に、対象サーバー群のメモリキャッシュが既に存在するか確認 ▼▼▼
-            let localCacheApi = null;
-            for (const api of remoteCacheServers) {
-                const key = `${videoId}_${api}`;
-                const data = videoCache.get(key);
-                if (data && (Date.now() - data.timestamp < getTtlMs(api))) {
-                    localCacheApi = api;
-                    break;
-                }
-            }
-
-            if (localCacheApi) {
-                console.log(`🎯 リモートキャッシュ通信をスキップ: メモリキャッシュを発見 (${localCacheApi}) - ${videoId}`);
-                const data = videoCache.get(`${videoId}_${localCacheApi}`);
-                const finalRenderData = { ...data.renderData };
-                
-                if (selectedApi && selectedApi === localCacheApi) {
-                    finalRenderData.fallbackMessage = null;
-                } else {
-                    finalRenderData.fallbackMessage = `キャッシュを確認したため、自動的に「${localCacheApi}」を使用しました。`;
-                }
-                
-                return { renderData: finalRenderData, usedApi: localCacheApi };
-            }
-            // ▲▲▲ 追加ここまで ▲▲▲
-
             const reqOptions = { timeout: 5000, headers: { "User-Agent": user_agent } };
-            // メモリキャッシュになかったので、リモートキャッシュを取りに行く
+            // メモリキャッシュ確認の前に、まずリモートキャッシュを取りに行く
             const [siaRes, yudRes, katuoRes, senninRes] = await Promise.allSettled([
                 axios.get('https://siatube.com/api/stream/dashboard/status', reqOptions),
                 axios.get('https://yudlp.vercel.app/cache', reqOptions),
                 axios.get('https://ytdlpinstance-vercel.vercel.app/cache', reqOptions),
                 axios.get('https://senninytdlp-42jz.vercel.app/cache', reqOptions)
             ]);
+            
             const siaItems = siaRes.status === 'fulfilled' ? siaRes.value.data?.cache?.items : null;
             const isSiaCached = Array.isArray(siaItems) && siaItems.some(item => item.videoid === videoId);
+            
             if (isSiaCached) {
                 apiToUse = 'siawaseok'; baseUrl = 'siawaseok';
                 fallbackMessage = `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
@@ -201,6 +177,24 @@ router.get('/:id', async (req, res) => {
                 cacheSource = selectedApi ? `${selectedApi} (明示指定・リモートキャッシュなし)` : "Invidious (リモートキャッシュなし)";
                 console.log(`ℹ️ リモートキャッシュなし: ${apiToUse} を使用 (${videoId})`);
             }
+
+            // ▼▼▼ 追加: リモートキャッシュ確認後、決定したサーバーのメモリキャッシュが既に存在するか確認 ▼▼▼
+            const localCacheKey = `${videoId}_${apiToUse}`;
+            const localCachedData = videoCache.get(localCacheKey);
+            if (localCachedData && (Date.now() - localCachedData.timestamp < getTtlMs(apiToUse))) {
+                console.log(`🎯 リモートキャッシュ確認後、メモリキャッシュを発見 (${apiToUse}) - ${videoId}`);
+                const finalRenderData = { ...localCachedData.renderData };
+                
+                if (selectedApi && selectedApi === apiToUse) {
+                    finalRenderData.fallbackMessage = null;
+                } else {
+                    finalRenderData.fallbackMessage = fallbackMessage || `キャッシュを確認したため、自動的に「${apiToUse}」を使用しました。`;
+                }
+                
+                return { renderData: finalRenderData, usedApi: apiToUse };
+            }
+            // ▲▲▲ 追加ここまで ▲▲▲
+            
         } else {
             // trendパラメータなしのためリモートキャッシュをスキップ
             apiToUse = selectedApi || 'invidious';
