@@ -1,4 +1,73 @@
-<script>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>急上昇</title>
+
+  <meta name="description" content="まっしろになってゆく">
+  <meta property="og:title" content="わかめtube">
+  <meta property="og:description" content="まっしろになってゆく">
+  <meta property="og:site_name" content="わかめtube | まっしろになっていく">
+  <meta property="og:image" content="https://cdn.glitch.global/5b8b419f-e61e-4533-9e15-5b2805b88d0e/IMG_1111_Original.jpeg">
+  <meta name="theme-color" content="#1F2937">
+  <link rel="icon" href="https://cdn.glitch.global/5b8b419f-e61e-4533-9e15-5b2805b88d0e/IMG_1111_Original.jpeg">
+
+  <script src="/js/tailwindcss.js"></script>
+
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script src="/js/tube.js"></script>
+
+  <style>
+    .ui-autocomplete { z-index: 1000 !important; }
+    body { background-color: #111827; } 
+    /* タブのスタイル調整 */
+    .tab-btn { transition: all 0.2s; cursor: pointer; }
+    /* 検索ボックスの余白設定（search.ejsと統一） */
+    .searchbox { padding-right: 30px; }
+  </style>
+</head>
+
+<body class="bg-gray-900 text-white font-sans antialiased">
+
+  <header class="bg-gray-800 p-4 flex justify-between items-center shadow-md">
+      <form action="/wkt/s" method="get" class="w-1/2" id="searchForm">
+          <input type="text" name="q" id="searchbox" placeholder="検索" 
+                 value="<%= typeof query !== 'undefined' ? query : '' %>" 
+                 class="searchbox w-full p-2 rounded bg-gray-700 text-white">
+      </form>
+      
+      <nav class="space-x-4 flex items-center text-sm md:text-base">
+          <a href="/wkt" class="text-gray-300 hover:text-white transition-colors">ホーム</a>
+          <a href="/wkt/cl/fav" class="text-gray-300 hover:text-white transition-colors">お気に入り</a>
+          <a href="/wkt/cl/history" class="text-gray-300 hover:text-white transition-colors">再生履歴</a>
+          <a href="/wkt/cl/shistory" class="text-gray-300 hover:text-white transition-colors">検索履歴</a>
+      </nav>
+  </header>
+  
+  <div class="container mx-auto p-4">
+      <div class="flex space-x-6 mb-6 border-b border-gray-700 text-lg overflow-x-auto whitespace-nowrap" id="tabs">
+          <button id="tab-trend" class="tab-btn pb-2 text-white font-bold border-b-2 border-blue-500">急上昇</button>
+          <button id="tab-gaming" class="tab-btn pb-2 text-gray-400 font-bold hover:text-white hidden">ゲーム</button>
+          <button id="tab-music" class="tab-btn pb-2 text-gray-400 font-bold hover:text-white hidden">音楽</button>
+          <button id="tab-live" class="tab-btn pb-2 text-gray-400 font-bold hover:text-white hidden">ライブ</button>
+          <button id="tab-shell" class="tab-btn pb-2 text-gray-400 font-bold hover:text-white hidden">Shell Shockers</button>
+      </div>
+
+      <div id="trend-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12"></div>
+      <div id="gaming-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 hidden"></div>
+      <div id="music-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 hidden"></div>
+      <div id="live-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 hidden"></div>
+      <div id="shell-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 hidden"></div>
+
+      <div style="height:480px;" class="w-full max-w-3xl mx-auto mt-8">
+          <script src="//accaii.com/wktplus/widget.js" async></script>
+      </div>
+  </div>
+
+  <script>
   /* -----------------------------------------------
      1. データ描画: トレンド動画とタブの制御
   ----------------------------------------------- */
@@ -261,3 +330,6 @@
       });
   });
   </script>
+
+</body>
+</html>
