@@ -189,76 +189,82 @@ async function getSiaTube(videoId) {
     try {
         const apiUrl = `https://siatube.com/api/stream/${videoId}?origin=siatube`;
         const response = await axios.get(apiUrl, { timeout: MAX_TIME });
-        
+
         console.log(`✅ 使用したAPI (SiaTube): ${apiUrl}`);
 
         const data = response.data || {};
         const streamsObj = data.streams || {};
 
-        // 各ストリームのリストを取得
-        const muxed = streamsObj.muxed || [];
-        const videoOnly = streamsObj.videoOnly || [];
-        
-        // streams.audioByLanguage を配列としてフラットに取得 (オブジェクト形式にも対応)
-        const rawAudioByLanguage = streamsObj.audioByLanguage || [];
-        const audioList = Array.isArray(rawAudioByLanguage) 
-            ? rawAudioByLanguage 
-            : Object.values(rawAudioByLanguage).flat();
+        // 新形式: streams.muxed / streams.videoOnly / streams.audioByLanguage
+        const muxed = Array.isArray(streamsObj.muxed) ? streamsObj.muxed : [];
+        const videoOnly = Array.isArray(streamsObj.videoOnly) ? streamsObj.videoOnly : [];
 
-        // m3u8.list から取得
-        const m3u8List = (data.m3u8 && data.m3u8.list) ? data.m3u8.list : [];
+        // audioByLanguage は { lang: { language, streams: [...] } } 形式
+        const rawAudioByLanguage = streamsObj.audioByLanguage || {};
+        const audioGroups = Object.values(rawAudioByLanguage).filter(
+            v => v && Array.isArray(v.streams)
+        );
+        const audioList = audioGroups.flatMap(v => v.streams);
 
-        // ① メイン再生用ストリーム (muxed から itag が 18 のものを優先、なければ最初の muxed)
+        // m3u8 は data.m3u8.list に入る
+        const m3u8List = Array.isArray(data.m3u8?.list) ? data.m3u8.list : [];
+
+        // ① メイン再生用ストリーム
         const combinedStream = muxed.find(s => String(s.formatId || s.itag) === '18') || muxed[0];
         const streamUrl = combinedStream?.streamUrl || combinedStream?.url || '';
 
-        // ② 音声ストリーム (audioByLanguage)
+        // ② 音声ストリーム
         const audioUrls = audioList
             .filter(s => s.streamUrl || s.url)
             .map(s => {
-                const ext = s.ext || s.audioExt || 'm4a';
                 const url = s.streamUrl || s.url;
-                const bitrate = s.abr || (s.tbr ? Math.round(s.tbr) : '');
+                const ext = s.ext || s.audioExt || 'm4a';
+                const bitrate = s.abr ?? (s.tbr ? Math.round(s.tbr) : null);
+
                 return {
-                    url: url,
+                    url,
                     name: bitrate ? `${ext} (${bitrate}kbps)` : ext,
-                    container: ext
+                    container: ext,
+                    language: s.language?.code || s.language?.name || null,
+                    formatId: s.formatId || null,
+                    quality: s.quality ?? null
                 };
             });
 
-        // ③ 映像/動画ストリーム (videoOnly + m3u8.list)
+        // ③ 映像 / HLS ストリーム
         const combinedVideoStreams = [...videoOnly, ...m3u8List];
         const streamUrls = combinedVideoStreams
             .filter(s => s.streamUrl || s.url)
             .map(s => {
                 const url = s.streamUrl || s.url;
-                
-                // 解像度の整形 ("256x144" -> "144p", すでに "144p" ならそのまま)
+
                 let res = s.formatNote || s.resolution || '';
-                if (res.includes('x')) {
+                if (typeof res === 'string' && res.includes('x')) {
                     res = res.split('x')[1] + 'p';
-                } else if (s.height) {
+                } else if (!res && s.height) {
                     res = `${s.height}p`;
                 }
 
-                // コンテナ判定 (m3u8の識別)
-                let container = s.ext || 'mp4';
-                if (s.isM3u8 || s.protocol === 'm3u8_native' || url.includes('.m3u8') || url.includes('manifest')) {
-                    container = 'm3u8';
-                }
+                const isM3u8 =
+                    s.isM3u8 === true ||
+                    s.protocol === 'm3u8_native' ||
+                    s.mediaType === 'hls' ||
+                    (typeof url === 'string' && (url.includes('.m3u8') || url.includes('manifest')));
 
                 return {
-                    url: url,
+                    url,
                     resolution: res,
-                    container: container,
-                    fps: s.fps || null
+                    container: isM3u8 ? 'm3u8' : (s.ext || 'mp4'),
+                    fps: s.fps || null,
+                    formatId: s.formatId || null,
+                    quality: s.quality ?? null
                 };
             });
 
         return {
             stream_url: streamUrl || streamUrls[0]?.url || '',
-            audioUrls: audioUrls,
-            streamUrls: streamUrls
+            audioUrls,
+            streamUrls
         };
     } catch (error) {
         console.error(`❌ エラー: siawaseok_${videoId} - ${error.message}`);
