@@ -192,38 +192,33 @@ async function getSiaTube(videoId) {
         
         console.log(`✅ 使用したAPI (SiaTube): ${apiUrl}`);
 
-        const streamsObj = response.data.streams;
-        if (!streamsObj) {
-            throw new Error("SiaTube APIから無効なデータが返されました (streamsが存在しません)");
-        }
+        const data = response.data || {};
+        const streamsObj = data.streams || {};
 
+        // 各ストリームのリストを取得
         const muxed = streamsObj.muxed || [];
         const videoOnly = streamsObj.videoOnly || [];
         
-        // m3u8.list の取得
-        const m3u8 = (streamsObj.m3u8 && streamsObj.m3u8.list) ? streamsObj.m3u8.list : [];
+        // streams.audioByLanguage を配列としてフラットに取得 (オブジェクト形式にも対応)
+        const rawAudioByLanguage = streamsObj.audioByLanguage || [];
+        const audioList = Array.isArray(rawAudioByLanguage) 
+            ? rawAudioByLanguage 
+            : Object.values(rawAudioByLanguage).flat();
 
-        // audioByLanguage の取得 (配列・オブジェクトの両方に対応して結合)
-        let audioList = [];
-        if (Array.isArray(streamsObj.audioByLanguage)) {
-            audioList = streamsObj.audioByLanguage;
-        } else if (streamsObj.audioByLanguage && typeof streamsObj.audioByLanguage === 'object') {
-            Object.values(streamsObj.audioByLanguage).forEach(langGroup => {
-                if (Array.isArray(langGroup)) audioList.push(...langGroup);
-            });
-        }
+        // m3u8.list から取得
+        const m3u8List = (data.m3u8 && data.m3u8.list) ? data.m3u8.list : [];
 
         // ① メイン再生用ストリーム (muxed から itag が 18 のものを優先、なければ最初の muxed)
         const combinedStream = muxed.find(s => String(s.formatId || s.itag) === '18') || muxed[0];
         const streamUrl = combinedStream?.streamUrl || combinedStream?.url || '';
 
-        // ② 音声ストリーム
+        // ② 音声ストリーム (audioByLanguage)
         const audioUrls = audioList
             .filter(s => s.streamUrl || s.url)
             .map(s => {
                 const ext = s.ext || s.audioExt || 'm4a';
                 const url = s.streamUrl || s.url;
-                const bitrate = s.abr || Math.round(s.tbr);
+                const bitrate = s.abr || (s.tbr ? Math.round(s.tbr) : '');
                 return {
                     url: url,
                     name: bitrate ? `${ext} (${bitrate}kbps)` : ext,
@@ -232,7 +227,7 @@ async function getSiaTube(videoId) {
             });
 
         // ③ 映像/動画ストリーム (videoOnly + m3u8.list)
-        const combinedVideoStreams = [...videoOnly, ...m3u8];
+        const combinedVideoStreams = [...videoOnly, ...m3u8List];
         const streamUrls = combinedVideoStreams
             .filter(s => s.streamUrl || s.url)
             .map(s => {
