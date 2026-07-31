@@ -99,7 +99,9 @@ async function getapis() {
         return;
     }
     try {
-        const response = await axios.get('https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/apis/Invidious/yes.json');
+        const response = await axios.get(
+            'https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/apis/Invidious/yes.json'
+        );
         apis = await response.data;
         apisLastFetch = now;
         console.log('🔄 Invidiousサーバーリストを更新しました');
@@ -111,7 +113,6 @@ async function getapis() {
 async function ggvideo(videoId) {
     const startTime = Date.now();
     await getapis();
-
     if (!apis) throw new Error("InvidiousのAPIリストがありません");
 
     for (const instance of apis) {
@@ -119,9 +120,7 @@ async function ggvideo(videoId) {
 
         try {
             const apiUrl = `${instance}/api/v1/videos/${videoId}`;
-            const response = await axios.get(apiUrl, {
-                timeout: MAX_API_WAIT_TIME
-            });
+            const response = await axios.get(apiUrl, { timeout: MAX_API_WAIT_TIME });
 
             if (response.data) {
                 console.log(`✅ 使用したAPI (Invidious): ${apiUrl}`);
@@ -130,11 +129,7 @@ async function ggvideo(videoId) {
             }
         } catch (error) {
             console.error(`❌ エラー: ${instance} - ${error.message}`);
-
-            if (
-                error.code === "ECONNABORTED" ||
-                error.message.includes("timeout")
-            ) {
+            if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
                 recordTimeout(instance);
             }
         }
@@ -150,36 +145,34 @@ async function ggvideo(videoId) {
 async function getInvidious(videoId) {
     const videoInfo = await ggvideo(videoId);
 
-    const formatStreams = videoInfo.formatStreams || [];
-    const adaptiveFormats = videoInfo.adaptiveFormats || [];
+    const formatStreams = Array.isArray(videoInfo.formatStreams) ? videoInfo.formatStreams : [];
+    const adaptiveFormats = Array.isArray(videoInfo.adaptiveFormats) ? videoInfo.adaptiveFormats : [];
 
     const audioUrls = adaptiveFormats
         .filter(stream =>
             !stream.resolution &&
-            (stream.container === "webm" || stream.container === "m4a") &&
+            (stream.container === 'webm' || stream.container === 'm4a') &&
             stream.url
         )
         .map(stream => {
-            let qualityLabel = "";
+            let qualityLabel = '';
 
             if (stream.audioQuality) {
-                qualityLabel = stream.audioQuality.replace("AUDIO_QUALITY_", "");
+                qualityLabel = stream.audioQuality.replace('AUDIO_QUALITY_', '');
             } else if (stream.audioBitrate) {
                 qualityLabel = `${stream.audioBitrate}kbps`;
             }
 
             return {
                 url: stream.url,
-                name: qualityLabel
-                    ? `${stream.container} (${qualityLabel})`
-                    : stream.container,
+                name: qualityLabel ? `${stream.container} (${qualityLabel})` : stream.container,
                 container: stream.container
             };
         });
 
     const streamUrls = adaptiveFormats
         .filter(stream =>
-            (stream.container === "webm" || stream.container === "mp4") &&
+            (stream.container === 'webm' || stream.container === 'mp4') &&
             stream.resolution &&
             stream.url
         )
@@ -190,17 +183,11 @@ async function getInvidious(videoId) {
             fps: stream.fps || null
         }));
 
-    let streamUrl = "";
+    const formatStreamUrl = formatStreams.find(s => s && s.url)?.url || '';
+    const hlsUrl = typeof videoInfo.hlsUrl === 'string' ? videoInfo.hlsUrl : '';
+    const firstVideoUrl = streamUrls.find(s => s && s.url)?.url || '';
 
-    const firstFormatStream = formatStreams.find(s => s.url);
-
-    if (firstFormatStream) {
-        streamUrl = firstFormatStream.url;
-    } else if (videoInfo.hlsUrl) {
-        streamUrl = videoInfo.hlsUrl;
-    } else if (streamUrls.length > 0) {
-        streamUrl = streamUrls[0].url;
-    }
+    const streamUrl = formatStreamUrl || hlsUrl || firstVideoUrl || '';
 
     return {
         stream_url: streamUrl,
