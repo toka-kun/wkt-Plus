@@ -96,7 +96,7 @@ function recordTimeout(instance) {
 async function getapis() {
     const now = Date.now();
     if (apis && (now - apisLastFetch < CACHE_DURATION)) {
-        return; 
+        return;
     }
     try {
         const response = await axios.get('https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/apis/Invidious/yes.json');
@@ -110,76 +110,103 @@ async function getapis() {
 
 async function ggvideo(videoId) {
     const startTime = Date.now();
-    await getapis(); 
+    await getapis();
+
     if (!apis) throw new Error("InvidiousのAPIリストがありません");
 
     for (const instance of apis) {
-        if (isBlocked(instance)) continue; 
+        if (isBlocked(instance)) continue;
 
         try {
             const apiUrl = `${instance}/api/v1/videos/${videoId}`;
-            const response = await axios.get(apiUrl, { timeout: MAX_API_WAIT_TIME });
-            if (response.data && response.data.formatStreams) {
+            const response = await axios.get(apiUrl, {
+                timeout: MAX_API_WAIT_TIME
+            });
+
+            if (response.data) {
                 console.log(`✅ 使用したAPI (Invidious): ${apiUrl}`);
-                recordSuccess(instance); // 成功記録
+                recordSuccess(instance);
                 return response.data;
             }
         } catch (error) {
             console.error(`❌ エラー: ${instance} - ${error.message}`);
-            if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-                recordTimeout(instance); // タイムアウト記録
+
+            if (
+                error.code === "ECONNABORTED" ||
+                error.message.includes("timeout")
+            ) {
+                recordTimeout(instance);
             }
         }
-        if (Date.now() - startTime >= MAX_TIME) throw new Error("接続がタイムアウトしました");
+
+        if (Date.now() - startTime >= MAX_TIME) {
+            throw new Error("接続がタイムアウトしました");
+        }
     }
+
     throw new Error("Invidious APIで動画を取得できませんでした");
 }
 
 async function getInvidious(videoId) {
     const videoInfo = await ggvideo(videoId);
-    
+
     const formatStreams = videoInfo.formatStreams || [];
-    
-    const defaultStream = formatStreams.find(s => String(s.itag) === '18' && s.url) || 
-                          formatStreams.find(s => String(s.itag) === '22' && s.url) || 
-                          formatStreams.find(s => s.container === 'mp4' && s.url && !s.url.includes('manifest') && !s.url.includes('.m3u8')) ||
-                          formatStreams.find(s => s.url && !s.url.includes('manifest') && !s.url.includes('.m3u8'));
-                          
-    let streamUrl = defaultStream ? defaultStream.url : '';
-    
     const adaptiveFormats = videoInfo.adaptiveFormats || [];
-    
+
     const audioUrls = adaptiveFormats
-        .filter(stream => !stream.resolution && (stream.container === 'webm' || stream.container === 'm4a') && stream.url)
+        .filter(stream =>
+            !stream.resolution &&
+            (stream.container === "webm" || stream.container === "m4a") &&
+            stream.url
+        )
         .map(stream => {
-            let qualityLabel = '';
+            let qualityLabel = "";
+
             if (stream.audioQuality) {
-                qualityLabel = stream.audioQuality.replace('AUDIO_QUALITY_', '');
+                qualityLabel = stream.audioQuality.replace("AUDIO_QUALITY_", "");
             } else if (stream.audioBitrate) {
                 qualityLabel = `${stream.audioBitrate}kbps`;
             }
 
             return {
                 url: stream.url,
-                name: qualityLabel ? `${stream.container} (${qualityLabel})` : stream.container,
+                name: qualityLabel
+                    ? `${stream.container} (${qualityLabel})`
+                    : stream.container,
                 container: stream.container
             };
         });
 
     const streamUrls = adaptiveFormats
-        .filter(stream => (stream.container === 'webm' || stream.container === 'mp4') && stream.resolution && stream.url)
+        .filter(stream =>
+            (stream.container === "webm" || stream.container === "mp4") &&
+            stream.resolution &&
+            stream.url
+        )
         .map(stream => ({
             url: stream.url,
             resolution: stream.resolution,
             container: stream.container,
             fps: stream.fps || null
         }));
-        
-    if (!streamUrl && videoInfo.hlsUrl) {
-        streamUrl = videoInfo.hlsUrl; 
+
+    let streamUrl = "";
+
+    const firstFormatStream = formatStreams.find(s => s.url);
+
+    if (firstFormatStream) {
+        streamUrl = firstFormatStream.url;
+    } else if (videoInfo.hlsUrl) {
+        streamUrl = videoInfo.hlsUrl;
+    } else if (streamUrls.length > 0) {
+        streamUrl = streamUrls[0].url;
     }
-    
-    return { stream_url: streamUrl, audioUrls, streamUrls };
+
+    return {
+        stream_url: streamUrl,
+        audioUrls,
+        streamUrls
+    };
 }
 
 // =========================================
