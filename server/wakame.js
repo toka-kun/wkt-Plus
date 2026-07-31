@@ -195,11 +195,10 @@ async function getSiaTube(videoId) {
         const data = response.data || {};
         const streamsObj = data.streams || {};
 
-        // 新形式: streams.muxed / streams.videoOnly / streams.audioByLanguage
         const muxed = Array.isArray(streamsObj.muxed) ? streamsObj.muxed : [];
         const videoOnly = Array.isArray(streamsObj.videoOnly) ? streamsObj.videoOnly : [];
 
-        // audioByLanguage は { lang: { language, streams: [...] } } 形式
+        // audioByLanguage は { langCode: { language, streams: [...] } } 形式
         const rawAudioByLanguage = streamsObj.audioByLanguage || {};
         const audioGroups = Object.values(rawAudioByLanguage).filter(
             v => v && Array.isArray(v.streams)
@@ -209,23 +208,60 @@ async function getSiaTube(videoId) {
         // m3u8 は data.m3u8.list に入る
         const m3u8List = Array.isArray(data.m3u8?.list) ? data.m3u8.list : [];
 
+        // 画質ラベルを「小さい方の辺 + fps」に統一する
+        // 例: 256x138 + 30fps -> 138p30
+        const formatResolutionLabel = (item) => {
+            const fps = item?.fps ?? null;
+
+            let smallSide = null;
+
+            if (typeof item?.resolution === 'string' && item.resolution.includes('x')) {
+                const [w, h] = item.resolution.split('x').map(n => Number(n));
+                if (Number.isFinite(w) && Number.isFinite(h)) {
+                    smallSide = Math.min(w, h);
+                }
+            }
+
+            if (!smallSide && Number.isFinite(item?.width) && Number.isFinite(item?.height)) {
+                smallSide = Math.min(Number(item.width), Number(item.height));
+            }
+
+            if (!smallSide && Number.isFinite(item?.height)) {
+                smallSide = Number(item.height);
+            }
+
+            if (!smallSide && Number.isFinite(item?.quality)) {
+                smallSide = Number(item.quality);
+            }
+
+            if (!smallSide) {
+                return fps ? `unknownp${fps}` : 'unknown';
+            }
+
+            return fps ? `${smallSide}p${fps}` : `${smallSide}p`;
+        };
+
         // ① メイン再生用ストリーム
-        const combinedStream = muxed.find(s => String(s.formatId || s.itag) === '18') || muxed[0];
+        const combinedStream =
+            muxed.find(s => String(s.formatId || s.itag) === '18') ||
+            muxed[0];
+
         const streamUrl = combinedStream?.streamUrl || combinedStream?.url || '';
 
         // ② 音声ストリーム
         const audioUrls = audioList
-            .filter(s => s.streamUrl || s.url)
+            .filter(s => s?.streamUrl || s?.url)
             .map(s => {
                 const url = s.streamUrl || s.url;
                 const ext = s.ext || s.audioExt || 'm4a';
                 const bitrate = s.abr ?? (s.tbr ? Math.round(s.tbr) : null);
+                const lang = s.language?.code || s.language?.name || null;
 
                 return {
                     url,
                     name: bitrate ? `${ext} (${bitrate}kbps)` : ext,
                     container: ext,
-                    language: s.language?.code || s.language?.name || null,
+                    language: lang,
                     formatId: s.formatId || null,
                     quality: s.quality ?? null
                 };
@@ -234,16 +270,9 @@ async function getSiaTube(videoId) {
         // ③ 映像 / HLS ストリーム
         const combinedVideoStreams = [...videoOnly, ...m3u8List];
         const streamUrls = combinedVideoStreams
-            .filter(s => s.streamUrl || s.url)
+            .filter(s => s?.streamUrl || s?.url)
             .map(s => {
                 const url = s.streamUrl || s.url;
-
-                let res = s.formatNote || s.resolution || '';
-                if (typeof res === 'string' && res.includes('x')) {
-                    res = res.split('x')[1] + 'p';
-                } else if (!res && s.height) {
-                    res = `${s.height}p`;
-                }
 
                 const isM3u8 =
                     s.isM3u8 === true ||
@@ -253,9 +282,9 @@ async function getSiaTube(videoId) {
 
                 return {
                     url,
-                    resolution: res,
+                    resolution: formatResolutionLabel(s),
                     container: isM3u8 ? 'm3u8' : (s.ext || 'mp4'),
-                    fps: s.fps || null,
+                    fps: s.fps ?? null,
                     formatId: s.formatId || null,
                     quality: s.quality ?? null
                 };
