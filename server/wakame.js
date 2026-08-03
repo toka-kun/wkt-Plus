@@ -96,12 +96,10 @@ function recordTimeout(instance) {
 async function getapis() {
     const now = Date.now();
     if (apis && (now - apisLastFetch < CACHE_DURATION)) {
-        return;
+        return; 
     }
     try {
-        const response = await axios.get(
-            'https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/apis/Invidious/yes.json'
-        );
+        const response = await axios.get('https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/apis/Invidious/yes.json');
         apis = await response.data;
         apisLastFetch = now;
         console.log('🔄 Invidiousサーバーリストを更新しました');
@@ -112,140 +110,103 @@ async function getapis() {
 
 async function ggvideo(videoId) {
     const startTime = Date.now();
-    await getapis();
-
+    await getapis(); 
     if (!apis) throw new Error("InvidiousのAPIリストがありません");
 
     for (const instance of apis) {
-        if (isBlocked(instance)) continue;
+        if (isBlocked(instance)) continue; 
 
         try {
             const apiUrl = `${instance}/api/v1/videos/${videoId}`;
-            const response = await axios.get(apiUrl, {
-                timeout: MAX_API_WAIT_TIME
-            });
-
-            if (response.data) {
+            const response = await axios.get(apiUrl, { timeout: MAX_API_WAIT_TIME });
+            if (response.data && response.data.formatStreams) {
                 console.log(`✅ 使用したAPI (Invidious): ${apiUrl}`);
-                recordSuccess(instance);
+                recordSuccess(instance); // 成功記録
                 return response.data;
             }
         } catch (error) {
             console.error(`❌ エラー: ${instance} - ${error.message}`);
-
-            if (
-                error.code === 'ECONNABORTED' ||
-                error.message.includes('timeout')
-            ) {
-                recordTimeout(instance);
+            if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+                recordTimeout(instance); // タイムアウト記録
             }
         }
-
-        if (Date.now() - startTime >= MAX_TIME) {
-            throw new Error("接続がタイムアウトしました");
-        }
+        if (Date.now() - startTime >= MAX_TIME) throw new Error("接続がタイムアウトしました");
     }
-
     throw new Error("Invidious APIで動画を取得できませんでした");
-}
-
-async function getGetlateRedirectUrl(videoId) {
-    const targetUrl = `https://getlate.dev/api/tools/youtube-live-downloader?url=${encodeURIComponent(
-        `https://www.youtube.com/watch?v=${videoId}`
-    )}&formatId=1`;
-
-    try {
-        const response = await axios.get(targetUrl, {
-            timeout: 3000,
-            maxRedirects: 10,
-            validateStatus: () => true
-        });
-
-        const finalUrl =
-            response?.request?.res?.responseUrl ||
-            response?.request?._currentUrl ||
-            response?.config?.url ||
-            "";
-
-        return finalUrl;
-    } catch (error) {
-        console.error(`❌ getlate 取得失敗: ${error.message}`);
-        return "";
-    }
 }
 
 async function getInvidious(videoId) {
     const videoInfo = await ggvideo(videoId);
-
+    
     const formatStreams = videoInfo.formatStreams || [];
+    
+    const defaultStream = formatStreams.find(s => String(s.itag) === '18' && s.url) || 
+                          formatStreams.find(s => String(s.itag) === '22' && s.url) || 
+                          formatStreams.find(s => s.container === 'mp4' && s.url && !s.url.includes('manifest') && !s.url.includes('.m3u8')) ||
+                          formatStreams.find(s => s.url && !s.url.includes('manifest') && !s.url.includes('.m3u8'));
+                          
+    let streamUrl = defaultStream ? defaultStream.url : '';
+    
+    // 1. formatStreamsのURLがない場合は hlsUrl にフォールバック
+    if (!streamUrl && videoInfo.hlsUrl) {
+        streamUrl = videoInfo.hlsUrl; 
+    }
+    
+    // 2. それでも取得できない場合は getlate API にフォールバック
+    if (!streamUrl) {
+        try {
+            const targetUrl = `https://www.youtube.com/watch?v=${videoId}`;
+            const getlateApiUrl = `https://getlate.dev/api/tools/youtube-live-downloader?url=${encodeURIComponent(targetUrl)}&formatId=1`;
+            
+            // リダイレクト先のURLを高速に取得するため、maxRedirects: 0 で location ヘッダーを拾う設定
+            const redirectResponse = await axios.get(getlateApiUrl, {
+                timeout: 3000, // タイムアウト3秒
+                maxRedirects: 0,
+                validateStatus: status => status >= 200 && status < 400 // 3xx系のステータスをエラーにしない
+            });
+
+            if (redirectResponse.headers && redirectResponse.headers.location) {
+                streamUrl = redirectResponse.headers.location;
+                console.log(`✅ getlate API からリダイレクト先を取得しました: ${streamUrl.substring(0, 50)}...`);
+            } else if (redirectResponse.request && redirectResponse.request.res && redirectResponse.request.res.responseUrl) {
+                // 自動でリダイレクトを追跡してしまった場合のフェールセーフ
+                streamUrl = redirectResponse.request.res.responseUrl;
+                console.log(`✅ getlate API から最終URLを取得しました: ${streamUrl.substring(0, 50)}...`);
+            }
+        } catch (error) {
+            console.error(`❌ getlate API の取得でエラーが発生しました: ${error.message}`);
+        }
+    }
+
     const adaptiveFormats = videoInfo.adaptiveFormats || [];
-
+    
     const audioUrls = adaptiveFormats
-        .filter(stream =>
-            !stream.resolution &&
-            (stream.container === "webm" || stream.container === "m4a") &&
-            stream.url
-        )
+        .filter(stream => !stream.resolution && (stream.container === 'webm' || stream.container === 'm4a') && stream.url)
         .map(stream => {
-            let qualityLabel = "";
-
+            let qualityLabel = '';
             if (stream.audioQuality) {
-                qualityLabel = stream.audioQuality.replace("AUDIO_QUALITY_", "");
+                qualityLabel = stream.audioQuality.replace('AUDIO_QUALITY_', '');
             } else if (stream.audioBitrate) {
                 qualityLabel = `${stream.audioBitrate}kbps`;
             }
 
             return {
                 url: stream.url,
-                name: qualityLabel
-                    ? `${stream.container} (${qualityLabel})`
-                    : stream.container,
+                name: qualityLabel ? `${stream.container} (${qualityLabel})` : stream.container,
                 container: stream.container
             };
         });
 
     const streamUrls = adaptiveFormats
-        .filter(stream =>
-            (stream.container === "webm" || stream.container === "mp4") &&
-            stream.resolution &&
-            stream.url
-        )
+        .filter(stream => (stream.container === 'webm' || stream.container === 'mp4') && stream.resolution && stream.url)
         .map(stream => ({
             url: stream.url,
             resolution: stream.resolution,
             container: stream.container,
             fps: stream.fps || null
         }));
-
-    // =========================================
-    // デフォルトURL取得
-    // 優先順位:
-    // 1. formatStreams の最初のURL
-    // 2. hlsUrl
-    // 3. getlate のリダイレクト先URL（3秒まで待つ）
-    // 4. adaptiveFormatsから作成したstreamUrlsの先頭
-    // =========================================
-    let streamUrl = "";
-
-    const firstFormatStream = formatStreams.find(s => s.url);
-    if (firstFormatStream) {
-        streamUrl = firstFormatStream.url;
-    } else if (videoInfo.hlsUrl) {
-        streamUrl = videoInfo.hlsUrl;
-    } else {
-        const getlateUrl = await getGetlateRedirectUrl(videoId);
-        if (getlateUrl) {
-            streamUrl = getlateUrl;
-        } else if (streamUrls.length > 0) {
-            streamUrl = streamUrls[0].url;
-        }
-    }
-
-    return {
-        stream_url: streamUrl,
-        audioUrls,
-        streamUrls
-    };
+        
+    return { stream_url: streamUrl, audioUrls, streamUrls };
 }
 
 // =========================================
