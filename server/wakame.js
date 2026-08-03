@@ -91,7 +91,7 @@ function recordTimeout(instance) {
 }
 
 // =========================================
-// ① Invidious API からの取得
+// ① Invidious API + Zernio APIからの取得
 // =========================================
 async function getapis() {
     const now = Date.now();
@@ -113,6 +113,7 @@ async function getapis() {
 async function ggvideo(videoId) {
     const startTime = Date.now();
     await getapis();
+
     if (!apis) throw new Error("InvidiousのAPIリストがありません");
 
     for (const instance of apis) {
@@ -142,37 +143,58 @@ async function ggvideo(videoId) {
     throw new Error("Invidious APIで動画を取得できませんでした");
 }
 
+async function getRedirectedUrl(url) {
+    try {
+        const response = await axios.get(url, {
+            timeout: MAX_API_WAIT_TIME,
+            maxRedirects: 10,
+            validateStatus: status => status >= 200 && status < 400
+        });
+
+        return (
+            response.request?.res?.responseUrl ||
+            response.request?.responseUrl ||
+            url
+        );
+    } catch (error) {
+        console.error("getlate.dev の取得に失敗:", error.message);
+        return "";
+    }
+}
+
 async function getInvidious(videoId) {
     const videoInfo = await ggvideo(videoId);
 
-    const formatStreams = Array.isArray(videoInfo.formatStreams) ? videoInfo.formatStreams : [];
-    const adaptiveFormats = Array.isArray(videoInfo.adaptiveFormats) ? videoInfo.adaptiveFormats : [];
+    const formatStreams = videoInfo.formatStreams || [];
+    const adaptiveFormats = videoInfo.adaptiveFormats || [];
 
     const audioUrls = adaptiveFormats
         .filter(stream =>
             !stream.resolution &&
-            (stream.container === 'webm' || stream.container === 'm4a') &&
+            (stream.container === "webm" || stream.container === "m4a") &&
             stream.url
         )
         .map(stream => {
-            let qualityLabel = '';
+            let qualityLabel = "";
 
             if (stream.audioQuality) {
-                qualityLabel = stream.audioQuality.replace('AUDIO_QUALITY_', '');
+                qualityLabel = stream.audioQuality.replace("AUDIO_QUALITY_", "");
             } else if (stream.audioBitrate) {
                 qualityLabel = `${stream.audioBitrate}kbps`;
             }
 
             return {
                 url: stream.url,
-                name: qualityLabel ? `${stream.container} (${qualityLabel})` : stream.container,
+                name: qualityLabel
+                    ? `${stream.container} (${qualityLabel})`
+                    : stream.container,
                 container: stream.container
             };
         });
 
     const streamUrls = adaptiveFormats
         .filter(stream =>
-            (stream.container === 'webm' || stream.container === 'mp4') &&
+            (stream.container === "webm" || stream.container === "mp4") &&
             stream.resolution &&
             stream.url
         )
@@ -183,11 +205,21 @@ async function getInvidious(videoId) {
             fps: stream.fps || null
         }));
 
-    const formatStreamUrl = formatStreams.find(s => s && s.url)?.url || '';
-    const hlsUrl = typeof videoInfo.hlsUrl === 'string' ? videoInfo.hlsUrl : '';
-    const firstVideoUrl = streamUrls.find(s => s && s.url)?.url || '';
+    // =========================================
+    // デフォルトURL取得
+    // =========================================
+    let streamUrl = "";
 
-    const streamUrl = formatStreamUrl || hlsUrl || firstVideoUrl || '';
+    const firstFormatStream = formatStreams.find(s => s.url);
+    if (firstFormatStream) {
+        streamUrl = firstFormatStream.url;
+    } else if (videoInfo.hlsUrl) {
+        streamUrl = videoInfo.hlsUrl;
+    } else {
+        const targetUrl = `https://www.youtube.com/watch?v=${videoId}`;
+        const getlateUrl = `https://getlate.dev/api/tools/youtube-live-downloader?url=${encodeURIComponent(targetUrl)}&formatId=1`;
+        streamUrl = await getRedirectedUrl(getlateUrl);
+    }
 
     return {
         stream_url: streamUrl,
