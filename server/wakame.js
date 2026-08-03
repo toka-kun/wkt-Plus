@@ -91,7 +91,7 @@ function recordTimeout(instance) {
 }
 
 // =========================================
-// ① Invidious API + Zernio APIからの取得
+// ① Invidious API からの取得
 // =========================================
 async function getapis() {
     const now = Date.now();
@@ -121,7 +121,9 @@ async function ggvideo(videoId) {
 
         try {
             const apiUrl = `${instance}/api/v1/videos/${videoId}`;
-            const response = await axios.get(apiUrl, { timeout: MAX_API_WAIT_TIME });
+            const response = await axios.get(apiUrl, {
+                timeout: MAX_API_WAIT_TIME
+            });
 
             if (response.data) {
                 console.log(`✅ 使用したAPI (Invidious): ${apiUrl}`);
@@ -130,7 +132,11 @@ async function ggvideo(videoId) {
             }
         } catch (error) {
             console.error(`❌ エラー: ${instance} - ${error.message}`);
-            if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+
+            if (
+                error.code === 'ECONNABORTED' ||
+                error.message.includes('timeout')
+            ) {
                 recordTimeout(instance);
             }
         }
@@ -143,21 +149,27 @@ async function ggvideo(videoId) {
     throw new Error("Invidious APIで動画を取得できませんでした");
 }
 
-async function getRedirectedUrl(url) {
+async function getGetlateRedirectUrl(videoId) {
+    const targetUrl = `https://getlate.dev/api/tools/youtube-live-downloader?url=${encodeURIComponent(
+        `https://www.youtube.com/watch?v=${videoId}`
+    )}&formatId=1`;
+
     try {
-        const response = await axios.get(url, {
-            timeout: MAX_API_WAIT_TIME,
+        const response = await axios.get(targetUrl, {
+            timeout: 3000,
             maxRedirects: 10,
-            validateStatus: status => status >= 200 && status < 400
+            validateStatus: () => true
         });
 
-        return (
-            response.request?.res?.responseUrl ||
-            response.request?.responseUrl ||
-            url
-        );
+        const finalUrl =
+            response?.request?.res?.responseUrl ||
+            response?.request?._currentUrl ||
+            response?.config?.url ||
+            "";
+
+        return finalUrl;
     } catch (error) {
-        console.error("getlate.dev の取得に失敗:", error.message);
+        console.error(`❌ getlate 取得失敗: ${error.message}`);
         return "";
     }
 }
@@ -207,6 +219,11 @@ async function getInvidious(videoId) {
 
     // =========================================
     // デフォルトURL取得
+    // 優先順位:
+    // 1. formatStreams の最初のURL
+    // 2. hlsUrl
+    // 3. getlate のリダイレクト先URL（3秒まで待つ）
+    // 4. adaptiveFormatsから作成したstreamUrlsの先頭
     // =========================================
     let streamUrl = "";
 
@@ -216,9 +233,12 @@ async function getInvidious(videoId) {
     } else if (videoInfo.hlsUrl) {
         streamUrl = videoInfo.hlsUrl;
     } else {
-        const targetUrl = `https://www.youtube.com/watch?v=${videoId}`;
-        const getlateUrl = `https://getlate.dev/api/tools/youtube-live-downloader?url=${encodeURIComponent(targetUrl)}&formatId=1`;
-        streamUrl = await getRedirectedUrl(getlateUrl);
+        const getlateUrl = await getGetlateRedirectUrl(videoId);
+        if (getlateUrl) {
+            streamUrl = getlateUrl;
+        } else if (streamUrls.length > 0) {
+            streamUrl = streamUrls[0].url;
+        }
     }
 
     return {
