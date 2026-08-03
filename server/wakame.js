@@ -147,29 +147,25 @@ async function getInvidious(videoId) {
                           
     let streamUrl = defaultStream ? defaultStream.url : '';
     
-    // 1. formatStreamsのURLがない場合は hlsUrl にフォールバック
     if (!streamUrl && videoInfo.hlsUrl) {
         streamUrl = videoInfo.hlsUrl; 
     }
     
-    // 2. それでも取得できない場合は getlate API にフォールバック
     if (!streamUrl) {
         try {
             const targetUrl = `https://www.youtube.com/watch?v=${videoId}`;
             const getlateApiUrl = `https://getlate.dev/api/tools/youtube-live-downloader?url=${encodeURIComponent(targetUrl)}&formatId=1`;
             
-            // リダイレクト先のURLを高速に取得するため、maxRedirects: 0 で location ヘッダーを拾う設定
             const redirectResponse = await axios.get(getlateApiUrl, {
-                timeout: 3000, // タイムアウト3秒
+                timeout: 3000,
                 maxRedirects: 0,
-                validateStatus: status => status >= 200 && status < 400 // 3xx系のステータスをエラーにしない
+                validateStatus: status => status >= 200 && status < 400
             });
 
             if (redirectResponse.headers && redirectResponse.headers.location) {
                 streamUrl = redirectResponse.headers.location;
                 console.log(`✅ getlate API からリダイレクト先を取得しました: ${streamUrl.substring(0, 50)}...`);
             } else if (redirectResponse.request && redirectResponse.request.res && redirectResponse.request.res.responseUrl) {
-                // 自動でリダイレクトを追跡してしまった場合のフェールセーフ
                 streamUrl = redirectResponse.request.res.responseUrl;
                 console.log(`✅ getlate API から最終URLを取得しました: ${streamUrl.substring(0, 50)}...`);
             }
@@ -180,19 +176,14 @@ async function getInvidious(videoId) {
 
     const adaptiveFormats = videoInfo.adaptiveFormats || [];
     
+    // 音声URL取得処理（bitrateから直接kbpsを算出。audioQuality等の分岐フォールバックは削除）
     const audioUrls = adaptiveFormats
         .filter(stream => !stream.resolution && (stream.container === 'webm' || stream.container === 'm4a') && stream.url)
         .map(stream => {
-            let qualityLabel = '';
-            if (stream.audioQuality) {
-                qualityLabel = stream.audioQuality.replace('AUDIO_QUALITY_', '');
-            } else if (stream.audioBitrate) {
-                qualityLabel = `${stream.audioBitrate}kbps`;
-            }
-
+            const kbps = Math.round(Number(stream.bitrate) / 1000);
             return {
                 url: stream.url,
-                name: qualityLabel ? `${stream.container} (${qualityLabel})` : stream.container,
+                name: `${stream.container} (${kbps}kbps)`,
                 container: stream.container
             };
         });
