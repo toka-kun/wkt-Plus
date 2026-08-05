@@ -135,14 +135,14 @@ pinned: false
 
 # 更新ログ
 
-- 2025/10/24 - Education再生を復活 [@siawaseok3](https://github.com/siawaseok3)
-- 2025/12/06 - トレンド機能を復活 [@siawaseok3](https://github.com/siawaseok3)
+- 2025/10/24 - Education再生を復活
+- 2025/12/06 - トレンド機能を復活
 - 2025/12/09 - Education再生時のエラーを修正
 - 2026/01/22 - トレンドページのUIを改善
 - 2026/01/27 - Koyebでのデプロイに対応
-- 2026/01/28 - [チョコのレポジトリ](https://github.com/cake-wakame/wkt) をパクってVercelとCodeSandboxでのデプロイに対応 [@banana-coco](https://github.com/banana-coco) 
+- 2026/01/28 - チョコのレポジトリをパクってVercelとCodeSandboxでのデプロイに対応
 - 2026/02/16 - Invidiousを更新、安定性が増したはずです。
-- 2026/02/22 - Educationのパラメーターを一旦全7種のパラメーターを取得し、Toka_Kun_-1のみ使うように変更 [@toka-kun](https://github.com/toka-kun)
+- 2026/02/22 - Educationのパラメーターを一旦全7種のパラメーターを取得し、Toka_Kun_-1のみ使うように変更
 - 2026/02/23 - Educationのパラメーターをもう2種類取得するように変更、Nocookie再生時のパラメーターを微調整、Railwayでデプロイすると動画ページの関連動画から検索したときにエラーが出る問題を改善
 - 2026/03/01 - 動画を投稿していないチャンネルのページを開けない問題を改善
 - 2026/03/02 - InnerTubeのエラー関連（特にVercel）を改善
@@ -189,13 +189,7 @@ pinned: false
 - 2026/07/24 - しあtubeを更新、APIを色々整理
 - 2026/07/27~29 - 細かいところをいろいろ改善
 - 2026/07/30~31 - Invidious API、SiaTube APIの形式変更への対応を完了
-
----
-
-## ToDo
-
-- ゲームを追加
-- ダウンロードを改善
+- 2026/08/05 - 復活する見込みのないAPIを削除
 
 ---
 
@@ -239,7 +233,7 @@ pinned: false
   - うおtube 開発
   - Proxy Wiki 開発
 - [@c00lkimx01-creator](https://github.com/c00lkimx01-creator)
-  - 仲良しtube 開発
+  - 仲良しtube Plus 開発
 - [@dinguschan-owo](https://github.com/dinguschan-owo)
   - Helios 開発
 - [@nautilus-os](https://github.com/nautilus-os)
