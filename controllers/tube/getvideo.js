@@ -7,23 +7,18 @@ const axios = require("axios");
 const user_agent = process.env.USER_AGENT || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36";
 
 // サーバーリスト (表示用等のベース設定)
-const serverUrls = ['invidious', 'acethinker', 'freemake', 'min-tube2-api', 'siawaseok', 'yudlp', 'ytdlpinstance-vercel', 'senninytdlp', 'simple-yt-stream', 'xeroxyt-nt-apiv1'];
+const serverUrls = ['invidious', 'acethinker', 'freemake', 'min-tube2-api', 'siawaseok'];
 
 // ▼▼▼ メモリキャッシュを確認する専用の順番 ▼▼▼
-const memoryCacheCheckOrder = ['siawaseok', 'invidious', 'acethinker', 'freemake', 'min-tube2-api', 'yudlp', 'ytdlpinstance-vercel', 'senninytdlp', 'simple-yt-stream', 'xeroxyt-nt-apiv1'];
+const memoryCacheCheckOrder = ['siawaseok', 'invidious', 'acethinker', 'freemake', 'min-tube2-api'];
 
 // ▼▼▼ APIごとのキャッシュ生存期間 (秒) ▼▼▼
 const apiTtlSettings = {
-    'invidious': 14200,
-    'acethinker': 14200,
-    'siawaseok': 600,
-    'yudlp': 13600,
-    'ytdlpinstance-vercel': 600,
-    'senninytdlp': 600,
-    'min-tube2-api': 14200,
-    'xeroxyt-nt-apiv1': 14200,
-    'simple-yt-stream': 14200,
-    'freemake': 3600 // 1時間に設定
+    'invidious': 18000, // 5時間
+    'acethinker': 18000, // 5時間
+    'siawaseok': 600, // 10分
+    'min-tube2-api': 18000, // 5時間
+    'freemake': 3600 // 1時間
 };
 
 // 指定したAPIのTTL(ミリ秒)を返す関数。設定になければデフォルトで600秒(10分)
@@ -147,11 +142,8 @@ router.get('/:id', async (req, res) => {
         if (isTrend) {
             const reqOptions = { timeout: 5000, headers: { "User-Agent": user_agent } };
             // リモートキャッシュを取りに行く
-            const [siaRes, yudRes, katuoRes, senninRes] = await Promise.allSettled([
-                axios.get('https://siatube.com/api/stream/dashboard/status', reqOptions),
-                axios.get('https://yudlp.vercel.app/cache', reqOptions),
-                axios.get('https://ytdlpinstance-vercel.vercel.app/cache', reqOptions),
-                axios.get('https://senninytdlp-42jz.vercel.app/cache', reqOptions)
+            const [siaRes] = await Promise.allSettled([
+                axios.get('https://siatube.com/api/stream/dashboard/status', reqOptions)
             ]);
             
             const siaItems = siaRes.status === 'fulfilled' ? siaRes.value.data?.cache?.items : null;
@@ -162,12 +154,6 @@ router.get('/:id', async (req, res) => {
             // ヒットしたAPIの判定
             if (isSiaCached) {
                 remoteHitApi = 'siawaseok';
-            } else if (yudRes.status === 'fulfilled' && yudRes.value.data && yudRes.value.data.video && yudRes.value.data.video.includes(videoId)) {
-                remoteHitApi = 'yudlp';
-            } else if (katuoRes.status === 'fulfilled' && katuoRes.value.data && katuoRes.value.data[videoId]) {
-                remoteHitApi = 'ytdlpinstance-vercel';
-            } else if (senninRes.status === 'fulfilled' && senninRes.value.data && senninRes.value.data[videoId]) {
-                remoteHitApi = 'senninytdlp';
             }
 
             if (remoteHitApi) {
