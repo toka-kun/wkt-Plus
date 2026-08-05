@@ -324,17 +324,30 @@ async function getSiaTube(videoId) {
                 const myIndex = ids.indexOf(videoId);
                 
                 if (myIndex !== -1) {
-                    // 現在処理中のIDの経過時間 (秒) を計算
+                    // 現在処理中（先頭）のIDの経過時間 (秒) を計算
                     let longestProcessingTimeSec = 0;
                     if (statusData.processing.longest && statusData.processing.longest.durationMs) {
                         longestProcessingTimeSec = statusData.processing.longest.durationMs / 1000;
                     }
 
-                    // 待ち時間 = (自分の前に並んでいる数 * 5秒) - 現在処理中のIDの経過時間
-                    let estimatedWaitTime = (myIndex * 5) - longestProcessingTimeSec;
+                    let estimatedWaitTime = 0;
                     
-                    // 0秒未満にならないように調整し、四捨五入
-                    estimatedWaitTime = Math.max(0, Math.round(estimatedWaitTime));
+                    if (myIndex === 0) {
+                        // 自分が一番前（現在まさに処理中）の場合
+                        estimatedWaitTime = Math.max(0, 5 - longestProcessingTimeSec);
+                    } else {
+                        // 先頭のIDの残り予想時間 (既に5秒以上経過していれば0秒として扱う)
+                        const firstItemRemaining = Math.max(0, 5 - longestProcessingTimeSec);
+                        
+                        // 自分より前にいる「先頭以外のID」の処理時間 (1件あたり5秒)
+                        const othersWaitTime = (myIndex - 1) * 5;
+                        
+                        // 合計の待ち時間を計算
+                        estimatedWaitTime = firstItemRemaining + othersWaitTime;
+                    }
+                    
+                    // 四捨五入
+                    estimatedWaitTime = Math.round(estimatedWaitTime);
                     
                     waitTimeMessage = ` (待ち時間: 約${estimatedWaitTime}秒)`;
                 }
