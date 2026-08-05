@@ -364,11 +364,6 @@
                     </optgroup>
                     <optgroup label="🌏 ライブ対応サーバー群">
                         <option value="siawaseok" <%= baseUrl === 'siawaseok' ? 'selected' : '' %>>SiaTube API</option>
-                        <option value="yudlp" <%= baseUrl === 'yudlp' ? 'selected' : '' %>>YuZuTube API</option>
-                        <option value="senninytdlp" <%= baseUrl === 'senninytdlp' ? 'selected' : '' %>>SenninTube Plus API</option>
-                        <option value="ytdlpinstance-vercel" <%= baseUrl === 'ytdlpinstance-vercel' ? 'selected' : '' %>>KatuoTube API</option>
-                        <option value="simple-yt-stream" <%= baseUrl === 'simple-yt-stream' ? 'selected' : '' %>>Wista Stream API</option>
-                        <option value="xeroxyt-nt-apiv1" <%= baseUrl === 'xeroxyt-nt-apiv1' ? 'selected' : '' %>>XeroxYT-NT APIv1</option>
                     </optgroup>
                 </select>
             </label>
@@ -1203,7 +1198,7 @@ function showTutorial() {
     document.body.appendChild(tutorialOverlay);
     document.getElementById('startTutorialBtn').addEventListener('click', function() {
         tutorialOverlay.remove();
-        showPlaybackSettings("https://www.youtube-nocookie.com/embed/nZTLOPMF_Lo?autoplay=1&amp;mute=0&rel=0&playlist=nZTLOPMF_Lo", "nocookie");
+        showPlaybackSettings("https://www.youtube-nocookie.com/embed/9xp1XWmJ_Wo?autoplay=1&amp;mute=0&rel=0&playlist=9xp1XWmJ_Wo", "nocookie");
     });
     document.getElementById('skipBtn0').addEventListener('click', function() {
         localStorage.setItem('tutorialCompleted', 'true');
@@ -1257,7 +1252,7 @@ async function showPlaybackSettings(iframeurl, mode) {
           showMessage("必要なデータを取得中です");
           const ytinfo3 = await fetch('/wkt/yt/edurl', { method: 'GET' });
           const ytinfo = await ytinfo3.text();
-          showPlaybackSettings(`https://www.youtubeeducation.com/embed/nZTLOPMF_Lo${ytinfo}&playlist=nZTLOPMF_Lo`, "edu");
+          showPlaybackSettings(`https://www.youtubeeducation.com/embed/9xp1XWmJ_Wo${ytinfo}&playlist=9xp1XWmJ_Wo`, "edu");
         } else {
           localStorage.setItem('tutorialCompleted', 'true');
           settingsOverlay.remove();
