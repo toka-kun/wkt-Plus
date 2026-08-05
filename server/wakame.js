@@ -313,37 +313,37 @@ async function getSiaTube(videoId) {
     } catch (error) {
         console.error(`❌ エラー: siawaseok_${videoId} - ${error.message}`);
         
-        let waitMessage = "";
+        let waitTimeMessage = "";
         try {
-            // エラー時にステータスを取得して待ち時間を計算
-            const statusRes = await axios.get('https://siatube.com/api/stream/status', { timeout: 3000 });
-            const statusData = statusRes.data;
+            // エラー時に status.json を取得して待ち時間を計算
+            const statusResponse = await axios.get('https://siatube.com/api/stream/status', { timeout: 3000 });
+            const statusData = statusResponse.data;
             
             if (statusData && statusData.processing && Array.isArray(statusData.processing.ids)) {
                 const ids = statusData.processing.ids;
-                // リクエストしたvideoIdが配列の何番目にあるか (0始まり)
-                const queueIndex = ids.indexOf(videoId);
+                const myIndex = ids.indexOf(videoId);
                 
-                if (queueIndex !== -1) {
-                    // 自分より前に並んでいるIDの数
-                    const beforeCount = queueIndex;
-                    // 処理中のIDの経過時間（ミリ秒を秒に変換）
-                    const elapsedSec = (statusData.processing.longest?.durationMs || 0) / 1000;
+                if (myIndex !== -1) {
+                    // 現在処理中のIDの経過時間 (秒) を計算
+                    let longestProcessingTimeSec = 0;
+                    if (statusData.processing.longest && statusData.processing.longest.durationMs) {
+                        longestProcessingTimeSec = statusData.processing.longest.durationMs / 1000;
+                    }
+
+                    // 待ち時間 = (自分の前に並んでいる数 * 5秒) - 現在処理中のIDの経過時間
+                    let estimatedWaitTime = (myIndex * 5) - longestProcessingTimeSec;
                     
-                    // 待ち時間 = (前の人数 * 5秒) - 現在の経過時間
-                    let calculatedWaitSec = Math.ceil((beforeCount * 5) - elapsedSec);
+                    // 0秒未満にならないように調整し、四捨五入
+                    estimatedWaitTime = Math.max(0, Math.round(estimatedWaitTime));
                     
-                    // マイナスになる場合は0秒にする
-                    if (calculatedWaitSec < 0) calculatedWaitSec = 0;
-                    
-                    waitMessage = ` (待ち時間: 約${calculatedWaitSec}秒)`;
+                    waitTimeMessage = ` (待ち時間: 約${estimatedWaitTime}秒)`;
                 }
             }
         } catch (statusError) {
-            console.error(`⚠️ ステータス取得に失敗しました: ${statusError.message}`);
+            console.error(`⚠️ ステータス取得失敗: ${statusError.message}`);
         }
 
-        throw new Error(`SiaTube APIからの取得に失敗${waitMessage}: ${error.message}`);
+        throw new Error(`SiaTube APIからの取得に失敗: ${error.message}${waitTimeMessage}`);
     }
 }
 
