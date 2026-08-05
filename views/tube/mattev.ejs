@@ -46,7 +46,9 @@
                 <label for="serverSelect" class="text-xl">サーバーを変更:</label>
                 <select id="serverSelect" class="mt-2 p-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <% serverUrls.forEach(server => { %>
-                        <option value="<%= server.replace('https://', '').replace('.glitch.me', '') %>" class="bg-gray-800 hover:bg-gray-700"><%= server.replace('https://', '').replace('.glitch.me', '') %></option>
+                        <option value="<%= server.replace('https://', '').replace('.glitch.me', '') %>" class="bg-gray-800 hover:bg-gray-700" <%= typeof baseUrl !== 'undefined' && server === baseUrl ? 'selected' : '' %>>
+                            <%= server.replace('https://', '').replace('.glitch.me', '') %>
+                        </option>
                     <% }); %>
                 </select>
                 <button onclick="changeServer()" class="mt-4 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">変更</button>
@@ -148,7 +150,7 @@ function showTutorial() {
     document.body.appendChild(tutorialOverlay);
     document.getElementById('startTutorialBtn').addEventListener('click', function() {
         tutorialOverlay.remove();
-        showPlaybackSettings("https://www.youtube-nocookie.com/embed/nZTLOPMF_Lo?autoplay=1&amp;mute=0&rel=0&playlist=nZTLOPMF_Lo", "nocookie");
+        showPlaybackSettings("https://www.youtube-nocookie.com/embed/9xp1XWmJ_Wo?autoplay=1&amp;mute=0&rel=0&playlist=9xp1XWmJ_Wo", "nocookie");
     });
     document.getElementById('skipBtn0').addEventListener('click', function() {
         localStorage.setItem('tutorialCompleted', 'true');
@@ -203,7 +205,7 @@ async function showPlaybackSettings(iframeurl, mode) {
           showMessage("必要なデータを取得中です");
           const ytinfo3 = await fetch('/wkt/yt/edurl', { method: 'GET' });
           const ytinfo = await ytinfo3.text();
-          showPlaybackSettings(`https://www.youtubeeducation.com/embed/nZTLOPMF_Lo${ytinfo}&playlist=nZTLOPMF_Lo`, "edu");
+          showPlaybackSettings(`https://www.youtubeeducation.com/embed/9xp1XWmJ_Wo${ytinfo}&playlist=9xp1XWmJ_Wo`, "edu");
         } else {
           localStorage.setItem('tutorialCompleted', 'true');
           settingsOverlay.remove();
