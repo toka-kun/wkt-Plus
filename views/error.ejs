@@ -29,9 +29,16 @@
             <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md text-center">
                 <h1 class="text-4xl font-bold text-red-500 mb-4"><%= title %></h1>
                 <p class="text-xl text-gray-300 mb-8"><%= content %></p>
-                <a href="/" class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-blue-700 transition">
-                    ホームへ戻る
-                </a>
+                
+                <div class="flex justify-center space-x-4">
+                    <button onclick="location.reload();" class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-blue-700 transition">
+                        再読み込み
+                    </button>
+                    <a href="/" class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-blue-700 transition">
+                        ホームへ戻る
+                    </a>
+                </div>
+                
             </div>
         </div>
     </div>
