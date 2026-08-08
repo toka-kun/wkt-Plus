@@ -42,6 +42,12 @@
         
         <div class="text-center">
             <% if (typeof serverUrls !== 'undefined' && Array.isArray(serverUrls) && serverUrls.length > 0) { %>
+                
+                <% if (typeof details === 'string' && details.includes('Cannot read')) { %>
+                    <p class="text-center text-lg mb-6">通常再生を選択中です</p>
+                    <p class="text-center text-lg mb-6">おそらくサーバーレス環境のため、YouTubeから動画情報をうまく取得できませんでした。<br>時間をおいて試してみて下さい。</p>
+                <% } %>
+
                 <p class="text-center text-lg mb-6">現在のサーバー: <strong><%= typeof baseUrl !== 'undefined' ? baseUrl.replace('https://', '').replace('.glitch.me', '') : '未設定' %></strong></p>
                 <label for="serverSelect" class="text-xl">サーバーを変更:</label>
                 <select id="serverSelect" class="mt-2 p-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
