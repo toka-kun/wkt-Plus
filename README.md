@@ -46,11 +46,10 @@ pinned: false
 3. [Netlify](https://app.netlify.com/) （エラーが出やすい）
 4. [Railway](https://railway.com/dashboard) （Portは8080にしてね）
 5. [Koyeb](#-koyebでのデプロイ手順)
-6. [CodeSandbox](#-codesandboxでのデプロイ手順)
-7. [Replit](https://replit.com/) （無料枠はCodeSandboxよりもちょっと多いくらい）
-8. [Kuberns](https://dashboard.kuberns.com/) （トライアル期間は1週間のみ。2時間で止まるので手動で動かす必要がある）
-9. [Back4App](https://dashboard.back4app.com/apps) （60分間有効なURLを発行できる。メモリが極小なので重い。Dockerfileでデプロイしてね）
-10. [Hugging Face Spaces](#-hugging-face-spacesでのデプロイ手順) （YouTubei.jsが使えないので中身のないただの箱になります）
+6. [Replit](https://replit.com/)
+7. [Kuberns](https://dashboard.kuberns.com/) （トライアル期間は1週間のみ。2時間で止まるので手動で動かす必要がある）
+8. [Back4App](https://dashboard.back4app.com/apps) （60分間有効なURLを発行できる。Dockerfileでデプロイしてね）
+9. [Hugging Face Spaces](#-hugging-face-spacesでのデプロイ手順) （YouTubei.jsが使えないので中身のないただの箱になります）
 
 ---
 
@@ -72,19 +71,6 @@ pinned: false
 4. 「Dockerfile」を選択
 5. Instanceを「Free」にしてそのまま進み、一番下の完了ボタン的なとこを押す
 6. 数分待つと完了です☑️
-
----
-
-### 🛠 CodeSandboxでのデプロイ手順
-
-1. [CodeSandbox](https://codesandbox.io/dashboard) にログインまたは新規登録
-2. 「Import」を選択
-3. Remixしたわかめtubeのレポジトリを選択
-4. Runtimeを用途に合わせて選択（CodeSandboxの容量は多くないので自分だけが使う場合は一番消費が少ないやつを推奨。ただし公開する場合は2番目以上じゃないとサーバーが落ちます。）し、一番下の完了ボタン的なとこを押す
-5. 右に出てきた画面から「Next」を押し続ける。途中「Protect main branch」ってのが出てくるけどそこは念の為オンにして下さい
-6. そのまま「Apply」まで押す
-7. 右下にOpen Previewって出てくると完了です。Open Previewを押すとリンクが分かります☑️
-8. 木みたいなとこを押して「Pull」を押すと最新の状態に同期できます。
 
 ---
 
