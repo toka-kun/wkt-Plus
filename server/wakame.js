@@ -318,11 +318,11 @@ async function getSiaTube(videoId) {
                 const resolution = formatResolutionLabel(s);
 
                 if (isM3u8) {
-                    const language = s.language?.name || s.language?.code || '不明';
+                    const language = s.language?.name || s.language?.code || '';
 
                     return {
                         url,
-                        name: `${resolution} - ${language}`,
+                        name: language ? `${resolution} - ${language}` : resolution,
                         container: 'm3u8',
                         formatId: s.formatId || null,
                         quality: s.quality ?? null
