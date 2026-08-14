@@ -177,22 +177,38 @@ async function getInvidious(videoId) {
     const audioUrls = adaptiveFormats
         .filter(stream => !stream.resolution && (stream.container === 'webm' || stream.container === 'm4a') && stream.url)
         .map(stream => {
-            const kbps = Math.round(Number(stream.bitrate) / 1000);
+            // Invidious は bitrate を 1000 で割った値を kbps としてそのまま表示する。
+            // 例: 1308765 -> 130.8765kbps
+            const bitrate = Number(stream.bitrate);
+            const kbps = Number.isFinite(bitrate) ? (bitrate / 1000).toString() : '';
             return {
                 url: stream.url,
-                name: `${stream.container} (${kbps}kbps)`,
+                name: kbps ? `${kbps}kbps` : 'Unknown',
                 container: stream.container
             };
         });
 
     const streamUrls = adaptiveFormats
         .filter(stream => (stream.container === 'webm' || stream.container === 'mp4') && stream.resolution && stream.url)
-        .map(stream => ({
-            url: stream.url,
-            resolution: stream.resolution,
-            container: stream.container,
-            fps: stream.fps || null
-        }));
+        .map(stream => {
+            let name = String(stream.resolution || '').trim();
+
+            // resolution が 1920x1080 のような形式なら短辺を p 表記にする。
+            const match = name.match(/^(\d+)x(\d+)$/);
+            if (match) {
+                name = `${Math.min(Number(match[1]), Number(match[2]))}p`;
+            }
+
+            if (/^\d+p$/.test(name) && stream.fps) {
+                name += String(stream.fps);
+            }
+
+            return {
+                url: stream.url,
+                name: name || 'Unknown',
+                container: stream.container
+            };
+        });
         
     return { stream_url: streamUrl, audioUrls, streamUrls };
 }
@@ -269,12 +285,12 @@ async function getSiaTube(videoId) {
             .map(s => {
                 const url = s.streamUrl || s.url;
                 const ext = s.ext || s.audioExt || 'm4a';
-                const bitrate = s.abr ?? (s.tbr ? Math.round(s.tbr) : null);
+                const bitrate = s.abr ?? (s.tbr ? Number(s.tbr) : null);
                 const lang = s.language?.code || s.language?.name || null;
 
                 return {
                     url,
-                    name: bitrate ? `${ext} (${bitrate}kbps)` : ext,
+                    name: bitrate != null ? `${bitrate}kbps` : (s.quality || 'Unknown'),
                     container: ext,
                     language: lang,
                     formatId: s.formatId || null,
@@ -297,9 +313,8 @@ async function getSiaTube(videoId) {
 
                 return {
                     url,
-                    resolution: formatResolutionLabel(s),
+                    name: formatResolutionLabel(s),
                     container: isM3u8 ? 'm3u8' : (s.ext || 'mp4'),
-                    fps: s.fps ?? null,
                     formatId: s.formatId || null,
                     quality: s.quality ?? null
                 };
@@ -404,17 +419,16 @@ async function getAceThinker(videoId) {
                     .filter(f => f.vcodec === 'none')
                     .map(f => ({
                         url: f.url,
-                        name: f.quality ? `${f.ext} (${f.quality})` : f.ext,
-                        container: f.ext
+                        name: f.quality || 'Unknown',
+                        container: f.ext || 'unknown'
                     }));
 
                 const streamUrls = formats
                     .filter(f => f.acodec === 'none')
                     .map(f => ({
                         url: f.url,
-                        resolution: f.quality || '',
-                        container: f.ext || 'mp4',
-                        fps: null
+                        name: f.quality || 'Unknown',
+                        container: f.ext || 'mp4'
                     }));
 
                 return {
@@ -479,15 +493,14 @@ async function getFreemake(videoId) {
         const videoStreams = qualities.filter(q => q.qualityInfo && Number(q.qualityInfo.audioBitrate) === 0);
         const streamUrls = videoStreams.map(q => ({
             url: q.url,
-            resolution: q.qualityInfo.qualityLabel || '',
-            container: q.qualityInfo.format || 'mp4',
-            fps: null
+            name: q.qualityInfo.qualityLabel || 'Unknown',
+            container: q.qualityInfo.format || 'mp4'
         }));
 
         const audioStreams = qualities.filter(q => q.qualityInfo && Number(q.qualityInfo.audioBitrate) !== 0 && String(q.qualityInfo.itag) !== '18');
         const audioUrls = audioStreams.map(q => ({
             url: q.url,
-            name: q.qualityInfo.audioBitrate ? `${q.qualityInfo.format} (${q.qualityInfo.audioBitrate}kbps)` : q.qualityInfo.format,
+            name: q.qualityInfo.audioBitrate ? `${q.qualityInfo.audioBitrate}kbps` : 'Unknown',
             container: q.qualityInfo.format || 'mp4'
         }));
 
@@ -540,10 +553,19 @@ async function getMinTube2(videoId) {
 
                 const streamUrls = [];
                 if (data.highstreamUrl && data.highstreamUrl !== data.stream_url) {
-                    streamUrls.push({ url: data.highstreamUrl, resolution: 'High Quality', container: 'mp4', fps: null });
+                    streamUrls.push({ url: data.highstreamUrl, name: 'High Quality', container: 'mp4' });
                 }
 
-                const audioUrls = data.audioUrl ? [{ url: data.audioUrl, name: 'Default Audio', container: 'Auto' }] : [];
+                const audioContainer = (() => {
+                    try {
+                        const pathname = new URL(data.audioUrl).pathname;
+                        const match = pathname.match(/\.([a-z0-9]+)$/i);
+                        return match ? match[1].toLowerCase() : 'm4a';
+                    } catch (_) {
+                        return 'm4a';
+                    }
+                })();
+                const audioUrls = data.audioUrl ? [{ url: data.audioUrl, name: 'medium', container: audioContainer }] : [];
 
                 return {
                     stream_url: data.stream_url, 
@@ -587,21 +609,16 @@ async function getYouTube(videoId, apiType = 'invidious') {
 
     if (result.streamUrls && result.streamUrls.length > 0) {
         const newStreamUrls = [];
-        const seenUrls = new Set(); 
+        const seenUrls = new Set();
 
         if (result.stream_url) {
             seenUrls.add(result.stream_url);
         }
 
         result.streamUrls.forEach(stream => {
-            let resName = stream.resolution || 'Auto';
-            resName = resName.replace(/ \(.+\)/g, '').trim();
-
-            if (stream.fps && resName.endsWith(stream.fps.toString())) {
-                resName = resName.slice(0, -stream.fps.toString().length);
-            }
-
+            const name = String(stream.name || 'Unknown').trim() || 'Unknown';
             let containerType = stream.container || 'mp4';
+
             if (stream.url && (stream.url.includes('.m3u8') || stream.url.includes('manifest'))) {
                 containerType = 'm3u8';
             }
@@ -610,13 +627,13 @@ async function getYouTube(videoId, apiType = 'invidious') {
                 seenUrls.add(stream.url);
                 newStreamUrls.push({
                     url: stream.url,
-                    resolution: resName, 
-                    container: containerType,
-                    fps: stream.fps
+                    name,
+                    container: containerType
                 });
             }
         });
-        result.streamUrls = newStreamUrls; 
+
+        result.streamUrls = newStreamUrls;
     } else {
         result.streamUrls = [];
     }
