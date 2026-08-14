@@ -20,18 +20,7 @@ app.use(cors());
 app.set("trust proxy", 1);
 app.use(cookieParser());
 
-// ★追加: デバッグ用ルート（認証ミドルウェアより前に置く）
-app.get('/debug/net', async (req, res) => {
-  try {
-    const r = await fetch('https://www.youtube.com', { method: 'HEAD' });
-    res.send(`status: ${r.status}`);
-  } catch (e) {
-    res.status(500).send(`error: ${e.message}\ncause: ${JSON.stringify(e.cause)}`);
-  }
-});
-
 app.use((req, res, next) => {
-    if (req.path.startsWith('/debug')) return next(); // ★追加: debugパスは認証除外
     if (req.cookies.loginok !== 'ok' && !req.path.includes('login') && !req.path.includes('back')) {
         return res.redirect('/login');
     } else {
