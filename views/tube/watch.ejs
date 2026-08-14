@@ -324,33 +324,39 @@
             </div>
         </div>
         <% if (videoData.streamUrls && videoData.streamUrls.length > 0) { %>
-        <div class="control-section mb-4">
+          <div class="control-section mb-4">
             <label class="block mb-2">画質を選択:
-                <select id="qualitySelect" class="w-full bg-gray-800 text-white p-2 rounded">
-                    <option value="<%= videoData.stream_url %>" data-container="mp4" data-is-auto="true">統合ストリーム</option>
-                    <% if (videoData.streamUrls && videoData.streamUrls.length > 0) { %>
-                        <% videoData.streamUrls.forEach(function(stream) { %>
-                            <option value="<%= stream.url %>">
-                                <%= stream.resolution %><%= stream.fps ? stream.fps : '' %> (<%= stream.container %>)
-                            </option>
-                        <% }); %>
-                    <% } %>
-                </select>
+              <select id="qualitySelect" class="w-full bg-gray-800 text-white p-2 rounded">
+                <option value="<%- videoData.stream_url %>" data-container="mp4" data-name="統合ストリーム" data-is-auto="true">
+                  統合ストリーム
+                </option>
+        
+                <% videoData.streamUrls.forEach(function(stream) { %>
+                  <option value="<%- stream.url %>" data-container="<%= stream.container || 'mp4' %>" data-name="<%= stream.name || 'Unknown' %>">
+                    <%= stream.name || 'Unknown' %> (<%= stream.container || 'mp4' %>)
+                  </option>
+                <% }); %>
+              </select>
             </label>
-
+        
             <label class="block mb-2">音声を選択:
-                <select id="audioSelect" class="w-full bg-gray-800 text-white p-2 rounded">
-                    <% if (videoData.audioUrls && videoData.audioUrls.length > 0) { %>
-                        <% videoData.audioUrls.forEach(function(audio) { %>
-                            <option value="<%= audio.url %>"><%= audio.name %></option>
-                        <% }); %>
-                    <% } else { %>
-                       <option value="">オーディオなし</option>
-                    <% } %>
-                </select>
+              <select id="audioSelect" class="w-full bg-gray-800 text-white p-2 rounded">
+                <% if (videoData.audioUrls && videoData.audioUrls.length > 0) { %>
+                  <% videoData.audioUrls.forEach(function(audio) { %>
+                    <option value="<%- audio.url %>" data-container="<%= audio.container || 'm4a' %>" data-name="<%= audio.name || 'Unknown' %>">
+                      <%= audio.name || 'Unknown' %> (<%= audio.container || 'm4a' %>)
+                    </option>
+                  <% }); %>
+                <% } else { %>
+                  <option value="">オーディオなし</option>
+                <% } %>
+              </select>
             </label>
-            <button id="qualityReset" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">画質をリセット</button>
-        </div>
+        
+            <button id="qualityReset" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">
+              画質をリセット
+            </button>
+          </div>
         <% } %>
         <div class="control-section mb-4">
             <p class="block mb-2">使用したサーバー: <strong><%= baseUrl.replace('https://', '').replace('.glitch.me', '') %></strong></p>
