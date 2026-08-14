@@ -289,18 +289,13 @@ async function getSiaTube(videoId) {
             .map(s => {
                 const url = s.streamUrl || s.url;
                 const ext = s.ext || s.audioExt || 'm4a';
-    
-                const bitrate = s.abr != null 
-                    ? Math.round(Number(s.abr))
-                    : s.tbr != null
-                        ? Math.round(Number(s.tbr)) 
-                        : null;
-                const language = s._language?.name || s._language?.code || '不明';
+                const bitrate = s.abr != null ? s.abr : (s.tbr != null ? s.tbr : null);
+                const language = s._language?.name || s._language?.code || '';
                 const quality = bitrate != null ? `${bitrate}kbps` : (s.quality || 'Unknown');
 
                 return {
                     url,
-                    name: `${quality} - ${language}`,
+                    name: language ? `${quality} - ${language}` : quality,
                     container: ext,
                     language: s._language?.code || s.language?.code || null,
                     formatId: s.formatId || null,
