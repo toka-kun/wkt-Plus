@@ -234,7 +234,13 @@ async function getSiaTube(videoId) {
         const audioGroups = Object.values(rawAudioByLanguage).filter(
             v => v && Array.isArray(v.streams)
         );
-        const audioList = audioGroups.flatMap(v => v.streams);
+        const audioList = audioGroups.flatMap(group => {
+            const language = group.language || {};
+            return group.streams.map(stream => ({
+                ...stream,
+                _language: language
+            }));
+        });
 
         // m3u8 は data.m3u8.list に入る
         const m3u8List = Array.isArray(data.m3u8?.list) ? data.m3u8.list : [];
@@ -242,40 +248,38 @@ async function getSiaTube(videoId) {
         // 画質ラベルを「小さい方の辺 + fps」に統一する
         // 例: 256x138 + 30fps -> 138p30
         const formatResolutionLabel = (item) => {
-            const fps = item?.fps ?? null;
+            const fps = Number(item?.fps);
 
             let smallSide = null;
 
             if (typeof item?.resolution === 'string' && item.resolution.includes('x')) {
-                const [w, h] = item.resolution.split('x').map(n => Number(n));
+                const [w, h] = item.resolution.split('x').map(Number);
                 if (Number.isFinite(w) && Number.isFinite(h)) {
                     smallSide = Math.min(w, h);
                 }
             }
 
-            if (!smallSide && Number.isFinite(item?.width) && Number.isFinite(item?.height)) {
+            if (!smallSide && Number.isFinite(Number(item?.width)) && Number.isFinite(Number(item?.height))) {
                 smallSide = Math.min(Number(item.width), Number(item.height));
             }
 
-            if (!smallSide && Number.isFinite(item?.height)) {
+            if (!smallSide && Number.isFinite(Number(item?.height))) {
                 smallSide = Number(item.height);
             }
 
-            if (!smallSide && Number.isFinite(item?.quality)) {
+            if (!smallSide && Number.isFinite(Number(item?.quality))) {
                 smallSide = Number(item.quality);
             }
 
             if (!smallSide) {
-                return fps ? `unknownp${fps}` : 'unknown';
+                return Number.isFinite(fps) && fps > 0 ? `unknownp${fps}` : 'unknown';
             }
 
-            return fps ? `${smallSide}p${fps}` : `${smallSide}p`;
+            return Number.isFinite(fps) && fps > 0 ? `${smallSide}p${fps}` : `${smallSide}p`;
         };
 
         // ① メイン再生用ストリーム
-        const combinedStream =
-            muxed.find(s => String(s.formatId || s.itag) === '18') ||
-            muxed[0];
+        const combinedStream = muxed.find(s => String(s.formatId || s.itag) === '18') || muxed[0];
 
         const streamUrl = combinedStream?.streamUrl || combinedStream?.url || '';
 
@@ -285,14 +289,20 @@ async function getSiaTube(videoId) {
             .map(s => {
                 const url = s.streamUrl || s.url;
                 const ext = s.ext || s.audioExt || 'm4a';
-                const bitrate = s.abr ?? (s.tbr ? Number(s.tbr) : null);
-                const lang = s.language?.code || s.language?.name || null;
+    
+                const bitrate = s.abr != null 
+                    ? Math.round(Number(s.abr))
+                    : s.tbr != null
+                        ? Math.round(Number(s.tbr)) 
+                        : null;
+                const language = s._language?.name || s._language?.code || '不明';
+                const quality = bitrate != null ? `${bitrate}kbps` : (s.quality || 'Unknown');
 
                 return {
                     url,
-                    name: bitrate != null ? `${bitrate}kbps` : (s.quality || 'Unknown'),
+                    name: `${quality} - ${language}`,
                     container: ext,
-                    language: lang,
+                    language: s._language?.code || s.language?.code || null,
                     formatId: s.formatId || null,
                     quality: s.quality ?? null
                 };
@@ -305,16 +315,29 @@ async function getSiaTube(videoId) {
             .map(s => {
                 const url = s.streamUrl || s.url;
 
-                const isM3u8 =
-                    s.isM3u8 === true ||
+                const isM3u8 = s.isM3u8 === true ||
                     s.protocol === 'm3u8_native' ||
                     s.mediaType === 'hls' ||
                     (typeof url === 'string' && (url.includes('.m3u8') || url.includes('manifest')));
 
+                const resolution = formatResolutionLabel(s);
+
+                if (isM3u8) {
+                    const language = s.language?.name || s.language?.code || '不明';
+
+                    return {
+                        url,
+                        name: `${resolution} - ${language}`,
+                        container: 'm3u8',
+                        formatId: s.formatId || null,
+                        quality: s.quality ?? null
+                    };
+                }
+
                 return {
                     url,
-                    name: formatResolutionLabel(s),
-                    container: isM3u8 ? 'm3u8' : (s.ext || 'mp4'),
+                    name: resolution,
+                    container: s.ext || 'mp4',
                     formatId: s.formatId || null,
                     quality: s.quality ?? null
                 };
@@ -325,6 +348,7 @@ async function getSiaTube(videoId) {
             audioUrls,
             streamUrls
         };
+
     } catch (error) {
         console.error(`❌ エラー: siawaseok_${videoId} - ${error.message}`);
         
@@ -346,24 +370,20 @@ async function getSiaTube(videoId) {
                     }
 
                     let estimatedWaitTime = 0;
-                    
                     if (myIndex === 0) {
                         // 自分が一番前（現在まさに処理中）の場合
                         estimatedWaitTime = Math.max(0, 5 - longestProcessingTimeSec);
                     } else {
                         // 先頭のIDの残り予想時間 (既に5秒以上経過していれば0秒として扱う)
                         const firstItemRemaining = Math.max(0, 5 - longestProcessingTimeSec);
-                        
                         // 自分より前にいる「先頭以外のID」の処理時間 (1件あたり5秒)
                         const othersWaitTime = (myIndex - 1) * 5;
-                        
                         // 合計の待ち時間を計算
                         estimatedWaitTime = firstItemRemaining + othersWaitTime;
                     }
                     
                     // 四捨五入
                     estimatedWaitTime = Math.round(estimatedWaitTime);
-                    
                     waitTimeMessage = ` (待ち時間: 約${estimatedWaitTime}秒)`;
                 }
             }
