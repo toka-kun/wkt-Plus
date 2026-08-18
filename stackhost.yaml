@@ -1,5 +1,5 @@
 runtime:
-  image: node:24
+  image: node:22
 
 commands:
   package: ""
