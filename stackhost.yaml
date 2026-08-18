@@ -1,0 +1,8 @@
+runtime:
+  image: node:24
+
+commands:
+  package: ""
+  build:
+    - "npm install"
+  start: "npm run start"
