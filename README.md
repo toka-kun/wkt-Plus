@@ -42,14 +42,15 @@ pinned: false
 ## 対応しているデプロイサービス
 
 1. [Render](#-renderでのデプロイ手順)
-2. [Vercel](https://vercel.com/) （エラーが出やすい）
-3. [Netlify](https://app.netlify.com/) （エラーが出やすい）
-4. [Railway](https://railway.com/dashboard) （Portは8080にしてね）
-5. [Koyeb](#-koyebでのデプロイ手順)
-6. [Replit](https://replit.com/)
-7. [Kuberns](https://dashboard.kuberns.com/) （トライアル期間は1週間のみ。2時間で止まるので手動で動かす必要がある）
-8. [Back4App](https://dashboard.back4app.com/apps) （60分間有効なURLを発行できる。Dockerfileでデプロイしてね）
-9. [Hugging Face Spaces](#-hugging-face-spacesでのデプロイ手順) （YouTubei.jsが使えないので中身のないただの箱になります）
+2. [Railway](https://railway.com/dashboard) （PORTを入力する必要がある場合は8080にして下さい）
+3. [Koyeb](https://app.koyeb.com/) （Dockerfileを選択して下さい）
+4. [Vercel](https://vercel.com/) （サーバーレスのためエラーが起きたりする）
+5. [Netlify](https://app.netlify.com/) （サーバーレスのためエラーが起きたりする）
+6. [StackHost](https://www.stackhost.org/) （環境変数に手動で PORT 3000 を入れて下さい）
+7. [Replit](https://replit.com/)
+8. [Kuberns](https://dashboard.kuberns.com/) （トライアル期間は1週間のみ。2時間で止まるので手動で再起動する必要があります）
+9. [Back4App](https://dashboard.back4app.com/apps) （60分間有効なURLを発行できる。Dockerfileを選択して下さい）
+10. [Hugging Face Spaces](#-hugging-face-spacesでのデプロイ手順) （YouTubei.jsが使えないので中身のないただの箱になります）
 
 ---
 
@@ -60,17 +61,6 @@ pinned: false
 3. Remixしたわかめtubeのリポジトリを選択
 4. Instance Typeを「Free」にして一番下の完了ボタン的なとこを押す
 5. 数分待つと完了です☑️
-
----
-
-### 🛠 Koyebでのデプロイ手順
-
-1. [Koyeb](https://app.koyeb.com/) にログインまたは新規登録
-2. 「Create Service」 → 「GitHub」 を選択
-3. Remixしたわかめtubeのレポジトリを選択
-4. 「Dockerfile」を選択
-5. Instanceを「Free」にしてそのまま進み、一番下の完了ボタン的なとこを押す
-6. 数分待つと完了です☑️
 
 ---
 
@@ -178,6 +168,7 @@ pinned: false
 - 2026/08/05 - 復活する見込みのないAPIを削除
 - 2026/08/08 - エラー画面を修正
 - 2026/08/14 - 取得ロジックを変更
+- 2026/08/18 - StackHostでのデプロイに対応
 
 ---
 
