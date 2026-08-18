@@ -427,16 +427,29 @@ async function getAceThinker(videoId) {
                 recordSuccess(instance); // 成功記録
                 
                 const formats = resData.formats;
+                const duration = resData.duration; // トップレベルのdurationを使用
                 const combinedStream = formats.find(f => f.acodec !== 'none' && f.vcodec !== 'none');
                 const streamUrl = combinedStream?.url || '';
 
                 const audioUrls = formats
                     .filter(f => f.vcodec === 'none')
-                    .map(f => ({
-                        url: f.url,
-                        name: f.quality || 'Unknown',
-                        container: f.ext || 'unknown'
-                    }));
+                    .map(f => {
+                        let audioName = f.quality || 'Unknown';
+                        
+                        // filesizeとdurationが存在する場合のみkbpsを計算
+                        if (f.filesize && duration) {
+                            // filesize * 8 / duration の結果を四捨五入し、1000で割る
+                            const bps = Math.round((f.filesize * 8) / duration);
+                            const kbps = bps / 1000;
+                            audioName = `${kbps}kbps`;
+                        }
+
+                        return {
+                            url: f.url,
+                            name: audioName,
+                            container: f.ext || 'unknown'
+                        };
+                    });
 
                 const streamUrls = formats
                     .filter(f => f.acodec === 'none')
