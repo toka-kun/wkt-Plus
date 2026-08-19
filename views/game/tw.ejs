@@ -108,11 +108,16 @@
 
         const FETCH_TIMEOUT_MS = 3000; 
 
+        // 0000〜9999のランダムな4桁の数字を生成
+        const randomNum = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        const username = `wktplus${randomNum}`;
+
+        // バッククォートを使用して変数(username)を展開
         const baseUrls = [
-            "https://mirror.turbowarp.xyz/embed?addons=pause&settings-button&hqpen&username=プレイヤー名",
-            "https://turbowarp-mirror.pages.dev/embed?addons=pause&settings-button&hqpen&username=プレイヤー名",
-            "https://html-api-turbo.remotewire.net/embed?addons=pause&settings-button&hqpen&username=プレイヤー名",
-            "https://turbomirror.smooth.ytalt.f5.si/embed?addons=pause&settings-button&hqpen&username=プレイヤー名"
+            `https://mirror.turbowarp.xyz/embed?addons=pause&settings-button&hqpen&username=${username}`,
+            `https://turbowarp-mirror.pages.dev/embed?addons=pause&settings-button&hqpen&username=${username}`,
+            `https://html-api-turbo.remotewire.net/embed?addons=pause&settings-button&hqpen&username=${username}`,
+            `https://turbomirror.smooth.ytalt.f5.si/embed?addons=pause&settings-button&hqpen&username=${username}`
         ];
 
         async function checkConnection(url) {
