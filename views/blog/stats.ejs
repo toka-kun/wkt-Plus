@@ -21,13 +21,14 @@
     <div class="flex-grow w-full h-screen pt-20 pb-4 px-4 box-border overflow-y-auto">
         
         <!-- ステータスボード用コンテナ -->
+
         <div class="w-full max-w-5xl mx-auto bg-white rounded-2xl shadow-lg border-none min-h-full p-6 lg:p-10 flex flex-col mb-10">
             
             <!-- 全体ステータス -->
             <div class="text-center mb-10">
                 <h1 class="text-3xl font-bold text-gray-800">System Status</h1>
-                <div id="overall-status" class="text-lg font-medium mt-4 py-3 rounded-md bg-gray-100 text-gray-600 shadow-sm transition-all duration-500">
-                    Checking status...
+                <div id="overall-status" class="text-lg font-medium mt-4 py-3 rounded-md shadow-sm transition-all duration-500">
+                    Loading...
                 </div>
             </div>
 
@@ -40,44 +41,36 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const apiUrl = 'https://stats.uptimerobot.com/api/getMonitorList/h5He3VeuIe';
+        document.addEventListener('DOMContentLoaded', () => {
             const container = document.getElementById('monitors-list');
             const overallStatus = document.getElementById('overall-status');
 
-            try {
-                // APIからデータを取得
-                const response = await fetch(apiUrl);
-                const data = await response.json();
+            // サーバーから渡されたデータをJSONとして受け取る
+            // ※ EJSのタグを使ってサーバー側の変数をJSの変数に変換します
+            const data = <%- JSON.stringify(monitorData || null) %>;
 
-                if (data.status === 'ok') {
-                    container.innerHTML = ''; // ロード中の表示をクリア
-                    let isAllOperational = true;
+            if (data && data.status === 'ok') {
+                container.innerHTML = '';
+                let isAllOperational = true;
 
-                    // 各モニターのデータを処理
-                    data.data.forEach(monitor => {
-                        // 1つでも危険状態（danger）があれば全体ステータスを変更
-                        if (monitor.statusClass === 'danger') {
-                            isAllOperational = false;
-                        }
-                        container.appendChild(createMonitorElement(monitor));
-                    });
-
-                    // 全体ステータスのバッジを更新
-                    if (isAllOperational) {
-                        overallStatus.textContent = 'All systems are operational';
-                        overallStatus.className = 'text-lg font-medium mt-4 py-3 rounded-md bg-green-100 text-green-700 shadow-sm';
-                    } else {
-                        overallStatus.textContent = 'Some systems are experiencing issues';
-                        overallStatus.className = 'text-lg font-medium mt-4 py-3 rounded-md bg-red-100 text-red-700 shadow-sm';
+                data.data.forEach(monitor => {
+                    if (monitor.statusClass === 'danger') {
+                        isAllOperational = false;
                     }
+                    container.appendChild(createMonitorElement(monitor));
+                });
 
+                if (isAllOperational) {
+                    overallStatus.textContent = 'All systems are operational';
+                    overallStatus.className = 'text-lg font-medium mt-4 py-3 rounded-md bg-green-100 text-green-700 shadow-sm';
                 } else {
-                    overallStatus.textContent = 'Failed to load status data.';
+                    overallStatus.textContent = 'Some systems are experiencing issues';
+                    overallStatus.className = 'text-lg font-medium mt-4 py-3 rounded-md bg-red-100 text-red-700 shadow-sm';
                 }
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                overallStatus.textContent = 'Error loading data. Please try again later.';
+
+            } else {
+                overallStatus.textContent = 'Failed to load status data or API error.';
+                overallStatus.className = 'text-lg font-medium mt-4 py-3 rounded-md bg-gray-100 text-gray-600 shadow-sm';
             }
         });
 
