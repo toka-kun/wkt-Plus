@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stats</title>
+    <title>稼働状況一覧</title>
     <script src="/js/tailwindcss.js"></script>
     <link rel="stylesheet" href="/css/page.css">
 </head>
 <body class="bg-gray-900 font-sans min-h-screen flex flex-col m-0 p-0 overflow-hidden">
     
+    <!-- 戻るボタン -->
     <button class="back-button fixed top-5 left-5 z-50 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out flex items-center space-x-2" onclick="window.location.href='/wkt'">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -16,14 +17,173 @@
         <span>戻る</span>
     </button>
 
-    <div class="flex-grow w-full h-screen pt-20 pb-4 px-4 box-border">
-        <iframe 
-            src="https://embeddr.pages.dev/embed#https://stats.uptimerobot.com/h5He3VeuIe" 
-            class="w-full h-full rounded-2xl shadow-lg border-none bg-white"
-            allow="camera;microphone;geolocation"
-            title="UptimeRobot (Embeddr Proxy)">
-        </iframe>
+    <!-- メインコンテンツ -->
+    <div class="flex-grow w-full h-screen pt-20 pb-4 px-4 box-border overflow-y-auto">
+        
+        <!-- ステータスボード用コンテナ -->
+        <div class="w-full max-w-5xl mx-auto bg-white rounded-2xl shadow-lg border-none min-h-full p-6 lg:p-10 flex flex-col mb-10">
+            
+            <!-- 全体ステータス -->
+            <div class="text-center mb-10">
+                <h1 class="text-3xl font-bold text-gray-800">System Status</h1>
+                <div id="overall-status" class="text-lg font-medium mt-4 py-3 rounded-md bg-gray-100 text-gray-600 shadow-sm transition-all duration-500">
+                    Checking status...
+                </div>
+            </div>
+
+            <!-- モニターリスト -->
+            <div id="monitors-list" class="flex flex-col space-y-10">
+                <!-- ここにJavaScriptで動的に要素が追加されます -->
+            </div>
+            
+        </div>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const apiUrl = 'https://stats.uptimerobot.com/api/getMonitorList/h5He3VeuIe';
+            const container = document.getElementById('monitors-list');
+            const overallStatus = document.getElementById('overall-status');
+
+            try {
+                // APIからデータを取得
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                if (data.status === 'ok') {
+                    container.innerHTML = ''; // ロード中の表示をクリア
+                    let isAllOperational = true;
+
+                    // 各モニターのデータを処理
+                    data.data.forEach(monitor => {
+                        // 1つでも危険状態（danger）があれば全体ステータスを変更
+                        if (monitor.statusClass === 'danger') {
+                            isAllOperational = false;
+                        }
+                        container.appendChild(createMonitorElement(monitor));
+                    });
+
+                    // 全体ステータスのバッジを更新
+                    if (isAllOperational) {
+                        overallStatus.textContent = 'All systems are operational';
+                        overallStatus.className = 'text-lg font-medium mt-4 py-3 rounded-md bg-green-100 text-green-700 shadow-sm';
+                    } else {
+                        overallStatus.textContent = 'Some systems are experiencing issues';
+                        overallStatus.className = 'text-lg font-medium mt-4 py-3 rounded-md bg-red-100 text-red-700 shadow-sm';
+                    }
+
+                } else {
+                    overallStatus.textContent = 'Failed to load status data.';
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                overallStatus.textContent = 'Error loading data. Please try again later.';
+            }
+        });
+
+        // モニターごとのUIコンポーネントを生成する関数
+        function createMonitorElement(monitor) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex flex-col space-y-3';
+
+            // --- 1. ヘッダー部（名前と稼働率） ---
+            const header = document.createElement('div');
+            header.className = 'flex justify-between items-center';
+
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'flex items-center space-x-3';
+
+            // ステータスを表す丸いインジケーター
+            const statusDot = document.createElement('span');
+            statusDot.className = `w-4 h-4 rounded-full shadow-sm ${getStatusColor(monitor.statusClass)}`;
+            
+            const name = document.createElement('h2');
+            name.className = 'text-xl font-semibold text-gray-700';
+            name.textContent = monitor.name;
+
+            nameDiv.appendChild(statusDot);
+            nameDiv.appendChild(name);
+
+            // 右側の稼働率表示
+            const ratio = document.createElement('span');
+            ratio.className = 'text-sm font-bold text-gray-500 bg-gray-100 py-1 px-3 rounded-full';
+            const ratioValue = monitor['90dRatio'] ? monitor['90dRatio'].ratio : 'N/A';
+            ratio.textContent = `${ratioValue}% uptime`;
+
+            header.appendChild(nameDiv);
+            header.appendChild(ratio);
+
+            // --- 2. バー（棒グラフ）表示部 ---
+            const barsWrapper = document.createElement('div');
+            barsWrapper.className = 'flex space-x-1 h-12 w-full';
+
+            const days = monitor.dailyRatios || [];
+            
+            days.forEach(day => {
+                const barGroup = document.createElement('div');
+                barGroup.className = 'flex-grow relative group cursor-pointer';
+
+                // 日ごとのバー
+                const bar = document.createElement('div');
+                bar.className = `w-full h-full rounded-sm opacity-80 group-hover:opacity-100 transition-opacity duration-200 ${getBarColor(day.color)}`;
+                
+                // ホバー時に表示されるツールチップ
+                const tooltip = document.createElement('div');
+                tooltip.className = 'hidden group-hover:block absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs py-1 px-3 rounded shadow-lg whitespace-nowrap z-10';
+                
+                // 稼働率ラベル（excellent, poor, black等）をキャピタライズ
+                const labelStr = day.label ? day.label.charAt(0).toUpperCase() + day.label.slice(1) : '';
+                tooltip.innerHTML = `<span class="font-bold">${day.date}</span><br>${day.ratio}% (${labelStr})`;
+
+                // ツールチップの下向きの矢印
+                const tooltipArrow = document.createElement('div');
+                tooltipArrow.className = 'absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800';
+                tooltip.appendChild(tooltipArrow);
+
+                barGroup.appendChild(bar);
+                barGroup.appendChild(tooltip);
+                barsWrapper.appendChild(barGroup);
+            });
+
+            // --- 3. フッター部（日付） ---
+            const footer = document.createElement('div');
+            footer.className = 'flex justify-between items-center text-xs text-gray-400 mt-1';
+            
+            const startDate = days.length > 0 ? days[0].date : '90 days ago';
+            
+            footer.innerHTML = `
+                <span>${startDate}</span>
+                <span class="border-t border-gray-200 flex-grow mx-4"></span>
+                <span>Today</span>
+            `;
+
+            wrapper.appendChild(header);
+            wrapper.appendChild(barsWrapper);
+            wrapper.appendChild(footer);
+
+            return wrapper;
+        }
+
+        // ステータスクラスに応じた色を返す
+        function getStatusColor(statusClass) {
+            switch (statusClass) {
+                case 'success': return 'bg-green-500';
+                case 'danger': return 'bg-red-500';
+                case 'notchecked': return 'bg-gray-300';
+                default: return 'bg-gray-300';
+            }
+        }
+
+        // バーの色（UptimeRobotのAPIカラー仕様に準拠）を返す
+        function getBarColor(color) {
+            switch (color) {
+                case 'green': return 'bg-green-500 hover:bg-green-400';
+                case 'red': return 'bg-red-500 hover:bg-red-400';
+                case 'grey': return 'bg-gray-200 hover:bg-gray-300'; // データなし/チェック前
+                case 'blue': return 'bg-blue-400 hover:bg-blue-300'; // 軽微なダウンタイム（good）
+                default: return 'bg-gray-200';
+            }
+        }
+    </script>
 </body>
 </html>
