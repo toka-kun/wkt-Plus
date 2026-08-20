@@ -92,12 +92,14 @@
                 <img src="https://count.getloli.com/@wkt-plus?name=wkt-plus&theme=original-new&padding=7&offset=0&align=top&scale=0.4&pixelated=1&darkmode=auto">
             </a>
             <div class="space-x-6 flex items-center">
-                <button id="secretModeBtn" class="hover:text-gray-300 flex items-center transition-colors">🤫シークレット</button>
+                <button id="secretModeBtn" class="hover:text-gray-300 flex items-center transition-colors">😎シークレット</button>
                 <button id="openSettings" class="hover:text-gray-300">⚙️再生方法</button>
                 <a href="/wkt/trend" class="hover:text-gray-300">トレンド</a>
                 <a href="/wkt/cl/history" class="hover:text-gray-300">再生履歴</a>
                 <a href="/wkt/cl/fav" class="hover:text-gray-300">お気に入り</a>
                 <a href="/blog/b/wkthelp" class="hover:text-gray-300">ヘルプ</a>
+                <a href="/blog/b/stats" class="hover:text-gray-300">稼働状況</a>
+                <a href="/blog/b/form" class="hover:text-gray-300">お問い合わせ</a>
             </div>
         </nav>
     </header>
@@ -119,7 +121,7 @@
                 <a href="/other">
                 <img src="https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://www.youtube.com/&size=256">
                 </a>
-                <h3>他のYouTubeサイト</h3>
+                <h3>YouTubeサイト</h3>
                 <p>他の方が作ったYouTubeサイトを搭載。</p>
             </div>
             <div class="app-card">
@@ -150,17 +152,6 @@
                 <h3>プロキシ＆ツール</h3>
                 <p>あなたを助けるかもしれない</p>
             </div>
-            <div class="app-card">
-                <a href="/blog/b/form">
-                <img src="https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_otoiawase_1.png">
-                </a>
-                <h3>お問い合わせ</h3>
-                <p>サイトの管理者に問い合わせる</p>
-            </div>
-        </div>
-
-        <div style="height:480px;" class="w-full max-w-3xl mx-auto mt-10">
-            <script src="//accaii.com/wktplus/widget.js" async></script>
         </div>
 
     </section>
@@ -363,9 +354,9 @@ if (localStorage.getItem('secretMode') === null) {
 function updateSecretBtnDisplay() {
     const mode = localStorage.getItem('secretMode');
     if (mode === 'on') {
-        secretModeBtn.innerHTML = '🤫シークレット <span class="text-green-400 font-bold ml-1 text-sm">(ON)</span>';
+        secretModeBtn.innerHTML = '😎シークレット <span class="text-green-400 font-bold ml-1 text-sm">(ON)</span>';
     } else {
-        secretModeBtn.innerHTML = '🤫シークレット <span class="text-gray-500 font-bold ml-1 text-sm">(OFF)</span>';
+        secretModeBtn.innerHTML = '😎シークレット <span class="text-gray-500 font-bold ml-1 text-sm">(OFF)</span>';
     }
 }
 updateSecretBtnDisplay(); // ロード時に表示を合わせる
