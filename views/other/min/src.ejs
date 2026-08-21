@@ -135,8 +135,25 @@
         .filter-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
         .filter-chip:hover:not(.active) { border-color: var(--border-hover); color: var(--text-main); }
 
-        .sort-btn {
+        .actions-group {
             margin-left: auto;
+            display: flex;
+            gap: 8px;
+        }
+
+        .measure-btn {
+            background: var(--surface2); border: 1px solid var(--accent);
+            padding: 6px 14px; border-radius: 8px;
+            font-size: 12px; font-weight: 600; font-family: var(--font-mono);
+            color: var(--accent);
+            cursor: pointer; transition: 0.15s;
+            display: flex; align-items: center; gap: 6px;
+            min-width: 110px; justify-content: center;
+        }
+        .measure-btn:hover:not(:disabled) { background: var(--accent-glow); }
+        .measure-btn:disabled { opacity: 0.5; cursor: not-allowed; border-color: var(--border); color: var(--text-sub); }
+
+        .sort-btn {
             background: var(--surface2); border: 1px solid var(--border);
             padding: 6px 14px; border-radius: 8px;
             font-size: 12px; font-weight: 600; font-family: var(--font-mono);
@@ -205,6 +222,7 @@
         .speed-dot.mid { background: var(--mid); }
         .speed-dot.slow { background: var(--slow); }
         .speed-dot.dead { background: var(--dead); }
+        .speed-dot.unmeasured { background: var(--surface2); border: 1px solid var(--border); }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; transform: scale(1); }
@@ -216,6 +234,7 @@
         .speed-text.mid { color: var(--mid); }
         .speed-text.slow { color: var(--slow); }
         .speed-text.dead { color: var(--dead); }
+        .speed-text.unmeasured { color: var(--text-sub); opacity: 0.5; }
 
         .rank-badge {
             position: absolute; top: 12px; right: 12px;
@@ -243,7 +262,7 @@
         }
         .latency-bar-fill {
             height: 100%; border-radius: 99px;
-            background: var(--speed-color, var(--dead));
+            background: var(--speed-color, var(--surface2));
             transition: width 0.6s ease;
         }
 
@@ -267,7 +286,7 @@
     <header>
         <div class="header-badge">MIN-Tube-Pro</div>
         <h1>Public <span>Domains</span></h1>
-        <p class="subtitle">MIN-Tube-Pro の公式・コミュニティ配布URL一覧 — 応答速度順</p>
+        <p class="subtitle">MIN-Tube-Pro の公式・コミュニティ配布URL一覧</p>
     </header>
 
     <div class="speed-status" id="speedStatus" style="display:none;">
@@ -293,9 +312,15 @@
                 <button class="filter-chip" data-filter="codesandbox">CodeSandbox</button>
                 <button class="filter-chip" data-filter="unknown">不明</button>
             </div>
-            <button class="sort-btn active" id="sortBtn" title="クリックでソート切り替え">
-                ⚡ 速度順
-            </button>
+            
+            <div class="actions-group">
+                <button class="measure-btn" id="measureBtn" title="全ドメインの速度を計測">
+                    ⚡ 速度を計測
+                </button>
+                <button class="sort-btn" id="sortBtn" title="クリックでソート切り替え">
+                    ✨ 新しい順
+                </button>
+            </div>
         </div>
     </div>
 
@@ -323,9 +348,11 @@
 
   let allDomains = [];
   let currentFilter = 'all';
-  let sortMode = 'speed';
+  // デフォルトは「新しい順」
+  let sortMode = 'newest';
   // 'speed' | 'newest' | 'oldest'
   let measuredCount = 0;
+  let isMeasuringGlobal = false;
 
   // ── Speed measurement ────────────────────────────────────────────────────
   const TIMEOUT_MS = 6000;
@@ -347,15 +374,14 @@
       clearTimeout(timer);
       return Math.round(performance.now() - start);
     } catch (e) {
-      // If aborted = timeout, mark as dead
       if (e.name === 'AbortError') return null;
-      // Other network errors: still got a response time (CORS block = server replied)
       const elapsed = Math.round(performance.now() - start);
       return elapsed < TIMEOUT_MS ? elapsed : null;
     }
   }
 
   function speedClass(ms) {
+    if (ms === undefined) return 'unmeasured';
     if (ms === null) return 'dead';
     if (ms < 400) return 'fast';
     if (ms < 1200) return 'mid';
@@ -363,6 +389,7 @@
   }
 
   function speedColor(ms) {
+    if (ms === undefined) return 'var(--surface2)';
     if (ms === null) return 'var(--dead)';
     if (ms < 400) return 'var(--fast)';
     if (ms < 1200) return 'var(--mid)';
@@ -370,12 +397,14 @@
   }
 
   function speedLabel(ms) {
+    if (ms === undefined) return '- ms';
     if (ms === null) return 'タイムアウト';
     return ms + ' ms';
   }
 
   // Latency bar: max visible width at 2000ms
   function latencyWidth(ms) {
+    if (ms === undefined) return 0;
     if (ms === null) return 100;
     return Math.min(100, (ms / 2000) * 100);
   }
@@ -395,6 +424,8 @@
         if (a.latency === null && b.latency === null) return 0;
         if (a.latency === null) return 1;
         if (b.latency === null) return -1;
+        if (a.latency === undefined) return 1; // 未計測は後ろ
+        if (b.latency === undefined) return -1;
         return a.latency - b.latency;
       });
     } else if (sortMode === 'newest') {
@@ -419,9 +450,10 @@
       const cls = speedClass(d.latency);
       const color = speedColor(d.latency);
       const label = speedLabel(d.latency);
-      const isMeasuring = d.latency === undefined;
+      // d.isMeasuringは現在そのドメインを計測中かどうか
+      const isMeasuring = d.isMeasuring;
       const rank = i + 1;
-      const isTop = rank <= 3 && !isMeasuring && d.latency !== null;
+      const isTop = rank <= 3 && !isMeasuring && d.latency !== null && d.latency !== undefined;
 
       return `
         <div class="domain-card" style="--speed-color:${isMeasuring ? 'transparent' : color}; animation-delay:${i * 0.04}s">
@@ -456,10 +488,11 @@
         ({
           ...item,
           server: detectServer(item.url),
-          latency: undefined   // undefined = not yet measured
+          latency: undefined,
+          isMeasuring: false
         }));
         renderList();
-        startSpeedMeasurement();
+        // 自動計測は削除しました
       } else {
         document.getElementById('domainGrid').innerHTML = '<div class="empty-state">登録されたドメインはありません。</div>';
       }
@@ -470,6 +503,20 @@
   }
 
   async function startSpeedMeasurement() {
+    if (isMeasuringGlobal) return;
+    isMeasuringGlobal = true;
+
+    // UI状態の更新 (ボタン無効化＆ソートを速度順に変更)
+    const measureBtn = document.getElementById('measureBtn');
+    const sortBtn = document.getElementById('sortBtn');
+    
+    measureBtn.disabled = true;
+    measureBtn.innerHTML = '⚡ 計測中...';
+    
+    sortMode = 'speed';
+    sortBtn.classList.add('active');
+    sortBtn.innerHTML = '⚡ 速度順';
+
     const total = allDomains.length;
     measuredCount = 0;
 
@@ -479,13 +526,17 @@
     statusEl.style.display = 'flex';
     countEl.innerHTML = `<span>0</span> / ${total}`;
 
-    // Measure concurrently (limit to 5 at a time)
     const CONCURRENCY = 5;
     const queue = [...allDomains];
     const workers = Array(Math.min(CONCURRENCY, total)).fill(null).map(async () => {
       while (queue.length) {
         const domain = queue.shift();
+        domain.isMeasuring = true;
+        renderList();
+
         domain.latency = await measureLatency(domain.url);
+        domain.isMeasuring = false;
+        
         measuredCount++;
         const pct = (measuredCount / total) * 100;
         fillEl.style.width = pct + '%';
@@ -498,6 +549,10 @@
 
     // Done
     statusEl.innerHTML = `<span style="color:var(--fast);font-family:var(--font-mono);font-size:13px;">✓ 計測完了 — ${total}件のドメインを測定しました</span>`;
+    measureBtn.innerHTML = '⚡ 再計測';
+    measureBtn.disabled = false;
+    isMeasuringGlobal = false;
+    
     setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
   }
 
@@ -521,20 +576,23 @@
     }
   });
 
+  // 計測ボタン
+  document.getElementById('measureBtn').addEventListener('click', () => {
+      startSpeedMeasurement();
+  });
+
+  // ソートボタン (手動操作時は、基本的に 新しい順⇔古い順 のみトグルする)
   document.getElementById('sortBtn').addEventListener('click', (e) => {
     const btn = e.currentTarget;
-    if (sortMode === 'speed') {
-      sortMode = 'newest';
-      btn.classList.remove('active');
-      btn.innerHTML = '✨ 新しい順';
-    } else if (sortMode === 'newest') {
+    if (sortMode === 'newest') {
       sortMode = 'oldest';
       btn.classList.remove('active');
       btn.innerHTML = '🕰️ 古い順';
     } else {
-      sortMode = 'speed';
-      btn.classList.add('active');
-      btn.innerHTML = '⚡ 速度順';
+      // 古い順 または 速度順 の状態からクリックした場合は、新しい順に戻す
+      sortMode = 'newest';
+      btn.classList.remove('active');
+      btn.innerHTML = '✨ 新しい順';
     }
     renderList();
   });
