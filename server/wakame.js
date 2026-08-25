@@ -481,10 +481,13 @@ async function getAceThinker(videoId) {
 // =========================================
 async function getFreemake(videoId) {
     try {
-        const apiUrl = `https://downloader.freemake.com/api/videoinfo/${videoId}`;
+        const apiUrl = `https://downloader.freemake.com/api/videoinfo/${videoId}?atn=1`;
+        const metricsUrl = `https://metrics.freemake.com/api/v1/Metrics/FWD`;
         
+        // 全リクエストで共通のヘッダー・IDを使用
         const headers = {
             "Accept": "application/json, text/javascript, */*; q=0.01",
+            "Content-Type": "application/json", // Metrics用に追加
             "Origin": "https://www.freemake.com",
             "Referer": "https://www.freemake.com/jp/free_video_downloader/",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
@@ -500,16 +503,50 @@ async function getFreemake(videoId) {
             "X-User-Platform": "Windows x86_64"
         };
 
-        // axiosリクエストに headers を追加
+        // メトリクス送信ヘルパー関数
+        const sendMetric = async (metricName) => {
+            const payload = {
+                MetricName: metricName,
+                VideoId: videoId,
+                Platform: "Windows x86_64",
+                Browser: "Chrome"
+            };
+            try {
+                await axios.post(metricsUrl, payload, { headers, timeout: 5000 });
+                console.log(`[Freemake] メトリクス送信成功: ${metricName}`);
+            } catch (err) {
+                console.warn(`[Freemake] メトリクス送信失敗: ${metricName} - ${err.message}`);
+            }
+        };
+
+        // 1. 処理開始のメトリクス送信
+        await sendMetric("start_processing");
+
+        // 2. 処理進行中のメトリクス送信
+        await sendMetric("processing_in_progress");
+
+        // 3. 動画情報取得前のOPTIONS通信（プリフライトリクエストのシミュレーション）
+        try {
+            await axios.options(apiUrl, { headers, timeout: 5000 });
+            console.log(`[Freemake] OPTIONS通信成功`);
+        } catch (err) {
+            console.warn(`[Freemake] OPTIONS通信失敗: ${err.message}`);
+        }
+
+        // 4. メインAPIデータ取得 (GET)
+        // ※GETリクエストなのでContent-Typeヘッダーはaxiosがよしなにしてくれますが、念のため上書き
+        const getHeaders = { ...headers };
+        delete getHeaders["Content-Type"];
+
         const response = await axios.get(apiUrl, { 
             timeout: MAX_TIME,
-            headers: headers
+            headers: getHeaders
         });
         
         const data = response.data;
 
-        if (!data) {
-            throw new Error("データが空です");
+        if (!data || data.status !== 'Success') {
+            throw new Error("データが空か取得に失敗しました: " + JSON.stringify(data));
         }
 
         console.log(`✅ 使用したAPI (Freemake): ${apiUrl}`);
