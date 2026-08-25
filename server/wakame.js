@@ -676,10 +676,6 @@ async function getYouTube(videoId, apiType = 'invidious') {
         const newStreamUrls = [];
         const seenUrls = new Set();
 
-        if (result.stream_url) {
-            seenUrls.add(result.stream_url);
-        }
-
         result.streamUrls.forEach(stream => {
             const name = String(stream.name || 'Unknown').trim() || 'Unknown';
             let containerType = stream.container || 'mp4';
@@ -688,6 +684,7 @@ async function getYouTube(videoId, apiType = 'invidious') {
                 containerType = 'm3u8';
             }
 
+            // streamUrls 内でのURL重複だけを排除する
             if (stream.url && !seenUrls.has(stream.url)) {
                 seenUrls.add(stream.url);
                 newStreamUrls.push({
