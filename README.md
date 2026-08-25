@@ -47,10 +47,11 @@ pinned: false
 4. [Vercel](https://vercel.com/) （サーバーレスのためエラーが起きたりする）
 5. [Netlify](https://app.netlify.com/) （サーバーレスのためエラーが起きたりする）
 6. [StackHost](https://www.stackhost.org/) （環境変数に手動で PORT 3000 を入れて下さい）
-7. [Replit](https://replit.com/)
-8. [Kuberns](https://dashboard.kuberns.com/) （トライアル期間は1週間のみ。2時間で止まるので手動で再起動する必要があります）
-9. [Back4App](https://dashboard.back4app.com/apps) （60分間有効なURLを発行できる。Dockerfileを選択して下さい）
-10. [Hugging Face Spaces](#-hugging-face-spacesでのデプロイ手順) （YouTubei.jsが使えないので中身のないただの箱になります）
+7. [SnapDeploy](https://snapdeploy.dev/dashboard)
+8. [Replit](https://replit.com/)
+9. [Kuberns](https://dashboard.kuberns.com/) （トライアル期間は1週間のみ。2時間で止まるので手動で再起動する必要があります）
+10. [Back4App](https://dashboard.back4app.com/apps) （60分間有効なURLを発行できる。Dockerfileを選択して下さい）
+11. [Hugging Face Spaces](#-hugging-face-spacesでのデプロイ手順) （YouTubei.jsが使えないので中身のないただの箱になります）
 
 ---
 
