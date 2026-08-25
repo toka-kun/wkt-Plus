@@ -21,12 +21,11 @@
     <div class="flex-grow w-full h-screen pt-20 pb-4 px-4 box-border overflow-y-auto">
         
         <!-- ステータスボード用コンテナ -->
-
         <div class="w-full max-w-5xl mx-auto bg-white rounded-2xl shadow-lg border-none min-h-full p-6 lg:p-10 flex flex-col mb-10">
             
             <!-- 全体ステータス -->
             <div class="text-center mb-10">
-                <h1 class="text-3xl font-bold text-gray-800">System Status</h1>
+                <h1 class="text-3xl font-bold text-gray-800">サーバー稼働状況一覧</h1>
                 <div id="overall-status" class="text-lg font-medium mt-4 py-3 rounded-md shadow-sm transition-all duration-500">
                     Loading...
                 </div>
@@ -61,10 +60,10 @@
                 });
 
                 if (isAllOperational) {
-                    overallStatus.textContent = 'All systems are operational';
+                    overallStatus.textContent = '全てのサーバーが正常に稼働しています。';
                     overallStatus.className = 'text-lg font-medium mt-4 py-3 rounded-md bg-green-100 text-green-700 shadow-sm';
                 } else {
-                    overallStatus.textContent = 'Some systems are experiencing issues';
+                    overallStatus.textContent = 'いくつかのサーバーがダウンしています。';
                     overallStatus.className = 'text-lg font-medium mt-4 py-3 rounded-md bg-red-100 text-red-700 shadow-sm';
                 }
 
@@ -99,7 +98,7 @@
 
             // 右側の稼働率表示
             const ratio = document.createElement('span');
-            ratio.className = 'text-sm font-bold text-gray-500 bg-gray-100 py-1 px-3 rounded-full';
+            ratio.className = 'text-sm font-bold text-gray-500 bg-gray-100 py-1 px-3 rounded-full hidden sm:inline-block'; // スマホでは非表示にするなど必要に応じて
             const ratioValue = monitor['90dRatio'] ? monitor['90dRatio'].ratio : 'N/A';
             ratio.textContent = `${ratioValue}% uptime`;
 
@@ -108,17 +107,23 @@
 
             // --- 2. バー（棒グラフ）表示部 ---
             const barsWrapper = document.createElement('div');
-            barsWrapper.className = 'flex space-x-1 h-12 w-full';
+            // 【変更点】space-x-1 を gap に変更し、レスポンシブに間隔を調整
+            barsWrapper.className = 'flex gap-[1px] sm:gap-[2px] md:gap-1 h-12 w-full';
 
             const days = monitor.dailyRatios || [];
             
             days.forEach(day => {
                 const barGroup = document.createElement('div');
-                barGroup.className = 'flex-grow relative group cursor-pointer';
+                // 【変更点】min-w-0 を追加し、幅が狭いときに要素が潰れないよう flex-grow を補助
+                barGroup.className = 'flex-grow min-w-0 relative group cursor-pointer';
 
                 // 日ごとのバー
                 const bar = document.createElement('div');
-                bar.className = `w-full h-full rounded-sm opacity-80 group-hover:opacity-100 transition-opacity duration-200 ${getBarColor(day.color)}`;
+                // 【変更点】Tailwindのクラス指定から色を外し、opacity でホバー状態を管理
+                bar.className = 'w-full h-full rounded-sm opacity-70 group-hover:opacity-100 transition-opacity duration-200';
+                
+                // 【変更点】データから取得した色をそのまま背景色として適用 (yellow, green, red, grey 等)
+                bar.style.backgroundColor = day.color;
                 
                 // ホバー時に表示されるツールチップ
                 const tooltip = document.createElement('div');
@@ -164,17 +169,6 @@
                 case 'danger': return 'bg-red-500';
                 case 'notchecked': return 'bg-gray-300';
                 default: return 'bg-gray-300';
-            }
-        }
-
-        // バーの色（UptimeRobotのAPIカラー仕様に準拠）を返す
-        function getBarColor(color) {
-            switch (color) {
-                case 'green': return 'bg-green-500 hover:bg-green-400';
-                case 'red': return 'bg-red-500 hover:bg-red-400';
-                case 'grey': return 'bg-gray-200 hover:bg-gray-300'; // データなし/チェック前
-                case 'blue': return 'bg-blue-400 hover:bg-blue-300'; // 軽微なダウンタイム（good）
-                default: return 'bg-gray-200';
             }
         }
     </script>
