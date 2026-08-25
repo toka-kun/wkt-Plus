@@ -45,7 +45,6 @@
             const overallStatus = document.getElementById('overall-status');
 
             // サーバーから渡されたデータをJSONとして受け取る
-            // ※ EJSのタグを使ってサーバー側の変数をJSの変数に変換します
             const data = <%- JSON.stringify(monitorData || null) %>;
 
             if (data && data.status === 'ok') {
@@ -98,7 +97,7 @@
 
             // 右側の稼働率表示
             const ratio = document.createElement('span');
-            ratio.className = 'text-sm font-bold text-gray-500 bg-gray-100 py-1 px-3 rounded-full hidden sm:inline-block'; // スマホでは非表示にするなど必要に応じて
+            ratio.className = 'text-sm font-bold text-gray-500 bg-gray-100 py-1 px-3 rounded-full hidden sm:inline-block';
             const ratioValue = monitor['90dRatio'] ? monitor['90dRatio'].ratio : 'N/A';
             ratio.textContent = `${ratioValue}% uptime`;
 
@@ -107,29 +106,26 @@
 
             // --- 2. バー（棒グラフ）表示部 ---
             const barsWrapper = document.createElement('div');
-            // 【変更点】space-x-1 を gap に変更し、レスポンシブに間隔を調整
             barsWrapper.className = 'flex gap-[1px] sm:gap-[2px] md:gap-1 h-12 w-full';
 
             const days = monitor.dailyRatios || [];
             
             days.forEach(day => {
                 const barGroup = document.createElement('div');
-                // 【変更点】min-w-0 を追加し、幅が狭いときに要素が潰れないよう flex-grow を補助
                 barGroup.className = 'flex-grow min-w-0 relative group cursor-pointer';
 
                 // 日ごとのバー
                 const bar = document.createElement('div');
-                // 【変更点】Tailwindのクラス指定から色を外し、opacity でホバー状態を管理
-                bar.className = 'w-full h-full rounded-sm opacity-70 group-hover:opacity-100 transition-opacity duration-200';
+                // 【変更点】淡い色がしっかり見えるように opacity-80 に変更
+                bar.className = 'w-full h-full rounded-sm opacity-80 group-hover:opacity-100 transition-opacity duration-200';
                 
-                // 【変更点】データから取得した色をそのまま背景色として適用 (yellow, green, red, grey 等)
-                bar.style.backgroundColor = day.color;
+                // 【変更点】明るく変換した色を背景色として適用
+                bar.style.backgroundColor = getLighterColor(day.color);
                 
                 // ホバー時に表示されるツールチップ
                 const tooltip = document.createElement('div');
                 tooltip.className = 'hidden group-hover:block absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs py-1 px-3 rounded shadow-lg whitespace-nowrap z-10';
                 
-                // 稼働率ラベル（excellent, poor, black等）をキャピタライズ
                 const labelStr = day.label ? day.label.charAt(0).toUpperCase() + day.label.slice(1) : '';
                 tooltip.innerHTML = `<span class="font-bold">${day.date}</span><br>${day.ratio}% (${labelStr})`;
 
@@ -162,11 +158,29 @@
             return wrapper;
         }
 
-        // ステータスクラスに応じた色を返す
+        // --- 追加：標準の色名を明るい色に変換する関数 ---
+        function getLighterColor(colorName) {
+            if (!colorName) return '#d1d5db'; // 色がない場合は明るいグレー
+
+            // Tailwind CSS の 400 番台付近の目に優しい色合いを定義
+            const colorMap = {
+                'green': '#4ade80',  // 明るい緑
+                'red': '#f87171',    // 明るい赤
+                'yellow': '#facc15', // 明るい黄色
+                'grey': '#d1d5db',   // 明るいグレー
+                'gray': '#d1d5db',
+                'black': '#9ca3af'   // 真っ黒ではなく濃いめのグレーに
+            };
+            
+            // マップに存在すればその色を、なければ元の色名をそのまま返す
+            return colorMap[colorName.toLowerCase()] || colorName;
+        }
+
+        // ステータスクラスに応じた色を返す（ヘッダーの丸いアイコン用）
         function getStatusColor(statusClass) {
             switch (statusClass) {
-                case 'success': return 'bg-green-500';
-                case 'danger': return 'bg-red-500';
+                case 'success': return 'bg-green-400'; // ここも合わせて少し明るくしました
+                case 'danger': return 'bg-red-400';
                 case 'notchecked': return 'bg-gray-300';
                 default: return 'bg-gray-300';
             }
