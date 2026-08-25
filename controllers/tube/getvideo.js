@@ -7,7 +7,7 @@ const axios = require("axios");
 const user_agent = process.env.USER_AGENT || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36";
 
 // サーバーリスト (表示用等のベース設定)
-const serverUrls = ['invidious', 'acethinker', 'freemake', 'min-tube2-api', 'siawaseok'];
+const serverUrls = ['invidious', 'acethinker', 'freemake', 'siawaseok', 'min-tube2-api'];
 
 // ▼▼▼ メモリキャッシュを確認する専用の順番 ▼▼▼
 const memoryCacheCheckOrder = ['siawaseok', 'invidious', 'acethinker', 'freemake', 'min-tube2-api'];
@@ -16,9 +16,9 @@ const memoryCacheCheckOrder = ['siawaseok', 'invidious', 'acethinker', 'freemake
 const apiTtlSettings = {
     'invidious': 18000, // 5時間
     'acethinker': 18000, // 5時間
+    'freemake': 600 // 10分
     'siawaseok': 600, // 10分
     'min-tube2-api': 18000, // 5時間
-    'freemake': 3600 // 1時間
 };
 
 // 指定したAPIのTTL(ミリ秒)を返す関数。設定になければデフォルトで600秒(10分)
