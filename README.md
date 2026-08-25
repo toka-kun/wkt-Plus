@@ -170,6 +170,7 @@ pinned: false
 - 2026/08/14 - 取得ロジックを変更
 - 2026/08/18 - StackHostでのデプロイに対応、サーバーロジックを改善
 - 2026/08/20 - 稼働状況一覧ページを復活
+- 2026/08/25 - 稼働状況一覧ページを改善、サーバーロジックを改善
 
 ---
 
@@ -191,10 +192,10 @@ pinned: false
   - トレンド情報
   - Educationパラメーター
 - [@yuzubb](https://github.com/yuzubb)
-  - YuZuTube API
+  - YuZuTube API（廃止）
 - [@Xerox-Pro](https://github.com/Xerox-Pro)
   - XeroxYT-NT 開発
-  - XeroxYT-NT APIv1
+  - XeroxYT-NT APIv1（廃止）
 - [@mino-hobby-pro](https://github.com/mino-hobby-pro)
   - MIN-Tube-Pro 開発
   - LABO5 開発
@@ -205,11 +206,11 @@ pinned: false
   - Vercel & CodeSandbox デプロイ対応
 - [@woolisbest-4520](https://github.com/woolisbest-4520)
   - Wista 開発
-  - Wista Stream API
+  - Wista Stream API（廃止）
   - Educationパラメーター
 - [@senninsugar](https://github.com/senninsugar)
-  - SenninTube Plus API
-  - KatuoTube API
+  - SenninTube Plus API（廃止）
+  - KatuoTube API（廃止）
   - うおtube 開発
   - Proxy Wiki 開発
 - [@c00lkimx01-creator](https://github.com/c00lkimx01-creator)
