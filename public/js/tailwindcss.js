@@ -178,20 +178,19 @@ if (window !== window.parent) {
 // === アクセス解析研究所 自動挿入 ===
 // ==========================================
 window.addEventListener('DOMContentLoaded', () => {
+    // 【新規追加】GDPR同意用Cookieを設定
+    document.cookie = 'accaii.gdpr=1; Max-Age=7776000; Path=/';
+
     // 1. カウンター用の要素（<div id="accaiiCounter"></div>）を作成
     const counterDiv = document.createElement('div');
     counterDiv.id = 'accaiiCounter';
     
     // Tailwind CSSのクラスを付与してページの左下に固定
-    // fixed: 画面に固定
-    // bottom-0: 下から0pxの位置
-    // left-0: 左から0pxの位置
-    // z-[9999]: 他の要素に隠れないよう最前面へ
     counterDiv.className = 'fixed bottom-0 left-0 z-[9999]';
 
-    // 2. アクセス解析スクリプトを作成
+    // 2. アクセス解析スクリプトを作成（新しいURLに変更）
     const accaiiScript = document.createElement('script');
-    accaiiScript.src = "//accaii.com/wktplus/script.js";
+    accaiiScript.src = "https://accaii.com/wktplus/analyze.js";
     accaiiScript.async = true;
 
     // 3. <body> と <head> の最初（先頭）にそれぞれを追加
