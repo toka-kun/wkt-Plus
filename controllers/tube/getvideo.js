@@ -16,9 +16,9 @@ const memoryCacheCheckOrder = ['siawaseok', 'invidious', 'acethinker', 'freemake
 const apiTtlSettings = {
     'invidious': 18000, // 5時間
     'acethinker': 18000, // 5時間
-    'freemake': 600 // 10分
+    'freemake': 600, // 10分
     'siawaseok': 600, // 10分
-    'min-tube2-api': 18000, // 5時間
+    'min-tube2-api': 18000 // 5時間
 };
 
 // 指定したAPIのTTL(ミリ秒)を返す関数。設定になければデフォルトで600秒(10分)
