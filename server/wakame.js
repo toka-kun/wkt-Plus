@@ -513,9 +513,9 @@ async function getFreemake(videoId) {
             };
             try {
                 await axios.post(metricsUrl, payload, { headers, timeout: 5000 });
-                console.log(`[Freemake] メトリクス送信成功: ${metricName}`);
+                console.log(`☑️ [Freemake] メトリクス送信成功: ${metricName}`);
             } catch (err) {
-                console.warn(`[Freemake] メトリクス送信失敗: ${metricName} - ${err.message}`);
+                console.warn(`☑️ [Freemake] メトリクス送信失敗: ${metricName} - ${err.message}`);
             }
         };
 
@@ -528,9 +528,9 @@ async function getFreemake(videoId) {
         // 3. 動画情報取得前のOPTIONS通信（プリフライトリクエストのシミュレーション）
         try {
             await axios.options(apiUrl, { headers, timeout: 5000 });
-            console.log(`[Freemake] OPTIONS通信成功`);
+            console.log(`☑️ [Freemake] OPTIONS通信成功`);
         } catch (err) {
-            console.warn(`[Freemake] OPTIONS通信失敗: ${err.message}`);
+            console.warn(`☑️ [Freemake] OPTIONS通信失敗: ${err.message}`);
         }
 
         // 4. メインAPIデータ取得 (GET)
@@ -547,6 +547,11 @@ async function getFreemake(videoId) {
 
         if (!data || data.status !== 'Success') {
             throw new Error("データが空か取得に失敗しました: " + JSON.stringify(data));
+        }
+
+        // 取得したvideoIdが空、またはリクエストしたvideoIdと違う場合はエラー
+        if (!data.videoId || data.videoId !== videoId) {
+            throw new Error("もう一度試してみて下さい。");
         }
 
         console.log(`✅ 使用したAPI (Freemake): ${apiUrl}`);
