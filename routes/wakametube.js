@@ -66,7 +66,7 @@ router.get("/s", async (req, res) => {
         // 先に検索結果を変数に入れる
         const searchResult = await serverYt.search(query, limit, page);
         
-        // ★ 修正ポイント: 検索結果が null、results が無い、または 0件 の場合
+        // 検索結果が null、results が無い、または 0件 の場合
         if (!searchResult || !searchResult.results || searchResult.results.length === 0) {
             // 自動的に /ss (views/tube/opu/search.ejs を処理するルート) へリダイレクトする
             const redirectUrl = (req.baseUrl || '') + `/ss?q=${encodeURIComponent(query)}&p=${page}`;
@@ -97,7 +97,12 @@ router.get("/ss", async (req, res) => {
         let page = Number(req.query.p || 3);
     try {
                 res.render("tube/opu/search.ejs", {
-                        res: await ytsr(query, {limit, pages: page}),
+                        res: await ytsr(query, {
+                          limit,
+                          pages: page,
+                          gl: "JP",
+                          hl: "ja"
+                        }),
                         query: query,
                         page
                 });
