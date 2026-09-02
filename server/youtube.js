@@ -13,9 +13,15 @@ function toProxyThumb(url) {
     const u = new URL(url);
     // i.ytimg.com / i0〜i9.ytimg.com: pathname が元々 "/vi/{videoId}/{quality}" や
     // リリース(アルバム)カバーの "/s_p/{id}/{quality}" 形式なので、
-    // back.js の "/vi*" "/s_p/*" ルートにそのまま乗るよう pathname をそのまま付与
-    // （番号付きサブドメインはどれも同じCDNのミラーなので気にしなくてよい）。
+    // back.js の "/vi*" "/s_p/*" ルートにそのまま乗るよう pathname をそのまま付与。
+    // ただし "/s_p/" は番号付きサブドメイン間でミラーされておらず、元のホストに
+    // そのまま当てないと404になるため、__h に元のホスト名を付けて back.js に伝える。
     if (/^i\d*\.ytimg\.com$/.test(u.hostname)) {
+      if (u.pathname.startsWith('/s_p/')) {
+        const params = new URLSearchParams(u.search);
+        params.set('__h', u.hostname);
+        return `/wkt/back${u.pathname}?${params.toString()}`;
+      }
       return `/wkt/back${u.pathname}${u.search}`;
     }
     // yt3.ggpht.com: pathname が元々 "/ytc/xxx" 形式なので
