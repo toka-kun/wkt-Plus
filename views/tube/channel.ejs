@@ -59,116 +59,57 @@
     <div id="tab-home" class="tab-content">
         <% if (shelves && shelves.length > 0) { %>
             <% shelves.forEach(shelf => { %>
-                <% const shelfItems = shelf.content?.items || shelf.content?.playlists || []; %>
-                <% if (shelfItems.length > 0) { %>
+                <% if (shelf.items && shelf.items.length > 0) { %>
                 <div class="mb-8">
                     <h2 class="text-xl font-bold mb-3"><%= shelf.title?.text || '' %></h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                        <% shelfItems.forEach(item => { %>
-                            <%
-                                const itemType = item.type || '';
-                                // RichItem ラッパーを展開
-                                const actualItem = (itemType === 'RichItem' && item.content) ? item.content : item;
-                                const actualType = actualItem.type || '';
-                            %>
+                        <% shelf.items.forEach(v => { %>
 
-                            <%# ── 動画カード ── %>
-                            <% if (actualType.endsWith('Video') || actualType === 'LockupView') { %>
-                                <%
-                                  const vidId = actualItem.content_id
-                                             || actualItem.id
-                                             || actualItem.video_id
-                                             || actualItem.endpoint?.payload?.videoId || '';
-                                  const vidTitle = actualItem.metadata?.title?.text
-                                               || actualItem.title?.text
-                                               || (typeof actualItem.title === 'string' ? actualItem.title : '') || '';
-                                  // 再生時間（LockupView: overlays のバッジ）
-                                  let vidDur = actualItem.duration?.text || (typeof actualItem.duration === 'string' ? actualItem.duration : '');
-                                  if (!vidDur) {
-                                    for (const ov of (actualItem.content_image?.overlays || [])) {
-                                      for (const b of (ov.badges || [])) {
-                                        if (b.text && /^\d/.test(b.text)) { vidDur = b.text; break; }
-                                      }
-                                      if (vidDur) break;
-                                    }
-                                  }
-                                  // 視聴回数・投稿日時
-                                  const rows = actualItem.metadata?.metadata?.metadata_rows || [];
-                                  const allTexts = [];
-                                  for (const row of rows) {
-                                    for (const p of (row?.metadata_parts || [])) {
-                                      if (p?.text?.text) allTexts.push(p.text.text);
-                                    }
-                                  }
-                                  let vidViews = actualItem.short_view_count?.text || actualItem.view_count?.text || '';
-                                  let vidPub   = actualItem.published?.text || (typeof actualItem.published === 'string' ? actualItem.published : '') || '';
-                                  for (const t of allTexts) {
-                                    if (!vidViews && /回|view/i.test(t)) vidViews = t;
-                                    else if (!vidPub && /ago|前|年|ヶ月|週|日|時間/i.test(t)) vidPub = t;
-                                    else if (!vidPub && !vidViews) vidPub = t;
-                                  }
-                                %>
-                                <% if (vidId) { %>
+                            <%# ── 再生リスト／リリースカード ── %>
+                            <% if (v.itemType === 'playlist') { %>
                                 <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
-                                    <a href="/wkt/watch/<%= vidId %>" class="block relative group">
-                                        <img loading="lazy" src="/wkt/back/vi/<%= vidId %>/mqdefault.jpg" alt="<%= vidTitle %>" class="w-full h-auto rounded aspect-video object-cover">
-                                        <% if (vidDur) { %><span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium"><%= vidDur %></span><% } %>
-                                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
-                                    </a>
-                                    <div class="mt-3">
-                                        <a href="/wkt/watch/<%= vidId %>">
-                                            <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= vidTitle %></p>
-                                        </a>
-                                        <p class="text-gray-500 text-xs"><%= vidViews %><% if (vidPub) { %> • <%= vidPub %><% } %></p>
-                                    </div>
-                                </div>
-                                <% } %>
-
-                            <%# ── 再生リストカード ── %>
-                            <% } else if (actualType.includes('Playlist')) { %>
-                                <%
-                                  const plId    = actualItem.id || actualItem.content_id || '';
-                                  const plTitle = actualItem.title?.text || (typeof actualItem.title === 'string' ? actualItem.title : '') || '';
-                                  const plCount = actualItem.video_count?.text || '';
-                                  const plThumb = actualItem.thumbnails?.[0]?.url || '';
-                                %>
-                                <% if (plId) { %>
-                                <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
-                                    <a href="/wkt/p/<%= plId %>" class="block relative group">
-                                        <% if (plThumb) { %>
-                                            <img loading="lazy" src="<%= plThumb %>" alt="<%= plTitle %>" class="w-full h-auto rounded aspect-video object-cover">
+                                    <a href="/wkt/p/<%= v.id %>" class="block relative group">
+                                        <% if (v.thumbnail) { %>
+                                            <img loading="lazy" src="<%= v.thumbnail %>" alt="<%= v.title %>" class="w-full h-auto rounded aspect-video object-cover">
                                         <% } else { %>
-                                            <div class="w-full rounded aspect-video bg-gray-700"></div>
+                                            <div class="w-full rounded aspect-video bg-gray-700 flex items-center justify-center text-gray-500 text-sm">サムネなし</div>
                                         <% } %>
                                         <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
                                     </a>
                                     <div class="mt-3">
-                                        <a href="/wkt/p/<%= plId %>">
-                                            <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= plTitle %></p>
+                                        <a href="/wkt/p/<%= v.id %>">
+                                            <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= v.title %></p>
                                         </a>
-                                        <p class="text-gray-500 text-xs">再生リスト<% if (plCount) { %> • <%= plCount %>本<% } %></p>
+                                        <p class="text-gray-500 text-xs">再生リスト<% if (v.count) { %> • <%= v.count %>本<% } %></p>
                                     </div>
                                 </div>
-                                <% } %>
 
                             <%# ── チャンネルカード ── %>
-                            <% } else if (actualType.endsWith('Channel')) { %>
-                                <%
-                                  const chId    = actualItem.author?.id || actualItem.id || '';
-                                  const chThumb = actualItem.author?.thumbnails?.[0]?.url || '';
-                                  const chName  = actualItem.author?.name || '';
-                                  const chDesc  = actualItem.description_snippet?.text || '';
-                                  const chSubsc = actualItem.subscriber_count?.text || actualItem.subscribers?.text || '';
-                                  const chVids  = actualItem.videos?.text || actualItem.video_count?.text || '';
-                                %>
+                            <% } else if (v.itemType === 'channel') { %>
                                 <div class="result-item bg-gray-600 p-4 rounded">
-                                    <a href="/wkt/c/<%= chId %>">
-                                        <img src="<%= chThumb %>" alt="<%= chName %>" class="w-full h-auto rounded">
+                                    <a href="/wkt/c/<%= v.id %>">
+                                        <img src="<%= v.thumbnail %>" alt="<%= v.title %>" class="w-full h-auto rounded">
                                     </a>
                                     <div class="mt-2">
-                                        <p class="text-lg font-bold"><%= chName %></p>
-                                        <% if (chDesc) { %><p class="text-sm text-gray-400"><%= chDesc %></p><% } %>
-                                        <p class="text-xs text-gray-500"><%= chSubsc %><% if (chVids) { %> • <%= chVids %><% } %></p>
+                                        <p class="text-lg font-bold"><%= v.title %></p>
+                                        <% if (v.description) { %><p class="text-sm text-gray-400"><%= v.description %></p><% } %>
+                                        <p class="text-xs text-gray-500"><%= v.subscribers %><% if (v.videos) { %> • <%= v.videos %><% } %></p>
+                                    </div>
+                                </div>
+
+                            <%# ── 動画カード ── %>
+                            <% } else { %>
+                                <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
+                                    <a href="/wkt/watch/<%= v.id %>" class="block relative group">
+                                        <img loading="lazy" src="/wkt/back/vi/<%= v.id %>/mqdefault.jpg" alt="<%= v.title %>" class="w-full h-auto rounded aspect-video object-cover">
+                                        <% if (v.duration) { %><span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium"><%= v.duration %></span><% } %>
+                                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
+                                    </a>
+                                    <div class="mt-3">
+                                        <a href="/wkt/watch/<%= v.id %>">
+                                            <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= v.title %></p>
+                                        </a>
+                                        <p class="text-gray-500 text-xs"><%= v.views %><% if (v.published) { %> • <%= v.published %><% } %></p>
                                     </div>
                                 </div>
                             <% } %>
@@ -259,10 +200,6 @@
     <%# ===== 再生リストタブ ===== %>
     <div id="tab-playlists" class="tab-content hidden mt-4">
         <div id="playlists-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
-    </div>
-
-    <div style="height:480px;" class="w-full max-w-3xl mx-auto mt-8">
-        <script src="//accaii.com/wktplus/widget.js" async></script>
     </div>
 </div>
 
