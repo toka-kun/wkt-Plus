@@ -176,11 +176,19 @@ router.get("/vi*", async (req, res) => {
 });
 
 // ★ リリース(アルバム)カバー画像など、i9.ytimg.com/s_p/{id}/{quality}.jpg 形式のサムネ用プロキシ
-// /vi/{videoId}/{quality} と違い、こちらは署名付きクエリ(sqp/rs/v)が必要な場合があるため、
-// パス・クエリをそのまま i.ytimg.com へ転送する（ホスト末尾の番号違いは無視してよい）。
+// /vi/{videoId}/{quality} と違い、こちらは番号付きサブドメイン間でミラーされておらず、
+// 元のホスト（例: i9.ytimg.com）にそのまま当てないと404になる。そのため toProxyThumb 側で
+// クエリに __h=元のホスト名 を付与してもらい、ここでそれを見て転送先ホストを決める。
 router.get("/s_p/*", async (req, res) => {
   const range = req.headers.range;
-  const targetUrl = `https://i.ytimg.com${req.url}`;
+
+  const reqUrl = new URL(req.url, "http://dummy");
+  const hostParam = reqUrl.searchParams.get("__h") || "";
+  // __h は i0〜i9.ytimg.com / i.ytimg.com のみ許可（他ホストへの転送を防ぐ）
+  const host = /^i\d*\.ytimg\.com$/.test(hostParam) ? hostParam : "i.ytimg.com";
+  reqUrl.searchParams.delete("__h");
+
+  const targetUrl = `https://${host}${reqUrl.pathname}${reqUrl.search}`;
 
   try {
     const request = await undici.request(targetUrl, {
