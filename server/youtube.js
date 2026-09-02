@@ -4,6 +4,23 @@ function setClient(newClient) {
   client = newClient;
 }
 
+// YouTube CDN の直リンクを /wkt/back 経由のプロキシリンクに変換する
+function toProxyThumb(url) {
+  if (!url) return '';
+  try {
+    const u = new URL(url);
+    if (u.hostname === 'i.ytimg.com') {
+      return `/wkt/back/vi${u.pathname}${u.search}`;
+    }
+    if (u.hostname === 'yt3.ggpht.com') {
+      return `/wkt/back/yt3${u.pathname}${u.search}`;
+    }
+  } catch (err) {
+    // 相対URLや不正なURLの場合はそのまま返す
+  }
+  return url;
+}
+
 async function infoGet(id) {
   try {
     return await client.getInfo(id);
@@ -74,7 +91,7 @@ function normalizeChannelItem(raw, tabName) {
     if (contentType === 'PLAYLIST') {
       const thumb = item.content_image?.image?.sources?.[0]?.url
                  || item.content_image?.image?.image?.[0]?.url || '';
-      return { itemType: 'playlist', id, title, count: '', thumbnail: thumb };
+      return { itemType: 'playlist', id, title, count: '', thumbnail: toProxyThumb(thumb) };
     }
 
     // 動画時間 → content_image.overlays のバッジから取得
@@ -133,7 +150,7 @@ function normalizeChannelItem(raw, tabName) {
       id,
       title:     item.title?.text || (typeof item.title === 'string' ? item.title : '') || '',
       count:     item.video_count?.text || '',
-      thumbnail: item.thumbnails?.[0]?.url || ''
+      thumbnail: toProxyThumb(item.thumbnails?.[0]?.url || '')
     };
   }
 
