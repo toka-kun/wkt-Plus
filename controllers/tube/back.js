@@ -175,6 +175,38 @@ router.get("/vi*", async (req, res) => {
   }
 });
 
+// ★ リリース(アルバム)カバー画像など、i9.ytimg.com/s_p/{id}/{quality}.jpg 形式のサムネ用プロキシ
+// /vi/{videoId}/{quality} と違い、こちらは署名付きクエリ(sqp/rs/v)が必要な場合があるため、
+// パス・クエリをそのまま i.ytimg.com へ転送する（ホスト末尾の番号違いは無視してよい）。
+router.get("/s_p/*", async (req, res) => {
+  const range = req.headers.range;
+  const targetUrl = `https://i.ytimg.com${req.url}`;
+
+  try {
+    const request = await undici.request(targetUrl, {
+      headers: {
+        "User-Agent": user_agent,
+        ...(range && { range })
+      },
+      dispatcher: redirectDispatcher
+    });
+
+    res.status(request.statusCode);
+    for (const h of ["Accept-Ranges", "Content-Type", "Content-Range", "Content-Length", "Cache-Control"]) {
+      const headerValue = request.headers[h.toLowerCase()];
+      if (headerValue) res.setHeader(h, headerValue);
+    }
+    request.body.pipe(res);
+    request.body.on('error', err => {
+      console.error(err);
+      if (!res.headersSent) res.status(500).send(err.toString());
+    });
+  } catch (err) {
+    console.error(`Fetch failed for ${targetUrl}:`, err.message);
+    if (!res.headersSent) res.status(500).send({ error: 'えらー。あらら' });
+  }
+});
+
 router.get(["/yt3/*", "/ytc/*"], async (req, res) => {
   const isNetlify = isNetlifyReq(req); // 動的判定
 
