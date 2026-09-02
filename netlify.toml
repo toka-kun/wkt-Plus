@@ -24,6 +24,6 @@
 
 [images]
   remote_images = [
-    "https://i.ytimg.com/.*",
+    "https://i[0-9]?\\.ytimg\\.com/.*",
     "https://yt3.ggpht.com/.*"
   ]
