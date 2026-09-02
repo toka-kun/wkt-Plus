@@ -5,15 +5,30 @@ function setClient(newClient) {
 }
 
 // YouTube CDN の直リンクを /wkt/back 経由のプロキシリンクに変換する
-// 注意: i.ytimg.com / yt3.ggpht.com の pathname は元々 "/vi/xxx/..." や "/ytc/xxx" の
-// 形式になっているので、back.js 側のルート("/vi*", "/yt3/*", "/ytc/*")にそのまま
-// マッチするよう pathname をそのまま付与する（"/vi" 等を二重に足さない）。
+// （動画サムネと同様、i.ytimg.com / yt3.ggpht.com / *.googleusercontent.com への
+//   直アクセスはブロックされることがあるため）
 function toProxyThumb(url) {
   if (!url) return '';
   try {
     const u = new URL(url);
-    if (u.hostname === 'i.ytimg.com' || u.hostname === 'yt3.ggpht.com') {
+    // i.ytimg.com / i0〜i9.ytimg.com: pathname が元々 "/vi/{videoId}/{quality}" や
+    // リリース(アルバム)カバーの "/s_p/{id}/{quality}" 形式なので、
+    // back.js の "/vi*" "/s_p/*" ルートにそのまま乗るよう pathname をそのまま付与
+    // （番号付きサブドメインはどれも同じCDNのミラーなので気にしなくてよい）。
+    if (/^i\d*\.ytimg\.com$/.test(u.hostname)) {
       return `/wkt/back${u.pathname}${u.search}`;
+    }
+    // yt3.ggpht.com: pathname が元々 "/ytc/xxx" 形式なので
+    // back.js の "/ytc/*" ルートにそのまま乗るよう pathname をそのまま付与。
+    if (u.hostname === 'yt3.ggpht.com') {
+      return `/wkt/back${u.pathname}${u.search}`;
+    }
+    // yt3.googleusercontent.com（ggpht.com と同じ画像を返すミラーホスト）:
+    // pathname に "/ytc/" 等のプレフィックスが付いていないため、
+    // back.js の "/yt3/*" ルート（先頭 "/yt3" を剥がして yt3.ggpht.com へ転送）に
+    // 乗せるために "/yt3" を補って渡す。
+    if (u.hostname.endsWith('.googleusercontent.com')) {
+      return `/wkt/back/yt3${u.pathname}${u.search}`;
     }
   } catch (err) {
     // 相対URLや不正なURLの場合はそのまま返す
