@@ -63,7 +63,17 @@ async function getComments(id) {
 async function getChannel(id) {
   try {
     const channel = await client.getChannel(id);
-    return { channel, shelves: channel.shelves || [] };
+    const rawShelves = channel.shelves || [];
+    // ホームタブのシェルフも各タブ取得と同じ正規化関数を通し、
+    // itemType(video/playlist/short/channel) を統一しておく。
+    // こうしないと LockupView のリリース/再生リストが動画カード扱いになり、
+    // サムネ404や /wkt/watch/{id} への誤リンクが発生する。
+    const shelves = rawShelves.map(shelf => {
+      const rawItems = shelf.content?.items || shelf.content?.playlists || [];
+      const items = rawItems.map(i => normalizeChannelItem(i, 'home')).filter(Boolean);
+      return { title: shelf.title, items };
+    });
+    return { channel, shelves };
   } catch (err) {
     console.error("channel取得失敗:", err);
     return null;
@@ -101,12 +111,19 @@ function normalizeChannelItem(raw, tabName) {
     const contentType = item.content_type || 'VIDEO';
     const title = item.metadata?.title?.text || '';
 
+    // チャンネルの推薦カード
+    if (contentType === 'CHANNEL') {
+      const thumb = extractLockupThumb(item.content_image);
+      return { itemType: 'channel', id, title, thumbnail: toProxyThumb(thumb) };
+    }
+
     // PLAYLIST はもちろん、リリース（アルバム/シングル等）は content_type が
-    // 'PLAYLIST' 以外（'ALBUM' など）になることがあるため、タブが
-    // releases/playlists の場合は itemType を問答無用でカード化する。
-    // これをしないと動画カード扱いになり、リリースIDを動画IDとして
-    // /wkt/back/vi/{id}/mqdefault.jpg を組み立ててしまい404になる。
-    if (contentType === 'PLAYLIST' || tabName === 'releases' || tabName === 'playlists') {
+    // 'PLAYLIST' 以外（'ALBUM' など）になることがあるため、動画・ライブ・
+    // チャンネル以外（content_type !== 'VIDEO'）はまとめて再生リスト系カードにする。
+    // これをしないと動画カード扱いになり、リリース/再生リストIDを動画IDとして
+    // /wkt/back/vi/{id}/mqdefault.jpg を組み立てて404になったり、
+    // /wkt/watch/{id} に誤ってリンクしてしまう。
+    if (contentType !== 'VIDEO' || tabName === 'releases' || tabName === 'playlists') {
       const thumb = extractLockupThumb(item.content_image);
       return { itemType: 'playlist', id, title, count: '', thumbnail: toProxyThumb(thumb) };
     }
@@ -155,6 +172,21 @@ function normalizeChannelItem(raw, tabName) {
       duration:  item.duration?.text || (typeof item.duration === 'string' ? item.duration : '') || '',
       views:     item.short_view_count?.text || item.view_count?.text || '',
       published: item.published?.text || (typeof item.published === 'string' ? item.published : '') || ''
+    };
+  }
+
+  // ── 旧形式チャンネル ────────────────────────────────────
+  if (type.endsWith('Channel')) {
+    const id = item.author?.id || item.id || '';
+    if (!id) return null;
+    return {
+      itemType: 'channel',
+      id,
+      title: item.author?.name || '',
+      thumbnail: toProxyThumb(item.author?.thumbnails?.[0]?.url || ''),
+      description: item.description_snippet?.text || '',
+      subscribers: item.subscriber_count?.text || item.subscribers?.text || '',
+      videos: item.videos?.text || item.video_count?.text || ''
     };
   }
 
