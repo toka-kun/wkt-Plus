@@ -5,15 +5,15 @@ function setClient(newClient) {
 }
 
 // YouTube CDN の直リンクを /wkt/back 経由のプロキシリンクに変換する
+// 注意: i.ytimg.com / yt3.ggpht.com の pathname は元々 "/vi/xxx/..." や "/ytc/xxx" の
+// 形式になっているので、back.js 側のルート("/vi*", "/yt3/*", "/ytc/*")にそのまま
+// マッチするよう pathname をそのまま付与する（"/vi" 等を二重に足さない）。
 function toProxyThumb(url) {
   if (!url) return '';
   try {
     const u = new URL(url);
-    if (u.hostname === 'i.ytimg.com') {
-      return `/wkt/back/vi${u.pathname}${u.search}`;
-    }
-    if (u.hostname === 'yt3.ggpht.com') {
-      return `/wkt/back/yt3${u.pathname}${u.search}`;
+    if (u.hostname === 'i.ytimg.com' || u.hostname === 'yt3.ggpht.com') {
+      return `/wkt/back${u.pathname}${u.search}`;
     }
   } catch (err) {
     // 相対URLや不正なURLの場合はそのまま返す
