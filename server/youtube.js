@@ -21,6 +21,19 @@ function toProxyThumb(url) {
   return url;
 }
 
+// LockupView の content_image（ThumbnailView / CollectionThumbnailView）から
+// サムネイルURLを取り出す。CollectionThumbnailView（アルバム等の重ね表示）は
+// primary_thumbnail の下にネストされ、image はいずれも Thumbnail の配列。
+function extractLockupThumb(contentImage) {
+  if (!contentImage) return '';
+  const tv = contentImage.primary_thumbnail || contentImage;
+  const images = tv?.image;
+  if (Array.isArray(images) && images.length > 0) {
+    return images[0]?.url || '';
+  }
+  return '';
+}
+
 async function infoGet(id) {
   try {
     return await client.getInfo(id);
@@ -88,9 +101,13 @@ function normalizeChannelItem(raw, tabName) {
     const contentType = item.content_type || 'VIDEO';
     const title = item.metadata?.title?.text || '';
 
-    if (contentType === 'PLAYLIST') {
-      const thumb = item.content_image?.image?.sources?.[0]?.url
-                 || item.content_image?.image?.image?.[0]?.url || '';
+    // PLAYLIST はもちろん、リリース（アルバム/シングル等）は content_type が
+    // 'PLAYLIST' 以外（'ALBUM' など）になることがあるため、タブが
+    // releases/playlists の場合は itemType を問答無用でカード化する。
+    // これをしないと動画カード扱いになり、リリースIDを動画IDとして
+    // /wkt/back/vi/{id}/mqdefault.jpg を組み立ててしまい404になる。
+    if (contentType === 'PLAYLIST' || tabName === 'releases' || tabName === 'playlists') {
+      const thumb = extractLockupThumb(item.content_image);
       return { itemType: 'playlist', id, title, count: '', thumbnail: toProxyThumb(thumb) };
     }
 
