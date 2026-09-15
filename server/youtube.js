@@ -55,6 +55,27 @@ function extractLockupThumb(contentImage) {
   return '';
 }
 
+// LockupView が content_type: 'CHANNEL' のとき、アバター画像は content_image ではなく
+// metadata.image（DecoratedAvatarView か AvatarStackView）側に入っている。
+// ここを見ずに content_image だけ見ていると、チャンネル推薦カードのサムネが
+// 空になって壊れて見える（他の itemType と違い content_image 自体が使われないため）。
+function extractLockupAvatar(metadataImage) {
+  if (!metadataImage) return '';
+  // DecoratedAvatarView: { avatar: { image: [Thumbnail, ...] } }
+  const avatarImages = metadataImage.avatar?.image;
+  if (Array.isArray(avatarImages) && avatarImages.length > 0) {
+    return avatarImages[0]?.url || '';
+  }
+  // AvatarStackView: { avatars: [{ image: [Thumbnail, ...] }, ...] }
+  if (Array.isArray(metadataImage.avatars) && metadataImage.avatars.length > 0) {
+    const images = metadataImage.avatars[0]?.image;
+    if (Array.isArray(images) && images.length > 0) {
+      return images[0]?.url || '';
+    }
+  }
+  return '';
+}
+
 async function infoGet(id) {
   try {
     return await client.getInfo(id);
@@ -132,9 +153,9 @@ function normalizeChannelItem(raw, tabName) {
     const contentType = item.content_type || 'VIDEO';
     const title = item.metadata?.title?.text || '';
 
-    // チャンネルの推薦カード
+    // チャンネルの推薦カード（アバターは content_image ではなく metadata.image 側）
     if (contentType === 'CHANNEL') {
-      const thumb = extractLockupThumb(item.content_image);
+      const thumb = extractLockupAvatar(item.metadata?.image) || extractLockupThumb(item.content_image);
       return { itemType: 'channel', id, title, thumbnail: toProxyThumb(thumb) };
     }
 
