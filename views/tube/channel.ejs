@@ -88,7 +88,11 @@
                             <% } else if (v.itemType === 'channel') { %>
                                 <div class="result-item bg-gray-600 p-4 rounded">
                                     <a href="/wkt/c/<%= v.id %>">
-                                        <img src="<%= v.thumbnail %>" alt="<%= v.title %>" class="w-full h-auto rounded">
+                                        <% if (v.thumbnail) { %>
+                                            <img loading="lazy" src="<%= v.thumbnail %>" alt="<%= v.title %>" class="w-full h-auto rounded">
+                                        <% } else { %>
+                                            <div class="w-full aspect-square rounded bg-gray-700 flex items-center justify-center text-gray-500 text-sm">サムネなし</div>
+                                        <% } %>
                                     </a>
                                     <div class="mt-2">
                                         <p class="text-lg font-bold"><%= v.title %></p>
