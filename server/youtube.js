@@ -24,16 +24,13 @@ function toProxyThumb(url) {
       }
       return `/wkt/back${u.pathname}${u.search}`;
     }
-    // yt3.ggpht.com: pathname が元々 "/ytc/xxx" 形式なので
-    // back.js の "/ytc/*" ルートにそのまま乗るよう pathname をそのまま付与。
-    if (u.hostname === 'yt3.ggpht.com') {
-      return `/wkt/back${u.pathname}${u.search}`;
-    }
-    // yt3.googleusercontent.com（ggpht.com と同じ画像を返すミラーホスト）:
-    // pathname に "/ytc/" 等のプレフィックスが付いていないため、
-    // back.js の "/yt3/*" ルート（先頭 "/yt3" を剥がして yt3.ggpht.com へ転送）に
-    // 乗せるために "/yt3" を補って渡す。
-    if (u.hostname.endsWith('.googleusercontent.com')) {
+    // yt3.ggpht.com / yt3.googleusercontent.com（同じ画像を返すミラーホスト）:
+    // pathname は "/ytc/xxx" 形式のこともあれば、プレフィックス無しでハッシュが
+    // 直接来ることもあり一定しない。back.js の "/yt3/*" ルートは先頭の "/yt3" だけ
+    // 剥がしてそのまま yt3.ggpht.com に転送するので、pathname の中身によらず
+    // 常に "/wkt/back/yt3" を付ければ元のパスを完全に復元できる
+    // （"/ytc/" を含むパスでも二重にはならない）。
+    if (u.hostname === 'yt3.ggpht.com' || u.hostname.endsWith('.googleusercontent.com')) {
       return `/wkt/back/yt3${u.pathname}${u.search}`;
     }
   } catch (err) {
