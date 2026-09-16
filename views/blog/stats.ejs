@@ -348,29 +348,24 @@
                 return wrap;
             }
 
-            // 秒数を「◯時間◯分」「◯分◯秒」表記に変換
+            // 秒数を「◯時間◯分◯秒」表記に変換（秒まで常に表示）
             function formatDuration(sec) {
                 if (sec == null) return '';
                 sec = Math.max(0, Math.floor(sec));
                 const h = Math.floor(sec / 3600);
                 const m = Math.floor((sec % 3600) / 60);
                 const s = sec % 60;
-                if (h > 0) return h + '時間' + m + '分';
-                if (m > 0) return m + '分' + s + '秒';
-                return s + '秒';
+                let str = '';
+                if (h > 0) str += h + '時間';
+                if (h > 0 || m > 0) str += m + '分';
+                str += s + '秒';
+                return str;
             }
 
-            // "YYYY-MM-DD HH:MM:SS" を "MM/DD HH:MM" に整形
+            // "YYYY-MM-DD HH:MM:SS" を年・秒まで省略せず "YYYY/MM/DD HH:MM:SS" に整形
             function formatIncidentDate(dateStr) {
                 if (!dateStr) return '';
-                const parts = dateStr.split(' ');
-                const datePart = parts[0];
-                const timePart = parts[1];
-                const dateSegs = datePart.split('-');
-                const mo = dateSegs[1];
-                const da = dateSegs[2];
-                const hm = timePart ? timePart.slice(0, 5) : '';
-                return mo + '/' + da + ' ' + hm;
+                return dateStr.replace(/-/g, '/');
             }
         });
     </script>
