@@ -74,11 +74,14 @@ function extractLockupAvatar(metadataImage) {
 }
 
 async function infoGet(id) {
-  try {
-    return await client.getInfo(id);
-  } catch (error) {
-    return;
-  }
+  // ここでエラーを握りつぶして undefined を返すと、呼び出し元が
+  // Info.primary_info / Info.secondary_info / Info.watch_next_feed などを
+  // 無条件でプロパティアクセスしてしまい、"Cannot read properties of
+  // undefined" という分かりにくいエラーになる。
+  // 呼び出し元は全て try/catch で囲われているので、ここでは握りつぶさず
+  // そのまま投げて、各所の catch（動画を取得できませんでした 等）に
+  // 委ねる。
+  return await client.getInfo(id);
 }
 
 async function search(q, page, limit) {
