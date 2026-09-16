@@ -14,11 +14,11 @@ const memoryCacheCheckOrder = ['siawaseok', 'invidious', 'acethinker', 'freemake
 
 // ▼▼▼ APIごとのキャッシュ生存期間 (秒) ▼▼▼
 const apiTtlSettings = {
-    'invidious': 18000, // 5時間
-    'acethinker': 18000, // 5時間
+    'invidious': 21540, // 5時間59分
+    'acethinker': 21540, // 5時間59分
     'freemake': 600, // 10分
     'siawaseok': 600, // 10分
-    'min-tube2-api': 18000 // 5時間
+    'min-tube2-api': 21540 // 5時間59分
 };
 
 // 指定したAPIのTTL(ミリ秒)を返す関数。設定になければデフォルトで600秒(10分)
@@ -223,16 +223,16 @@ router.get('/:id', async (req, res) => {
         const watch_next_feed = serverYt.normalizeWatchNextFeed(Info.watch_next_feed);
         const channels = serverYt.extractChannels(Info);
         const videoInfo = {
-            title: Info.primary_info.title.text || "",
+            title: Info.primary_info?.title?.text || "",
             channels: channels,
             channelId: channels[0].id,
             channelIcon: channels[0].icon,
             channelName: channels[0].name,
             channelSubsc: channels[0].subsc,
-            published: Info.primary_info.published,
-            viewCount: Info.primary_info.view_count.short_view_count?.text || Info.primary_info.view_count.view_count?.text || "",
-            likeCount: Info.primary_info.menu.top_level_buttons.short_like_count || Info.primary_info.menu.top_level_buttons.like_count || Info.basic_info.like_count || "",
-            description: Info.secondary_info.description.text || "",
+            published: Info.primary_info?.published,
+            viewCount: Info.primary_info?.view_count?.short_view_count?.text || Info.primary_info?.view_count?.view_count?.text || "",
+            likeCount: Info.primary_info?.menu?.top_level_buttons?.short_like_count || Info.primary_info?.menu?.top_level_buttons?.like_count || Info.basic_info?.like_count || "",
+            description: Info.secondary_info?.description?.text || "",
             watch_next_feed: watch_next_feed,
         };
         
