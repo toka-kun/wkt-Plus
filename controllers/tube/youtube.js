@@ -56,16 +56,16 @@ router.get('/edu/:id', async (req, res) => {
     const Info = await serverYt.infoGet(videoId);
     const channels = serverYt.extractChannels(Info);
     const videoInfo = {
-      title: Info.primary_info.title.text || "",
+      title: Info.primary_info?.title?.text || "",
       channels: channels,
       channelId: channels[0].id,
       channelIcon: channels[0].icon,
       channelName: channels[0].name,
       channelSubsc: channels[0].subsc,
-      published: Info.primary_info.published,
-      viewCount: Info.primary_info.view_count.short_view_count?.text || Info.primary_info.view_count.view_count?.text || "",
-      likeCount: Info.primary_info.menu.top_level_buttons.short_like_count || Info.primary_info.menu.top_level_buttons.like_count || Info.basic_info.like_count || "",
-      description: Info.secondary_info.description.text || "",
+      published: Info.primary_info?.published,
+      viewCount: Info.primary_info?.view_count?.short_view_count?.text || Info.primary_info?.view_count?.view_count?.text || "",
+      likeCount: Info.primary_info?.menu?.top_level_buttons?.short_like_count || Info.primary_info?.menu?.top_level_buttons?.like_count || Info.basic_info?.like_count || "",
+      description: Info.secondary_info?.description?.text || "",
       watch_next_feed: serverYt.normalizeWatchNextFeed(Info.watch_next_feed),
     };
           
@@ -87,16 +87,16 @@ router.get('/nocookie/:id', async (req, res) => {
     const Info = await serverYt.infoGet(videoId);
     const channels = serverYt.extractChannels(Info);
     const videoInfo = {
-      title: Info.primary_info.title.text || "",
+      title: Info.primary_info?.title?.text || "",
       channels: channels,
       channelId: channels[0].id,
       channelIcon: channels[0].icon,
       channelName: channels[0].name,
       channelSubsc: channels[0].subsc,
-      published: Info.primary_info.published,
-      viewCount: Info.primary_info.view_count.short_view_count?.text || Info.primary_info.view_count.view_count?.text || "",
-      likeCount: Info.primary_info.menu.top_level_buttons.short_like_count || Info.primary_info.menu.top_level_buttons.like_count || Info.basic_info.like_count || "",
-      description: Info.secondary_info.description.text || "",
+      published: Info.primary_info?.published,
+      viewCount: Info.primary_info?.view_count?.short_view_count?.text || Info.primary_info?.view_count?.view_count?.text || "",
+      likeCount: Info.primary_info?.menu?.top_level_buttons?.short_like_count || Info.primary_info?.menu?.top_level_buttons?.like_count || Info.basic_info?.like_count || "",
+      description: Info.secondary_info?.description?.text || "",
       watch_next_feed: serverYt.normalizeWatchNextFeed(Info.watch_next_feed),
     };
           
