@@ -265,6 +265,7 @@
                 <button class="p-2 bg-neutral-800 text-neutral-300 hover:text-white hover:bg-neutral-700 rounded-md shadow-lg transition-colors shrink-0" id="sidebarExpandBtn" title="サイドバーを開く">
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
                 </button>
+                <div id="effortSelectSlotTop" class="flex items-center"></div>
                 <div id="chatModelSelectorSlotTop" class="flex items-center"></div>
             </div>
 
@@ -350,26 +351,28 @@
 
                     <div class="shrink-0 bg-neutral-900">
                         <div class="max-w-3xl mx-auto w-full p-5 pt-4 pb-1">
-                        <div class="flex items-center gap-2 mb-2">
-                            <select id="effortSelectChat" class="control-chip hidden outline-none focus:border-brand" title="推論の強さ"></select>
-                        </div>
                         <div class="relative">
-                        <textarea class="w-full pl-4 pr-44 py-4 bg-neutral-800 border border-neutral-700 focus:border-brand rounded-xl text-white text-base outline-none min-h-[50px] max-h-[150px] placeholder-neutral-500 transition-colors" id="chatInput" placeholder="AIにメッセージを送る..." rows="1"></textarea>
-                        <div class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                            <div id="chatModelSelectorSlotBottom" class="flex items-center">
-                                <button class="control-chip max-w-[170px] shadow-lg" id="chatModelSelector">
-                                    <span id="chatCurrentModel" class="truncate">…</span>
-                                    <svg class="w-3 h-3 shrink-0 opacity-70" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
-                                    </svg>
-                                </button>
-                            </div>
+                        <textarea class="w-full pl-4 pr-14 py-4 bg-neutral-800 border border-neutral-700 focus:border-brand rounded-xl text-white text-base outline-none min-h-[50px] max-h-[150px] placeholder-neutral-500 transition-colors" id="chatInput" placeholder="AIにメッセージを送る..." rows="1"></textarea>
+                        <div class="absolute right-2 top-1/2 -translate-y-1/2">
                             <button class="p-2 bg-brand hover:bg-brand-hover text-white rounded-md transition-colors flex items-center justify-center disabled:bg-neutral-700 disabled:cursor-not-allowed" id="chatSendBtn">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
                                 </svg>
                             </button>
                         </div>
+                        </div>
+                        <div class="flex items-center justify-end gap-2 mt-2 mb-1">
+                            <div id="effortSelectSlotBottom" class="flex items-center">
+                                <select id="effortSelectChat" class="control-chip hidden outline-none focus:border-brand" title="推論の強さ"></select>
+                            </div>
+                            <div id="chatModelSelectorSlotBottom" class="flex items-center">
+                                <button class="control-chip max-w-[170px]" id="chatModelSelector">
+                                    <span id="chatCurrentModel" class="truncate">…</span>
+                                    <svg class="w-3 h-3 shrink-0 opacity-70" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                         </div>
                     </div>
@@ -904,7 +907,7 @@
             const groups = groupModelsByProvider(filtered);
             Object.keys(groups).forEach(provider => {
                 const groupHeader = document.createElement('div');
-                groupHeader.className = 'px-3 pt-3 pb-1 text-xs uppercase tracking-wide text-neutral-500';
+                groupHeader.className = 'px-3 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-neutral-400';
                 groupHeader.textContent = provider;
                 listEl.appendChild(groupHeader);
 
@@ -979,7 +982,7 @@
             dropdown.classList.remove('hidden');
             dropdown.classList.add('flex', 'flex-col');
 
-            if (searchInput) { searchInput.value = ''; searchInput.focus(); }
+            if (searchInput) { searchInput.value = ''; }
             renderModelDropdownList('');
         }
 
@@ -1073,13 +1076,13 @@
             const groups = groupModelsByProvider(availableModels);
             container.innerHTML = Object.keys(groups).map(provider => `
                 <div>
-                    <div class="text-xs uppercase tracking-wide text-neutral-500 mb-2">${escapeHtml(provider)}</div>
-                    ${providerDescriptions[provider] ? `<div class="text-xs text-amber-400 leading-relaxed mb-2">${escapeHtml(providerDescriptions[provider])}</div>` : ''}
+                    <div class="text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-2">${escapeHtml(provider)}</div>
+                    ${providerDescriptions[provider] ? `<div class="surface-raised bg-amber-950/20 border border-amber-900/60 rounded-lg px-3.5 py-2.5 mb-3 text-sm text-amber-300 leading-relaxed">${escapeHtml(providerDescriptions[provider])}</div>` : ''}
                     <div class="space-y-2">
                         ${groups[provider].map(model => `
                             <div class="surface-raised bg-neutral-800 border border-neutral-700 rounded-lg p-4">
                                 <div class="flex items-center justify-between gap-3">
-                                    <span class="text-sm text-white font-medium">${escapeHtml(model.displayName)}</span>
+                                    <span class="text-sm text-white font-medium min-w-0 break-words">${escapeHtml(model.displayName)}</span>
                                     <span class="text-xs text-neutral-500 shrink-0 font-mono tabular-nums">${model.isFree ? '無料' : escapeHtml(formatCost(model.cost))}</span>
                                 </div>
                                 ${model.desc ? `<div class="text-xs text-amber-400 leading-relaxed mt-2">${escapeHtml(model.desc)}</div>` : ''}
@@ -1138,20 +1141,28 @@
             positionChatModelSelector();
         }
 
-        // Moves the single #chatModelSelector node between its two possible
-        // homes: top-left (when the sidebar is collapsed, during a chat) or
-        // its original spot next to the chat input.
-        function positionChatModelSelector() {
-            const selector = document.getElementById('chatModelSelector');
-            const topSlot = document.getElementById('chatModelSelectorSlotTop');
-            const bottomSlot = document.getElementById('chatModelSelectorSlotBottom');
-            if (!selector || !topSlot || !bottomSlot) return;
+        // Moves a control node between its two possible homes: top-left
+        // (when the sidebar is collapsed, during a chat) or its original
+        // spot next to the chat input.
+        function moveControlToSlot(elementId, topSlotId, bottomSlotId, shouldBeTop) {
+            const el = document.getElementById(elementId);
+            const topSlot = document.getElementById(topSlotId);
+            const bottomSlot = document.getElementById(bottomSlotId);
+            if (!el || !topSlot || !bottomSlot) return;
 
-            const shouldBeTop = isSidebarCollapsed && currentView === 'chat';
             const targetSlot = shouldBeTop ? topSlot : bottomSlot;
-            if (selector.parentElement !== targetSlot) {
-                targetSlot.appendChild(selector);
+            if (el.parentElement !== targetSlot) {
+                targetSlot.appendChild(el);
             }
+        }
+
+        // Keeps #chatModelSelector and #effortSelectChat anchored bottom-right
+        // next to the chat input at all times, regardless of whether the
+        // sidebar is open or collapsed.
+        function positionChatModelSelector() {
+            const shouldBeTop = false;
+            moveControlToSlot('chatModelSelector', 'chatModelSelectorSlotTop', 'chatModelSelectorSlotBottom', shouldBeTop);
+            moveControlToSlot('effortSelectChat', 'effortSelectSlotTop', 'effortSelectSlotBottom', shouldBeTop);
         }
 
         // ---------------------------------------------------------------
@@ -1538,6 +1549,65 @@
         }
 
         // ---------------------------------------------------------------
+        // Local tools (no network call required)
+        // ---------------------------------------------------------------
+        const CURRENT_TIME_TOOL_NAME = 'get_current_time';
+        const CURRENT_TIME_TOOL_DEFINITION = {
+            type: 'function',
+            function: {
+                name: CURRENT_TIME_TOOL_NAME,
+                description: '現在の日時を詳細情報(年月日・時刻・曜日・タイムゾーン・UTCオフセット・UNIXタイムスタンプ)付きで取得します。現在時刻や日付が関わる質問では必ずこれを使い、憶測で答えないでください。',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        timezone: {
+                            type: 'string',
+                            description: 'IANAタイムゾーン名 (例: "Asia/Tokyo", "America/New_York")。省略時は端末のローカルタイムゾーン。'
+                        }
+                    },
+                    required: []
+                }
+            }
+        };
+
+        // Purely local - just formats `new Date()`, no fetch involved.
+        // Returns a JSON string so the model gets structured fields (not
+        // just a formatted sentence) to reason about.
+        function getCurrentTimeToolResult(args) {
+            const timezone = (args && args.timezone) || undefined;
+            const now = new Date();
+            try {
+                const formatter = new Intl.DateTimeFormat('ja-JP', {
+                    timeZone: timezone,
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit',
+                    weekday: 'long', hour12: false, timeZoneName: 'shortOffset'
+                });
+                const parts = formatter.formatToParts(now).reduce((acc, p) => {
+                    if (p.type !== 'literal') acc[p.type] = p.value;
+                    return acc;
+                }, {});
+
+                return JSON.stringify({
+                    iso8601: now.toISOString(),
+                    unix_timestamp_ms: now.getTime(),
+                    timezone: formatter.resolvedOptions().timeZone,
+                    utc_offset: parts.timeZoneName || null,
+                    year: parts.year, month: parts.month, day: parts.day,
+                    hour: parts.hour, minute: parts.minute, second: parts.second,
+                    weekday: parts.weekday,
+                    formatted: `${parts.year}年${parts.month}月${parts.day}日(${parts.weekday}) ${parts.hour}:${parts.minute}:${parts.second}`
+                });
+            } catch (err) {
+                return JSON.stringify({
+                    error: `無効なタイムゾーンです: ${timezone}`,
+                    iso8601: now.toISOString(),
+                    unix_timestamp_ms: now.getTime()
+                });
+            }
+        }
+
+        // ---------------------------------------------------------------
         // Chat
         // ---------------------------------------------------------------
         async function handleWelcomeMessage() {
@@ -1740,7 +1810,7 @@
                         chatOptions.reasoning_effort = effortForThisMessage;
                     }
                     if (includeTools) {
-                        chatOptions.tools = await getExaToolDefinitions();
+                        chatOptions.tools = [CURRENT_TIME_TOOL_DEFINITION, ...(await getExaToolDefinitions())];
                     }
 
                     const response = await puter.ai.chat(messages, chatOptions);
@@ -1794,7 +1864,9 @@
                     for (const tu of toolUses) {
                         let resultText;
                         try {
-                            if (EXA_TOOL_NAMES.includes(tu.name)) {
+                            if (tu.name === CURRENT_TIME_TOOL_NAME) {
+                                resultText = getCurrentTimeToolResult(tu.input);
+                            } else if (EXA_TOOL_NAMES.includes(tu.name)) {
                                 resultText = await callExaToolWithRetry(tu.name, tu.input);
                             } else {
                                 resultText = `エラー: 未対応のツールです (${tu.name})`;
@@ -1906,6 +1978,112 @@
             return { messageId, messageContent };
         }
 
+        // Applies inline markdown (bold/italic/strikethrough/inline-code/links)
+        // to a single already-HTML-escaped line. Code spans are pulled out
+        // first and restored at the end so markers inside them (e.g. `a**b`)
+        // are never misread as bold/italic syntax.
+        function formatInlineMarkdown(escapedText) {
+            const codeSpans = [];
+            let text = escapedText.replace(/`([^`]+)`/g, (m, code) => {
+                codeSpans.push(code);
+                return `\u0000${codeSpans.length - 1}\u0000`;
+            });
+
+            text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)"]+)\)/g,
+                '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-brand underline hover:text-brand-hover">$1</a>');
+            text = text.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold text-white">$1</strong>');
+            text = text.replace(/__([^_]+)__/g, '<strong class="font-semibold text-white">$1</strong>');
+            text = text.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+            text = text.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+            text = text.replace(/(^|[^A-Za-z0-9_])_([^_\n]+)_(?![A-Za-z0-9_])/g, '$1<em>$2</em>');
+
+            text = text.replace(/\u0000(\d+)\u0000/g, (m, idx) =>
+                `<code class="bg-neutral-900 border border-neutral-700 rounded px-1.5 py-0.5 text-[13px] font-mono text-brand">${codeSpans[idx]}</code>`);
+            return text;
+        }
+
+        // Turns a plain-text block (no fenced code - that's handled by the
+        // caller) into formatted HTML: headers, lists, blockquotes, hr, and
+        // paragraphs with single line breaks preserved as <br>.
+        function formatMarkdownBlock(rawText) {
+            const lines = escapeHtml(rawText).split('\n');
+            const headerSizes = {
+                1: 'text-xl font-bold mt-4 mb-2',
+                2: 'text-lg font-bold mt-4 mb-2',
+                3: 'text-base font-semibold mt-3 mb-2',
+                4: 'text-sm font-semibold mt-3 mb-1',
+                5: 'text-sm font-semibold mt-2 mb-1',
+                6: 'text-sm font-semibold mt-2 mb-1'
+            };
+            let html = '';
+            let paragraph = [];
+            const flushParagraph = () => {
+                if (paragraph.length) {
+                    html += `<p class="mb-3 last:mb-0">${paragraph.join('<br>')}</p>`;
+                    paragraph = [];
+                }
+            };
+
+            let i = 0;
+            while (i < lines.length) {
+                const trimmed = lines[i].trim();
+
+                if (trimmed === '') { flushParagraph(); i++; continue; }
+
+                const headerMatch = trimmed.match(/^(#{1,6})\s+(.+)$/);
+                if (headerMatch) {
+                    flushParagraph();
+                    const level = headerMatch[1].length;
+                    html += `<h${level} class="${headerSizes[level]} text-white first:mt-0">${formatInlineMarkdown(headerMatch[2])}</h${level}>`;
+                    i++; continue;
+                }
+
+                if (/^(-{3,}|\*{3,}|_{3,})$/.test(trimmed)) {
+                    flushParagraph();
+                    html += '<hr class="my-3 border-neutral-700">';
+                    i++; continue;
+                }
+
+                if (/^&gt;\s?/.test(trimmed)) {
+                    flushParagraph();
+                    const quote = [];
+                    while (i < lines.length && /^&gt;\s?/.test(lines[i].trim())) {
+                        quote.push(formatInlineMarkdown(lines[i].trim().replace(/^&gt;\s?/, '')));
+                        i++;
+                    }
+                    html += `<blockquote class="border-l-2 border-neutral-600 pl-3 my-2 text-neutral-400 italic">${quote.join('<br>')}</blockquote>`;
+                    continue;
+                }
+
+                if (/^[-*+]\s+/.test(trimmed)) {
+                    flushParagraph();
+                    const items = [];
+                    while (i < lines.length && /^[-*+]\s+/.test(lines[i].trim())) {
+                        items.push(`<li class="mb-1">${formatInlineMarkdown(lines[i].trim().replace(/^[-*+]\s+/, ''))}</li>`);
+                        i++;
+                    }
+                    html += `<ul class="list-disc list-outside pl-5 mb-3 space-y-0.5">${items.join('')}</ul>`;
+                    continue;
+                }
+
+                if (/^\d+\.\s+/.test(trimmed)) {
+                    flushParagraph();
+                    const items = [];
+                    while (i < lines.length && /^\d+\.\s+/.test(lines[i].trim())) {
+                        items.push(`<li class="mb-1">${formatInlineMarkdown(lines[i].trim().replace(/^\d+\.\s+/, ''))}</li>`);
+                        i++;
+                    }
+                    html += `<ol class="list-decimal list-outside pl-5 mb-3 space-y-0.5">${items.join('')}</ol>`;
+                    continue;
+                }
+
+                paragraph.push(formatInlineMarkdown(trimmed));
+                i++;
+            }
+            flushParagraph();
+            return html;
+        }
+
         function renderFormattedMessage(content, container) {
             container.innerHTML = '';
             const codeBlockRegex = /```(\w*)\n([\s\S]*?)```/g;
@@ -1915,8 +2093,8 @@
             while ((match = codeBlockRegex.exec(content)) !== null) {
                 if (match.index > lastIndex) {
                     const textPart = document.createElement('div');
-                    textPart.className = 'p-4 whitespace-pre-wrap';
-                    textPart.textContent = content.substring(lastIndex, match.index);
+                    textPart.className = 'p-4 whitespace-normal';
+                    textPart.innerHTML = formatMarkdownBlock(content.substring(lastIndex, match.index));
                     container.appendChild(textPart);
                 }
 
@@ -1927,15 +2105,15 @@
 
             if (lastIndex < content.length) {
                 const textPart = document.createElement('div');
-                textPart.className = 'p-4 whitespace-pre-wrap';
-                textPart.textContent = content.substring(lastIndex);
+                textPart.className = 'p-4 whitespace-normal';
+                textPart.innerHTML = formatMarkdownBlock(content.substring(lastIndex));
                 container.appendChild(textPart);
             }
 
             if (container.children.length === 0 && content) {
                 const textPart = document.createElement('div');
-                textPart.className = 'p-4 whitespace-pre-wrap';
-                textPart.textContent = content;
+                textPart.className = 'p-4 whitespace-normal';
+                textPart.innerHTML = formatMarkdownBlock(content);
                 container.appendChild(textPart);
             }
         }
