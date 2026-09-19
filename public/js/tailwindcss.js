@@ -175,25 +175,20 @@ if (window !== window.parent) {
 }
 
 // ==========================================
-// === アクセス解析研究所 自動挿入 ===
+// === Microsoft Clarity 自動挿入 ===
 // ==========================================
 window.addEventListener('DOMContentLoaded', () => {
-    // 【新規追加】GDPR同意用Cookieを設定
-    document.cookie = 'accaii.gdpr=1; Max-Age=7776000; Path=/';
+    // 1. Clarity解析スクリプトを作成
+    const clarityScript = document.createElement('script');
+    clarityScript.type = 'text/javascript';
+    clarityScript.textContent = `
+        (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "yim9faf3hs");
+    `;
 
-    // 1. カウンター用の要素（<div id="accaiiCounter"></div>）を作成
-    const counterDiv = document.createElement('div');
-    counterDiv.id = 'accaiiCounter';
-    
-    // Tailwind CSSのクラスを付与してページの左下に固定
-    counterDiv.className = 'fixed bottom-0 left-0 z-[9999]';
-
-    // 2. アクセス解析スクリプトを作成（新しいURLに変更）
-    const accaiiScript = document.createElement('script');
-    accaiiScript.src = "https://accaii.com/wktplus/analyze.js";
-    accaiiScript.async = true;
-
-    // 3. <body> と <head> の最初（先頭）にそれぞれを追加
-    document.body.prepend(counterDiv);
-    document.head.prepend(accaiiScript);
+    // 2. <head> の先頭に追加
+    document.head.prepend(clarityScript);
 });
