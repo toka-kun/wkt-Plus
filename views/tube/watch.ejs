@@ -383,22 +383,22 @@
     <p class="mb-4 text-gray-300">動画のデフォルトの再生方法を設定できます。埋め込みで見れるなら埋め込みで見た方が良いですよ。</p>
     <p class="mb-4 text-gray-300">現在の再生方法: <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-sm font-semibold">通常</span></p>
     <div class="control-section mb-4">
-        <div class="flex flex-col gap-2">
-            <label class="flex items-start gap-3 p-3 rounded-lg border-2 border-gray-700 bg-gray-800/60 cursor-pointer transition-colors hover:border-gray-500 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-500/10">
-                <input type="radio" name="playbackMode" value="normal" class="mt-1 w-4 h-4 shrink-0 accent-blue-500" checked>
+        <div class="flex flex-col gap-1">
+            <label class="flex items-start gap-2 py-1 px-1.5 -mx-1.5 rounded-md cursor-pointer transition-colors has-[:checked]:bg-blue-500/10 has-[:checked]:ring-1 has-[:checked]:ring-blue-500">
+                <input type="radio" name="playbackMode" value="normal" class="mt-1 accent-blue-500" checked>
                 <div>
                     <strong>通常</strong> - ストリームURLを用いて再生します。最初のデフォルト設定で、ほとんどの人が使用できます。
                 </div>
             </label>
-            <label class="flex items-start gap-3 p-3 rounded-lg border-2 border-gray-700 bg-gray-800/60 cursor-pointer transition-colors hover:border-gray-500 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-500/10">
-                <input type="radio" name="playbackMode" value="edu" class="mt-1 w-4 h-4 shrink-0 accent-blue-500">
+            <label class="flex items-start gap-2 py-1 px-1.5 -mx-1.5 rounded-md cursor-pointer transition-colors has-[:checked]:bg-blue-500/10 has-[:checked]:ring-1 has-[:checked]:ring-blue-500">
+                <input type="radio" name="playbackMode" value="edu" class="mt-1 accent-blue-500">
                 <div>
                     <strong>Education</strong> - YouTubeEducationを埋め込んで再生を行います。一部の人が使用できます。
                     <a href="/wkt/yt/edu/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
                 </div>
             </label>
-            <label class="flex items-start gap-3 p-3 rounded-lg border-2 border-gray-700 bg-gray-800/60 cursor-pointer transition-colors hover:border-gray-500 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-500/10">
-                <input type="radio" name="playbackMode" value="nocookie" class="mt-1 w-4 h-4 shrink-0 accent-blue-500">
+            <label class="flex items-start gap-2 py-1 px-1.5 -mx-1.5 rounded-md cursor-pointer transition-colors has-[:checked]:bg-blue-500/10 has-[:checked]:ring-1 has-[:checked]:ring-blue-500">
+                <input type="radio" name="playbackMode" value="nocookie" class="mt-1 accent-blue-500">
                 <div>
                     <strong>Nocookie</strong> - YouTube-Nocookieを埋め込んで再生を行います。こちらも一部の人が使用できます。
                     <a href="/wkt/yt/nocookie/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
@@ -583,7 +583,7 @@
     </div>
               
     <button id="expandSidebar" class="expand-sidebar-btn">◀ サイドバーを開く</button>
-          
+ 
 <script>
 // コメント
 const commentContainers = [document.getElementById("commentsList1"), document.getElementById("commentsList2")];
