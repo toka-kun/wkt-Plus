@@ -25,19 +25,19 @@
         });
     </script>
     <style>
-.iframe-container {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-}
+        .iframe-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+        }
 
-.iframe-container iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-}
+        .iframe-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
         .comment-box, .related-box {
             transform: translateX(100%);
             transition: transform 0.2s ease-in-out;
@@ -113,7 +113,7 @@
         }
         .tab-content.active {
             display: block;
-　　     }
+        }
         .loading-indicator {
             position: absolute;
             top: 50%;
@@ -141,12 +141,12 @@
         <form action="/wkt/s" method="get" class="w-1/2 relative" id="searchForm">
             <input type="text" name="q" id="searchbox" placeholder="検索" class="searchbox w-full p-2 pr-10 rounded bg-gray-700 text-white">
             <button type="button" id="clearBtn" class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center h-6 w-6 rounded-full hover:bg-gray-400 text-white text-lg leading-none hidden">
-             ×
+                ×
             </button>
         </form>
         <button id="toggleToolbar" class="toggle-btn w-1/5">ツール</button>
     </header>
-  
+
     <div class="toolbar w-1/2 ml-4" id="toolbar">
         <button id="closeToolbar" class="toggle-btn w-2/3 bg-gray-700 py-2 hover:text-white p-2 rounded mb-2 absolute top-4 right-4">閉じる</button>
         <nav class="mt-12">
@@ -164,669 +164,676 @@
             <button onclick="window.location.href='/blog/b/wkthelp'" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">ヘルプ</button>
         </nav>
     </div>
-    
+
     <div class="max-w-6xl mx-auto p-4 main-container" id="mainContainer">
         <div class="video-container" id="videoContainer">
-        <div class="relative">
-          <div class="iframe-container">
-            <iframe src="<%= videosrc %>" frameborder="0" allowfullscreen></iframe>
-　　　　　　</div>
-        <div class="mobile-action-box">
-            <button
-                class="w-full bg-gray-700 py-2 rounded"
-                onclick="document.getElementById('controlPanel').classList.toggle('open')">
-                設定
-            </button>
-        </div>
-        </div>
+            <div class="relative">
+                <div class="iframe-container">
+                    <iframe src="<%= videosrc %>" frameborder="0" allowfullscreen></iframe>
+                </div>
+                <div class="mobile-action-box">
+                    <button
+                        class="w-full bg-gray-700 py-2 rounded"
+                        onclick="document.getElementById('controlPanel').classList.toggle('open')">
+                        設定
+                    </button>
+                </div>
+            </div>
             <div class="flex items-start mt-4 p-4 bg-gray-800 rounded gap-3">
-              <div class="flex-1 min-w-0">
-                <% if (videoInfo.channels.length === 1) { %>
-                  <div class="flex items-center gap-3">
-                    <a href="/wkt/c/<%= videoInfo.channels[0].id %>" class="flex-shrink-0">
-                      <img src="<%= videoInfo.channels[0].icon %>" alt="アイコン" class="w-12 h-12 rounded-full">
-                    </a>
-                    <div class="min-w-0">
-                      <h2 class="text-lg font-bold"><a href="/wkt/c/<%= videoInfo.channels[0].id %>"><%= videoInfo.channels[0].name %></a></h2>
-                      <p class="text-sm text-gray-400"><%= videoInfo.channels[0].subsc %></p>
-                    </div>
-                  </div>
-                <% } else { %>
-                  <ul class="space-y-3">
-                    <% videoInfo.channels.forEach(function(ch) { %>
-                      <li class="flex items-center gap-3">
-                        <a href="<%= ch.id ? '/wkt/c/' + ch.id : '#' %>" class="flex-shrink-0">
-                          <% if (ch.icon) { %>
-                            <img src="<%= ch.icon %>" alt="<%= ch.name %>" class="w-12 h-12 rounded-full object-cover">
-                          <% } else { %>
-                            <div class="w-12 h-12 rounded-full bg-gray-600"></div>
-                          <% } %>
-                        </a>
-                        <div class="min-w-0">
-                          <% if (ch.id) { %>
-                            <h2 class="text-lg font-bold"><a href="/wkt/c/<%= ch.id %>"><%= ch.name %></a></h2>
-                          <% } else { %>
-                            <h2 class="text-lg font-bold"><%= ch.name %></h2>
-                          <% } %>
-                          <% if (ch.subsc) { %><p class="text-sm text-gray-400"><%= ch.subsc %></p><% } %>
+                <div class="flex-1 min-w-0">
+                    <% if (videoInfo.channels.length === 1) { %>
+                        <div class="flex items-center gap-3">
+                            <a href="/wkt/c/<%= videoInfo.channels[0].id %>" class="flex-shrink-0">
+                                <img src="<%= videoInfo.channels[0].icon %>" alt="アイコン" class="w-12 h-12 rounded-full">
+                            </a>
+                            <div class="min-w-0">
+                                <h2 class="text-lg font-bold"><a href="/wkt/c/<%= videoInfo.channels[0].id %>"><%= videoInfo.channels[0].name %></a></h2>
+                                <p class="text-sm text-gray-400"><%= videoInfo.channels[0].subsc %></p>
+                            </div>
                         </div>
-                      </li>
-                    <% }); %>
-                  </ul>
-                <% } %>
-              </div>
-              <button id="favoriteBtn" class="flex-shrink-0 p-2 rounded-full bg-gray-500">
-                <img id="favoriteIcon" src="https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png" alt="お気に入り" class="w-8 h-8">
-              </button>
+                    <% } else { %>
+                        <ul class="space-y-3">
+                            <% videoInfo.channels.forEach(function(ch) { %>
+                                <li class="flex items-center gap-3">
+                                    <a href="<%= ch.id ? '/wkt/c/' + ch.id : '#' %>" class="flex-shrink-0">
+                                        <% if (ch.icon) { %>
+                                            <img src="<%= ch.icon %>" alt="<%= ch.name %>" class="w-12 h-12 rounded-full object-cover">
+                                        <% } else { %>
+                                            <div class="w-12 h-12 rounded-full bg-gray-600"></div>
+                                        <% } %>
+                                    </a>
+                                    <div class="min-w-0">
+                                        <% if (ch.id) { %>
+                                            <h2 class="text-lg font-bold"><a href="/wkt/c/<%= ch.id %>"><%= ch.name %></a></h2>
+                                        <% } else { %>
+                                            <h2 class="text-lg font-bold"><%= ch.name %></h2>
+                                        <% } %>
+                                        <% if (ch.subsc) { %><p class="text-sm text-gray-400"><%= ch.subsc %></p><% } %>
+                                    </div>
+                                </li>
+                            <% }); %>
+                        </ul>
+                    <% } %>
+                </div>
+                <button id="favoriteBtn" class="flex-shrink-0 p-2 rounded-full bg-gray-500">
+                    <img id="favoriteIcon" src="https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png" alt="お気に入り" class="w-8 h-8">
+                </button>
             </div>
 
-    <div class="mt-4 p-4 bg-gray-800 rounded">
-      <div class="mt-2 text-gray-400 text-sm">
-          <p><%= videoInfo.viewCount %>  ・  <%= videoInfo.likeCount %>いいね  ・  <%= videoInfo.published %></p>
-      </div>
-    <div class="flex items-center justify-between">
-        <h3 class="text-2xl font-bold"> 
-          <a href="#mainContainer"><%= videoInfo.title %></a>
-        </h3>
-        <button class="ml-2 text-blue-500 hover:text-blue-300 text-sm" onclick="toggleDescription(this)">
-            折りたたむ
-        </button>
-    </div>
-    <div class="description mt-2">
-        <p class="text-base text-gray-300 mt-1"><%- (videoInfo.description || "").replace(/\n/g, "<br>") %></p>
-    </div>
-   </div>
-              
+            <div class="mt-4 p-4 bg-gray-800 rounded">
+                <div class="mt-2 text-gray-400 text-sm">
+                    <p><%= videoInfo.viewCount %>  ・  <%= videoInfo.likeCount %>いいね  ・  <%= videoInfo.published %></p>
+                </div>
+                <div class="flex items-center justify-between">
+                    <h3 class="text-2xl font-bold">
+                        <a href="#mainContainer"><%= videoInfo.title %></a>
+                    </h3>
+                    <button class="ml-2 text-blue-500 hover:text-blue-300 text-sm" onclick="toggleDescription(this)">
+                        折りたたむ
+                    </button>
+                </div>
+                <div class="description mt-2">
+                    <p class="text-base text-gray-300 mt-1"><%- (videoInfo.description || "").replace(/\n/g, "<br>") %></p>
+                </div>
+            </div>
+
             <div class="mt-4 p-4 bg-gray-800 rounded">
                 <h3 class="text-lg font-bold">コメント</h3>
                 <div class="mt-2 space-y-2">
-                <div id="commentError2" class="text-red-500 hidden"></div>
-                <div id="commentsList2" class="mt-2 space-y-2">
-                   <p>コメントを取得中...</p>
-                </div>
+                    <div id="commentError2" class="text-red-500 hidden"></div>
+                    <div id="commentsList2" class="mt-2 space-y-2">
+                        <p>コメントを取得中...</p>
+                    </div>
                 </div>
 
-               <button id="retryButton" class="w-full bg-gray-700 py-2 rounded mt-2 hidden">再取得</button>
+                <button id="retryButton" class="w-full bg-gray-700 py-2 rounded mt-2 hidden">再取得</button>
             </div>
 
             <div class="related-sidenone mt-4 p-4 bg-gray-800 rounded" id="related-sidenone">
-            <h3 class="text-lg font-bold">関連動画</h3><br>
-<% if (videoInfo.watch_next_feed && videoInfo.watch_next_feed.length > 0) { %>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            <% videoInfo.watch_next_feed.forEach(video => { %>
-              <% if (video.type.endsWith("Video")) { %>
-                <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
-                    <a href="/wkt/watch/<%= video.id %>" class="block relative group">
-                        <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title?.text || '動画' %>" class="w-full h-auto rounded aspect-video object-cover">
-                        <% if (video.duration?.text) { %><span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium"><%= video.duration.text %></span><% } %>
-                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
-                    </a>
-                    <div class="mt-3 flex items-start space-x-3">
-                        <a href="<%= (video.author?.id && video.author.id !== 'N/A') ? '/wkt/c/' + video.author.id : '/wkt/watch/' + video.id %>" class="flex-shrink-0">
-                            <% if (video.author?.thumbnails?.length) { %>
-                            <% if (video.author.id === 'N/A') { %>
-                            <img src="<%= video.author.thumbnails[0].url %>" alt="<%= video.author?.name || '' %>" class="w-9 h-9 rounded-full object-cover bg-gray-600 border border-gray-700">
-                            <% } else { %>
-                            <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="<%= video.author?.name || '' %>" class="w-9 h-9 rounded-full object-cover bg-gray-600 border border-gray-700">
+                <h3 class="text-lg font-bold">関連動画</h3><br>
+                <% if (videoInfo.watch_next_feed && videoInfo.watch_next_feed.length > 0) { %>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        <% videoInfo.watch_next_feed.forEach(video => { %>
+                            <% if (video.type.endsWith("Video")) { %>
+                                <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
+                                    <a href="/wkt/watch/<%= video.id %>" class="block relative group">
+                                        <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title?.text || '動画' %>" class="w-full h-auto rounded aspect-video object-cover">
+                                        <% if (video.duration?.text) { %><span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium"><%= video.duration.text %></span><% } %>
+                                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
+                                    </a>
+                                    <div class="mt-3 flex items-start space-x-3">
+                                        <a href="<%= (video.author?.id && video.author.id !== 'N/A') ? '/wkt/c/' + video.author.id : '/wkt/watch/' + video.id %>" class="flex-shrink-0">
+                                            <% if (video.author?.thumbnails?.length) { %>
+                                                <% if (video.author.id === 'N/A') { %>
+                                                    <img src="<%= video.author.thumbnails[0].url %>" alt="<%= video.author?.name || '' %>" class="w-9 h-9 rounded-full object-cover bg-gray-600 border border-gray-700">
+                                                <% } else { %>
+                                                    <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="<%= video.author?.name || '' %>" class="w-9 h-9 rounded-full object-cover bg-gray-600 border border-gray-700">
+                                                <% } %>
+                                            <% } else { %>
+                                                <div class="w-9 h-9 rounded-full bg-gray-600 border border-gray-700"></div>
+                                            <% } %>
+                                        </a>
+                                        <div class="flex-1 min-w-0">
+                                            <a href="/wkt/watch/<%= video.id %>">
+                                                <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= video.title?.text || '' %></p>
+                                            </a>
+                                            <a href="<%= (video.author?.id && video.author.id !== 'N/A') ? '/wkt/c/' + video.author.id : '/wkt/watch/' + video.id %>" class="text-gray-400 text-xs hover:text-white transition mb-0.5 block truncate"><%= video.author?.name || '' %></a>
+                                            <p class="text-gray-500 text-xs"><%= video.short_view_count?.text || video.view_count?.text || "" %><% if (video.published?.text) { %> • <%= video.published.text %><% } %></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% } else if (video.type.endsWith("Playlist")) { %>
+                                <div class="result-item bg-gray-600 p-4 rounded">
+                                    <a href="/wkt/p/<%= video.id %>">
+                                        <img src="/vi/<%= video?.endpoint?.payload?.videoId || video.first_videos[0]?.id %>/mqdefault.jpg" alt="<%= video.title.text %>" class="w-full h-auto rounded">
+                                    </a>
+                                    <div class="mt-2">
+                                        <p class="text-sm text-gray-400"><a href="/wkt/u/<%= video.author.id %>"><%= video.author.name %></a></p>
+                                        <p class="text-lg font-bold">プレイリスト(<%= video.video_count?.text %>本以上の動画)</p>
+                                    </div>
+                                </div>
+                            <% } else if (video.type.endsWith("Channel")) { %>
+                                <div class="result-item bg-gray-600 p-4 rounded">
+                                    <a href="/wkt/c/<%= video.author.id %>">
+                                        <% if (video.author?.thumbnails?.length) { %>
+                                            <img src="<%= video.author.thumbnails[0].url %>" alt="<%= video.author.name %>" class="w-full h-auto rounded">
+                                        <% } %>
+                                    </a>
+                                    <div class="mt-2">
+                                        <p class="text-lg font-bold"><%= video.author.name %></p>
+                                        <p class="text-sm text-gray-400"><%= video.description_snippet?.text %></p>
+                                        <p class="text-xs text-gray-500"><%= video.subscriber_count?.text %> • <%= video.videos?.text || video.video_count?.text %></p>
+                                    </div>
+                                </div>
                             <% } %>
-                            <% } else { %>
-                            <div class="w-9 h-9 rounded-full bg-gray-600 border border-gray-700"></div>
-                            <% } %>
-                        </a>
-                        <div class="flex-1 min-w-0">
-                            <a href="/wkt/watch/<%= video.id %>">
-                                <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= video.title?.text || '' %></p>
-                            </a>
-                            <a href="<%= (video.author?.id && video.author.id !== 'N/A') ? '/wkt/c/' + video.author.id : '/wkt/watch/' + video.id %>" class="text-gray-400 text-xs hover:text-white transition mb-0.5 block truncate"><%= video.author?.name || '' %></a>
-                            <p class="text-gray-500 text-xs"><%= video.short_view_count?.text || video.view_count?.text || "" %><% if (video.published?.text) { %> • <%= video.published.text %><% } %></p>
-                        </div>
+                        <% }); %>
                     </div>
-                </div>
-              <% } else if (video.type.endsWith("Playlist")) { %>
-                <div class="result-item bg-gray-600 p-4 rounded">
-                  <a href="/wkt/p/<%= video.id %>">
-                    <img src="/vi/<%= video?.endpoint?.payload?.videoId || video.first_videos[0]?.id %>/mqdefault.jpg" alt="<%= video.title.text %>" class="w-full h-auto rounded">
-                  </a>
-                    <div class="mt-2">
-                        <p class="text-sm text-gray-400"><a href="/wkt/u/<%= video.author.id %>"><%= video.author.name %></a></p>
-                        <p class="text-lg font-bold">プレイリスト(<%= video.video_count?.text %>本以上の動画)</p>
-                    </div>
-                </div>
-              <% } else if (video.type.endsWith("Channel")) { %>
-                <div class="result-item bg-gray-600 p-4 rounded">
-                  <a href="/wkt/c/<%= video.author.id %>">
-                    <% if (video.author?.thumbnails?.length) { %>
-                    <img src="<%= video.author.thumbnails[0].url %>" alt="<%= video.author.name %>" class="w-full h-auto rounded">
-                    <% } %>
-                  </a>
-                    <div class="mt-2">
-                        <p class="text-lg font-bold"><%= video.author.name %></p>
-                        <p class="text-sm text-gray-400"><%= video.description_snippet?.text %></p>
-                        <p class="text-xs text-gray-500"><%= video.subscriber_count?.text %> • <%= video.videos?.text || video.video_count?.text %></p>
-                    </div>
-                </div>
-              <% } %>
-            <% }); %>
-        </div>
-<% } %>
+                <% } %>
             </div>
         </div>
-            
-<div id="controlPanel" class="controlPanel bg-gray-900 text-white p-6 rounded-lg shadow-lg w-96 fixed bottom-10 right-10 border border-gray-700 z-50">
-    <button id="closeControlPanel" class="absolute top-2 right-2 text-gray-400 hover:text-white text-2xl">×</button>
-    <h2 class="text-lg font-semibold mb-3">再生方法の変更</h2>
-    <p class="mb-4 text-gray-300">動画のデフォルトの再生方法を設定できます。埋め込みで見れるなら埋め込みで見た方が良いですよ。</p>
-    <p class="mb-4 text-gray-300">現在の再生方法: <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-sm font-semibold">Education</span></p>
-    <div class="control-section mb-4">
-        <div class="flex flex-col gap-1">
-            <label class="flex items-start gap-2 py-1 px-1.5 -mx-1.5 rounded-md cursor-pointer transition-colors has-[:checked]:bg-blue-500/10 has-[:checked]:ring-1 has-[:checked]:ring-blue-500">
-                <input type="radio" name="playbackMode" value="normal" class="mt-1 accent-blue-500">
-                <div>
-                    <strong>通常</strong> - ストリームURLを用いて再生します。最初のデフォルト設定で、ほとんどの人が使用できます。
+
+        <div id="controlPanel" class="controlPanel bg-gray-900 text-white p-6 rounded-lg shadow-lg w-96 fixed bottom-10 right-10 border border-gray-700 z-50">
+            <button id="closeControlPanel" class="absolute top-2 right-2 text-gray-400 hover:text-white text-2xl">×</button>
+            <h2 class="text-lg font-semibold mb-3">再生方法の変更</h2>
+            <p class="mb-4 text-gray-300">動画のデフォルトの再生方法を設定できます。埋め込みで見れるなら埋め込みで見た方が良いですよ。</p>
+            <p class="mb-4 text-gray-300">現在の再生方法: <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-sm font-semibold">Education</span></p>
+            <div class="control-section mb-4">
+                <div class="flex flex-col gap-1">
+                    <label class="flex items-start gap-2 py-1 px-1.5 -mx-1.5 rounded-md cursor-pointer transition-colors has-[:checked]:bg-blue-500/10 has-[:checked]:ring-1 has-[:checked]:ring-blue-500">
+                        <input type="radio" name="playbackMode" value="normal" class="mt-1 accent-blue-500">
+                        <div>
+                            <strong>通常</strong> - ストリームURLを用いて再生します。最初のデフォルト設定で、ほとんどの人が使用できます。
+                        </div>
+                    </label>
+                    <label class="flex items-start gap-2 py-1 px-1.5 -mx-1.5 rounded-md cursor-pointer transition-colors has-[:checked]:bg-blue-500/10 has-[:checked]:ring-1 has-[:checked]:ring-blue-500">
+                        <input type="radio" name="playbackMode" value="edu" class="mt-1 accent-blue-500" checked>
+                        <div>
+                            <strong>Education</strong> - YouTubeEducationを埋め込んで再生を行います。一部の人が使用できます。
+                            <a href="/wkt/yt/edu/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
+                        </div>
+                    </label>
+                    <label class="flex items-start gap-2 py-1 px-1.5 -mx-1.5 rounded-md cursor-pointer transition-colors has-[:checked]:bg-blue-500/10 has-[:checked]:ring-1 has-[:checked]:ring-blue-500">
+                        <input type="radio" name="playbackMode" value="nocookie" class="mt-1 accent-blue-500">
+                        <div>
+                            <strong>Nocookie</strong> - YouTube-Nocookieを埋め込んで再生を行います。こちらも一部の人が使用できます。
+                            <a href="/wkt/yt/nocookie/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
+                        </div>
+                    </label>
                 </div>
-            </label>
-            <label class="flex items-start gap-2 py-1 px-1.5 -mx-1.5 rounded-md cursor-pointer transition-colors has-[:checked]:bg-blue-500/10 has-[:checked]:ring-1 has-[:checked]:ring-blue-500">
-                <input type="radio" name="playbackMode" value="edu" class="mt-1 accent-blue-500" checked>
-                <div>
-                    <strong>Education</strong> - YouTubeEducationを埋め込んで再生を行います。一部の人が使用できます。
-                    <a href="/wkt/yt/edu/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
-                </div>
-            </label>
-            <label class="flex items-start gap-2 py-1 px-1.5 -mx-1.5 rounded-md cursor-pointer transition-colors has-[:checked]:bg-blue-500/10 has-[:checked]:ring-1 has-[:checked]:ring-blue-500">
-                <input type="radio" name="playbackMode" value="nocookie" class="mt-1 accent-blue-500">
-                <div>
-                    <strong>Nocookie</strong> - YouTube-Nocookieを埋め込んで再生を行います。こちらも一部の人が使用できます。
-                    <a href="/wkt/yt/nocookie/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
-                </div>
-            </label>
+            </div>
+
+            <button id="saveSettings" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">💾 設定を保存</button>
         </div>
-    </div>
-    
-    <button id="saveSettings" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">💾 設定を保存</button>
-</div>
 
         <div class="sidebar w-1/4 ml-4" id="sidebar">
-<div id="commentBox" class="fixed top-0 right-0 w-1/2 h-full bg-gray-800 p-4 shadow-lg flex flex-col comment-box z-40">
-    <div class="sticky top-0 bg-gray-800 p-0 z-10">
-        <button id="closeComments" class="w-full bg-gray-700 py-2 rounded mb-2">閉じる</button>
-    </div>
-    <div class="flex-1 overflow-y-auto">
-        <div id="commentError1" class="text-red-500 hidden"></div>
-        <div id="commentsList1" class="mt-2 space-y-2">
-            <p>コメントを取得中...</p>
-        </div>
-        <button id="closeComments2" class="w-full bg-gray-700 py-2 rounded mt-2">閉じる</button>
-    </div>
-</div>
+            <div id="commentBox" class="fixed top-0 right-0 w-1/2 h-full bg-gray-800 p-4 shadow-lg flex flex-col comment-box z-40">
+                <div class="sticky top-0 bg-gray-800 p-0 z-10">
+                    <button id="closeComments" class="w-full bg-gray-700 py-2 rounded mb-2">閉じる</button>
+                </div>
+                <div class="flex-1 overflow-y-auto">
+                    <div id="commentError1" class="text-red-500 hidden"></div>
+                    <div id="commentsList1" class="mt-2 space-y-2">
+                        <p>コメントを取得中...</p>
+                    </div>
+                    <button id="closeComments2" class="w-full bg-gray-700 py-2 rounded mt-2">閉じる</button>
+                </div>
+            </div>
 
-  <div id="dougaBox" class="fixed top-0 right-0 w-1/2 h-full bg-gray-800 p-4 shadow-lg overflow-y-auto related-box z-40">
-    <div class="sticky top-0 z-10 bg-gray-800 pb-2 flex justify-end">
-    <form id="umekomisearchForm" class="w-1/2 mr-2 mb-2">
-      <input type="text" name="q" id="searchInput" placeholder="検索" class="searchInput w-full p-2 rounded bg-gray-700 text-white">
-    </form>
-    <button id="closedouga" class="w-1/2 bg-gray-700 py-2 rounded mb-2 ml-auto text-center">閉じる</button>
-    </div>
-    <div class="flex-1 overflow-y-auto" id="dougaBoxcon">
-                <h3 class="text-lg font-bold">関連動画</h3>
-<% if (videoInfo.watch_next_feed?.length) { %>
-<% videoInfo.watch_next_feed.forEach(video => { %>
-<div class="mt-2 space-y-4">
-  <% if (!video) return; %>
-  <% if (video.type.endsWith("Video")) { %>
-    <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
-      <a href="/wkt/watch/<%= video.id %>" class="block relative group">
-        <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title?.text || '動画' %>" class="w-full h-auto rounded aspect-video object-cover">
-        <% if (video.duration?.text) { %>
-          <span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium"><%= video.duration.text %></span>
-        <% } %>
-        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
-      </a>
-      <div class="mt-3 flex items-start space-x-3">
-        <a href="<%= (video.author?.id && video.author.id !== 'N/A') ? '/wkt/c/' + video.author.id : '/wkt/watch/' + video.id %>" class="flex-shrink-0">
-          <% if (video.author?.thumbnails?.length) { %>
-          <% if (video.author.id === 'N/A') { %>
-          <img src="<%= video.author.thumbnails[0].url %>" alt="<%= video.author?.name || '' %>" class="w-9 h-9 rounded-full object-cover bg-gray-600 border border-gray-700">
-          <% } else { %>
-          <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="<%= video.author?.name || '' %>" class="w-9 h-9 rounded-full object-cover bg-gray-600 border border-gray-700">
-          <% } %>
-          <% } else { %>
-          <div class="w-9 h-9 rounded-full bg-gray-600 border border-gray-700"></div>
-          <% } %>
-        </a>
-        <div class="flex-1 min-w-0">
-          <a href="/wkt/watch/<%= video.id %>">
-            <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= video.title?.text || '' %></p>
-          </a>
-          <a href="<%= (video.author?.id && video.author.id !== 'N/A') ? '/wkt/c/' + video.author.id : '/wkt/watch/' + video.id %>" class="text-gray-400 text-xs hover:text-white transition mb-0.5 block truncate"><%= video.author?.name || '' %></a>
-          <p class="text-gray-500 text-xs"><%= video.short_view_count?.text || video.view_count?.text || "" %><% if (video.published?.text) { %> • <%= video.published.text %><% } %></p>
-        </div>
-      </div>
-    </div>
-  <% } else if (video.type.endsWith("Playlist")) { %>
-    <div class="bg-gray-800 p-2 rounded">
-      <a href="/wkt/p/<%= video.id %>">
-        <img src="/wkt/back/vi/<%= video?.endpoint?.payload?.videoId || video.first_videos[0]?.id %>/mqdefault.jpg" alt="サムネ" class="w-full h-auto rounded">
-      </a>
-      <p class="text-sm font-bold mt-1">
-        <a href="/wkt/p/<%= video.id %>"><%= video.title.text %></a>
-      </p>
-      <p class="text-xs text-gray-400">動画数: <%= video.video_count?.text %></p>
-    </div>
-  <% } else if (video.type.endsWith("Channel")) { %>
-    <div class="bg-gray-800 p-2 rounded">
-      <a href="/wkt/c/<%= video.author.id %>">
-        <% if (video.author?.thumbnails?.length) { %>
-        <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="チャンネルアイコン" class="w-16 h-16 rounded-full mx-auto">
-        <% } %>
-      </a>
-      <p class="text-sm font-bold mt-1 text-center">
-        <a href="/wkt/c/<%= video.author.id %>" target="_top"><%= video.author.name %></a>
-      </p>
-      <p class="text-xs text-gray-400 text-center">
-        登録者数: <%= video.subscriber_count?.text %>
-      </p>
-    </div>
-  <% } %>
-</div>
-<% }); %><% } %>
-</div>
-<button id="closedouga2" class="w-full bg-gray-700 py-2 rounded mb-2">閉じる</button>
+            <div id="dougaBox" class="fixed top-0 right-0 w-1/2 h-full bg-gray-800 p-4 shadow-lg overflow-y-auto related-box z-40">
+                <div class="sticky top-0 z-10 bg-gray-800 pb-2 flex justify-end">
+                    <form id="umekomisearchForm" class="w-1/2 mr-2 mb-2">
+                        <input type="text" name="q" id="searchInput" placeholder="検索" class="searchInput w-full p-2 rounded bg-gray-700 text-white">
+                    </form>
+                    <button id="closedouga" class="w-1/2 bg-gray-700 py-2 rounded mb-2 ml-auto text-center">閉じる</button>
+                </div>
+                <div class="flex-1 overflow-y-auto" id="dougaBoxcon">
+                    <h3 class="text-lg font-bold">関連動画</h3>
+                    <% if (videoInfo.watch_next_feed?.length) { %>
+                        <% videoInfo.watch_next_feed.forEach(video => { %>
+                            <div class="mt-2 space-y-4">
+                                <% if (!video) return; %>
+                                <% if (video.type.endsWith("Video")) { %>
+                                    <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
+                                        <a href="/wkt/watch/<%= video.id %>" class="block relative group">
+                                            <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title?.text || '動画' %>" class="w-full h-auto rounded aspect-video object-cover">
+                                            <% if (video.duration?.text) { %>
+                                                <span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium"><%= video.duration.text %></span>
+                                            <% } %>
+                                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
+                                        </a>
+                                        <div class="mt-3 flex items-start space-x-3">
+                                            <a href="<%= (video.author?.id && video.author.id !== 'N/A') ? '/wkt/c/' + video.author.id : '/wkt/watch/' + video.id %>" class="flex-shrink-0">
+                                                <% if (video.author?.thumbnails?.length) { %>
+                                                    <% if (video.author.id === 'N/A') { %>
+                                                        <img src="<%= video.author.thumbnails[0].url %>" alt="<%= video.author?.name || '' %>" class="w-9 h-9 rounded-full object-cover bg-gray-600 border border-gray-700">
+                                                    <% } else { %>
+                                                        <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="<%= video.author?.name || '' %>" class="w-9 h-9 rounded-full object-cover bg-gray-600 border border-gray-700">
+                                                    <% } %>
+                                                <% } else { %>
+                                                    <div class="w-9 h-9 rounded-full bg-gray-600 border border-gray-700"></div>
+                                                <% } %>
+                                            </a>
+                                            <div class="flex-1 min-w-0">
+                                                <a href="/wkt/watch/<%= video.id %>">
+                                                    <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= video.title?.text || '' %></p>
+                                                </a>
+                                                <a href="<%= (video.author?.id && video.author.id !== 'N/A') ? '/wkt/c/' + video.author.id : '/wkt/watch/' + video.id %>" class="text-gray-400 text-xs hover:text-white transition mb-0.5 block truncate"><%= video.author?.name || '' %></a>
+                                                <p class="text-gray-500 text-xs"><%= video.short_view_count?.text || video.view_count?.text || "" %><% if (video.published?.text) { %> • <%= video.published.text %><% } %></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% } else if (video.type.endsWith("Playlist")) { %>
+                                    <div class="bg-gray-800 p-2 rounded">
+                                        <a href="/wkt/p/<%= video.id %>">
+                                            <img src="/wkt/back/vi/<%= video?.endpoint?.payload?.videoId || video.first_videos[0]?.id %>/mqdefault.jpg" alt="サムネ" class="w-full h-auto rounded">
+                                        </a>
+                                        <p class="text-sm font-bold mt-1">
+                                            <a href="/wkt/p/<%= video.id %>"><%= video.title.text %></a>
+                                        </p>
+                                        <p class="text-xs text-gray-400">動画数: <%= video.video_count?.text %></p>
+                                    </div>
+                                <% } else if (video.type.endsWith("Channel")) { %>
+                                    <div class="bg-gray-800 p-2 rounded">
+                                        <a href="/wkt/c/<%= video.author.id %>">
+                                            <% if (video.author?.thumbnails?.length) { %>
+                                                <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="チャンネルアイコン" class="w-16 h-16 rounded-full mx-auto">
+                                            <% } %>
+                                        </a>
+                                        <p class="text-sm font-bold mt-1 text-center">
+                                            <a href="/wkt/c/<%= video.author.id %>" target="_top"><%= video.author.name %></a>
+                                        </p>
+                                        <p class="text-xs text-gray-400 text-center">
+                                            登録者数: <%= video.subscriber_count?.text %>
+                                        </p>
+                                    </div>
+                                <% } %>
+                            </div>
+                        <% }); %>
+                    <% } %>
+                </div>
+                <button id="closedouga2" class="w-full bg-gray-700 py-2 rounded mb-2">閉じる</button>
             </div>
             <button id="hideSidebar" class="w-full bg-gray-700 py-2 rounded">▶ サイドバーを隠す</button>
             <button id="toggleComments" class="mt-4 w-full bg-gray-700 py-2 rounded">コメントを開く</button>
             <button id="toggledouga" class="mt-4 w-full bg-gray-700 py-2 rounded">関連動画を開く</button>
             <button id="toggleControlPanel" class="mt-4 w-full bg-gray-700 py-2 rounded">設定</button>
             <div class="mt-4">
-<% if (videoInfo.watch_next_feed?.length) { %>
-<% videoInfo.watch_next_feed.forEach(video => { %>
-<div class="mt-2 space-y-4">
-  <% if (!video) return; %>
-  <% if (video.type.endsWith("Video")) { %>
-    <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
-      <a href="/wkt/watch/<%= video.id %>" class="block relative group">
-        <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title?.text || '動画' %>" class="w-full h-auto rounded aspect-video object-cover">
-        <% if (video.duration?.text) { %>
-          <span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium"><%= video.duration.text %></span>
-        <% } %>
-        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
-      </a>
-      <div class="mt-3 flex items-start space-x-3">
-        <a href="<%= (video.author?.id && video.author.id !== 'N/A') ? '/wkt/c/' + video.author.id : '/wkt/watch/' + video.id %>" class="flex-shrink-0">
-          <% if (video.author?.thumbnails?.length) { %>
-          <% if (video.author.id === 'N/A') { %>
-          <img src="<%= video.author.thumbnails[0].url %>" alt="<%= video.author?.name || '' %>" class="w-9 h-9 rounded-full object-cover bg-gray-600 border border-gray-700">
-          <% } else { %>
-          <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="<%= video.author?.name || '' %>" class="w-9 h-9 rounded-full object-cover bg-gray-600 border border-gray-700">
-          <% } %>
-          <% } else { %>
-          <div class="w-9 h-9 rounded-full bg-gray-600 border border-gray-700"></div>
-          <% } %>
-        </a>
-        <div class="flex-1 min-w-0">
-          <a href="/wkt/watch/<%= video.id %>">
-            <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= video.title?.text || '' %></p>
-          </a>
-          <a href="<%= (video.author?.id && video.author.id !== 'N/A') ? '/wkt/c/' + video.author.id : '/wkt/watch/' + video.id %>" class="text-gray-400 text-xs hover:text-white transition mb-0.5 block truncate"><%= video.author?.name || '' %></a>
-          <p class="text-gray-500 text-xs"><%= video.short_view_count?.text || video.view_count?.text || "" %><% if (video.published?.text) { %> • <%= video.published.text %><% } %></p>
-        </div>
-      </div>
-    </div>
-  <% } else if (video.type.endsWith("Playlist")) { %>
-    <div class="bg-gray-800 p-2 rounded">
-      <a href="/wkt/p/<%= video.id %>">
-        <img src="/wkt/back/vi/<%= video?.endpoint?.payload?.videoId || video.first_videos[0]?.id %>/mqdefault.jpg" alt="サムネ" class="w-full h-auto rounded">
-      </a>
-      <p class="text-sm font-bold mt-1">
-        <a href="/wkt/p/<%= video.id %>"><%= video.title.text %></a>
-      </p>
-      <p class="text-xs text-gray-400">動画数: <%= video.video_count?.text %></p>
-    </div>
-  <% } else if (video.type.endsWith("Channel")) { %>
-    <div class="bg-gray-800 p-2 rounded">
-      <a href="/wkt/c/<%= video.author.id %>">
-        <% if (video.author?.thumbnails?.length) { %>
-        <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="チャンネルアイコン" class="w-16 h-16 rounded-full mx-auto">
-        <% } %>
-      </a>
-      <p class="text-sm font-bold mt-1 text-center">
-        <a href="/wkt/c/<%= video.author.id %>" target="_top"><%= video.author.name %></a>
-      </p>
-      <p class="text-xs text-gray-400 text-center">
-        登録者数: <%= video.subscriber_count?.text %>
-      </p>
-    </div>
-  <% } %>
-</div>
-<% }); %><% } %>
+                <% if (videoInfo.watch_next_feed?.length) { %>
+                    <% videoInfo.watch_next_feed.forEach(video => { %>
+                        <div class="mt-2 space-y-4">
+                            <% if (!video) return; %>
+                            <% if (video.type.endsWith("Video")) { %>
+                                <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
+                                    <a href="/wkt/watch/<%= video.id %>" class="block relative group">
+                                        <img loading="lazy" src="/wkt/back/vi/<%= video.id %>/mqdefault.jpg" alt="<%= video.title?.text || '動画' %>" class="w-full h-auto rounded aspect-video object-cover">
+                                        <% if (video.duration?.text) { %>
+                                            <span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium"><%= video.duration.text %></span>
+                                        <% } %>
+                                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
+                                    </a>
+                                    <div class="mt-3 flex items-start space-x-3">
+                                        <a href="<%= (video.author?.id && video.author.id !== 'N/A') ? '/wkt/c/' + video.author.id : '/wkt/watch/' + video.id %>" class="flex-shrink-0">
+                                            <% if (video.author?.thumbnails?.length) { %>
+                                                <% if (video.author.id === 'N/A') { %>
+                                                    <img src="<%= video.author.thumbnails[0].url %>" alt="<%= video.author?.name || '' %>" class="w-9 h-9 rounded-full object-cover bg-gray-600 border border-gray-700">
+                                                <% } else { %>
+                                                    <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="<%= video.author?.name || '' %>" class="w-9 h-9 rounded-full object-cover bg-gray-600 border border-gray-700">
+                                                <% } %>
+                                            <% } else { %>
+                                                <div class="w-9 h-9 rounded-full bg-gray-600 border border-gray-700"></div>
+                                            <% } %>
+                                        </a>
+                                        <div class="flex-1 min-w-0">
+                                            <a href="/wkt/watch/<%= video.id %>">
+                                                <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= video.title?.text || '' %></p>
+                                            </a>
+                                            <a href="<%= (video.author?.id && video.author.id !== 'N/A') ? '/wkt/c/' + video.author.id : '/wkt/watch/' + video.id %>" class="text-gray-400 text-xs hover:text-white transition mb-0.5 block truncate"><%= video.author?.name || '' %></a>
+                                            <p class="text-gray-500 text-xs"><%= video.short_view_count?.text || video.view_count?.text || "" %><% if (video.published?.text) { %> • <%= video.published.text %><% } %></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% } else if (video.type.endsWith("Playlist")) { %>
+                                <div class="bg-gray-800 p-2 rounded">
+                                    <a href="/wkt/p/<%= video.id %>">
+                                        <img src="/wkt/back/vi/<%= video?.endpoint?.payload?.videoId || video.first_videos[0]?.id %>/mqdefault.jpg" alt="サムネ" class="w-full h-auto rounded">
+                                    </a>
+                                    <p class="text-sm font-bold mt-1">
+                                        <a href="/wkt/p/<%= video.id %>"><%= video.title.text %></a>
+                                    </p>
+                                    <p class="text-xs text-gray-400">動画数: <%= video.video_count?.text %></p>
+                                </div>
+                            <% } else if (video.type.endsWith("Channel")) { %>
+                                <div class="bg-gray-800 p-2 rounded">
+                                    <a href="/wkt/c/<%= video.author.id %>">
+                                        <% if (video.author?.thumbnails?.length) { %>
+                                            <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="チャンネルアイコン" class="w-16 h-16 rounded-full mx-auto">
+                                        <% } %>
+                                    </a>
+                                    <p class="text-sm font-bold mt-1 text-center">
+                                        <a href="/wkt/c/<%= video.author.id %>" target="_top"><%= video.author.name %></a>
+                                    </p>
+                                    <p class="text-xs text-gray-400 text-center">
+                                        登録者数: <%= video.subscriber_count?.text %>
+                                    </p>
+                                </div>
+                            <% } %>
+                        </div>
+                    <% }); %>
+                <% } %>
             </div>
         </div>
     </div>
-              
+
     <button id="expandSidebar" class="expand-sidebar-btn">◀ サイドバーを開く</button>
 
-<script>
-// コメント
-const commentContainers = [document.getElementById("commentsList1"), document.getElementById("commentsList2")];
-const errorContainers = [document.getElementById("commentError1"), document.getElementById("commentError2")];
-const retryButton = document.getElementById("retryButton");
+    <script>
+        // コメント
+        const commentContainers = [document.getElementById("commentsList1"), document.getElementById("commentsList2")];
+        const errorContainers = [document.getElementById("commentError1"), document.getElementById("commentError2")];
+        const retryButton = document.getElementById("retryButton");
 
-document.getElementById("closeComments").addEventListener("click", closeComments);
-document.getElementById("closeComments2").addEventListener("click", closeComments);
-document.getElementById("toggleComments").addEventListener("click", toggleComments);
+        document.getElementById("closeComments").addEventListener("click", closeComments);
+        document.getElementById("closeComments2").addEventListener("click", closeComments);
+        document.getElementById("toggleComments").addEventListener("click", toggleComments);
 
-function closeComments() {
-    document.getElementById("commentBox").classList.remove("open");
-}
-function toggleComments() {
-    document.getElementById("commentBox").classList.toggle("open");
-}
+        function closeComments() {
+            document.getElementById("commentBox").classList.remove("open");
+        }
 
-async function fetchComments() {
-    commentContainers.forEach(container => container.innerHTML = "<p>コメントを取得中...</p>");
-    errorContainers.forEach(error => error.style.display = "none");
-    retryButton.style.display = "none";
+        function toggleComments() {
+            document.getElementById("commentBox").classList.toggle("open");
+        }
 
-    try {
-        const response = await fetch("/wkt/back/comment/<%= videoId %>");
-        if (!response.ok) throw new Error("サーバーエラー");
+        async function fetchComments() {
+            commentContainers.forEach(container => container.innerHTML = "<p>コメントを取得中...</p>");
+            errorContainers.forEach(error => error.style.display = "none");
+            retryButton.style.display = "none";
 
-        const responseText = await response.text();
-        commentContainers.forEach(container => container.innerHTML = responseText);
-    } catch (error) {
-        console.error("エラー:", error);
-        showerrorMessage("コメントの取得に失敗しました");
-        errorContainers.forEach(errorContainer => {
-            errorContainer.textContent = "コメントの取得に失敗しました: " + error.message;
-            errorContainer.style.display = "block";
+            try {
+                const response = await fetch("/wkt/back/comment/<%= videoId %>");
+                if (!response.ok) throw new Error("サーバーエラー");
+
+                const responseText = await response.text();
+                commentContainers.forEach(container => container.innerHTML = responseText);
+            } catch (error) {
+                console.error("エラー:", error);
+                showerrorMessage("コメントの取得に失敗しました");
+                errorContainers.forEach(errorContainer => {
+                    errorContainer.textContent = "コメントの取得に失敗しました: " + error.message;
+                    errorContainer.style.display = "block";
+                });
+                retryButton.style.display = "block";
+            }
+        }
+
+        document.getElementById("retryButton").addEventListener("click", fetchComments);
+        fetchComments();
+
+        //関連動画
+        document.getElementById("toggledouga").addEventListener("click", function() {
+            document.getElementById("dougaBox").classList.toggle("open");
         });
-        retryButton.style.display = "block";
-    }
-}
+        document.getElementById("closedouga").addEventListener("click", function() {
+            document.getElementById("dougaBox").classList.remove("open");
+        });
+        document.getElementById("closedouga2").addEventListener("click", function() {
+            document.getElementById("dougaBox").classList.remove("open");
+        });
 
-document.getElementById("retryButton").addEventListener("click", fetchComments);
-fetchComments();
+        //けんさく
+        const searchBox = document.getElementById('searchbox');
+        const clearBtn = document.getElementById('clearBtn');
 
-//関連動画
-document.getElementById("toggledouga").addEventListener("click", function() {
-    document.getElementById("dougaBox").classList.toggle("open");
-});
-document.getElementById("closedouga").addEventListener("click", function() {
-    document.getElementById("dougaBox").classList.remove("open");
-});
-document.getElementById("closedouga2").addEventListener("click", function() {
-    document.getElementById("dougaBox").classList.remove("open");
-});
-  
-//けんさく
-const searchBox = document.getElementById('searchbox');
-const clearBtn = document.getElementById('clearBtn');
-function toggleClearButton() {
-    clearBtn.style.display = searchBox.value ? 'block' : 'none';
-}
-searchBox.addEventListener('input', toggleClearButton);
-clearBtn.addEventListener('click', () => {
-   searchBox.value = '';
-   searchBox.focus();
-   toggleClearButton();
-});
-  
-document.getElementById('umekomisearchForm').addEventListener('submit', function(event) {
-  event.preventDefault();
-  const searchValue = document.getElementById('searchInput').value;
-  const videoContainer = document.getElementById('dougaBoxcon');
-  videoContainer.innerHTML = '';
-  const embedDiv = document.createElement('div');
-  showMessage("検索結果を取得します☑️");
-  embedDiv.innerHTML = `
-    <div style="height: 100vh; width: 100%;"><iframe src="/wkt/back/search?q=${encodeURIComponent(searchValue)}" width=100% height=100% frameborder="0" allowfullscreen></iframe></div>
-  `;
-  videoContainer.appendChild(embedDiv);
-});
-
-// サイドバー
-function updateSidebarState(hidden) {
-    localStorage.setItem("sidebarHidden", hidden);
-}
-
-document.getElementById("hideSidebar").addEventListener("click", function() {
-    document.getElementById("sidebar").classList.add("hidden");
-    document.getElementById("videoContainer").classList.add("full");
-    document.getElementById("expandSidebar").classList.add("visible");
-    document.getElementById("related-sidenone").classList.add("hidden");
-    updateSidebarState(true);
-});
-
-document.getElementById("expandSidebar").addEventListener("click", function() {
-    document.getElementById("sidebar").classList.remove("hidden");
-    document.getElementById("videoContainer").classList.remove("full");
-    this.classList.remove("visible");
-    document.getElementById("related-sidenone").classList.remove("hidden");
-    updateSidebarState(false);
-});
-
-// コントロール
-$(document).ready(function() {
-    $('#toggleControlPanel').click(() => $('#controlPanel').toggleClass('open'));
-    $('#closeControlPanel').click(() => $('#controlPanel').toggleClass('open'));
-
-    $('#saveSettings').click(function() {
-        $('#controlPanel').toggleClass('open');
-        const mode = $('input[name="playbackMode"]:checked').val();
-        document.cookie = `playbackMode=${mode}; path=/; max-age=31536000`;
-        showMessage(`再生方法を${mode}に変更します☑️`);
-        window.location.href = `/wkt/redirect/mode/<%= videoId %>?mode=${mode}`;
-    });
-});
-
-// ツールバー
-$('#toggleToolbar').click(() => $('#toolbar').addClass('open'));
-$('#closeToolbar').click(() => $('#toolbar').removeClass('open'));
-
-// 履歴
-const videoId = "<%= videoId %>";
-const channelId = "<%= videoInfo.channelId %>";
-const channelName = "<%= videoInfo.channelName %>";
-const videoTitle = "<%= videoInfo.title %>";
-
-function saveToHistory(videoId, channelId, channelName, videoTitle) {
-    let history = getHistoryFromLocalStorage();
-    const historyIndex = history.findIndex(track => track.videoId === videoId);
-    if (historyIndex !== -1) {
-        history.splice(historyIndex, 1);
-    }
-    if (history.length >= 100) {
-        history.shift();
-    }
-    history.push({ videoId, channelId, channelName, videoTitle });
-    localStorage.setItem("wakametubehistory", JSON.stringify(history));
-}
-
-function getHistoryFromLocalStorage() {
-    const historyData = localStorage.getItem("wakametubehistory");
-    try {
-        return historyData ? JSON.parse(historyData) : [];
-    } catch (error) {
-        console.error('Error parsing history from localStorage:', error);
-        return [];
-    }
-}
-  
-//お気に入り
-function getFavoritesFromLocalStorage() {
-  return JSON.parse(localStorage.getItem("wakametubefavorites") || "[]");
-}
-function saveToFavorites(videoId, channelId, channelName, videoTitle) {
-  let favorites = getFavoritesFromLocalStorage();
-  const favIcon = document.getElementById("favoriteIcon");
-  const favIndex = favorites.findIndex(track => track.videoId === videoId);
-  if (favIndex !== -1) {
-    favorites.splice(favIndex, 1);
-    showMessage(`${videoTitle}の<a href="/wkt/cl/fav" style='color: #60a5fa;'>お気に入り</a>を解除しました☑️`);
-  } else {
-    favorites.push({ videoId, channelId, channelName, videoTitle });
-    showMessage(`${videoTitle}を<a href="/wkt/cl/fav" style='color: #60a5fa;'>お気に入り</a>に追加しました☑️`);
-  }
-  localStorage.setItem("wakametubefavorites", JSON.stringify(favorites));
-}
-async function checkfav() {
-  const favBtn = document.getElementById("favoriteBtn");
-  const favIcon = document.getElementById("favoriteIcon");
-  let favorites = getFavoritesFromLocalStorage();
-  let isFavorited;
-  if(favorites){
-    isFavorited = favorites.some(track => track.videoId === videoId);
-  }
-  favIcon.src = isFavorited ? "https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_1.png" : "https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png";
-}
-checkfav()
-document.getElementById("favoriteBtn").addEventListener("click", function() {
-  saveToFavorites(videoId, channelId, channelName, videoTitle);
-  const favIcon = document.getElementById("favoriteIcon");
-  let updatedFavorites = getFavoritesFromLocalStorage();
-  let nowFavorited;
-  if(updatedFavorites){
-    nowFavorited = updatedFavorites.some(track => track.videoId === videoId);
-  }
-  favIcon.src = nowFavorited ? "https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_1.png" : "https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png";
-});
-
-// 概要
-function toggleDescription(button) {
-    const description = button.closest('div').nextElementSibling;
-
-    if (description.classList.contains('hidden')) {
-        description.classList.remove('hidden');
-        button.textContent = '折りたたむ';
-    } else {
-        description.classList.add('hidden');
-        button.textContent = '表示する';
-    }
-}
-
-// ページ読み込み
-window.addEventListener("load", function() {
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('tu') === 'true') {
-     showMessage("再生方法をEducationに変更しました☑️");
-  }
-  saveToHistory(videoId, channelId, channelName, videoTitle);
-});
-  
-function showMessage(text) {
-    const alertMessage = document.createElement('div');
-    alertMessage.classList.add(
-        'fixed', 'top-4', 'right-4', 'bg-gradient-to-r',
-        'from-gray-800', 'to-gray-600', 'text-white',
-        'p-5', 'rounded-lg', 'shadow-xl', 'opacity-90',
-        'z-50', 'transform', 'scale-100', 'transition-all',
-        'border-2', 'border-indigo-500', 'cursor-pointer'
-    );
-    alertMessage.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-    alertMessage.innerHTML = `
-        <div class="flex items-center justify-between space-x-4">
-            <span class="font-semibold">ℹ︎ ${text}</span>
-            <button class="text-white hover:text-gray-300 focus:outline-none text-xl font-bold" aria-label="閉じる">&times;</button>
-        </div>
-    `;
-    document.body.appendChild(alertMessage);
-    const closeButton = alertMessage.querySelector('button');
-    const autoRemoveTimer = setTimeout(() => {
-        hideMessage(alertMessage);
-    }, 3500);
-    closeButton.addEventListener('click', () => {
-        clearTimeout(autoRemoveTimer);
-        hideMessage(alertMessage);
-    });
-    let startX = null;
-    let currentX = 0;
-    let moved = false;
-    alertMessage.addEventListener('touchstart', (e) => {
-        startX = e.touches[0].clientX;
-        moved = false;
-        alertMessage.style.transition = 'none';
-    });
-    alertMessage.addEventListener('touchmove', (e) => {
-        if (startX === null) return;
-        const touch = e.touches[0];
-        const deltaX = touch.clientX - startX;
-        if (Math.abs(deltaX) > 5) moved = true;
-        currentX = deltaX;
-        alertMessage.style.transform = `translateX(${deltaX}px) scale(1)`;
-    });
-    alertMessage.addEventListener('touchend', () => {
-        alertMessage.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-        if (moved && Math.abs(currentX) > 100) {
-            alertMessage.style.opacity = '0';
-            alertMessage.style.transform = `translateX(${currentX > 0 ? 500 : -500}px) scale(0.95)`;
-            setTimeout(() => alertMessage.remove(), 300);
-        } else {
-            alertMessage.style.transform = 'translateX(0) scale(1)';
+        function toggleClearButton() {
+            clearBtn.style.display = searchBox.value ? 'block' : 'none';
         }
-        startX = null;
-        currentX = 0;
-        moved = false;
-    });
-}
-function hideMessage(elem) {
-    elem.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-    elem.style.opacity = '0';
-    elem.style.transform = 'translateX(100%) scale(1.1)';
-    setTimeout(() => elem.remove(), 300);
-}
-function showerrorMessage(text) {
-    const alertMessage = document.createElement('div');
-    alertMessage.classList.add(
-        'fixed', 'top-4', 'right-4', 'bg-gradient-to-r', 
-        'from-red-600', 'to-red-500', 'text-white', 
-        'p-5', 'rounded-lg', 'shadow-xl', 'opacity-90', 
-        'z-50', 'transform', 'scale-90', 'transition-transform', 
-        'border-2', 'border-red-500'
-    );
-    alertMessage.innerHTML = `
-        <div class="flex items-center justify-between space-x-4">
-            <span class="font-semibold">⚠︎ ${text}</span>
-            <button class="text-white hover:text-gray-300 focus:outline-none text-xl font-bold" aria-label="閉じる">&times;</button>
-        </div>
-    `;
-    document.body.appendChild(alertMessage);
-    const closeButton = alertMessage.querySelector('button');
-    const autoRemoveTimer = setTimeout(() => {
-        hideMessage(alertMessage);
-    }, 3500);
-    closeButton.addEventListener('click', () => {
-        clearTimeout(autoRemoveTimer);
-        hideMessage(alertMessage);
-    });
-    let startX = null;
-    let currentX = 0;
-    let moved = false;
-    alertMessage.addEventListener('touchstart', (e) => {
-        startX = e.touches[0].clientX;
-        moved = false;
-        alertMessage.style.transition = 'none';
-    });
-    alertMessage.addEventListener('touchmove', (e) => {
-        if (startX === null) return;
-        const touch = e.touches[0];
-        const deltaX = touch.clientX - startX;
-        if (Math.abs(deltaX) > 5) moved = true;
-        currentX = deltaX;
-        alertMessage.style.transform = `translateX(${deltaX}px) scale(1)`;
-    });
-    alertMessage.addEventListener('touchend', () => {
-        alertMessage.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-        if (moved && Math.abs(currentX) > 100) {
-            alertMessage.style.opacity = '0';
-            alertMessage.style.transform = `translateX(${currentX > 0 ? 500 : -500}px) scale(0.95)`;
-            setTimeout(() => alertMessage.remove(), 300);
-        } else {
-            alertMessage.style.transform = 'translateX(0) scale(1)';
+        searchBox.addEventListener('input', toggleClearButton);
+        clearBtn.addEventListener('click', () => {
+            searchBox.value = '';
+            searchBox.focus();
+            toggleClearButton();
+        });
+
+        document.getElementById('umekomisearchForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const searchValue = document.getElementById('searchInput').value;
+            const videoContainer = document.getElementById('dougaBoxcon');
+            videoContainer.innerHTML = '';
+            const embedDiv = document.createElement('div');
+            showMessage("検索結果を取得します☑️");
+            embedDiv.innerHTML = `
+                <div style="height: 100vh; width: 100%;"><iframe src="/wkt/back/search?q=${encodeURIComponent(searchValue)}" width=100% height=100% frameborder="0" allowfullscreen></iframe></div>
+            `;
+            videoContainer.appendChild(embedDiv);
+        });
+
+        // サイドバー
+        function updateSidebarState(hidden) {
+            localStorage.setItem("sidebarHidden", hidden);
         }
-        startX = null;
-        currentX = 0;
-        moved = false;
-    });
-}
-</script>
+
+        document.getElementById("hideSidebar").addEventListener("click", function() {
+            document.getElementById("sidebar").classList.add("hidden");
+            document.getElementById("videoContainer").classList.add("full");
+            document.getElementById("expandSidebar").classList.add("visible");
+            document.getElementById("related-sidenone").classList.add("hidden");
+            updateSidebarState(true);
+        });
+
+        document.getElementById("expandSidebar").addEventListener("click", function() {
+            document.getElementById("sidebar").classList.remove("hidden");
+            document.getElementById("videoContainer").classList.remove("full");
+            this.classList.remove("visible");
+            document.getElementById("related-sidenone").classList.remove("hidden");
+            updateSidebarState(false);
+        });
+
+        // コントロール
+        $(document).ready(function() {
+            $('#toggleControlPanel').click(() => $('#controlPanel').toggleClass('open'));
+            $('#closeControlPanel').click(() => $('#controlPanel').toggleClass('open'));
+
+            $('#saveSettings').click(function() {
+                $('#controlPanel').toggleClass('open');
+                const mode = $('input[name="playbackMode"]:checked').val();
+                document.cookie = `playbackMode=${mode}; path=/; max-age=31536000`;
+                showMessage(`再生方法を${mode}に変更します☑️`);
+                window.location.href = `/wkt/redirect/mode/<%= videoId %>?mode=${mode}`;
+            });
+        });
+
+        // ツールバー
+        $('#toggleToolbar').click(() => $('#toolbar').addClass('open'));
+        $('#closeToolbar').click(() => $('#toolbar').removeClass('open'));
+
+        // 履歴
+        const videoId = "<%= videoId %>";
+        const channelId = "<%= videoInfo.channelId %>";
+        const channelName = "<%= videoInfo.channelName %>";
+        const videoTitle = "<%= videoInfo.title %>";
+
+        function saveToHistory(videoId, channelId, channelName, videoTitle) {
+            let history = getHistoryFromLocalStorage();
+            const historyIndex = history.findIndex(track => track.videoId === videoId);
+            if (historyIndex !== -1) {
+                history.splice(historyIndex, 1);
+            }
+            if (history.length >= 100) {
+                history.shift();
+            }
+            history.push({ videoId, channelId, channelName, videoTitle });
+            localStorage.setItem("wakametubehistory", JSON.stringify(history));
+        }
+
+        function getHistoryFromLocalStorage() {
+            const historyData = localStorage.getItem("wakametubehistory");
+            try {
+                return historyData ? JSON.parse(historyData) : [];
+            } catch (error) {
+                console.error('Error parsing history from localStorage:', error);
+                return [];
+            }
+        }
+
+        //お気に入り
+        function getFavoritesFromLocalStorage() {
+            return JSON.parse(localStorage.getItem("wakametubefavorites") || "[]");
+        }
+
+        function saveToFavorites(videoId, channelId, channelName, videoTitle) {
+            let favorites = getFavoritesFromLocalStorage();
+            const favIcon = document.getElementById("favoriteIcon");
+            const favIndex = favorites.findIndex(track => track.videoId === videoId);
+            if (favIndex !== -1) {
+                favorites.splice(favIndex, 1);
+                showMessage(`${videoTitle}の<a href="/wkt/cl/fav" style='color: #60a5fa;'>お気に入り</a>を解除しました☑️`);
+            } else {
+                favorites.push({ videoId, channelId, channelName, videoTitle });
+                showMessage(`${videoTitle}を<a href="/wkt/cl/fav" style='color: #60a5fa;'>お気に入り</a>に追加しました☑️`);
+            }
+            localStorage.setItem("wakametubefavorites", JSON.stringify(favorites));
+        }
+        async function checkfav() {
+            const favBtn = document.getElementById("favoriteBtn");
+            const favIcon = document.getElementById("favoriteIcon");
+            let favorites = getFavoritesFromLocalStorage();
+            let isFavorited;
+            if (favorites) {
+                isFavorited = favorites.some(track => track.videoId === videoId);
+            }
+            favIcon.src = isFavorited ? "https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_1.png" : "https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png";
+        }
+        checkfav()
+        document.getElementById("favoriteBtn").addEventListener("click", function() {
+            saveToFavorites(videoId, channelId, channelName, videoTitle);
+            const favIcon = document.getElementById("favoriteIcon");
+            let updatedFavorites = getFavoritesFromLocalStorage();
+            let nowFavorited;
+            if (updatedFavorites) {
+                nowFavorited = updatedFavorites.some(track => track.videoId === videoId);
+            }
+            favIcon.src = nowFavorited ? "https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_1.png" : "https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png";
+        });
+
+        // 概要
+        function toggleDescription(button) {
+            const description = button.closest('div').nextElementSibling;
+
+            if (description.classList.contains('hidden')) {
+                description.classList.remove('hidden');
+                button.textContent = '折りたたむ';
+            } else {
+                description.classList.add('hidden');
+                button.textContent = '表示する';
+            }
+        }
+
+        // ページ読み込み
+        window.addEventListener("load", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('tu') === 'true') {
+                showMessage("再生方法をEducationに変更しました☑️");
+            }
+            saveToHistory(videoId, channelId, channelName, videoTitle);
+        });
+
+        function showMessage(text) {
+            const alertMessage = document.createElement('div');
+            alertMessage.classList.add(
+                'fixed', 'top-4', 'right-4', 'bg-gradient-to-r',
+                'from-gray-800', 'to-gray-600', 'text-white',
+                'p-5', 'rounded-lg', 'shadow-xl', 'opacity-90',
+                'z-50', 'transform', 'scale-100', 'transition-all',
+                'border-2', 'border-indigo-500', 'cursor-pointer'
+            );
+            alertMessage.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+            alertMessage.innerHTML = `
+                <div class="flex items-center justify-between space-x-4">
+                    <span class="font-semibold">ℹ︎ ${text}</span>
+                    <button class="text-white hover:text-gray-300 focus:outline-none text-xl font-bold" aria-label="閉じる">&times;</button>
+                </div>
+            `;
+            document.body.appendChild(alertMessage);
+            const closeButton = alertMessage.querySelector('button');
+            const autoRemoveTimer = setTimeout(() => {
+                hideMessage(alertMessage);
+            }, 3500);
+            closeButton.addEventListener('click', () => {
+                clearTimeout(autoRemoveTimer);
+                hideMessage(alertMessage);
+            });
+            let startX = null;
+            let currentX = 0;
+            let moved = false;
+            alertMessage.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                moved = false;
+                alertMessage.style.transition = 'none';
+            });
+            alertMessage.addEventListener('touchmove', (e) => {
+                if (startX === null) return;
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - startX;
+                if (Math.abs(deltaX) > 5) moved = true;
+                currentX = deltaX;
+                alertMessage.style.transform = `translateX(${deltaX}px) scale(1)`;
+            });
+            alertMessage.addEventListener('touchend', () => {
+                alertMessage.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                if (moved && Math.abs(currentX) > 100) {
+                    alertMessage.style.opacity = '0';
+                    alertMessage.style.transform = `translateX(${currentX > 0 ? 500 : -500}px) scale(0.95)`;
+                    setTimeout(() => alertMessage.remove(), 300);
+                } else {
+                    alertMessage.style.transform = 'translateX(0) scale(1)';
+                }
+                startX = null;
+                currentX = 0;
+                moved = false;
+            });
+        }
+
+        function hideMessage(elem) {
+            elem.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+            elem.style.opacity = '0';
+            elem.style.transform = 'translateX(100%) scale(1.1)';
+            setTimeout(() => elem.remove(), 300);
+        }
+
+        function showerrorMessage(text) {
+            const alertMessage = document.createElement('div');
+            alertMessage.classList.add(
+                'fixed', 'top-4', 'right-4', 'bg-gradient-to-r',
+                'from-red-600', 'to-red-500', 'text-white',
+                'p-5', 'rounded-lg', 'shadow-xl', 'opacity-90',
+                'z-50', 'transform', 'scale-90', 'transition-transform',
+                'border-2', 'border-red-500'
+            );
+            alertMessage.innerHTML = `
+                <div class="flex items-center justify-between space-x-4">
+                    <span class="font-semibold">⚠︎ ${text}</span>
+                    <button class="text-white hover:text-gray-300 focus:outline-none text-xl font-bold" aria-label="閉じる">&times;</button>
+                </div>
+            `;
+            document.body.appendChild(alertMessage);
+            const closeButton = alertMessage.querySelector('button');
+            const autoRemoveTimer = setTimeout(() => {
+                hideMessage(alertMessage);
+            }, 3500);
+            closeButton.addEventListener('click', () => {
+                clearTimeout(autoRemoveTimer);
+                hideMessage(alertMessage);
+            });
+            let startX = null;
+            let currentX = 0;
+            let moved = false;
+            alertMessage.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                moved = false;
+                alertMessage.style.transition = 'none';
+            });
+            alertMessage.addEventListener('touchmove', (e) => {
+                if (startX === null) return;
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - startX;
+                if (Math.abs(deltaX) > 5) moved = true;
+                currentX = deltaX;
+                alertMessage.style.transform = `translateX(${deltaX}px) scale(1)`;
+            });
+            alertMessage.addEventListener('touchend', () => {
+                alertMessage.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                if (moved && Math.abs(currentX) > 100) {
+                    alertMessage.style.opacity = '0';
+                    alertMessage.style.transform = `translateX(${currentX > 0 ? 500 : -500}px) scale(0.95)`;
+                    setTimeout(() => alertMessage.remove(), 300);
+                } else {
+                    alertMessage.style.transform = 'translateX(0) scale(1)';
+                }
+                startX = null;
+                currentX = 0;
+                moved = false;
+            });
+        }
+    </script>
 </body>
 </html>
