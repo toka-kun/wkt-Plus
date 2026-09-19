@@ -14,9 +14,12 @@
     </style>
 </head>
 <body class="bg-gray-900 text-white">
-    <header class="bg-gray-800 p-4 flex justify-between items-center">
-            <form action="/wkt/s" method="get" class="w-1/2" id="searchForm">
-              <input type="text" name="q" id="searchbox" placeholder="検索" class="searchbox w-full p-2 rounded bg-gray-700 text-white">
+    <header class="bg-gray-800 p-4 flex justify-between items-center fixed top-0 left-0 w-full z-10">
+            <form action="/wkt/s" method="get" class="w-1/2 relative" id="searchForm">
+              <input type="text" name="q" id="searchbox" placeholder="検索" value="<%= typeof query !== 'undefined' ? query : '' %>" class="searchbox w-full p-2 pr-10 rounded bg-gray-700 text-white">
+              <button type="button" id="clearBtn" class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center h-6 w-6 rounded-full hover:bg-gray-400 text-white text-lg leading-none hidden">
+               ×
+              </button>
             </form>
         <nav class="space-x-4">
             <a href="/wkt" class="text-gray-300 hover:text-white">ホーム</a>
@@ -25,7 +28,7 @@
             <a href="/wkt/cl/history" class="text-gray-300 hover:text-white">再生履歴</a>
         </nav>
     </header>
-    <div class="p-8 min-h-screen flex flex-col">
+    <div class="p-8 min-h-screen flex flex-col mt-20">
     <h2 class="text-4xl font-bold mb-8 text-center">検索履歴</h2>
     
     <div class="w-full max-w-7xl mx-auto space-y-6">
@@ -43,10 +46,6 @@
         <button id="clearHistory" class="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 text-lg w-full">
             履歴を全て削除
         </button>
-
-        <div style="height:480px;" class="w-full max-w-3xl mx-auto mt-8">
-            <script src="//accaii.com/wktplus/widget.js" async></script>
-        </div>
     </div>
   </div>
 
@@ -120,5 +119,20 @@ function showMessage(text) {
     }, 3500);
 }
     </script>
+
+<script>
+const searchBox = document.getElementById('searchbox');
+const clearBtn = document.getElementById('clearBtn');
+function toggleClearButton() {
+    clearBtn.style.display = searchBox.value ? 'block' : 'none';
+}
+searchBox.addEventListener('input', toggleClearButton);
+clearBtn.addEventListener('click', () => {
+   searchBox.value = '';
+   searchBox.focus();
+   toggleClearButton();
+});
+toggleClearButton();
+</script>
 </body>
 </html>
