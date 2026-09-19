@@ -19,19 +19,22 @@
 </style>
 </head>
 <body class="bg-gray-900 text-white font-sans">
-    <header class="bg-gray-800 flex p-4 justify-between items-center top-0 left-0 w-full z-10">
-        <form action="/wkt/s" method="get" class="w-1/2" id="searchForm">
-            <input type="text" name="q" id="searchbox" placeholder="検索" class="searchbox w-full p-2 rounded bg-gray-700 text-white">
+    <header class="bg-gray-800 p-4 flex justify-between items-center fixed top-0 left-0 w-full z-10">
+        <form action="/wkt/s" method="get" class="w-1/2 relative" id="searchForm">
+            <input type="text" name="q" id="searchbox" placeholder="検索" value="<%= typeof query !== 'undefined' ? query : '' %>" class="searchbox w-full p-2 pr-10 rounded bg-gray-700 text-white">
+            <button type="button" id="clearBtn" class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center h-6 w-6 rounded-full hover:bg-gray-400 text-white text-lg leading-none hidden">
+             ×
+            </button>
         </form>
         <nav class="space-x-4">
             <a href="/wkt" class="text-gray-300 hover:text-white">ホーム</a>
             <a href="/wkt/trend" class="text-gray-300 hover:text-white">トレンド</a>
-            <a href="/wkt/cl/history" class="text-gray-300 hover:text-white">再生履歴</a>
             <a href="/wkt/cl/fav" class="text-gray-300 hover:text-white">お気に入り</a>
+            <a href="/wkt/cl/history" class="text-gray-300 hover:text-white">再生履歴</a>
         </nav>
     </header>
 
-  <div class="max-w-4xl mx-auto py-12 px-6">
+  <div class="max-w-4xl mx-auto py-12 px-6 mt-20">
     <h1 class="text-4xl font-bold mb-4 text-center">ヘルプページ</h1>
   <div class="flex justify-center mt-6">
     <input type="text" id="search" placeholder="ヘルプを検索..."
@@ -482,6 +485,21 @@
             }
         });
     });
+</script>
+
+<script>
+const searchBox = document.getElementById('searchbox');
+const clearBtn = document.getElementById('clearBtn');
+function toggleClearButton() {
+    clearBtn.style.display = searchBox.value ? 'block' : 'none';
+}
+searchBox.addEventListener('input', toggleClearButton);
+clearBtn.addEventListener('click', () => {
+   searchBox.value = '';
+   searchBox.focus();
+   toggleClearButton();
+});
+toggleClearButton();
 </script>
 
 </body>
