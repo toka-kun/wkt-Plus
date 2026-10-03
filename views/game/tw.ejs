@@ -67,6 +67,7 @@
 
     <script>
         let currentProjectId = null; 
+        let isFetchingInfo = false;
 
         const siteMap = {
             'au/class_1': `#668123415`,
@@ -108,37 +109,58 @@
 
         const FETCH_TIMEOUT_MS = 3000; 
 
-        // 0000〜9999のランダムな4桁の数字を生成
-        const randomNum = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-        const username = `wktplus${randomNum}`;
-
-        // バッククォートを使用して変数(username)を展開
         const baseUrls = [
-            `https://mirror.turbowarp.xyz/embed?addons=pause&settings-button&hqpen&username=${username}`,
-            `https://turbowarp-mirror.pages.dev/embed?addons=pause&settings-button&hqpen&username=${username}`,
-            `https://html-api-turbo.remotewire.net/embed?addons=pause&settings-button&hqpen&username=${username}`,
-            `https://turbomirror.smooth.ytalt.f5.si/embed?addons=pause&settings-button&hqpen&username=${username}`
+            "https://mirror.turbowarp.xyz/embed?addons=pause&settings-button&hqpen",
+            "https://html-api-turbo.remotewire.net/embed?addons=pause&settings-button&hqpen",
+            "https://turbomirror.smooth.ytalt.f5.si/embed?addons=pause&settings-button&hqpen",
+            "https://turbowarp-mirror.pages.dev/embed?addons=pause&settings-button&hqpen"
         ];
 
-        async function checkConnection(url) {
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-                
-                await fetch(url, { mode: 'no-cors', signal: controller.signal });
-                clearTimeout(timeoutId);
-                return true; 
-            } catch (error) {
-                return false;
-            }
+        // favicon画像による正確なブロック判定
+        function checkConnection(fullUrl) {
+            return new Promise((resolve, reject) => {
+                try {
+                    const urlObj = new URL(fullUrl);
+                    const testUrl = `${urlObj.origin}/favicon.ico?_=${Date.now()}`;
+                    
+                    const img = new Image();
+                    
+                    const timeoutId = setTimeout(() => {
+                        img.src = "";
+                        reject(new Error("Timeout"));
+                    }, FETCH_TIMEOUT_MS);
+
+                    img.onload = () => {
+                        clearTimeout(timeoutId);
+                        resolve(fullUrl);
+                    };
+
+                    img.onerror = () => {
+                        clearTimeout(timeoutId);
+                        reject(new Error("Blocked or Not Found"));
+                    };
+
+                    img.src = testUrl;
+                } catch (error) {
+                    reject(error);
+                }
+            });
         }
 
+        // 順番にリクエストを送り、最初に成功したものを取得（直列処理）
         async function getWorkingBaseUrl() {
             for (const url of baseUrls) {
-                const isWorking = await checkConnection(url);
-                if (isWorking) return url;
+                try {
+                    const workingUrl = await checkConnection(url);
+                    if (workingUrl) {
+                        return workingUrl; // 成功した時点でそのURLを返す
+                    }
+                } catch (error) {
+                    // エラー（ブロックやタイムアウト）の場合は次のループへ進む
+                    continue; 
+                }
             }
-            return null; 
+            return null; // 全て失敗した場合
         }
 
         async function loadIframe() {
@@ -164,22 +186,23 @@
                     loadingIndicator.classList.add('hidden');
                     iframe.classList.remove('hidden');
                 } else {
-                    loadingIndicator.textContent = 'すべてのサーバーへの接続に失敗しました。';
+                    loadingIndicator.textContent = 'すべてのサーバーがブロックされているか、接続に失敗しました。';
                 }
             } else {
                 loadingIndicator.textContent = '無効なIDが指定されました。';
             }
         }
 
-        // alert()の代わりにオリジナルのモーダルを開く
         async function showHowToPlay() {
             if (!currentProjectId) {
                 alert("プロジェクトが正しく読み込まれていないため、情報を取得できません。");
                 return;
             }
 
+            if (isFetchingInfo) return;
+            isFetchingInfo = true;
+
             try {
-                // ボタンのテキストを「取得中...」に変えて待機状態をわかりやすく
                 const modalInstructions = document.getElementById('modal-instructions');
                 const modalDescription = document.getElementById('modal-description');
                 const modal = document.getElementById('info-modal');
@@ -202,15 +225,15 @@
                 console.error(error);
                 document.getElementById('modal-instructions').textContent = "情報の取得に失敗しました。";
                 document.getElementById('modal-description').textContent = "時間をおいて再度お試しください。";
+            } finally {
+                isFetchingInfo = false;
             }
         }
 
-        // モーダルを閉じる処理
         function closeModal() {
             document.getElementById('info-modal').classList.add('hidden');
         }
 
-        // モーダルの背景（黒い部分）をクリックしても閉じるようにする
         document.getElementById('info-modal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeModal();
