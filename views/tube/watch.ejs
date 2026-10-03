@@ -158,6 +158,38 @@
                 <div class="loading-indicator">
                     <img src="https://www.benricho.org/loading_images/img-transparent/89-88.gif" alt="Loading...">
                 </div>
+                <%
+                    // 初期再生するストリーム(デフォルト)を決める
+                    //   1. 統合 (複数あれば一番上のもの)
+                    //   2. なければ、普通の映像(統合・m3u8以外)で画質が1080p以下のうち最大のもの
+                    //   3. なければ、先頭のストリーム
+                    const streamList = videoData.streamUrls || [];
+                    const isHlsStream = (st) => st.container === 'm3u8' || /\.m3u8|manifest/.test(st.url || '');
+                    // 画質名("1080p60" / "720p" など)から高さとfpsを取り出す。読み取れなければ height = 0
+                    const parseQuality = (name) => {
+                        const m = String(name || '').match(/(\d{3,4})p(\d{2,3})?/i);
+                        return m ? { height: Number(m[1]), fps: Number(m[2] || 0) } : { height: 0, fps: 0 };
+                    };
+                    let defaultStreamIndex = streamList.findIndex(function (st) { return st.url && st.container === '統合'; });
+                    if (defaultStreamIndex < 0) {
+                        let defaultBest = null; // [高さ, fps, mp4なら1]
+                        streamList.forEach(function (st, i) {
+                            if (!st.url || isHlsStream(st)) return;
+                            const q = parseQuality(st.name);
+                            if (q.height <= 0 || q.height > 1080) return;
+                            const rank = [q.height, q.fps, String(st.container || '').toLowerCase() === 'mp4' ? 1 : 0];
+                            const better = !defaultBest || rank[0] > defaultBest[0]
+                                || (rank[0] === defaultBest[0] && (rank[1] > defaultBest[1]
+                                    || (rank[1] === defaultBest[1] && rank[2] > defaultBest[2])));
+                            if (better) { defaultBest = rank; defaultStreamIndex = i; }
+                        });
+                    }
+                    if (defaultStreamIndex < 0 && streamList.length > 0) defaultStreamIndex = 0;
+                    const initialStream = streamList[defaultStreamIndex] || { url: '', container: 'mp4', name: 'Unknown' };
+                    const initialMime = isHlsStream(initialStream)
+                        ? 'application/x-mpegURL'
+                        : (initialStream.container === '統合' ? 'video/mp4' : 'video/' + (initialStream.container || 'mp4'));
+                -%>
                 <video id="video" class="w-full h-auto max-h-screen" controls preload="auto" playsinline poster="/wkt/back/vi/<%= videoId %>/maxresdefault.jpg">
                     <source id="videoSrc" src="<%- initialStream.url %>" type="<%= initialMime %>">
                 </video>
