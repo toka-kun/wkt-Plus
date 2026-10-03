@@ -27,6 +27,9 @@ const MAX_API_WAIT_TIME = 5000;
 const MAX_TIME = 10000;       // 高速サーバー用 (10秒)
 const MAX_TIME_SLOW = 20000;  // 低速サーバー用 (20秒)
 
+// デフォルト(音声付き)ストリームは映像ストリーム一覧に入れ、ファイル形式をこの値にする
+const COMBINED_CONTAINER = '統合';
+
 // =========================================
 // ユーティリティ関数
 // =========================================
@@ -132,42 +135,69 @@ async function ggvideo(videoId) {
     throw new Error("Invidious APIで動画を取得できませんでした");
 }
 
+// Invidious の画質名を整形する (formatStreams / adaptiveFormats 共通)
+function formatInvidiousQuality(stream) {
+    let name = String(stream.resolution || '').trim();
+
+    // resolution が 1920x1080 のような形式なら短辺を p 表記にする。
+    const match = name.match(/^(\d+)x(\d+)$/);
+    if (match) {
+        name = `${Math.min(Number(match[1]), Number(match[2]))}p`;
+    }
+
+    if (/^\d+p$/.test(name) && stream.fps) {
+        name += String(stream.fps);
+    }
+
+    return name || 'Unknown';
+}
+
+// Zernio API (getlate) から統合ストリームのURLを取得する。取得できなければ空文字を返す
+async function getZernioStreamUrl(videoId) {
+    let streamUrl = '';
+    try {
+        const targetUrl = `https://www.youtube.com/watch?v=${videoId}`;
+        const getlateApiUrl = `https://getlate.dev/api/tools/youtube-live-downloader?url=${encodeURIComponent(targetUrl)}&formatId=1`;
+
+        const redirectResponse = await axios.get(getlateApiUrl, {
+            timeout: 3000,
+            maxRedirects: 0,
+            validateStatus: status => status >= 200 && status < 400
+        });
+
+        if (redirectResponse.headers && redirectResponse.headers.location) {
+            streamUrl = redirectResponse.headers.location;
+            console.log(`✅ getlate API からリダイレクト先を取得しました: ${streamUrl.substring(0, 50)}...`);
+        } else if (redirectResponse.request && redirectResponse.request.res && redirectResponse.request.res.responseUrl) {
+            streamUrl = redirectResponse.request.res.responseUrl;
+            console.log(`✅ getlate API から最終URLを取得しました: ${streamUrl.substring(0, 50)}...`);
+        }
+    } catch (error) {
+        console.error(`❌ getlate API の取得でエラーが発生しました: ${error.message}`);
+    }
+    return streamUrl;
+}
+
 async function getInvidious(videoId) {
     const videoInfo = await ggvideo(videoId);
-    
-    const formatStreams = videoInfo.formatStreams || [];
-    
-    const defaultStream = formatStreams.find(s => String(s.itag) === '18' && s.url) || 
-                          formatStreams.find(s => String(s.itag) === '22' && s.url) || 
-                          formatStreams.find(s => s.container === 'mp4' && s.url && !s.url.includes('manifest') && !s.url.includes('.m3u8')) ||
-                          formatStreams.find(s => s.url && !s.url.includes('manifest') && !s.url.includes('.m3u8'));
-                          
-    let streamUrl = defaultStream ? defaultStream.url : '';
-    
-    if (!streamUrl && videoInfo.hlsUrl) {
-        streamUrl = videoInfo.hlsUrl; 
-    }
-    
-    if (!streamUrl) {
-        try {
-            const targetUrl = `https://www.youtube.com/watch?v=${videoId}`;
-            const getlateApiUrl = `https://getlate.dev/api/tools/youtube-live-downloader?url=${encodeURIComponent(targetUrl)}&formatId=1`;
-            
-            const redirectResponse = await axios.get(getlateApiUrl, {
-                timeout: 3000,
-                maxRedirects: 0,
-                validateStatus: status => status >= 200 && status < 400
-            });
 
-            if (redirectResponse.headers && redirectResponse.headers.location) {
-                streamUrl = redirectResponse.headers.location;
-                console.log(`✅ getlate API からリダイレクト先を取得しました: ${streamUrl.substring(0, 50)}...`);
-            } else if (redirectResponse.request && redirectResponse.request.res && redirectResponse.request.res.responseUrl) {
-                streamUrl = redirectResponse.request.res.responseUrl;
-                console.log(`✅ getlate API から最終URLを取得しました: ${streamUrl.substring(0, 50)}...`);
-            }
-        } catch (error) {
-            console.error(`❌ getlate API の取得でエラーが発生しました: ${error.message}`);
+    // 統合ストリーム: formatStreams (音声付き) をそのまま映像ストリームに入れる。
+    // 従来のデフォルトだった itag 18 を先頭にする。
+    const formatStreams = (videoInfo.formatStreams || []).filter(stream => stream.url);
+    const combinedStreams = [
+        ...formatStreams.filter(stream => String(stream.itag) === '18'),
+        ...formatStreams.filter(stream => String(stream.itag) !== '18')
+    ].map(stream => ({
+        url: stream.url,
+        name: formatInvidiousQuality(stream),
+        container: COMBINED_CONTAINER
+    }));
+
+    // 統合ストリームがなく、かつライブ配信(type が livestream)ではない場合のみ Zernio API を使う
+    if (combinedStreams.length === 0 && videoInfo.type !== 'livestream') {
+        const zernioUrl = await getZernioStreamUrl(videoId);
+        if (zernioUrl) {
+            combinedStreams.push({ url: zernioUrl, name: 'Default', container: COMBINED_CONTAINER });
         }
     }
 
@@ -188,29 +218,20 @@ async function getInvidious(videoId) {
             };
         });
 
-    const streamUrls = adaptiveFormats
+    const videoStreams = adaptiveFormats
         .filter(stream => (stream.container === 'webm' || stream.container === 'mp4') && stream.resolution && stream.url)
-        .map(stream => {
-            let name = String(stream.resolution || '').trim();
-
-            // resolution が 1920x1080 のような形式なら短辺を p 表記にする。
-            const match = name.match(/^(\d+)x(\d+)$/);
-            if (match) {
-                name = `${Math.min(Number(match[1]), Number(match[2]))}p`;
-            }
-
-            if (/^\d+p$/.test(name) && stream.fps) {
-                name += String(stream.fps);
-            }
-
-            return {
-                url: stream.url,
-                name: name || 'Unknown',
-                container: stream.container
-            };
-        });
+        .map(stream => ({
+            url: stream.url,
+            name: formatInvidiousQuality(stream),
+            container: stream.container
+        }));
         
-    return { stream_url: streamUrl, audioUrls, streamUrls };
+    // ライブ配信などの HLS (hlsUrl) は一番最後に追加する
+    const hlsStreams = videoInfo.hlsUrl
+        ? [{ url: videoInfo.hlsUrl, name: 'HLS', container: 'm3u8' }]
+        : [];
+
+    return { audioUrls, streamUrls: [...combinedStreams, ...videoStreams, ...hlsStreams] };
 }
 
 // =========================================
@@ -258,8 +279,13 @@ async function getAceThinker(videoId) {
                 
                 const formats = resData.formats;
                 const duration = resData.duration; // トップレベルのdurationを使用
+                // 統合ストリーム (音声付き)。画質名は他のストリームと同じ f.quality から取得する
                 const combinedStream = formats.find(f => f.acodec !== 'none' && f.vcodec !== 'none');
-                const streamUrl = combinedStream?.url || '';
+                const combinedStreams = combinedStream ? [{
+                    url: combinedStream.url,
+                    name: combinedStream.quality || 'Unknown',
+                    container: COMBINED_CONTAINER
+                }] : [];
 
                 const audioUrls = formats
                     .filter(f => f.vcodec === 'none')
@@ -281,7 +307,7 @@ async function getAceThinker(videoId) {
                         };
                     });
 
-                const streamUrls = formats
+                const videoStreams = formats
                     .filter(f => f.acodec === 'none')
                     .map(f => ({
                         url: f.url,
@@ -290,9 +316,8 @@ async function getAceThinker(videoId) {
                     }));
 
                 return {
-                    stream_url: streamUrl || streamUrls[0]?.url || '',
                     audioUrls: audioUrls,
-                    streamUrls: streamUrls
+                    streamUrls: [...combinedStreams, ...videoStreams]
                 };
             }
         } catch (error) {
@@ -387,27 +412,31 @@ async function getFreemake(videoId) {
         console.log(`✅ 使用したAPI (Freemake): ${apiUrl}`);
         const qualities = data.qualities || [];
 
+        // 統合ストリーム (itag 18)。画質名は他の映像ストリームと同じ qualityLabel から取得する
         const combinedStream = qualities.find(q => q.qualityInfo && String(q.qualityInfo.itag) === '18');
-        const streamUrl = combinedStream?.url || '';
+        const combinedStreams = combinedStream ? [{
+            url: combinedStream.url,
+            name: combinedStream.qualityInfo.qualityLabel || 'Unknown',
+            container: COMBINED_CONTAINER
+        }] : [];
 
         const videoStreams = qualities.filter(q => q.qualityInfo && Number(q.qualityInfo.audioBitrate) === 0);
-        const streamUrls = videoStreams.map(q => ({
+        const videoUrls = videoStreams.map(q => ({
             url: q.url,
             name: q.qualityInfo.qualityLabel || 'Unknown',
-            container: q.qualityInfo.format || 'mp4'
+            container: String(q.qualityInfo.format || 'mp4').toLowerCase() // Freemake は "Mp4" のように先頭大文字で返すので小文字にする
         }));
 
         const audioStreams = qualities.filter(q => q.qualityInfo && Number(q.qualityInfo.audioBitrate) !== 0 && String(q.qualityInfo.itag) !== '18');
         const audioUrls = audioStreams.map(q => ({
             url: q.url,
             name: q.qualityInfo.audioBitrate ? `${q.qualityInfo.audioBitrate}kbps` : 'Unknown',
-            container: q.qualityInfo.format || 'mp4'
+            container: String(q.qualityInfo.format || 'mp4').toLowerCase()
         }));
 
         return {
-            stream_url: streamUrl || streamUrls[0]?.url || '',
             audioUrls: audioUrls,
-            streamUrls: streamUrls
+            streamUrls: [...combinedStreams, ...videoUrls]
         };
     } catch (error) {
         console.error(`❌ エラー: freemake_${videoId} - ${error.message}`);
@@ -451,7 +480,8 @@ async function getMinTube2(videoId) {
                 console.log(`✅ 使用したAPI (MIN-Tube2): ${apiUrl}`);
                 recordSuccess(instance); // 成功記録
 
-                const streamUrls = [];
+                // 統合ストリーム。MIN-Tube2 は画質情報がないので画質は Default にする
+                const streamUrls = [{ url: data.stream_url, name: 'Default', container: COMBINED_CONTAINER }];
                 if (data.highstreamUrl && data.highstreamUrl !== data.stream_url) {
                     streamUrls.push({ url: data.highstreamUrl, name: 'High Quality', container: 'mp4' });
                 }
@@ -468,7 +498,6 @@ async function getMinTube2(videoId) {
                 const audioUrls = data.audioUrl ? [{ url: data.audioUrl, name: 'medium', container: audioContainer }] : [];
 
                 return {
-                    stream_url: data.stream_url, 
                     audioUrls: audioUrls, 
                     streamUrls: streamUrls
                 };
@@ -515,7 +544,8 @@ async function getYouTube(videoId, apiType = 'invidious') {
             const name = String(stream.name || 'Unknown').trim() || 'Unknown';
             let containerType = stream.container || 'mp4';
 
-            if (stream.url && (stream.url.includes('.m3u8') || stream.url.includes('manifest'))) {
+            // 統合ストリームはファイル形式を「統合」のまま保持する (m3u8 の判定は再生側でURLから行う)
+            if (containerType !== COMBINED_CONTAINER && stream.url && (stream.url.includes('.m3u8') || stream.url.includes('manifest'))) {
                 containerType = 'm3u8';
             }
 
@@ -538,6 +568,13 @@ async function getYouTube(videoId, apiType = 'invidious') {
     // 音声リストの中に manifest や .m3u8 が紛れ込んでいるものを除外
     if (result.audioUrls && result.audioUrls.length > 0) {
         result.audioUrls = result.audioUrls.filter(a => !(a.url.includes('manifest') || a.url.includes('.m3u8')));
+    }
+
+    // 再生できるストリーム(統合・映像)が1つもなければ、エラーとして扱う (呼び出し側でサーバー変更を促す)
+    if (result.streamUrls.length === 0) {
+        const error = new Error("再生できるストリームが見つかりませんでした");
+        console.error(`❌ エラー: ${apiType}_${videoId} - ${error.message}`);
+        throw error;
     }
 
     return result;
