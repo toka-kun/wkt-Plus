@@ -142,7 +142,7 @@
             <button onclick="window.location.href='/wkt/cl/fav'" class="w-full bg-gray-700 py-2 hover:text-white rounded mb-2">お気に入り</button>
             <button onclick="window.location.href='/wkt/cl/history'" class="w-full bg-gray-700 py-2 hover:text-white rounded mb-2">再生履歴</button>
             <button onclick="window.open('/wkt/back/vi/<%= videoId %>/maxresdefault.jpg', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">サムネをダウンロード</button>
-            <button onclick="window.open('<%- videoData.stream_url %>', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">ストリームURLに移動</button>
+            <button onclick="window.open('<%- initialStream.url %>', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">ストリームURLに移動</button>
             <button onclick="window.open('/other/xerox#/watch/<%= videoId %>', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">XeroxYT-NTで視聴</button>
             <button onclick="window.open('/other/labo5#/watch?v=<%= videoId %>', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">Re: LABO5で視聴</button>
             <button onclick="window.open('/other/player#?v=<%= videoId %>&playlist=<%= videoId %>', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">YouTube 埋め込み再生ツールで視聴</button>
@@ -160,7 +160,7 @@
                     <img src="https://www.benricho.org/loading_images/img-transparent/89-88.gif" alt="Loading...">
                 </div>
                 <video id="video" class="w-full h-auto max-h-screen" controls preload="auto" playsinline poster="/wkt/back/vi/<%= videoId %>/maxresdefault.jpg">
-                    <source id="videoSrc" src="<%- videoData.stream_url %>" type="video/mp4">
+                    <source id="videoSrc" src="<%- initialStream.url %>" type="<%= initialMime %>">
                 </video>
                 <audio id="audio" style="display: none;"></audio>
                 <button id="erroreloadButton" class="hidden absolute top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl shadow-lg hover:bg-blue-700 transition">🔄 動画を再読み込み</button>
@@ -327,12 +327,8 @@
                     <div class="control-section mb-4">
                         <label class="block mb-2">画質を選択:
                             <select id="qualitySelect" class="w-full bg-gray-800 text-white p-2 rounded">
-                                <option value="<%- videoData.stream_url %>" data-container="mp4" data-name="統合ストリーム" data-is-auto="true">
-                                    統合ストリーム
-                                </option>
-
-                                <% videoData.streamUrls.forEach(function(stream) { %>
-                                    <option value="<%- stream.url %>" data-container="<%= stream.container || 'mp4' %>" data-name="<%= stream.name || 'Unknown' %>">
+                                <% videoData.streamUrls.forEach(function(stream, streamIndex) { %>
+                                    <option value="<%- stream.url %>" data-container="<%= stream.container || 'mp4' %>" data-name="<%= stream.name || 'Unknown' %>"<%- stream.container === '統合' ? ' data-is-auto="true"' : '' %><%- streamIndex === defaultStreamIndex ? ' selected data-default="true"' : '' %>>
                                         <%= stream.name || 'Unknown' %> (<%= stream.container || 'mp4' %>)
                                     </option>
                                 <% }); %>
@@ -878,11 +874,34 @@
                 if (audio) audio.playbackRate = video.playbackRate;
             });
 
-            // ★ 画質変更（映像のみ + 裏で音声を再生）
+            // <source> の type を決める (統合は mp4 扱い。m3u8 / manifest は HLS)
+            function getVideoMimeType(container, url) {
+                if (container === 'm3u8' || /\.m3u8|manifest/.test(url || '')) return 'application/x-mpegURL';
+                if (container === '統合') return 'video/mp4';
+                return 'video/' + container;
+            }
+
+            // ★ 初期表示: デフォルトのストリームが映像のみ(統合ではない)なら、選択中の音声も裏で再生する
+            (function initAudioForDefaultStream() {
+                const defaultOption = $('#qualitySelect option[data-default="true"]').first();
+                if (!defaultOption.length) return;
+                // ブラウザのフォーム復元で別の項目が選ばれていてもデフォルトに揃える
+                $('#qualitySelect').prop('selectedIndex', $('#qualitySelect option').index(defaultOption));
+                const defaultUrl = defaultOption.val() || '';
+                const isAuto = defaultOption.attr('data-is-auto') === 'true';
+                if (isAuto || defaultUrl.includes("manifest") || defaultUrl.includes(".m3u8")) return;
+                const aUrl = $('#audioSelect').val();
+                if (!aUrl) return;
+                audio.setAttribute('data-original-src', aUrl);
+                audio.src = applyProxy(aUrl);
+                audio.load();
+            })();
+
+            // ★ 画質変更（統合 / 映像のみ + 裏で音声を再生）
             $('#qualitySelect').change(function() {
                 const selectedOption = $(this).find(':selected');
                 const container = selectedOption.attr('data-container') || 'mp4';
-                const isAuto = selectedOption.attr('data-is-auto') === 'true'; // ★ 判定追加
+                const isAuto = selectedOption.attr('data-is-auto') === 'true'; // ファイル形式が「統合」なら true
                 const newUrl = selectedOption.val();
 
                 // ★ 処理を始める前に、一旦映像も音声も完全に止める！
@@ -892,16 +911,12 @@
                 // 再生位置を記憶
                 const currentTime = video.currentTime;
 
-                // ★ m3u8の場合は正しいHLS形式としてブラウザに認識させる
-                if (container === 'm3u8') {
-                    videoSrc.type = "application/x-mpegURL";
-                } else {
-                    videoSrc.type = "video/" + container;
-                }
+                // ★ 統合は mp4、m3u8の場合は正しいHLS形式としてブラウザに認識させる
+                videoSrc.type = getVideoMimeType(container, newUrl);
                 videoSrc.setAttribute('data-original-src', newUrl);
                 videoSrc.src = applyProxy(newUrl);
 
-                // ★ 動画が「統合ストリーム」または「m3u8(ライブ等)」なら、裏の音声を無効化
+                // ★ 動画が「統合」または「m3u8(ライブ等)」なら、裏の音声を無効化
                 // （manifest または .m3u8 が含まれているかで判定）
                 if (isAuto || newUrl.includes("manifest") || newUrl.includes(".m3u8")) {
                     audio.removeAttribute('data-original-src');
@@ -933,7 +948,7 @@
                 const currentVideoUrl = selectedQuality.val();
                 const newAudioUrl = $(this).val();
 
-                // 映像が「統合ストリーム」や「m3u8」の時は、裏の音声を動かさないので切り替え不要
+                // 映像が「統合」や「m3u8」の時は、裏の音声を動かさないので切り替え不要
                 // （manifest または .m3u8 が含まれているかで判定）
                 if (isAuto || currentVideoUrl.includes("manifest") || currentVideoUrl.includes(".m3u8")) {
                     return;
@@ -956,31 +971,11 @@
                 }
             });
 
-            // ★ 画質をリセットボタン
+            // ★ 画質をリセットボタン (デフォルトのストリーム = 統合があれば統合、なければ1080p以下で最大の映像 に戻す)
             $('#qualityReset').click(function() {
-                video.pause();
-                audio.pause();
-
-                const currentTime = video.currentTime;
-
-                videoSrc.type = "video/mp4";
-                // ★ 統合ストリームに戻す
-                const resetUrl = "<%- videoData.stream_url %>";
-                videoSrc.setAttribute('data-original-src', resetUrl);
-                videoSrc.src = applyProxy(resetUrl);
-
-                // 統合なので別音声は空
-                audio.removeAttribute('data-original-src');
-                audio.src = "";
-
-                $('#controlPanel').removeClass('open');
-                // セレクトボックスの見た目も一番上の「統合ストリーム」に戻す
-                $('#qualitySelect').prop('selectedIndex', 0);
-
-                video.load();
-                video.currentTime = currentTime;
-
-                video.play().catch(e => console.error(e));
+                const defaultOption = $('#qualitySelect option[data-default="true"]').first();
+                const idx = defaultOption.length ? $('#qualitySelect option').index(defaultOption) : 0;
+                $('#qualitySelect').prop('selectedIndex', idx).trigger('change');
             });
 
             $('#changeServer').click(function() {
