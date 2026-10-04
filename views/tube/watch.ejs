@@ -341,6 +341,7 @@
             <button id="closeControlPanel" class="absolute top-2 right-2 text-gray-400 hover:text-white text-2xl">×</button>
             <div class="tab-header flex border-b border-gray-700 mb-4">
                 <div id="tabControl" class="tab-button active px-4 py-2 cursor-pointer text-white bg-gray-800 rounded-t-lg" data-target="controlTab">コントロール</div>
+                <div id="tabDownload" class="tab-button px-4 py-2 cursor-pointer text-gray-400 hover:text-white rounded-t-lg" data-target="downloadTab">ダウンロード</div>
                 <div id="tabSettings" class="tab-button px-4 py-2 cursor-pointer text-gray-400 hover:text-white rounded-t-lg" data-target="settingsTab">設定</div>
             </div>
             <div id="controlTab" class="tab-content active">
@@ -404,6 +405,92 @@
                     </label>
                     <button id="changeServer" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">🔃 サーバーを変更</button>
                 </div>
+            </div>
+            <div id="downloadTab" class="tab-content hidden">
+                <%
+                    // ダウンロード用の一覧 (m3u8 はリストに入れない)
+                    //   統合 → 別ボタン / それ以外の映像 → 音声と ffmpeg で結合
+                    // ※ isHlsStream / parseQuality は <video> の直前にあるブロックで定義している
+                    const dlStreams = (videoData.streamUrls || []).filter(function (st) { return st.url && !isHlsStream(st); });
+                    const dlCombined = dlStreams.filter(function (st) { return st.container === '統合'; });
+                    const dlVideos = dlStreams.filter(function (st) { return st.container !== '統合'; });
+                    const dlAudios = (videoData.audioUrls || []).filter(function (au) { return au.url && !isHlsStream(au); });
+                    // 映像のデフォルトは「1080p以下で最大のもの」(なければ先頭)。同じ画質ならfpsが高い方、mp4の順
+                    let dlVideoDefault = 0;
+                    let dlBest = null;
+                    dlVideos.forEach(function (st, i) {
+                        const q = parseQuality(st.name);
+                        if (q.height <= 0 || q.height > 1080) return;
+                        const rank = [q.height, q.fps, String(st.container || '').toLowerCase() === 'mp4' ? 1 : 0];
+                        const better = !dlBest || rank[0] > dlBest[0]
+                            || (rank[0] === dlBest[0] && (rank[1] > dlBest[1]
+                                || (rank[1] === dlBest[1] && rank[2] > dlBest[2])));
+                        if (better) { dlBest = rank; dlVideoDefault = i; }
+                    });
+                -%>
+                <h2 class="text-lg font-semibold mb-2">ダウンロード</h2>
+                <p class="mb-3 text-sm text-gray-300">プロキシ: <span id="dlProxyState" class="font-semibold">オフ</span>（コントロールタブの「プロキシ経由で再生」に従います）</p>
+                <% if (dlCombined.length === 0 && dlVideos.length === 0 && dlAudios.length === 0) { %>
+                    <p class="text-gray-300">ダウンロードできるストリームがありません。</p>
+                <% } else { %>
+                    <% if (dlCombined.length > 0) { %>
+                        <div class="control-section mb-4">
+                            <p class="mb-2 font-semibold">統合（映像＋音声）</p>
+                            <label class="block mb-2<%= dlCombined.length > 1 ? '' : ' hidden' %>">
+                                <select id="dlCombinedSelect" class="w-full bg-gray-800 text-white p-2 rounded">
+                                    <% dlCombined.forEach(function (st) { %>
+                                        <option value="<%= st.url %>" data-name="<%= st.name || 'Unknown' %>"><%= st.name || 'Unknown' %> (mp4)</option>
+                                    <% }); %>
+                                </select>
+                            </label>
+                            <button id="dlCombinedBtn" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">⬇ 統合をダウンロード</button>
+                        </div>
+                    <% } %>
+                    <% if (dlVideos.length > 0 || dlAudios.length > 0) { %>
+                        <div class="control-section mb-4">
+                            <p class="mb-2 font-semibold"><%= dlVideos.length > 0 ? '映像＋音声を結合（ffmpeg）' : '音声' %></p>
+                            <% if (dlVideos.length > 0) { %>
+                                <label class="block mb-2">画質を選択:
+                                    <select id="dlVideoSelect" class="w-full bg-gray-800 text-white p-2 rounded">
+                                        <% dlVideos.forEach(function (st, i) { %>
+                                            <option value="<%= st.url %>" data-container="<%= st.container || 'mp4' %>" data-name="<%= st.name || 'Unknown' %>"<%- i === dlVideoDefault ? ' selected' : '' %>><%= st.name || 'Unknown' %> (<%= st.container || 'mp4' %>)</option>
+                                        <% }); %>
+                                    </select>
+                                </label>
+                            <% } %>
+                            <label class="block mb-2">音声を選択:
+                                <select id="dlAudioSelect" class="w-full bg-gray-800 text-white p-2 rounded">
+                                    <% if (dlAudios.length > 0) { %>
+                                        <% dlAudios.forEach(function (au) { %>
+                                            <option value="<%= au.url %>" data-container="<%= au.container || 'm4a' %>" data-name="<%= au.name || 'Unknown' %>"><%= au.name || 'Unknown' %> (<%= au.container || 'm4a' %>)</option>
+                                        <% }); %>
+                                    <% } else { %>
+                                        <option value="">音声がありません</option>
+                                    <% } %>
+                                </select>
+                            </label>
+                            <% if (dlVideos.length > 0) { %>
+                                <button id="dlMergeBtn" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2"<%- dlAudios.length > 0 ? '' : ' disabled' %>>⬇ 結合してダウンロード</button>
+                            <% } %>
+                            <div class="flex gap-2 mb-2">
+                                <% if (dlVideos.length > 0) { %>
+                                    <button id="dlVideoOnlyBtn" class="control-button flex-1 bg-gray-700 py-2 hover:text-white p-2 rounded text-sm">⬇ 映像だけ</button>
+                                <% } %>
+                                <% if (dlAudios.length > 0) { %>
+                                    <button id="dlAudioOnlyBtn" class="control-button flex-1 bg-gray-700 py-2 hover:text-white p-2 rounded text-sm">⬇ 音声だけ</button>
+                                <% } %>
+                            </div>
+                            <% if (dlVideos.length > 0) { %>
+                                <p class="text-xs text-gray-400">初回のみ ffmpeg（約30MB）を読み込みます。結合はブラウザ内で行うため、大きな動画ではメモリ不足になることがあります。その場合は「映像だけ」「音声だけ」で別々に保存できます。</p>
+                            <% } %>
+                        </div>
+                    <% } %>
+                    <div id="dlProgressBox" class="hidden mb-2">
+                        <p id="dlStatus" class="text-sm text-gray-200 mb-1 break-words whitespace-pre-line"></p>
+                        <div class="w-full bg-gray-700 rounded h-2 overflow-hidden mb-2"><div id="dlBar" class="bg-green-500 h-2" style="width: 0%"></div></div>
+                        <button id="dlCancelBtn" class="control-button hidden w-full bg-gray-700 py-1 hover:text-white rounded">キャンセル</button>
+                    </div>
+                <% } %>
             </div>
             <div id="settingsTab" class="tab-content hidden">
                 <h2 class="text-lg font-semibold mb-3">再生方法の変更</h2>
@@ -1421,6 +1508,250 @@
                 moved = false;
             });
         }
+
+        // ダウンロード (映像と音声を ffmpeg.wasm で結合 / 統合はそのまま保存)
+        (function setupDownloadTab() {
+            const FFMPEG_JS_URL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.15/dist/umd/ffmpeg.js';
+            const FFMPEG_CORE_BASE = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/';
+
+            const byId = (id) => document.getElementById(id);
+            const mergeBtn = byId('dlMergeBtn');
+            const combinedBtn = byId('dlCombinedBtn');
+            const videoOnlyBtn = byId('dlVideoOnlyBtn');
+            const audioOnlyBtn = byId('dlAudioOnlyBtn');
+            if (!mergeBtn && !combinedBtn && !videoOnlyBtn && !audioOnlyBtn) return;
+
+            const state = { busy: false, controller: null, ffmpeg: null, log: [], merging: false, cancelled: false };
+
+            // ---- 表示まわり ----
+            function refreshProxyState() {
+                const el = byId('dlProxyState');
+                if (el) el.textContent = isProxyEnabled() ? 'オン' : 'オフ';
+            }
+            function showProgress(text, ratio) {
+                byId('dlProgressBox').classList.remove('hidden');
+                byId('dlStatus').textContent = text;
+                if (typeof ratio === 'number' && isFinite(ratio)) {
+                    byId('dlBar').style.width = (Math.max(0, Math.min(1, ratio)) * 100).toFixed(1) + '%';
+                }
+            }
+            function setBusy(busy) {
+                state.busy = busy;
+                if (mergeBtn) mergeBtn.disabled = busy || !byId('dlAudioSelect').value;
+                if (combinedBtn) combinedBtn.disabled = busy;
+                if (videoOnlyBtn) videoOnlyBtn.disabled = busy;
+                if (audioOnlyBtn) audioOnlyBtn.disabled = busy;
+                byId('dlCancelBtn').classList.toggle('hidden', !busy);
+            }
+            const mb = (n) => (n / 1048576).toFixed(1) + 'MB';
+
+            // ---- ファイル名 ----
+            function fileBase(label) {
+                const title = (document.title || 'video').replace(/[\\\/:*?"<>|\u0000-\u001f]/g, '_').trim().slice(0, 100) || 'video';
+                const q = String(label || '').replace(/[\\\/:*?"<>|\s]/g, '_');
+                return q ? title + '_' + q : title;
+            }
+            function saveBlob(blob, filename) {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+            }
+
+            // ---- 取得 (プロキシがオンならプロキシ後のリンクを使う) ----
+            // 取得してチャンクのまま返す (保存だけなら連結せず Blob にできるので、メモリを余分に使わない)
+            async function fetchChunks(rawUrl, label, signal) {
+                const url = applyProxy(rawUrl);
+                let res;
+                try {
+                    res = await fetch(url, { signal });
+                } catch (e) {
+                    if (e && e.name === 'AbortError') throw e;
+                    throw new Error(isProxyEnabled()
+                        ? label + 'をプロキシ経由でも取得できませんでした。プロキシのURLを確認してください。'
+                        : label + 'を取得できませんでした（CORSでブロックされた可能性があります）。コントロールタブで「プロキシ経由で再生」をオンにしてからやり直してください。');
+                }
+                if (!res.ok) throw new Error(label + 'の取得に失敗しました (HTTP ' + res.status + ')');
+                const total = Number(res.headers.get('content-length')) || 0;
+                const reader = res.body.getReader();
+                const chunks = [];
+                let received = 0;
+                for (;;) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    chunks.push(value);
+                    received += value.length;
+                    showProgress(label + 'を取得中… ' + mb(received) + (total ? ' / ' + mb(total) : ''), total ? received / total : undefined);
+                }
+                return { chunks, size: received };
+            }
+            // ffmpeg に渡すために 1つの Uint8Array にする
+            async function fetchBytes(rawUrl, label, signal) {
+                const { chunks, size } = await fetchChunks(rawUrl, label, signal);
+                const out = new Uint8Array(size);
+                let pos = 0;
+                for (const c of chunks) { out.set(c, pos); pos += c.length; }
+                return out;
+            }
+            // 取得したものをそのまま保存する (統合 / 映像だけ / 音声だけ)
+            async function downloadAsIs(rawUrl, label, mime, filename, signal) {
+                const { chunks, size } = await fetchChunks(rawUrl, label, signal);
+                saveBlob(new Blob(chunks, { type: mime }), filename);
+                showProgress('ダウンロードしました（' + mb(size) + '）', 1);
+            }
+
+            // ---- ffmpeg.wasm の読み込み (CDN) ----
+            function loadScript(src) {
+                return new Promise((resolve, reject) => {
+                    const sc = document.createElement('script');
+                    sc.src = src;
+                    sc.onload = resolve;
+                    sc.onerror = () => reject(new Error('ffmpeg の読み込みに失敗しました（CDNに接続できません）'));
+                    document.head.appendChild(sc);
+                });
+            }
+            async function getFFmpeg() {
+                if (state.ffmpeg && state.ffmpeg.loaded) return state.ffmpeg;
+                if (!window.FFmpegWASM) await loadScript(FFMPEG_JS_URL);
+                const ff = new window.FFmpegWASM.FFmpeg();
+                ff.on('log', ({ message }) => { state.log.push(message); if (state.log.length > 40) state.log.shift(); });
+                ff.on('progress', ({ progress }) => { if (state.merging) showProgress('ffmpeg で結合中… ' + Math.round(Math.max(0, Math.min(1, progress)) * 100) + '%', progress); });
+                // 別オリジン(CDN)のスクリプトからは Worker を直接作れないので、CDN の worker を importScripts する小さな Worker 経由にする
+                const NativeWorker = window.Worker;
+                window.Worker = function (url, options) {
+                    const u = String(url);
+                    if (/\/814\.ffmpeg\.js(\?|$)/.test(u)) {
+                        url = URL.createObjectURL(new Blob(['importScripts(' + JSON.stringify(u) + ');'], { type: 'text/javascript' }));
+                    }
+                    return new NativeWorker(url, options);
+                };
+                try {
+                    await ff.load({ coreURL: FFMPEG_CORE_BASE + 'ffmpeg-core.js', wasmURL: FFMPEG_CORE_BASE + 'ffmpeg-core.wasm' });
+                } finally {
+                    window.Worker = NativeWorker;
+                }
+                state.ffmpeg = ff;
+                return ff;
+            }
+
+            // ---- 共通: 実行の枠 (排他制御・キャンセル・エラー表示) ----
+            async function run(task) {
+                if (state.busy) return;
+                state.controller = new AbortController();
+                state.cancelled = false;
+                state.log = [];
+                setBusy(true);
+                refreshProxyState();
+                try {
+                    await task(state.controller.signal);
+                } catch (e) {
+                    if (state.cancelled || (e && e.name === 'AbortError')) {
+                        showProgress('キャンセルしました');
+                    } else {
+                        console.error('[download]', e, state.log.slice(-8).join('\n'));
+                        const msg = e && e.message ? e.message : String(e);
+                        const lowMemory = (e instanceof RangeError) || /out of memory|\bOOM\b|memory access|allocation failed/i.test(msg);
+                        showProgress('エラー: ' + msg + (lowMemory ? '\nメモリ不足の可能性があります。画質を下げるか、「映像だけ」「音声だけ」で別々に保存してください。' : ''));
+                    }
+                } finally {
+                    state.merging = false;
+                    state.controller = null;
+                    setBusy(false);
+                }
+            }
+
+            // ---- 統合をそのままダウンロード ----
+            if (combinedBtn) {
+                combinedBtn.addEventListener('click', () => run(async (signal) => {
+                    const opt = byId('dlCombinedSelect').selectedOptions[0];
+                    await downloadAsIs(opt.value, '統合ストリーム', 'video/mp4', fileBase(opt.dataset.name) + '.mp4', signal);
+                }));
+            }
+
+            // ---- 映像だけ / 音声だけをそのままダウンロード ----
+            if (videoOnlyBtn) {
+                videoOnlyBtn.addEventListener('click', () => run(async (signal) => {
+                    const opt = byId('dlVideoSelect').selectedOptions[0];
+                    if (!opt) throw new Error('画質を選択してください');
+                    const ext = String(opt.dataset.container || 'mp4').toLowerCase() === 'webm' ? 'webm' : 'mp4';
+                    await downloadAsIs(opt.value, '映像', 'video/' + ext, fileBase('video_' + opt.dataset.name) + '.' + ext, signal);
+                }));
+            }
+            if (audioOnlyBtn) {
+                audioOnlyBtn.addEventListener('click', () => run(async (signal) => {
+                    const opt = byId('dlAudioSelect').selectedOptions[0];
+                    if (!opt || !opt.value) throw new Error('音声を選択してください');
+                    const cont = String(opt.dataset.container || 'm4a').toLowerCase();
+                    const ext = ['m4a', 'webm', 'mp4', 'aac', 'mp3', 'opus', 'ogg'].includes(cont) ? cont : 'm4a';
+                    const mimes = { m4a: 'audio/mp4', mp4: 'audio/mp4', webm: 'audio/webm', aac: 'audio/aac', mp3: 'audio/mpeg', opus: 'audio/ogg', ogg: 'audio/ogg' };
+                    await downloadAsIs(opt.value, '音声', mimes[ext], fileBase('audio_' + opt.dataset.name) + '.' + ext, signal);
+                }));
+            }
+
+            // ---- 映像と音声を ffmpeg で結合してダウンロード ----
+            if (mergeBtn) {
+                mergeBtn.addEventListener('click', () => run(async (signal) => {
+                    const vOpt = byId('dlVideoSelect').selectedOptions[0];
+                    const aOpt = byId('dlAudioSelect').selectedOptions[0];
+                    if (!vOpt || !aOpt || !aOpt.value) throw new Error('映像と音声を選択してください');
+
+                    const vCont = String(vOpt.dataset.container || 'mp4').toLowerCase();
+                    const aCont = String(aOpt.dataset.container || 'm4a').toLowerCase();
+                    const vExt = vCont === 'webm' ? 'webm' : 'mp4';
+                    const aExt = ['m4a', 'webm', 'mp4', 'aac', 'mp3', 'opus', 'ogg'].includes(aCont) ? aCont : 'm4a';
+                    const outExt = (vExt === 'webm' && aExt === 'webm') ? 'webm' : 'mp4'; // webm同士ならwebm、それ以外はmp4
+                    const vName = 'video.' + vExt, aName = 'audio.' + aExt, outName = 'output.' + outExt;
+
+                    const videoData = await fetchBytes(vOpt.value, '映像', signal);
+                    const audioData = await fetchBytes(aOpt.value, '音声', signal);
+
+                    showProgress('ffmpeg を読み込み中…（初回のみ約30MB）', 0);
+                    const ff = await getFFmpeg();
+                    if (signal.aborted) throw new DOMException('aborted', 'AbortError');
+
+                    try {
+                        await ff.writeFile(vName, videoData);
+                        await ff.writeFile(aName, audioData);
+                        state.merging = true;
+                        showProgress('ffmpeg で結合中…', 0);
+                        const base = ['-i', vName, '-i', aName, '-map', '0:v:0', '-map', '1:a:0'];
+                        // まず再エンコードなしでコピー結合。失敗したら音声だけ再エンコードしてやり直す
+                        let ret = await ff.exec(base.concat(['-c', 'copy', outName]));
+                        if (ret !== 0) {
+                            await ff.deleteFile(outName).catch(() => {});
+                            showProgress('音声を変換して結合し直しています…', 0);
+                            ret = await ff.exec(base.concat(['-c:v', 'copy', '-c:a', outExt === 'webm' ? 'libopus' : 'aac', '-b:a', '192k', outName]));
+                        }
+                        if (ret !== 0) throw new Error('ffmpeg での結合に失敗しました\n' + state.log.slice(-3).join('\n'));
+                        const out = await ff.readFile(outName);
+                        saveBlob(new Blob([out], { type: outExt === 'webm' ? 'video/webm' : 'video/mp4' }), fileBase(vOpt.dataset.name) + '.' + outExt);
+                        showProgress('ダウンロードしました（' + mb(out.length) + '）', 1);
+                    } finally {
+                        state.merging = false;
+                        for (const f of [vName, aName, outName]) { try { await ff.deleteFile(f); } catch (_) {} }
+                    }
+                }));
+            }
+
+            // ---- キャンセル ----
+            byId('dlCancelBtn').addEventListener('click', () => {
+                state.cancelled = true;
+                if (state.controller) state.controller.abort();
+                if (state.merging && state.ffmpeg) { // 結合中なら ffmpeg ごと止める (次回は読み込み直し)
+                    state.ffmpeg.terminate();
+                    state.ffmpeg = null;
+                }
+            });
+
+            // プロキシの状態表示を更新
+            refreshProxyState();
+            byId('tabDownload').addEventListener('click', refreshProxyState);
+            const proxyToggleEl = byId('proxyToggle');
+            if (proxyToggleEl) proxyToggleEl.addEventListener('change', () => setTimeout(refreshProxyState, 0));
+        })();
     </script>
 </body>
 </html>
