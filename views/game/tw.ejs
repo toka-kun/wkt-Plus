@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/css/page.css">
 </head>
 <body class="bg-gray-900 font-sans min-h-screen flex flex-col m-0 p-0 overflow-hidden">
+    
     <button class="back-button fixed top-5 left-5 z-50 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out flex items-center space-x-2" onclick="window.location.href='/game'">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -17,65 +18,45 @@
 
     <button class="fixed top-5 right-5 z-50 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out flex items-center space-x-2" onclick="showHowToPlay()">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <span>遊び方</span>
     </button>
 
     <div class="flex-grow w-full h-screen pt-20 pb-4 px-4 box-border relative">
-        <div id="loading-indicator" class="absolute inset-0 flex items-center justify-center text-white font-bold text-xl z-0 px-6 text-center">
-            <div>
-                <div id="loading-text">通信可能なサーバーを探しています...</div>
-                <div id="loading-detail" class="text-sm font-normal text-gray-400 mt-3"></div>
-            </div>
+        <div id="loading-indicator" class="absolute inset-0 flex items-center justify-center text-white font-bold text-xl z-0">
+            通信可能なサーバーを探しています...
         </div>
 
-        <iframe
+        <iframe 
             id="content-frame"
-            src=""
+            src="" 
             class="w-full h-full rounded-2xl shadow-lg border-none bg-white relative z-10 hidden"
-            allow="fullscreen"
-            allowfullscreen
-            referrerpolicy="no-referrer-when-downgrade"
+            allow="camera;microphone;geolocation;fullscreen"
             title="Embedded Content">
         </iframe>
-
-        <div id="retry-container" class="absolute inset-0 hidden items-center justify-center z-20 px-6">
-            <div class="text-center text-white">
-                <div id="retry-message" class="font-bold text-lg mb-4">読み込みに失敗しました。</div>
-                <button
-                    id="retry-button"
-                    onclick="loadIframe(true)"
-                    class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg shadow-lg transition-colors">
-                    再試行
-                </button>
-            </div>
-        </div>
     </div>
 
-    <div id="info-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-[60] flex items-center justify-center p-4 transition-opacity" role="dialog" aria-modal="true" aria-labelledby="info-modal-title">
+    <div id="info-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-[60] flex items-center justify-center p-4 transition-opacity">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
             <div class="flex justify-between items-center p-4 border-b">
-                <h2 id="info-modal-title" class="text-xl font-bold text-gray-800">遊び方</h2>
-                <button onclick="closeModal()" aria-label="閉じる" class="text-gray-500 hover:text-gray-800 focus:outline-none">
+                <h2 class="text-xl font-bold text-gray-800">遊び方</h2>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-800 focus:outline-none">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
             </div>
-
             <div class="p-6 overflow-y-auto flex-grow space-y-6">
                 <div>
                     <h3 class="text-lg font-semibold text-blue-600 mb-2 border-b-2 border-blue-200 pb-1">使い方</h3>
                     <div id="modal-instructions" class="whitespace-pre-wrap text-gray-700 text-sm leading-relaxed"></div>
                 </div>
-
                 <div>
                     <h3 class="text-lg font-semibold text-green-600 mb-2 border-b-2 border-green-200 pb-1">メモとクレジット</h3>
                     <div id="modal-description" class="whitespace-pre-wrap text-gray-700 text-sm leading-relaxed"></div>
                 </div>
             </div>
-
             <div class="p-4 border-t bg-gray-50 rounded-b-xl text-right">
                 <button onclick="closeModal()" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors">
                     閉じる
@@ -85,6 +66,8 @@
     </div>
 
     <script>
+        let currentProjectId = null; 
+
         const siteMap = {
             'au/class_1': `#668123415`,
             'au/class_2': `#559213588`,
@@ -123,6 +106,8 @@
             'other/hide_mega': `&interpolate&size=660x360#1169508520`
         };
 
+        const FETCH_TIMEOUT_MS = 3000; 
+
         const baseUrls = [
             'https://mirror.turbowarp.xyz/embed?addons=pause&settings-button&hqpen',
             'https://turbowarp-mirror.pages.dev/embed?addons=pause&settings-button&hqpen',
@@ -130,483 +115,100 @@
             'https://turbomirror.smooth.ytalt.f5.si/embed?addons=pause&settings-button&hqpen'
         ];
 
-        const CONFIG = {
-            FETCH_TIMEOUT_MS: 3000,
-            IFRAME_TIMEOUT_MS: 10000,
-            API_TIMEOUT_MS: 5000,
-            BASE_CACHE_TTL_MS: 10 * 60 * 1000,
-            API_CACHE_TTL_MS: 15 * 60 * 1000,
-            API_STALE_MAX_MS: 7 * 24 * 60 * 60 * 1000
-        };
-
-        let currentProjectId = null;
-        let currentTargetId = null;
-        let currentBaseUrl = null;
-        let currentAttempt = 0;
-        let iframeLoadTimer = null;
-
-        const iframe = document.getElementById('content-frame');
-        const loadingIndicator = document.getElementById('loading-indicator');
-        const loadingText = document.getElementById('loading-text');
-        const loadingDetail = document.getElementById('loading-detail');
-        const retryContainer = document.getElementById('retry-container');
-        const retryMessage = document.getElementById('retry-message');
-        const modal = document.getElementById('info-modal');
-
-        function safeStorageGet(key) {
+        async function checkConnection(url) {
             try {
-                return localStorage.getItem(key);
-            } catch {
-                return null;
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+                
+                await fetch(url, { mode: 'no-cors', signal: controller.signal });
+                clearTimeout(timeoutId);
+                return true; 
+            } catch (error) {
+                return false;
             }
         }
 
-        function safeStorageSet(key, value) {
-            try {
-                localStorage.setItem(key, value);
-            } catch {}
-        }
-
-        function safeStorageRemove(key) {
-            try {
-                localStorage.removeItem(key);
-            } catch {}
-        }
-
-        function readCache(key) {
-            const raw = safeStorageGet(key);
-            if (!raw) return null;
-
-            try {
-                const data = JSON.parse(raw);
-                if (!data || typeof data !== 'object') return null;
-                return data;
-            } catch {
-                safeStorageRemove(key);
-                return null;
+        async function getWorkingBaseUrl() {
+            for (const url of baseUrls) {
+                const isWorking = await checkConnection(url);
+                if (isWorking) return url;
             }
+            return null; 
         }
 
-        function writeCache(key, data) {
-            safeStorageSet(key, JSON.stringify(data));
-        }
-
-        function setLoading(text, detail = '') {
-            loadingText.textContent = text;
-            loadingDetail.textContent = detail;
-        }
-
-        function showRetry(message) {
-            loadingIndicator.classList.add('hidden');
-            iframe.classList.add('hidden');
-            retryMessage.textContent = message;
-            retryContainer.classList.remove('hidden');
-            retryContainer.classList.add('flex');
-        }
-
-        function hideRetry() {
-            retryContainer.classList.add('hidden');
-            retryContainer.classList.remove('flex');
-        }
-
-        function getTargetInfo() {
+        async function loadIframe() {
             const urlParams = new URLSearchParams(window.location.search);
             const targetId = urlParams.get('id');
+            const iframe = document.getElementById('content-frame');
+            const loadingIndicator = document.getElementById('loading-indicator');
 
-            if (!targetId || !siteMap[targetId]) {
-                return null;
-            }
-
-            const match = siteMap[targetId].match(/#(\d+)/);
-
-            return {
-                targetId,
-                projectId: match ? match[1] : null,
-                suffix: siteMap[targetId]
-            };
-        }
-
-        function buildIframeUrl(baseUrl, suffix) {
-            return baseUrl + suffix;
-        }
-
-        async function checkConnection(url) {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT_MS);
-
-            try {
-                await fetch(url, {
-                    method: 'GET',
-                    mode: 'no-cors',
-                    cache: 'no-store',
-                    signal: controller.signal
-                });
-
-                return true;
-            } catch {
-                return false;
-            } finally {
-                clearTimeout(timeoutId);
-            }
-        }
-
-        async function getReachableBases() {
-            const results = await Promise.all(
-                baseUrls.map(async (url, index) => ({
-                    url,
-                    index,
-                    ok: await checkConnection(url)
-                }))
-            );
-
-            return results
-                .filter(result => result.ok)
-                .sort((a, b) => a.index - b.index)
-                .map(result => result.url);
-        }
-
-        function getCachedBaseUrl() {
-            const cache = readCache('tw-working-base');
-
-            if (!cache || !cache.url || !cache.time) {
-                return null;
-            }
-
-            if (Date.now() - cache.time > CONFIG.BASE_CACHE_TTL_MS) {
-                safeStorageRemove('tw-working-base');
-                return null;
-            }
-
-            if (!baseUrls.includes(cache.url)) {
-                safeStorageRemove('tw-working-base');
-                return null;
-            }
-
-            return cache.url;
-        }
-
-        function cacheBaseUrl(url) {
-            writeCache('tw-working-base', {
-                url,
-                time: Date.now()
-            });
-        }
-
-        function clearBaseCache() {
-            safeStorageRemove('tw-working-base');
-        }
-
-        function waitForIframeLoad(url, attemptId) {
-            return new Promise(resolve => {
-                let settled = false;
-
-                const cleanup = () => {
-                    clearTimeout(iframeLoadTimer);
-                    iframe.onload = null;
-                    iframe.onerror = null;
-                };
-
-                const finish = result => {
-                    if (settled) return;
-                    settled = true;
-                    cleanup();
-                    resolve(result);
-                };
-
-                iframe.onload = () => {
-                    if (attemptId !== currentAttempt) {
-                        finish(false);
-                        return;
-                    }
-
-                    finish({
-                        success: true,
-                        reason: 'load'
-                    });
-                };
-
-                iframe.onerror = () => {
-                    finish({
-                        success: false,
-                        reason: 'error'
-                    });
-                };
-
-                iframeLoadTimer = setTimeout(() => {
-                    finish({
-                        success: false,
-                        reason: 'timeout'
-                    });
-                }, CONFIG.IFRAME_TIMEOUT_MS);
-
-                iframe.src = url;
-            });
-        }
-
-        async function tryLoadBase(baseUrl, suffix, attemptId) {
-            const fullUrl = buildIframeUrl(baseUrl, suffix);
-
-            setLoading(
-                'サーバーを確認しています...',
-                new URL(baseUrl).hostname
-            );
-
-            const reachable = await checkConnection(baseUrl);
-
-            if (!reachable || attemptId !== currentAttempt) {
-                return {
-                    success: false,
-                    reason: 'connection'
-                };
-            }
-
-            setLoading(
-                'ゲームを読み込んでいます...',
-                new URL(baseUrl).hostname
-            );
-
-            const result = await waitForIframeLoad(fullUrl, attemptId);
-
-            if (!result.success) {
-                return result;
-            }
-
-            return {
-                success: true,
-                reason: 'load',
-                url: fullUrl
-            };
-        }
-
-        async function loadIframe(forceRetry = false) {
-            const target = getTargetInfo();
-
-            currentAttempt++;
-            const attemptId = currentAttempt;
-
-            iframe.src = 'about:blank';
             iframe.classList.add('hidden');
+            loadingIndicator.textContent = '通信可能なサーバーを探しています...';
             loadingIndicator.classList.remove('hidden');
-            hideRetry();
 
-            if (!target || !target.projectId) {
-                setLoading('無効なIDが指定されました。');
-                showRetry('URLのIDが正しくありません。');
-                return;
-            }
-
-            currentTargetId = target.targetId;
-            currentProjectId = target.projectId;
-
-            if (forceRetry) {
-                clearBaseCache();
-                currentBaseUrl = null;
-            }
-
-            setLoading(
-                '通信可能なサーバーを探しています...',
-                '複数のミラーを確認中'
-            );
-
-            const cachedBase = getCachedBaseUrl();
-            const candidates = [];
-
-            if (cachedBase) {
-                candidates.push(cachedBase);
-            }
-
-            const reachableBases = await getReachableBases();
-
-            for (const url of reachableBases) {
-                if (!candidates.includes(url)) {
-                    candidates.push(url);
+            if (targetId && siteMap[targetId]) {
+                const match = siteMap[targetId].match(/#(\d+)/);
+                if (match) {
+                    currentProjectId = match[1]; 
                 }
-            }
 
-            if (candidates.length === 0) {
-                setLoading('すべてのサーバーへの接続に失敗しました。');
-                showRetry('ミラーサーバーに接続できませんでした。');
-                return;
-            }
+                const workingBaseUrl = await getWorkingBaseUrl();
 
-            for (let i = 0; i < candidates.length; i++) {
-                if (attemptId !== currentAttempt) return;
-
-                const baseUrl = candidates[i];
-
-                setLoading(
-                    `ゲームサーバーを試しています... (${i + 1}/${candidates.length})`,
-                    new URL(baseUrl).hostname
-                );
-
-                const result = await tryLoadBase(
-                    baseUrl,
-                    target.suffix,
-                    attemptId
-                );
-
-                if (attemptId !== currentAttempt) return;
-
-                if (result.success) {
-                    currentBaseUrl = baseUrl;
-                    cacheBaseUrl(baseUrl);
-
+                if (workingBaseUrl) {
+                    iframe.src = workingBaseUrl + siteMap[targetId];
                     loadingIndicator.classList.add('hidden');
                     iframe.classList.remove('hidden');
-                    return;
+                } else {
+                    loadingIndicator.textContent = 'すべてのサーバーへの接続に失敗しました。';
                 }
-            }
-
-            clearBaseCache();
-            currentBaseUrl = null;
-
-            setLoading('ゲームの読み込みに失敗しました。');
-            showRetry('利用可能なミラーがありませんでした。');
-        }
-
-        async function fetchWithTimeout(url, options = {}, timeout = CONFIG.API_TIMEOUT_MS) {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-            try {
-                return await fetch(url, {
-                    ...options,
-                    signal: controller.signal
-                });
-            } finally {
-                clearTimeout(timeoutId);
-            }
-        }
-
-        function getApiCacheKey(projectId) {
-            return `tw-project-info:${projectId}`;
-        }
-
-        function getCachedProjectInfo(projectId, allowStale = false) {
-            const cache = readCache(getApiCacheKey(projectId));
-
-            if (!cache || !cache.data || !cache.time) {
-                return null;
-            }
-
-            const age = Date.now() - cache.time;
-
-            if (age <= CONFIG.API_CACHE_TTL_MS) {
-                return {
-                    data: cache.data,
-                    cached: true,
-                    stale: false
-                };
-            }
-
-            if (allowStale && age <= CONFIG.API_STALE_MAX_MS) {
-                return {
-                    data: cache.data,
-                    cached: true,
-                    stale: true
-                };
-            }
-
-            return null;
-        }
-
-        function cacheProjectInfo(projectId, data) {
-            writeCache(getApiCacheKey(projectId), {
-                time: Date.now(),
-                data
-            });
-        }
-
-        async function getProjectInfo(projectId) {
-            const freshCache = getCachedProjectInfo(projectId);
-
-            if (freshCache) {
-                return freshCache.data;
-            }
-
-            const apiUrl = `https://trampoline.turbowarp.org/api/projects/${encodeURIComponent(projectId)}`;
-
-            try {
-                const response = await fetchWithTimeout(
-                    apiUrl,
-                    {
-                        method: 'GET',
-                        mode: 'cors',
-                        cache: 'no-store'
-                    }
-                );
-
-                if (!response.ok) {
-                    throw new Error(`API request failed: ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                cacheProjectInfo(projectId, data);
-
-                return data;
-            } catch (error) {
-                const staleCache = getCachedProjectInfo(projectId, true);
-
-                if (staleCache) {
-                    return staleCache.data;
-                }
-
-                throw error;
+            } else {
+                loadingIndicator.textContent = '無効なIDが指定されました。';
             }
         }
 
         async function showHowToPlay() {
             if (!currentProjectId) {
-                alert('プロジェクトが正しく読み込まれていないため、情報を取得できません。');
+                alert("プロジェクトが正しく読み込まれていないため、情報を取得できません。");
                 return;
             }
 
-            const modalInstructions = document.getElementById('modal-instructions');
-            const modalDescription = document.getElementById('modal-description');
-
-            modalInstructions.textContent = '読み込み中...';
-            modalDescription.textContent = '読み込み中...';
-            modal.classList.remove('hidden');
-
             try {
-                const data = await getProjectInfo(currentProjectId);
+                const modalInstructions = document.getElementById('modal-instructions');
+                const modalDescription = document.getElementById('modal-description');
+                const modal = document.getElementById('info-modal');
 
-                modalInstructions.textContent =
-                    data.instructions || '(記載なし)';
+                modalInstructions.textContent = "読み込み中...";
+                modalDescription.textContent = "読み込み中...";
+                modal.classList.remove('hidden');
 
-                modalDescription.textContent =
-                    data.description || '(記載なし)';
+                const response = await fetch(`https://trampoline.turbowarp.org/api/projects/${currentProjectId}`);
+                if (!response.ok) {
+                    throw new Error(`APIリクエスト失敗: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                modalInstructions.textContent = data.instructions ? data.instructions : "(記載なし)";
+                modalDescription.textContent = data.description ? data.description : "(記載なし)";
+
             } catch (error) {
                 console.error(error);
-
-                modalInstructions.textContent =
-                    '情報の取得に失敗しました。';
-
-                modalDescription.textContent =
-                    '通信またはAPIに問題があります。時間をおいて再度お試しください。';
+                document.getElementById('modal-instructions').textContent = "情報の取得に失敗しました。";
+                document.getElementById('modal-description').textContent = "時間をおいて再度お試しください。";
             }
         }
 
         function closeModal() {
-            modal.classList.add('hidden');
+            document.getElementById('info-modal').classList.add('hidden');
         }
 
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
+        document.getElementById('info-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
                 closeModal();
             }
         });
 
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
-                closeModal();
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            loadIframe(false);
-        });
+        document.addEventListener('DOMContentLoaded', loadIframe);
     </script>
 </body>
 </html>
