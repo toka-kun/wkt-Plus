@@ -454,7 +454,7 @@
                                 <option value="<%= st.url %>" data-name="<%= st.name || 'Unknown' %>"><%= st.name || 'Unknown' %></option>
                             <% }); %>
                         </select>
-                        <button id="dlCombinedBtn" class="control-button flex-1 bg-gray-700 py-2 hover:text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"<%- dlCombined.length > 0 ? '' : ' disabled' %>><%= dlCombined.length > 0 ? '⬇ 統合をダウンロード' + (dlCombined.length === 1 ? '（' + (dlCombined[0].name || 'Unknown') + '）' : '') : '統合ストリームなし' %></button>
+                        <button id="dlCombinedBtn" title="新しいタブで開きます" class="control-button flex-1 bg-gray-700 py-2 hover:text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"<%- dlCombined.length > 0 ? '' : ' disabled' %>><%= dlCombined.length > 0 ? '⬇ 統合をダウンロード' + (dlCombined.length === 1 ? '（' + (dlCombined[0].name || 'Unknown') + '）' : '') : '統合ストリームなし' %></button>
                     </div>
                 </div>
                 <%# 中: 画質選択と音声選択 — コントロールタブの「画質を選択/音声を選択」と同じ位置 %>
@@ -489,8 +489,8 @@
                         <p class="mb-2 text-gray-300">ダウンロードできるストリームがありません。</p>
                     <% } %>
                     <div class="flex gap-2 mb-2">
-                        <button id="dlVideoOnlyBtn" class="control-button flex-1 bg-gray-700 py-2 hover:text-white rounded disabled:opacity-50 disabled:cursor-not-allowed">⬇ 映像だけ</button>
-                        <button id="dlAudioOnlyBtn" class="control-button flex-1 bg-gray-700 py-2 hover:text-white rounded disabled:opacity-50 disabled:cursor-not-allowed">⬇ 音声だけ</button>
+                        <button id="dlVideoOnlyBtn" title="新しいタブで開きます" class="control-button flex-1 bg-gray-700 py-2 hover:text-white rounded disabled:opacity-50 disabled:cursor-not-allowed">⬇ 映像だけ</button>
+                        <button id="dlAudioOnlyBtn" title="新しいタブで開きます" class="control-button flex-1 bg-gray-700 py-2 hover:text-white rounded disabled:opacity-50 disabled:cursor-not-allowed">⬇ 音声だけ</button>
                     </div>
                     <div id="dlProgressBox" class="hidden mb-2">
                         <p id="dlStatus" class="text-sm text-gray-200 mb-1 break-words whitespace-pre-line"></p>
@@ -499,7 +499,7 @@
                     </div>
                     <details id="dlNote" class="text-xs text-gray-400">
                         <summary class="cursor-pointer hover:text-white">結合についての注意</summary>
-                        <p class="mt-1">初回のみ ffmpeg（約30MB）を読み込みます。結合はブラウザ内で行うため、大きな動画ではメモリ不足になることがあります。その場合は「映像だけ」「音声だけ」で別々に保存できます。</p>
+                        <p class="mt-1">初回のみ ffmpeg（約30MB）を読み込みます。結合はブラウザ内で行うため、大きな動画ではメモリ不足になることがあります。その場合は「映像だけ」「音声だけ」を新しいタブで開いて、別々に保存できます。</p>
                     </details>
                 </div>
             </div>
@@ -1597,9 +1597,10 @@
                 state.busy = busy;
                 const has = (id) => { const e = byId(id); return !!(e && e.value); }; // 選べるものがあるか
                 if (mergeBtn) mergeBtn.disabled = busy || !has('dlVideoSelect') || !has('dlAudioSelect');
-                if (combinedBtn) combinedBtn.disabled = busy || !has('dlCombinedSelect');
-                if (videoOnlyBtn) videoOnlyBtn.disabled = busy || !has('dlVideoSelect');
-                if (audioOnlyBtn) audioOnlyBtn.disabled = busy || !has('dlAudioSelect');
+                // 統合 / 映像だけ / 音声だけ は新しいタブで開くだけなので、結合の実行中でも押せる
+                if (combinedBtn) combinedBtn.disabled = !has('dlCombinedSelect');
+                if (videoOnlyBtn) videoOnlyBtn.disabled = !has('dlVideoSelect');
+                if (audioOnlyBtn) audioOnlyBtn.disabled = !has('dlAudioSelect');
                 byId('dlCancelBtn').classList.toggle('hidden', !busy);
             }
             const mb = (n) => (n / 1048576).toFixed(1) + 'MB';
@@ -1655,11 +1656,15 @@
                 for (const c of chunks) { out.set(c, pos); pos += c.length; }
                 return out;
             }
-            // 取得したものをそのまま保存する (統合 / 映像だけ / 音声だけ)
-            async function downloadAsIs(rawUrl, label, mime, filename, signal) {
-                const { chunks, size } = await fetchChunks(rawUrl, label, signal);
-                saveBlob(new Blob(chunks, { type: mime }), filename);
-                showProgress('ダウンロードしました（' + mb(size) + '）', 1);
+            // 統合 / 映像だけ / 音声だけ: 取得はせず、動画のURL(ダウンロード用プロキシがオンならプロキシ後のURL)を新しいタブで開くだけ
+            function openInNewTab(rawUrl) {
+                if (!rawUrl) return;
+                const w = window.open(applyDownloadProxy(rawUrl), '_blank');
+                if (w) {
+                    try { w.opener = null; } catch (_) {}
+                } else {
+                    showProgress('ポップアップがブロックされたため、新しいタブを開けませんでした。ポップアップを許可してからやり直してください。', 0);
+                }
             }
 
             // ---- ffmpeg.wasm の読み込み (CDN) ----
@@ -1712,7 +1717,7 @@
                         console.error('[download]', e, state.log.slice(-8).join('\n'));
                         const msg = e && e.message ? e.message : String(e);
                         const lowMemory = (e instanceof RangeError) || /out of memory|\bOOM\b|memory access|allocation failed/i.test(msg);
-                        showProgress('エラー: ' + msg + (lowMemory ? '\nメモリ不足の可能性があります。画質を下げるか、「映像だけ」「音声だけ」で別々に保存してください。' : ''));
+                        showProgress('エラー: ' + msg + (lowMemory ? '\nメモリ不足の可能性があります。画質を下げるか、「映像だけ」「音声だけ」を新しいタブで開いて、別々に保存してください。' : ''));
                     }
                 } finally {
                     state.merging = false;
@@ -1721,32 +1726,24 @@
                 }
             }
 
-            // ---- 統合をそのままダウンロード ----
+            // ---- 統合 / 映像だけ / 音声だけ: 新しいタブで開く ----
             if (combinedBtn) {
-                combinedBtn.addEventListener('click', () => run(async (signal) => {
+                combinedBtn.addEventListener('click', () => {
                     const opt = byId('dlCombinedSelect').selectedOptions[0];
-                    await downloadAsIs(opt.value, '統合ストリーム', 'video/mp4', fileBase(opt.dataset.name) + '.mp4', signal);
-                }));
+                    if (opt) openInNewTab(opt.value);
+                });
             }
-
-            // ---- 映像だけ / 音声だけをそのままダウンロード ----
             if (videoOnlyBtn) {
-                videoOnlyBtn.addEventListener('click', () => run(async (signal) => {
+                videoOnlyBtn.addEventListener('click', () => {
                     const opt = byId('dlVideoSelect').selectedOptions[0];
-                    if (!opt) throw new Error('画質を選択してください');
-                    const ext = String(opt.dataset.container || 'mp4').toLowerCase() === 'webm' ? 'webm' : 'mp4';
-                    await downloadAsIs(opt.value, '映像', 'video/' + ext, fileBase('video_' + opt.dataset.name) + '.' + ext, signal);
-                }));
+                    if (opt) openInNewTab(opt.value);
+                });
             }
             if (audioOnlyBtn) {
-                audioOnlyBtn.addEventListener('click', () => run(async (signal) => {
+                audioOnlyBtn.addEventListener('click', () => {
                     const opt = byId('dlAudioSelect').selectedOptions[0];
-                    if (!opt || !opt.value) throw new Error('音声を選択してください');
-                    const cont = String(opt.dataset.container || 'm4a').toLowerCase();
-                    const ext = ['m4a', 'webm', 'mp4', 'aac', 'mp3', 'opus', 'ogg'].includes(cont) ? cont : 'm4a';
-                    const mimes = { m4a: 'audio/mp4', mp4: 'audio/mp4', webm: 'audio/webm', aac: 'audio/aac', mp3: 'audio/mpeg', opus: 'audio/ogg', ogg: 'audio/ogg' };
-                    await downloadAsIs(opt.value, '音声', mimes[ext], fileBase('audio_' + opt.dataset.name) + '.' + ext, signal);
-                }));
+                    if (opt) openInNewTab(opt.value);
+                });
             }
 
             // ---- 映像と音声を ffmpeg で結合してダウンロード ----
