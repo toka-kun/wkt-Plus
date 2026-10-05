@@ -111,17 +111,46 @@
         .tab-content.active {
             display: block;
         }
+        /* ローディング表示: 動画の上に重ねて、真ん中に置く。
+           スピナー自体は回転(transform)するので、位置合わせは外側の .loading-indicator(flex)が行う */
         .loading-indicator {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            inset: 0;
             display: none;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none; /* 動画のコントロールの操作を邪魔しない */
             z-index: 10;
         }
-        .loading-indicator img {
-            width: 75px;
-            height: 75px;
+        .loading-spinner {
+            --uib-size: 40px;
+            --uib-color: black;
+            --uib-speed: .9s;
+            --uib-stroke: 5px;
+            --mask-size: calc(var(--uib-size) / 2 - var(--uib-stroke));
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            height: var(--uib-size);
+            width: var(--uib-size);
+            -webkit-mask: radial-gradient(
+                circle var(--mask-size),
+                transparent 99%,
+                #000 100%
+            );
+            mask: radial-gradient(circle var(--mask-size), transparent 99%, #000 100%);
+            background-image: conic-gradient(transparent 25%, var(--uib-color));
+            animation: uib-spin calc(var(--uib-speed)) linear infinite;
+            border-radius: 50%;
+        }
+        @keyframes uib-spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
         .mobile-action-box {
             display: none;
@@ -165,8 +194,8 @@
     <div class="max-w-6xl mx-auto p-4 main-container" id="mainContainer">
         <div class="video-container" id="videoContainer">
             <div class="relative">
-                <div class="loading-indicator">
-                    <img src="https://www.benricho.org/loading_images/img-transparent/89-88.gif" alt="Loading...">
+                <div class="loading-indicator" role="status" aria-label="Loading...">
+                    <div class="loading-spinner"></div>
                 </div>
                 <%
                     // 初期再生するストリーム(デフォルト)を決める
@@ -205,13 +234,13 @@
                 </video>
                 <audio id="audio" style="display: none;"></audio>
                 <button id="erroreloadButton" class="hidden absolute top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl shadow-lg hover:bg-blue-700 transition">🔄 動画を再読み込み</button>
-                <div class="mobile-action-box">
-                    <button
-                        class="w-full bg-gray-700 py-2 rounded"
-                        onclick="document.getElementById('controlPanel').classList.toggle('open')">
-                        コントロール
-                    </button>
-                </div>
+            </div>
+            <div class="mobile-action-box">
+                <button
+                    class="w-full bg-gray-700 py-2 rounded"
+                    onclick="document.getElementById('controlPanel').classList.toggle('open')">
+                    コントロール
+                </button>
             </div>
             <div class="flex items-start mt-4 p-4 bg-gray-800 rounded gap-3">
                 <div class="flex-1 min-w-0">
@@ -920,7 +949,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const loadingIndicator = document.querySelector('.loading-indicator');
             const showLoadingIndicator = () => {
-                loadingIndicator.style.display = 'block';
+                loadingIndicator.style.display = 'flex';
             };
             const hideLoadingIndicator = () => {
                 loadingIndicator.style.display = 'none';
