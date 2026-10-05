@@ -92,8 +92,18 @@
             display: none;
         }
         .controlPanel.open { display: block; }
+        /* 全タブを同じ場所に重ねる → パネルの高さは一番高いタブに揃う (スクロールはしない) */
+        .controlPanel .tab-stack { display: grid; grid-template-columns: minmax(0, 1fr); }
+        .controlPanel .tab-stack > .tab-content {
+            display: block;
+            grid-area: 1 / 1;
+            visibility: hidden;
+        }
+        .controlPanel .tab-stack > .tab-content.active { visibility: visible; }
+        /* 選択中のタブは、どのタブでも「元のコントロールタブ(読み込み直後)」と同じ色にする */
         .tab-button.active {
             background-color: #4a5568;
+            color: #fff;
         }
         .tab-content {
             display: none;
@@ -340,10 +350,11 @@
         <div id="controlPanel" class="controlPanel bg-gray-900 text-white p-6 rounded-lg shadow-lg w-96 fixed bottom-10 right-10 border border-gray-700 z-50">
             <button id="closeControlPanel" class="absolute top-2 right-2 text-gray-400 hover:text-white text-2xl">×</button>
             <div class="tab-header flex border-b border-gray-700 mb-4">
-                <div id="tabControl" class="tab-button active px-4 py-2 cursor-pointer text-white bg-gray-800 rounded-t-lg" data-target="controlTab">コントロール</div>
+                <div id="tabControl" class="tab-button active px-4 py-2 cursor-pointer text-gray-400 hover:text-white rounded-t-lg" data-target="controlTab">コントロール</div>
                 <div id="tabDownload" class="tab-button px-4 py-2 cursor-pointer text-gray-400 hover:text-white rounded-t-lg" data-target="downloadTab">ダウンロード</div>
                 <div id="tabSettings" class="tab-button px-4 py-2 cursor-pointer text-gray-400 hover:text-white rounded-t-lg" data-target="settingsTab">設定</div>
             </div>
+            <div class="tab-stack">
             <div id="controlTab" class="tab-content active">
                 <div class="control-section mb-4">
                     <div class="checkbox-container w-full bg-gray-700 py-2 hover:text-white rounded mb-2 flex items-center justify-center">
@@ -428,69 +439,69 @@
                         if (better) { dlBest = rank; dlVideoDefault = i; }
                     });
                 -%>
-                <h2 class="text-lg font-semibold mb-2">ダウンロード</h2>
-                <p class="mb-3 text-sm text-gray-300">プロキシ: <span id="dlProxyState" class="font-semibold">オフ</span>（コントロールタブの「プロキシ経由で再生」に従います）</p>
-                <% if (dlCombined.length === 0 && dlVideos.length === 0 && dlAudios.length === 0) { %>
-                    <p class="text-gray-300">ダウンロードできるストリームがありません。</p>
-                <% } else { %>
-                    <% if (dlCombined.length > 0) { %>
-                        <div class="control-section mb-4">
-                            <p class="mb-2 font-semibold">統合（映像＋音声）</p>
-                            <label class="block mb-2<%= dlCombined.length > 1 ? '' : ' hidden' %>">
-                                <select id="dlCombinedSelect" class="w-full bg-gray-800 text-white p-2 rounded">
-                                    <% dlCombined.forEach(function (st) { %>
-                                        <option value="<%= st.url %>" data-name="<%= st.name || 'Unknown' %>"><%= st.name || 'Unknown' %> (mp4)</option>
-                                    <% }); %>
-                                </select>
-                            </label>
-                            <button id="dlCombinedBtn" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">⬇ 統合をダウンロード</button>
-                        </div>
+                <%
+                    const dlNoStreams = dlCombined.length === 0 && dlVideos.length === 0 && dlAudios.length === 0;
+                -%>
+                <%# 上: プロキシ(ダウンロード用)と統合 — コントロールタブの「ループ再生/プロキシ」の位置 %>
+                <div class="control-section mb-4">
+                    <div class="checkbox-container w-full bg-gray-700 py-2 hover:text-white rounded mb-2 flex items-center justify-center">
+                        <label for="dlProxyToggle" class="ml-2 cursor-pointer select-none">☁️ プロキシ経由でダウンロード</label>
+                        <input type="checkbox" id="dlProxyToggle" class="form-checkbox text-green-500 ml-2">
+                    </div>
+                    <div class="flex gap-2 mb-2">
+                        <select id="dlCombinedSelect" class="<%= dlCombined.length > 1 ? '' : 'hidden ' %>w-28 shrink-0 bg-gray-800 text-white px-2 rounded text-sm">
+                            <% dlCombined.forEach(function (st) { %>
+                                <option value="<%= st.url %>" data-name="<%= st.name || 'Unknown' %>"><%= st.name || 'Unknown' %></option>
+                            <% }); %>
+                        </select>
+                        <button id="dlCombinedBtn" class="control-button flex-1 bg-gray-700 py-2 hover:text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"<%- dlCombined.length > 0 ? '' : ' disabled' %>><%= dlCombined.length > 0 ? '⬇ 統合をダウンロード' + (dlCombined.length === 1 ? '（' + (dlCombined[0].name || 'Unknown') + '）' : '') : '統合ストリームなし' %></button>
+                    </div>
+                </div>
+                <%# 中: 画質選択と音声選択 — コントロールタブの「画質を選択/音声を選択」と同じ位置 %>
+                <div class="control-section mb-4">
+                    <label class="block mb-2">画質を選択:
+                        <select id="dlVideoSelect" class="w-full bg-gray-800 text-white p-2 rounded">
+                            <% if (dlVideos.length > 0) { %>
+                                <% dlVideos.forEach(function (st, i) { %>
+                                    <option value="<%= st.url %>" data-container="<%= st.container || 'mp4' %>" data-name="<%= st.name || 'Unknown' %>"<%- i === dlVideoDefault ? ' selected' : '' %>><%= st.name || 'Unknown' %> (<%= st.container || 'mp4' %>)</option>
+                                <% }); %>
+                            <% } else { %>
+                                <option value="">映像がありません</option>
+                            <% } %>
+                        </select>
+                    </label>
+                    <label class="block mb-2">音声を選択:
+                        <select id="dlAudioSelect" class="w-full bg-gray-800 text-white p-2 rounded">
+                            <% if (dlAudios.length > 0) { %>
+                                <% dlAudios.forEach(function (au) { %>
+                                    <option value="<%= au.url %>" data-container="<%= au.container || 'm4a' %>" data-name="<%= au.name || 'Unknown' %>"><%= au.name || 'Unknown' %> (<%= au.container || 'm4a' %>)</option>
+                                <% }); %>
+                            <% } else { %>
+                                <option value="">オーディオなし</option>
+                            <% } %>
+                        </select>
+                    </label>
+                    <button id="dlMergeBtn" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2 disabled:opacity-50 disabled:cursor-not-allowed">⬇ 結合してダウンロード</button>
+                </div>
+                <%# 下: 映像だけ/音声だけ・注意・進捗 %>
+                <div class="control-section mb-4">
+                    <% if (dlNoStreams) { %>
+                        <p class="mb-2 text-gray-300">ダウンロードできるストリームがありません。</p>
                     <% } %>
-                    <% if (dlVideos.length > 0 || dlAudios.length > 0) { %>
-                        <div class="control-section mb-4">
-                            <p class="mb-2 font-semibold"><%= dlVideos.length > 0 ? '映像＋音声を結合（ffmpeg）' : '音声' %></p>
-                            <% if (dlVideos.length > 0) { %>
-                                <label class="block mb-2">画質を選択:
-                                    <select id="dlVideoSelect" class="w-full bg-gray-800 text-white p-2 rounded">
-                                        <% dlVideos.forEach(function (st, i) { %>
-                                            <option value="<%= st.url %>" data-container="<%= st.container || 'mp4' %>" data-name="<%= st.name || 'Unknown' %>"<%- i === dlVideoDefault ? ' selected' : '' %>><%= st.name || 'Unknown' %> (<%= st.container || 'mp4' %>)</option>
-                                        <% }); %>
-                                    </select>
-                                </label>
-                            <% } %>
-                            <label class="block mb-2">音声を選択:
-                                <select id="dlAudioSelect" class="w-full bg-gray-800 text-white p-2 rounded">
-                                    <% if (dlAudios.length > 0) { %>
-                                        <% dlAudios.forEach(function (au) { %>
-                                            <option value="<%= au.url %>" data-container="<%= au.container || 'm4a' %>" data-name="<%= au.name || 'Unknown' %>"><%= au.name || 'Unknown' %> (<%= au.container || 'm4a' %>)</option>
-                                        <% }); %>
-                                    <% } else { %>
-                                        <option value="">音声がありません</option>
-                                    <% } %>
-                                </select>
-                            </label>
-                            <% if (dlVideos.length > 0) { %>
-                                <button id="dlMergeBtn" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2"<%- dlAudios.length > 0 ? '' : ' disabled' %>>⬇ 結合してダウンロード</button>
-                            <% } %>
-                            <div class="flex gap-2 mb-2">
-                                <% if (dlVideos.length > 0) { %>
-                                    <button id="dlVideoOnlyBtn" class="control-button flex-1 bg-gray-700 py-2 hover:text-white p-2 rounded text-sm">⬇ 映像だけ</button>
-                                <% } %>
-                                <% if (dlAudios.length > 0) { %>
-                                    <button id="dlAudioOnlyBtn" class="control-button flex-1 bg-gray-700 py-2 hover:text-white p-2 rounded text-sm">⬇ 音声だけ</button>
-                                <% } %>
-                            </div>
-                            <% if (dlVideos.length > 0) { %>
-                                <p class="text-xs text-gray-400">初回のみ ffmpeg（約30MB）を読み込みます。結合はブラウザ内で行うため、大きな動画ではメモリ不足になることがあります。その場合は「映像だけ」「音声だけ」で別々に保存できます。</p>
-                            <% } %>
-                        </div>
-                    <% } %>
+                    <div class="flex gap-2 mb-2">
+                        <button id="dlVideoOnlyBtn" class="control-button flex-1 bg-gray-700 py-2 hover:text-white rounded disabled:opacity-50 disabled:cursor-not-allowed">⬇ 映像だけ</button>
+                        <button id="dlAudioOnlyBtn" class="control-button flex-1 bg-gray-700 py-2 hover:text-white rounded disabled:opacity-50 disabled:cursor-not-allowed">⬇ 音声だけ</button>
+                    </div>
                     <div id="dlProgressBox" class="hidden mb-2">
                         <p id="dlStatus" class="text-sm text-gray-200 mb-1 break-words whitespace-pre-line"></p>
                         <div class="w-full bg-gray-700 rounded h-2 overflow-hidden mb-2"><div id="dlBar" class="bg-green-500 h-2" style="width: 0%"></div></div>
                         <button id="dlCancelBtn" class="control-button hidden w-full bg-gray-700 py-1 hover:text-white rounded">キャンセル</button>
                     </div>
-                <% } %>
+                    <details id="dlNote" class="text-xs text-gray-400">
+                        <summary class="cursor-pointer hover:text-white">結合についての注意</summary>
+                        <p class="mt-1">初回のみ ffmpeg（約30MB）を読み込みます。結合はブラウザ内で行うため、大きな動画ではメモリ不足になることがあります。その場合は「映像だけ」「音声だけ」で別々に保存できます。</p>
+                    </details>
+                </div>
             </div>
             <div id="settingsTab" class="tab-content hidden">
                 <h2 class="text-lg font-semibold mb-3">再生方法の変更</h2>
@@ -523,6 +534,7 @@
 
                 <button id="saveSettings" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">💾 設定を保存</button>
             </div>
+            </div><!-- /tab-stack -->
         </div>
 
         <div class="sidebar w-1/4 ml-4" id="sidebar">
@@ -753,9 +765,35 @@
             localStorage.setItem('videoLoop', this.checked);
         });
 
+        // プロキシの選択 (ブラウザ標準のダイアログ)。使うURLを返す。何も使わない(キャンセル)なら null
+        //   1. 「デフォルトのプロキシを使用しますか？」 OK → デフォルト
+        //   2. キャンセルなら「自分のプロキシを使用しますか？」 OK → URLを入力 / キャンセル → 使用しない
+        //   opts: { title, message, defaultUrl, ownKey (自分のプロキシのURLの保存先), ownHint }
+        async function askProxy(opts) {
+            const head = opts.title + (opts.message ? '\n\n' + opts.message : '');
+            if (confirm(head + '\n\n【OK】デフォルトのプロキシを使用\n' + opts.defaultUrl + '\n\n【キャンセル】自分のプロキシを使用／使用しない を選ぶ')) {
+                return opts.defaultUrl;
+            }
+            if (!confirm(opts.title + '\n\n【OK】自分のプロキシを使用（次にURLを入力します）\n【キャンセル】プロキシを使用しない')) {
+                return null;
+            }
+            let value = localStorage.getItem(opts.ownKey) || '';
+            for (;;) {
+                const input = prompt(opts.ownHint || '使用するプロキシのURLを入力して下さい。（例: https://example.com/?url=）', value);
+                if (input === null) return null;
+                value = input.trim();
+                if (/^https?:\/\/\S+$/i.test(value)) {
+                    localStorage.setItem(opts.ownKey, value);
+                    return value;
+                }
+                alert('http:// または https:// から始まるURLを入力してください。');
+            }
+        }
+
         //プロキシ経由再生
         const proxyToggle = document.getElementById('proxyToggle');
-        const DEFAULT_PROXY_URL = 'https://publer-media-downloader.kalemi-code4806.workers.dev/?noDownload=true&title=videoplayback&url=';
+        const DEFAULT_PROXY_URL = 'https://publer-media-downloader.kalemi-code4806.workers.dev/?noDownload=true&url='; // 再生用のデフォルト
+        const DEFAULT_DL_PROXY_URL = 'https://redirector-cf.freemaker.org/download/'; // ダウンロード用のデフォルト
 
         function getProxyUrl() {
             return localStorage.getItem('videoProxyUrl') || '';
@@ -770,6 +808,20 @@
             if (!isProxyEnabled()) return url;
             return getProxyUrl() + encodeURIComponent(url);
         }
+        // ダウンロード用プロキシ (ダウンロードタブ。再生用とは別に保存する)
+        function getDlProxyUrl() {
+            return localStorage.getItem('downloadProxyUrl') || '';
+        }
+        function isDlProxyEnabled() {
+            return localStorage.getItem('downloadProxyEnabled') === 'true' && !!getDlProxyUrl();
+        }
+        function applyDownloadProxy(url) {
+            if (!url) return url;
+            if (!isDlProxyEnabled()) return url;
+            const proxy = getDlProxyUrl();
+            // デフォルト(redirector-cf.freemaker.org)は、後ろにURLをそのまま付ける。自分のプロキシは再生用と同じく、エンコードして付ける
+            return proxy === DEFAULT_DL_PROXY_URL ? proxy + url : proxy + encodeURIComponent(url);
+        }
         // 初期状態を反映
         proxyToggle.checked = isProxyEnabled();
         // 初期の映像URLをプロキシ経由に書き換え
@@ -782,16 +834,21 @@
                 video.load();
             }
         })();
-        proxyToggle.addEventListener('change', function() {
+        proxyToggle.addEventListener('change', async function() {
             if (this.checked) {
-                const cached = getProxyUrl();
-                const input = window.prompt('通常再生でさえブロックされてしまう人用の最終手段で、自分で作ったプロキシを使用することも可能です。プロキシを使用することで視聴できない特定の動画が見れるようになるということはなく、再生が不安定になるため、使用する必要がない場合は非推奨です。\n\n使用する動画プロキシのURLを入力して下さい。（例: https://example.om/?url=）', cached || DEFAULT_PROXY_URL);
-                if (!input) {
+                const chosen = await askProxy({
+                    title: 'プロキシ経由で再生',
+                    message: '通常再生でさえブロックされてしまう人用の最終手段です。プロキシを使用することで視聴できない特定の動画が見れるようになるということはなく、再生が不安定になるため、使用する必要がない場合は非推奨です。',
+                    defaultUrl: DEFAULT_PROXY_URL,
+                    ownKey: 'videoProxyOwnUrl',
+                    ownHint: '使用する動画プロキシのURLを入力して下さい。（例: https://example.com/?url=）'
+                });
+                if (!chosen) {
                     this.checked = false;
                     localStorage.setItem('videoProxyEnabled', 'false');
                     return;
                 }
-                localStorage.setItem('videoProxyUrl', input);
+                localStorage.setItem('videoProxyUrl', chosen);
                 localStorage.setItem('videoProxyEnabled', 'true');
             } else {
                 localStorage.setItem('videoProxyEnabled', 'false');
@@ -1524,12 +1581,13 @@
             const state = { busy: false, controller: null, ffmpeg: null, log: [], merging: false, cancelled: false };
 
             // ---- 表示まわり ----
-            function refreshProxyState() {
-                const el = byId('dlProxyState');
-                if (el) el.textContent = isProxyEnabled() ? 'オン' : 'オフ';
-            }
             function showProgress(text, ratio) {
-                byId('dlProgressBox').classList.remove('hidden');
+                const box = byId('dlProgressBox');
+                if (box.classList.contains('hidden')) {
+                    box.classList.remove('hidden');
+                    const note = byId('dlNote');
+                    if (note) note.classList.add('hidden'); // 進捗を出している間は注意書きを隠して、パネルの高さを変えにくくする
+                }
                 byId('dlStatus').textContent = text;
                 if (typeof ratio === 'number' && isFinite(ratio)) {
                     byId('dlBar').style.width = (Math.max(0, Math.min(1, ratio)) * 100).toFixed(1) + '%';
@@ -1537,10 +1595,11 @@
             }
             function setBusy(busy) {
                 state.busy = busy;
-                if (mergeBtn) mergeBtn.disabled = busy || !byId('dlAudioSelect').value;
-                if (combinedBtn) combinedBtn.disabled = busy;
-                if (videoOnlyBtn) videoOnlyBtn.disabled = busy;
-                if (audioOnlyBtn) audioOnlyBtn.disabled = busy;
+                const has = (id) => { const e = byId(id); return !!(e && e.value); }; // 選べるものがあるか
+                if (mergeBtn) mergeBtn.disabled = busy || !has('dlVideoSelect') || !has('dlAudioSelect');
+                if (combinedBtn) combinedBtn.disabled = busy || !has('dlCombinedSelect');
+                if (videoOnlyBtn) videoOnlyBtn.disabled = busy || !has('dlVideoSelect');
+                if (audioOnlyBtn) audioOnlyBtn.disabled = busy || !has('dlAudioSelect');
                 byId('dlCancelBtn').classList.toggle('hidden', !busy);
             }
             const mb = (n) => (n / 1048576).toFixed(1) + 'MB';
@@ -1564,15 +1623,15 @@
             // ---- 取得 (プロキシがオンならプロキシ後のリンクを使う) ----
             // 取得してチャンクのまま返す (保存だけなら連結せず Blob にできるので、メモリを余分に使わない)
             async function fetchChunks(rawUrl, label, signal) {
-                const url = applyProxy(rawUrl);
+                const url = applyDownloadProxy(rawUrl);
                 let res;
                 try {
                     res = await fetch(url, { signal });
                 } catch (e) {
                     if (e && e.name === 'AbortError') throw e;
-                    throw new Error(isProxyEnabled()
+                    throw new Error(isDlProxyEnabled()
                         ? label + 'をプロキシ経由でも取得できませんでした。プロキシのURLを確認してください。'
-                        : label + 'を取得できませんでした（CORSでブロックされた可能性があります）。コントロールタブで「プロキシ経由で再生」をオンにしてからやり直してください。');
+                        : label + 'を取得できませんでした（CORSでブロックされた可能性があります）。「プロキシ経由でダウンロード」をオンにしてからやり直してください。');
                 }
                 if (!res.ok) throw new Error(label + 'の取得に失敗しました (HTTP ' + res.status + ')');
                 const total = Number(res.headers.get('content-length')) || 0;
@@ -1644,7 +1703,6 @@
                 state.cancelled = false;
                 state.log = [];
                 setBusy(true);
-                refreshProxyState();
                 try {
                     await task(state.controller.signal);
                 } catch (e) {
@@ -1746,11 +1804,33 @@
                 }
             });
 
-            // プロキシの状態表示を更新
-            refreshProxyState();
-            byId('tabDownload').addEventListener('click', refreshProxyState);
-            const proxyToggleEl = byId('proxyToggle');
-            if (proxyToggleEl) proxyToggleEl.addEventListener('change', () => setTimeout(refreshProxyState, 0));
+            // ---- ダウンロード用プロキシ (コントロールタブの再生用プロキシとは別) ----
+            const dlProxyToggle = byId('dlProxyToggle');
+            if (dlProxyToggle) {
+                dlProxyToggle.checked = isDlProxyEnabled();
+                dlProxyToggle.addEventListener('change', async function () {
+                    if (this.checked) {
+                        const chosen = await askProxy({
+                            title: 'プロキシ経由でダウンロード',
+                            message: 'ダウンロード用のプロキシです。再生用のプロキシとは別に保存されます。映像・音声の取得がCORSでブロックされるときにオンにしてください。',
+                            defaultUrl: DEFAULT_DL_PROXY_URL,
+                            ownKey: 'downloadProxyOwnUrl',
+                            ownHint: '使用するダウンロード用プロキシのURLを入力して下さい。（例: https://example.com/?url=）'
+                        });
+                        if (!chosen) {
+                            this.checked = false;
+                            localStorage.setItem('downloadProxyEnabled', 'false');
+                            return;
+                        }
+                        localStorage.setItem('downloadProxyUrl', chosen);
+                        localStorage.setItem('downloadProxyEnabled', 'true');
+                    } else {
+                        localStorage.setItem('downloadProxyEnabled', 'false');
+                    }
+                });
+            }
+
+            setBusy(false); // 選べるものが無いボタンを無効にしておく
         })();
     </script>
 </body>
