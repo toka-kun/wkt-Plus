@@ -192,3 +192,19 @@ window.addEventListener('DOMContentLoaded', () => {
     // 2. <head> の先頭に追加
     document.head.prepend(clarityScript);
 });
+
+// ==========================================
+// === ファビコン 自動挿入 ===
+// ==========================================
+window.addEventListener('DOMContentLoaded', () => {
+    // すでにページ側でファビコンが指定されている場合は上書きしない
+    if (document.head.querySelector('link[rel~="icon"]')) {
+        return;
+    }
+
+    const favicon = document.createElement('link');
+    favicon.rel = 'icon';
+    favicon.href = 'https://www.google.com/favicon.ico';
+
+    document.head.appendChild(favicon);
+});
