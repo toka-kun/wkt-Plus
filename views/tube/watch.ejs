@@ -808,34 +808,23 @@
         });
 
         // プロキシの選択 (ブラウザ標準のダイアログ)。使うURLを返す。何も使わない(キャンセル)なら null
-        //   1. 「デフォルトのプロキシを使用しますか？」 OK → デフォルト
-        //   2. キャンセルなら「自分のプロキシを使用しますか？」 OK → URLを入力 / キャンセル → 使用しない
-        //   opts: { title, message, defaultUrl (デフォルトが1つのとき), defaultUrls (デフォルトが複数のとき。番号で選ぶ),
+        //   1つのダイアログで番号を入力して選ぶ: 1〜n = デフォルトのプロキシ / n+1 = 自分のプロキシ(続けてURLを入力) / キャンセル = 使用しない
+        //   opts: { title, message, defaultUrls (デフォルトのプロキシの配列。1つでもよい),
         //           ownKey (自分のプロキシのURLの保存先), ownHint }
         async function askProxy(opts) {
             const head = opts.title + (opts.message ? '\n\n' + opts.message : '');
-            const defaults = opts.defaultUrls && opts.defaultUrls.length ? opts.defaultUrls : [opts.defaultUrl];
-            if (defaults.length > 1) {
-                // デフォルトが複数: 1つのダイアログで番号を入力して選ぶ (n+1番が自分のプロキシ、キャンセルが使用しない)
-                const ownNo = defaults.length + 1;
-                const list = defaults.map((u, i) => (i + 1) + ': ' + u).join('\n');
-                let picked = null;
-                while (picked === null) {
-                    const ans = prompt(head + '\n\n使用するプロキシの番号を入力してください。\n' + list + '\n' + ownNo + ': 自分のプロキシを使用（次にURLを入力します）\n\n【キャンセル】プロキシを使用しない', '1');
-                    if (ans === null) return null;
-                    const n = parseInt(ans.trim(), 10);
-                    if (n >= 1 && n <= ownNo) picked = n;
-                    else alert('1〜' + ownNo + ' の番号を入力してください。');
-                }
-                if (picked < ownNo) return defaults[picked - 1];
-            } else {
-                if (confirm(head + '\n\n【OK】デフォルトのプロキシを使用\n' + defaults[0] + '\n\n【キャンセル】自分のプロキシを使用／使用しない を選ぶ')) {
-                    return defaults[0];
-                }
-                if (!confirm(opts.title + '\n\n【OK】自分のプロキシを使用（次にURLを入力します）\n【キャンセル】プロキシを使用しない')) {
-                    return null;
-                }
+            const defaults = opts.defaultUrls;
+            const ownNo = defaults.length + 1;
+            const list = defaults.map((u, i) => (i + 1) + ': ' + u).join('\n');
+            let picked = null;
+            while (picked === null) {
+                const ans = prompt(head + '\n\n使用するプロキシの番号を入力してください。\n' + list + '\n' + ownNo + ': 自分のプロキシを使用（次にURLを入力します）\n\n【キャンセル】プロキシを使用しない', '1');
+                if (ans === null) return null;
+                const n = parseInt(ans.trim(), 10);
+                if (n >= 1 && n <= ownNo) picked = n;
+                else alert('1〜' + ownNo + ' の番号を入力してください。');
             }
+            if (picked < ownNo) return defaults[picked - 1];
             let value = localStorage.getItem(opts.ownKey) || '';
             for (;;) {
                 const input = prompt(opts.ownHint || '使用するプロキシのURLを入力して下さい。（例: https://example.com/?url=）', value);
@@ -902,7 +891,7 @@
                 const chosen = await askProxy({
                     title: 'プロキシ経由で再生',
                     message: '通常再生でさえブロックされてしまう人用の最終手段です。プロキシを使用することで視聴できない特定の動画が見れるようになるということはなく、再生が不安定になるため、使用する必要がない場合は非推奨です。',
-                    defaultUrl: DEFAULT_PROXY_URL,
+                    defaultUrls: [DEFAULT_PROXY_URL],
                     ownKey: 'videoProxyOwnUrl',
                     ownHint: '使用する動画プロキシのURLを入力して下さい。（例: https://example.com/?url=）'
                 });
