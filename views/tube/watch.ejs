@@ -152,6 +152,19 @@
                 transform: rotate(360deg);
             }
         }
+        /* 動画の枠は常に16:9で固定。動画の縦横比が違うときは、枠の中で黒帯を付けて収める */
+        .video-frame {
+            position: relative;
+            aspect-ratio: 16 / 9;
+            background: #000;
+        }
+        .video-frame > video {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
         .mobile-action-box {
             display: none;
             margin-top: 1rem;
@@ -193,7 +206,7 @@
 
     <div class="max-w-6xl mx-auto p-4 main-container" id="mainContainer">
         <div class="video-container" id="videoContainer">
-            <div class="relative">
+            <div class="video-frame">
                 <div class="loading-indicator" role="status" aria-label="Loading...">
                     <div class="loading-spinner"></div>
                 </div>
@@ -229,7 +242,7 @@
                         ? 'application/x-mpegURL'
                         : (initialStream.container === '統合' ? 'video/mp4' : 'video/' + (initialStream.container || 'mp4'));
                 -%>
-                <video id="video" class="w-full h-auto max-h-screen" controls preload="auto" playsinline poster="/wkt/back/vi/<%= videoId %>/maxresdefault.jpg">
+                <video id="video" controls preload="auto" playsinline poster="/wkt/back/vi/<%= videoId %>/maxresdefault.jpg">
                     <source id="videoSrc" src="<%- initialStream.url %>" type="<%= initialMime %>">
                 </video>
                 <audio id="audio" style="display: none;"></audio>
@@ -797,14 +810,31 @@
         // プロキシの選択 (ブラウザ標準のダイアログ)。使うURLを返す。何も使わない(キャンセル)なら null
         //   1. 「デフォルトのプロキシを使用しますか？」 OK → デフォルト
         //   2. キャンセルなら「自分のプロキシを使用しますか？」 OK → URLを入力 / キャンセル → 使用しない
-        //   opts: { title, message, defaultUrl, ownKey (自分のプロキシのURLの保存先), ownHint }
+        //   opts: { title, message, defaultUrl (デフォルトが1つのとき), defaultUrls (デフォルトが複数のとき。番号で選ぶ),
+        //           ownKey (自分のプロキシのURLの保存先), ownHint }
         async function askProxy(opts) {
             const head = opts.title + (opts.message ? '\n\n' + opts.message : '');
-            if (confirm(head + '\n\n【OK】デフォルトのプロキシを使用\n' + opts.defaultUrl + '\n\n【キャンセル】自分のプロキシを使用／使用しない を選ぶ')) {
-                return opts.defaultUrl;
-            }
-            if (!confirm(opts.title + '\n\n【OK】自分のプロキシを使用（次にURLを入力します）\n【キャンセル】プロキシを使用しない')) {
-                return null;
+            const defaults = opts.defaultUrls && opts.defaultUrls.length ? opts.defaultUrls : [opts.defaultUrl];
+            if (defaults.length > 1) {
+                // デフォルトが複数: 1つのダイアログで番号を入力して選ぶ (n+1番が自分のプロキシ、キャンセルが使用しない)
+                const ownNo = defaults.length + 1;
+                const list = defaults.map((u, i) => (i + 1) + ': ' + u).join('\n');
+                let picked = null;
+                while (picked === null) {
+                    const ans = prompt(head + '\n\n使用するプロキシの番号を入力してください。\n' + list + '\n' + ownNo + ': 自分のプロキシを使用（次にURLを入力します）\n\n【キャンセル】プロキシを使用しない', '1');
+                    if (ans === null) return null;
+                    const n = parseInt(ans.trim(), 10);
+                    if (n >= 1 && n <= ownNo) picked = n;
+                    else alert('1〜' + ownNo + ' の番号を入力してください。');
+                }
+                if (picked < ownNo) return defaults[picked - 1];
+            } else {
+                if (confirm(head + '\n\n【OK】デフォルトのプロキシを使用\n' + defaults[0] + '\n\n【キャンセル】自分のプロキシを使用／使用しない を選ぶ')) {
+                    return defaults[0];
+                }
+                if (!confirm(opts.title + '\n\n【OK】自分のプロキシを使用（次にURLを入力します）\n【キャンセル】プロキシを使用しない')) {
+                    return null;
+                }
             }
             let value = localStorage.getItem(opts.ownKey) || '';
             for (;;) {
@@ -822,7 +852,11 @@
         //プロキシ経由再生
         const proxyToggle = document.getElementById('proxyToggle');
         const DEFAULT_PROXY_URL = 'https://publer-media-downloader.kalemi-code4806.workers.dev/?noDownload=true&url='; // 再生用のデフォルト
-        const DEFAULT_DL_PROXY_URL = 'https://redirector-cf.freemaker.org/download/'; // ダウンロード用のデフォルト
+        // ダウンロード用のデフォルト (選択式。先頭が一番上の選択肢)
+        const DEFAULT_DL_PROXY_URLS = [
+            'https://redirector-cf.freemaker.org/download/',
+            'https://redirector-cf.freemake.com/download/'
+        ];
 
         function getProxyUrl() {
             return localStorage.getItem('videoProxyUrl') || '';
@@ -848,8 +882,8 @@
             if (!url) return url;
             if (!isDlProxyEnabled()) return url;
             const proxy = getDlProxyUrl();
-            // デフォルト(redirector-cf.freemaker.org)は、後ろにURLをそのまま付ける。自分のプロキシは再生用と同じく、エンコードして付ける
-            return proxy === DEFAULT_DL_PROXY_URL ? proxy + url : proxy + encodeURIComponent(url);
+            // デフォルト(freemaker.org / freemake.com)は、後ろにURLをそのまま付ける。自分のプロキシは再生用と同じく、エンコードして付ける
+            return DEFAULT_DL_PROXY_URLS.includes(proxy) ? proxy + url : proxy + encodeURIComponent(url);
         }
         // 初期状態を反映
         proxyToggle.checked = isProxyEnabled();
@@ -1839,7 +1873,7 @@
                         const chosen = await askProxy({
                             title: 'プロキシ経由でダウンロード',
                             message: 'ダウンロード用のプロキシです。再生用のプロキシとは別に保存されます。映像・音声の取得がCORSでブロックされるときにオンにしてください。',
-                            defaultUrl: DEFAULT_DL_PROXY_URL,
+                            defaultUrls: DEFAULT_DL_PROXY_URLS,
                             ownKey: 'downloadProxyOwnUrl',
                             ownHint: '使用するダウンロード用プロキシのURLを入力して下さい。（例: https://example.com/?url=）'
                         });
