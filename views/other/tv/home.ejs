@@ -342,12 +342,24 @@
                 dp.on('subtitle_show', () => setSubtitle(true));
                 dp.on('subtitle_hide', () => setSubtitle(false));
 
-                // トラックは再生開始後に追加されるので、追加されたら現在のオン/オフ状態を再適用する
-                video.textTracks.addEventListener('addtrack', () => setSubtitle(isSubtitleOn()));
+                // 字幕データがあるときだけ字幕ボタンを表示する
+                const subtitleBtn = dp.container.querySelector('.dplayer-subtitle-btn');
+                const hasSubtitle = () =>
+                    !!(hls && hls.subtitleTracks && hls.subtitleTracks.length) ||
+                    Array.from(video.textTracks).some((t) => t.kind === 'captions' || t.kind === 'subtitles');
+
+                // トラックは再生開始後に追加されるので、追加・更新のたびにボタンの表示とオン/オフ状態を反映し直す
+                const refreshSubtitle = () => {
+                    if (subtitleBtn) subtitleBtn.style.display = hasSubtitle() ? '' : 'none';
+                    setSubtitle(isSubtitleOn());
+                };
+                video.textTracks.addEventListener('addtrack', refreshSubtitle);
+                video.textTracks.addEventListener('removetrack', refreshSubtitle);
                 if (hls && window.Hls) {
-                    hls.on(window.Hls.Events.SUBTITLE_TRACKS_UPDATED, () => setSubtitle(isSubtitleOn()));
+                    hls.on(window.Hls.Events.MANIFEST_PARSED, refreshSubtitle);
+                    hls.on(window.Hls.Events.SUBTITLE_TRACKS_UPDATED, refreshSubtitle);
                 }
-                setSubtitle(isSubtitleOn());
+                refreshSubtitle();
             } else if (useFallback) {
                 let paramText = "";
                 
