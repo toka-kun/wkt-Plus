@@ -305,6 +305,9 @@
                     video: {
                         url: hlsUrl,
                         type: 'hls'
+                    },
+                    subtitle: {
+                        type: 'aribb24' // 配信に埋め込まれたARIB字幕を描画。コントロールバーにオン/オフボタンが出る
                     }
                 });
             } else if (useFallback) {
