@@ -305,8 +305,49 @@
                     video: {
                         url: hlsUrl,
                         type: 'hls'
+                    },
+                    subtitle: {
+                        // 字幕ボタン(オン/オフ)を出すための指定。
+                        // 'webvtt' だと video に crossorigin 属性と空の<track>が付くため、副作用のない 'aribb24' を使う。
+                        // 実際の字幕表示は下の setSubtitle() が hls.js のトラックを切り替えて行う。
+                        type: 'aribb24'
                     }
                 });
+
+                // --- DPlayerの字幕ボタンと hls.js の字幕/キャプショントラックを連動 ---
+                const dp = currentPlayer;
+                const hls = dp.plugins.hls;
+                const video = dp.video;
+                const isSubtitleOn = () => !!dp.user.get('subtitle');
+
+                const setSubtitle = (show) => {
+                    if (hls) {
+                        // マニフェスト内の字幕トラック(EXT-X-MEDIA TYPE=SUBTITLES)。未選択なら DEFAULT 指定、無ければ先頭を選ぶ
+                        if (show && hls.subtitleTrack === -1 && hls.subtitleTracks && hls.subtitleTracks.length) {
+                            const def = hls.subtitleTracks.findIndex((t) => t.default);
+                            hls.subtitleTrack = def >= 0 ? def : 0;
+                        }
+                        hls.subtitleDisplay = show;
+                    }
+                    // 映像内蔵のキャプション(CEA-608/708)や、hls.jsを使わない再生(Safari標準)の字幕トラック
+                    let shown = false;
+                    for (const t of Array.from(video.textTracks)) {
+                        if (t.kind === 'captions' || (!hls && t.kind === 'subtitles')) {
+                            t.mode = (show && !shown) ? 'showing' : 'hidden';
+                            if (show) shown = true;
+                        }
+                    }
+                };
+
+                dp.on('subtitle_show', () => setSubtitle(true));
+                dp.on('subtitle_hide', () => setSubtitle(false));
+
+                // トラックは再生開始後に追加されるので、追加されたら現在のオン/オフ状態を再適用する
+                video.textTracks.addEventListener('addtrack', () => setSubtitle(isSubtitleOn()));
+                if (hls && window.Hls) {
+                    hls.on(window.Hls.Events.SUBTITLE_TRACKS_UPDATED, () => setSubtitle(isSubtitleOn()));
+                }
+                setSubtitle(isSubtitleOn());
             } else if (useFallback) {
                 let paramText = "";
                 
