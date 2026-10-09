@@ -7,6 +7,8 @@
     <script src="/js/tailwindcss.js"></script>
     <link rel="stylesheet" href="/css/page.css">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <!-- tsukumijima/DPlayer (masterの最新)。DPlayerは window.Hls を自動で利用する。CSSはJSに同梱 -->
+    <script src="https://cdn.jsdelivr.net/gh/tsukumijima/DPlayer@master/dist/DPlayer.min.js"></script>
 </head>
 <body class="bg-gray-900 font-sans min-h-screen flex flex-col m-0 p-0 overflow-hidden text-white">
     
@@ -94,7 +96,7 @@
         const regionNav = document.getElementById('region-nav');
         const channelList = document.getElementById('channel-list');
         const playerContainer = document.getElementById('player-container');
-        let currentHls = null; 
+        let currentPlayer = null; // DPlayerのインスタンス
         let currentSelectedItem = null; // 現在選択中のチャンネル情報
         let currentPlayMode = localStorage.getItem('tv_play_mode') || 'hls'; // 'hls' または 'education'
 
@@ -268,9 +270,9 @@
 
         // 動画再生のロジック
         async function playMedia(hlsUrl, fallbackVideoId) {
-            if (currentHls) {
-                currentHls.destroy();
-                currentHls = null;
+            if (currentPlayer) {
+                currentPlayer.destroy();
+                currentPlayer = null;
             }
 
             const hasHls = hlsUrl && hlsUrl.trim() !== "";
@@ -293,23 +295,18 @@
             }
 
             if (useHls) {
-                playerContainer.innerHTML = `<video id="hls-video" class="w-full h-full bg-black rounded-2xl outline-none" controls autoplay></video>`;
-                const video = document.getElementById('hls-video');
-                
-                if (Hls.isSupported()) {
-                    currentHls = new Hls();
-                    currentHls.loadSource(hlsUrl);
-                    currentHls.attachMedia(video);
-                    currentHls.on(Hls.Events.MANIFEST_PARSED, function() {
-                        video.play();
-                    });
-                }
-                else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    video.src = hlsUrl;
-                    video.addEventListener('loadedmetadata', function() {
-                        video.play();
-                    });
-                }
+                playerContainer.innerHTML = `<div id="dplayer" class="w-full h-full"></div>`;
+
+                currentPlayer = new DPlayer({
+                    container: document.getElementById('dplayer'),
+                    live: true,
+                    autoplay: true,
+                    lang: 'ja',
+                    video: {
+                        url: hlsUrl,
+                        type: 'hls'
+                    }
+                });
             } else if (useFallback) {
                 let paramText = "";
                 
@@ -336,36 +333,6 @@
                 playerContainer.innerHTML = `<p class="text-gray-400 text-lg">再生可能なメディアがありません。</p>`;
             }
         }
-
-        // --- キーボードショートカット ---
-        document.addEventListener('keydown', (e) => {
-            const video = document.getElementById('hls-video');
-            
-            if (!video) return;
-
-            if (e.key === 'ArrowRight') {
-                video.currentTime += 10;
-            } else if (e.key === 'ArrowLeft') {
-                video.currentTime -= 10;
-            } 
-            else if (e.key === 'f' || e.key === 'F') {
-                if (!document.fullscreenElement) {
-                    video.requestFullscreen().catch(err => {
-                        console.error(`フルスクリーン表示に失敗しました: ${err.message}`);
-                    });
-                } else {
-                    document.exitFullscreen();
-                }
-            }
-            else if (e.key === ' ' || e.key === 'Spacebar') {
-                e.preventDefault(); 
-                if (video.paused) {
-                    video.play();
-                } else {
-                    video.pause();
-                }
-            }
-        });
     </script>
 
     <style>
