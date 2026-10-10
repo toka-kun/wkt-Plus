@@ -105,8 +105,17 @@
             display: none;
         }
         .controlPanel.open { display: block; }
+        /* 全タブを同じ場所に重ねる → パネルの高さは一番高いタブに揃う (スクロールはしない) */
+        .controlPanel .tab-stack { display: grid; grid-template-columns: minmax(0, 1fr); }
+        .controlPanel .tab-stack > .tab-content {
+            display: block;
+            grid-area: 1 / 1;
+            visibility: hidden;
+        }
+        .controlPanel .tab-stack > .tab-content.active { visibility: visible; }
         .tab-button.active {
             background-color: #4a5568;
+            color: #fff;
         }
         .tab-content {
             display: none;
@@ -175,7 +184,7 @@
                     <button
                         class="w-full bg-gray-700 py-2 rounded"
                         onclick="document.getElementById('controlPanel').classList.toggle('open')">
-                        設定
+                        コントロール
                     </button>
                 </div>
             </div>
@@ -314,35 +323,58 @@
 
         <div id="controlPanel" class="controlPanel bg-gray-900 text-white p-6 rounded-lg shadow-lg w-96 fixed bottom-10 right-10 border border-gray-700 z-50">
             <button id="closeControlPanel" class="absolute top-2 right-2 text-gray-400 hover:text-white text-2xl">×</button>
-            <h2 class="text-lg font-semibold mb-3">再生方法の変更</h2>
-            <p class="mb-4 text-gray-300">動画のデフォルトの再生方法を設定できます。埋め込みで見れるなら埋め込みで見た方が良いですよ。</p>
-            <p class="mb-4 text-gray-300">現在の再生方法: <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-sm font-semibold">Education</span></p>
-            <div class="control-section mb-4">
-                <div class="flex flex-col gap-1">
-                    <label class="flex items-start gap-2 py-1 px-1.5 -mx-1.5 rounded-md cursor-pointer transition-colors has-[:checked]:bg-blue-500/10 has-[:checked]:ring-1 has-[:checked]:ring-blue-500">
-                        <input type="radio" name="playbackMode" value="normal" class="mt-1 accent-blue-500">
-                        <div>
-                            <strong>通常</strong> - ストリームURLを用いて再生します。最初のデフォルト設定で、ほとんどの人が使用できます。
-                        </div>
+            <div class="tab-header flex border-b border-gray-700 mb-4">
+                <div id="tabControl" class="tab-button active px-4 py-2 cursor-pointer text-gray-400 hover:text-white rounded-t-lg" data-target="controlTab">コントロール</div>
+                <div id="tabSettings" class="tab-button px-4 py-2 cursor-pointer text-gray-400 hover:text-white rounded-t-lg" data-target="settingsTab">設定</div>
+            </div>
+            <div class="tab-stack">
+            <div id="controlTab" class="tab-content active">
+                <h2 class="text-lg font-semibold mb-3">URLパラメーターの選択</h2>
+                <p class="mb-4 text-gray-300">Educationの埋め込みに使うURLパラメーターを選べます。再生できない時は別のものを試してみてください。</p>
+                <p class="mb-4 text-gray-300">現在のパラメーター: <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-sm font-semibold"><%= (eduParams.find(function(p) { return p.id === currentParamId; }) || {}).name %><% if (currentParamId === 'edurl') { %>（<%= defaultParamName %>）<% } %></span></p>
+                <div class="control-section mb-4">
+                    <label class="block mb-2">パラメーターを選択:
+                        <select id="eduParamSelect" class="w-full bg-gray-800 text-white p-2 rounded">
+                            <% eduParams.forEach(function(p) { %>
+                                <option value="<%= p.id %>"<%= p.id === currentParamId ? ' selected' : '' %>><%= p.name %></option>
+                            <% }); %>
+                        </select>
                     </label>
-                    <label class="flex items-start gap-2 py-1 px-1.5 -mx-1.5 rounded-md cursor-pointer transition-colors has-[:checked]:bg-blue-500/10 has-[:checked]:ring-1 has-[:checked]:ring-blue-500">
-                        <input type="radio" name="playbackMode" value="edu" class="mt-1 accent-blue-500" checked>
-                        <div>
-                            <strong>Education</strong> - YouTubeEducationを埋め込んで再生を行います。一部の人が使用できます。
-                            <a href="/wkt/yt/edu/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
-                        </div>
-                    </label>
-                    <label class="flex items-start gap-2 py-1 px-1.5 -mx-1.5 rounded-md cursor-pointer transition-colors has-[:checked]:bg-blue-500/10 has-[:checked]:ring-1 has-[:checked]:ring-blue-500">
-                        <input type="radio" name="playbackMode" value="nocookie" class="mt-1 accent-blue-500">
-                        <div>
-                            <strong>Nocookie</strong> - YouTube-Nocookieを埋め込んで再生を行います。こちらも一部の人が使用できます。
-                            <a href="/wkt/yt/nocookie/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
-                        </div>
-                    </label>
+                    <button id="applyEduParam" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">🔃 このパラメーターで再生</button>
                 </div>
             </div>
+            <div id="settingsTab" class="tab-content">
+                <h2 class="text-lg font-semibold mb-3">再生方法の変更</h2>
+                <p class="mb-4 text-gray-300">動画のデフォルトの再生方法を設定できます。埋め込みで見れるなら埋め込みで見た方が良いですよ。</p>
+                <p class="mb-4 text-gray-300">現在の再生方法: <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-sm font-semibold">Education</span></p>
+                <div class="control-section mb-4">
+                    <div class="flex flex-col gap-1">
+                        <label class="flex items-start gap-2 py-1 px-1.5 -mx-1.5 rounded-md cursor-pointer transition-colors has-[:checked]:bg-blue-500/10 has-[:checked]:ring-1 has-[:checked]:ring-blue-500">
+                            <input type="radio" name="playbackMode" value="normal" class="mt-1 accent-blue-500">
+                            <div>
+                                <strong>通常</strong> - ストリームURLを用いて再生します。最初のデフォルト設定で、ほとんどの人が使用できます。
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-2 py-1 px-1.5 -mx-1.5 rounded-md cursor-pointer transition-colors has-[:checked]:bg-blue-500/10 has-[:checked]:ring-1 has-[:checked]:ring-blue-500">
+                            <input type="radio" name="playbackMode" value="edu" class="mt-1 accent-blue-500" checked>
+                            <div>
+                                <strong>Education</strong> - YouTubeEducationを埋め込んで再生を行います。一部の人が使用できます。
+                                <a href="/wkt/yt/edu/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-2 py-1 px-1.5 -mx-1.5 rounded-md cursor-pointer transition-colors has-[:checked]:bg-blue-500/10 has-[:checked]:ring-1 has-[:checked]:ring-blue-500">
+                            <input type="radio" name="playbackMode" value="nocookie" class="mt-1 accent-blue-500">
+                            <div>
+                                <strong>Nocookie</strong> - YouTube-Nocookieを埋め込んで再生を行います。こちらも一部の人が使用できます。
+                                <a href="/wkt/yt/nocookie/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
+                            </div>
+                        </label>
+                    </div>
+                </div>
 
-            <button id="saveSettings" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">💾 設定を保存</button>
+                <button id="saveSettings" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">💾 設定を保存</button>
+            </div>
+            </div><!-- /tab-stack -->
         </div>
 
         <div class="sidebar w-1/4 ml-4" id="sidebar">
@@ -436,7 +468,7 @@
             <button id="hideSidebar" class="w-full bg-gray-700 py-2 rounded">▶ サイドバーを隠す</button>
             <button id="toggleComments" class="mt-4 w-full bg-gray-700 py-2 rounded">コメントを開く</button>
             <button id="toggledouga" class="mt-4 w-full bg-gray-700 py-2 rounded">関連動画を開く</button>
-            <button id="toggleControlPanel" class="mt-4 w-full bg-gray-700 py-2 rounded">設定</button>
+            <button id="toggleControlPanel" class="mt-4 w-full bg-gray-700 py-2 rounded">コントロール</button>
             <div class="mt-4">
                 <% if (videoInfo.watch_next_feed?.length) { %>
                     <% videoInfo.watch_next_feed.forEach(video => { %>
@@ -611,7 +643,25 @@
         // コントロール
         $(document).ready(function() {
             $('#toggleControlPanel').click(() => $('#controlPanel').toggleClass('open'));
-            $('#closeControlPanel').click(() => $('#controlPanel').toggleClass('open'));
+            $('#closeControlPanel').click(() => $('#controlPanel').removeClass('open'));
+
+            // タブ切り替え
+            $('.tab-button').click(function() {
+                $('.tab-button').removeClass('active');
+                $(this).addClass('active');
+                $('.tab-content').removeClass('active');
+                $('#' + $(this).data('target')).addClass('active');
+            });
+
+            // URLパラメーターの変更（Cookieに保存して読み込み直す）
+            $('#applyEduParam').click(function() {
+                const id = $('#eduParamSelect').val();
+                const name = $('#eduParamSelect option:selected').text().trim();
+                document.cookie = `eduParam=${encodeURIComponent(id)}; path=/; max-age=31536000`;
+                $('#controlPanel').removeClass('open');
+                showMessage(`URLパラメーターを${name}に変更します☑️`);
+                window.location.href = window.location.pathname;
+            });
 
             $('#saveSettings').click(function() {
                 $('#controlPanel').toggleClass('open');
