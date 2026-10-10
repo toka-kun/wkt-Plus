@@ -18,7 +18,6 @@ const fetchConfigs = [
   { name: "edurl_wool4",  url: "https://raw.githubusercontent.com/wista-api-project/auto/refs/heads/main/edu/4.txt", type: "text" },
   { name: "edurl_wool5",  url: "https://raw.githubusercontent.com/wista-api-project/auto/refs/heads/main/edu/5.txt", type: "text" },
   { name: "edurl_wool6",  url: "https://raw.githubusercontent.com/wista-api-project/auto/refs/heads/main/edu/6.txt", type: "text" },
-  { name: "min-tube-api.json",url: "https://raw.githubusercontent.com/Minotaur-ZAOU/test/refs/heads/main/min-tube-api.json", type: "text" }  
 ];
 
 // 汎用的なデータ取得関数
