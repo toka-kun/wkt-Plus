@@ -30,11 +30,13 @@ const FALLBACK_DEFAULT_ID = "edurl_toka1";
 
 // ---- 1時間キャッシュ ----
 const CACHE_TTL = 60 * 60 * 1000;
+// 取得に失敗した時は、この時間だけ再取得を控える（落ちているサイトのせいで毎回ページが遅くなるのを防ぐ）
+const FAIL_TTL = 60 * 1000;
 const cache = new Map();   // key -> { value, expires }
 const pending = new Map(); // key -> Promise（同時リクエストをまとめる）
 
 // loader の結果を1時間キャッシュする。
-// 取得に失敗した時はキャッシュせず、期限切れの古い値があればそれを返す（なければ null）
+// 取得に失敗した時は、期限切れの古い値があればそれを（なければ null を）1分だけ覚えて返す
 function cached(key, loader) {
   const hit = cache.get(key);
   if (hit && hit.expires > Date.now()) return Promise.resolve(hit.value);
@@ -47,7 +49,9 @@ function cached(key, loader) {
       return value;
     } catch (error) {
       console.error(`Error fetching ${key}: ${error.message}`);
-      return hit ? hit.value : null;
+      const fallback = hit ? hit.value : null;
+      cache.set(key, { value: fallback, expires: Date.now() + FAIL_TTL });
+      return fallback;
     } finally {
       pending.delete(key);
     }
@@ -63,7 +67,7 @@ function findConfig(id) {
 // defaultKey.json を読んで、Default が指す実際のパラメーターの設定を返す
 async function getDefaultConfig() {
   const name = await cached("defaultKey", async () => {
-    const response = await axios.get(DEFAULT_KEY_URL, { timeout: 8000 });
+    const response = await axios.get(DEFAULT_KEY_URL, { timeout: 5000 });
     const value = response.data && response.data.name;
     if (typeof value !== "string" || !value) throw new Error("defaultKey.json に name がありません");
     return value;
@@ -78,13 +82,25 @@ async function getParamData(config) {
     return getParamData(await getDefaultConfig());
   }
   const data = await cached(config.id, async () => {
-    const response = await axios.get(config.url, { timeout: 8000 });
+    const response = await axios.get(config.url, { timeout: 5000 });
     // JSONの場合は指定されたキー（paramsやresult）、テキストの場合はそのまま
     const value = config.type === "json" ? response.data[config.key] : response.data;
     if (!value) throw new Error("値が空です");
     return value;
   });
   return data || ""; // 失敗時は空文字を返す（エラーで止めないため）
+}
+
+// 全パラメーターの値をまとめて取得する（{ id: 値 }、取得できなかったものは ""）。
+// 各値は1時間キャッシュされるので、2回目以降は外部へのアクセスは発生しない
+async function getAllParams() {
+  const values = {};
+  await Promise.all(
+    fetchConfigs.filter(c => !c.isDefault).map(async c => { values[c.id] = await getParamData(c); })
+  );
+  const defaultConfig = await getDefaultConfig();
+  for (const c of fetchConfigs.filter(c => c.isDefault)) values[c.id] = values[defaultConfig.id] || "";
+  return { values, defaultConfig };
 }
 
 // 再生に使うパラメーターを決める（?param=ID → Cookie → Default の順）
@@ -106,10 +122,13 @@ router.get('/edu/:id', async (req, res) => {
   const videoId = req.params.id;
   try {
     const paramConfig = pickParamConfig(req);
-    const ytinfo = await getParamData(paramConfig);
+    const [{ values: eduParamData, defaultConfig }, Info] = await Promise.all([
+      getAllParams(),
+      serverYt.infoGet(videoId),
+    ]);
+    const ytinfo = eduParamData[paramConfig.id];
     const videosrc = `https://www.youtubeeducation.com/embed/${videoId}${ytinfo}&playlist=${videoId}`;
-    
-    const Info = await serverYt.infoGet(videoId);
+
     const channels = serverYt.extractChannels(Info);
     const videoInfo = {
       title: Info.primary_info?.title?.text || "",
@@ -125,15 +144,15 @@ router.get('/edu/:id', async (req, res) => {
       watch_next_feed: serverYt.normalizeWatchNextFeed(Info.watch_next_feed),
     };
 
-    // フロントの選択欄用（id と name だけ渡す）
+    // フロントの選択欄用。値はページに埋め込むので、切り替え時にサーバーへ問い合わせる必要はない
     const eduParams = fetchConfigs.map(({ id, name }) => ({ id, name }));
-    const defaultParamName = (await getDefaultConfig()).name;
 
     res.render('tube/umekomi/edu.ejs', {
       videosrc, videoInfo, videoId,
       eduParams,
+      eduParamData,
       currentParamId: paramConfig.id,
-      defaultParamName,
+      defaultParamName: defaultConfig.name,
     });
   } catch (error) {
     res.status(500).render('tube/mattev', { 
