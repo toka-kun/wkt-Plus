@@ -178,7 +178,7 @@
         <div class="video-container" id="videoContainer">
             <div class="relative">
                 <div class="iframe-container">
-                    <iframe src="<%= videosrc %>" frameborder="0" allowfullscreen></iframe>
+                    <iframe id="eduFrame" src="<%= videosrc %>" frameborder="0" allowfullscreen></iframe>
                 </div>
                 <div class="mobile-action-box">
                     <button
@@ -330,17 +330,19 @@
             <div class="tab-stack">
             <div id="controlTab" class="tab-content active">
                 <h2 class="text-lg font-semibold mb-3">URLパラメーターの選択</h2>
-                <p class="mb-4 text-gray-300">Educationの埋め込みに使うURLパラメーターを選べます。再生できない時は別のものを試してみてください。</p>
-                <p class="mb-4 text-gray-300">現在のパラメーター: <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-sm font-semibold"><%= (eduParams.find(function(p) { return p.id === currentParamId; }) || {}).name %><% if (currentParamId === 'edurl') { %>（<%= defaultParamName %>）<% } %></span></p>
+                <p class="mb-4 text-gray-300">Educationの埋め込みに使うURLパラメーターを選べます。選ぶとページを読み込み直さずにすぐ切り替わります。再生できない時は別のものを試してみてください。（取得できなかったパラメーターは選べません）</p>
+                <p class="mb-4 text-gray-300">現在のパラメーター: <span id="currentParamBadge" class="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-sm font-semibold"><%= (eduParams.find(function(p) { return p.id === currentParamId; }) || {}).name %><% if (currentParamId === 'edurl') { %>（<%= defaultParamName %>）<% } %></span></p>
                 <div class="control-section mb-4">
                     <label class="block mb-2">パラメーターを選択:
                         <select id="eduParamSelect" class="w-full bg-gray-800 text-white p-2 rounded">
                             <% eduParams.forEach(function(p) { %>
-                                <option value="<%= p.id %>"<%= p.id === currentParamId ? ' selected' : '' %>><%= p.name %></option>
+                                <option value="<%= p.id %>"<%= p.id === currentParamId ? ' selected' : '' %><%= eduParamData[p.id] ? '' : ' disabled' %>><%= p.name %></option>
                             <% }); %>
                         </select>
                     </label>
-                    <button id="applyEduParam" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">🔃 このパラメーターで再生</button>
+                    <button id="eduParamReset" class="control-button w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">
+                        パラメーターをリセット
+                    </button>
                 </div>
             </div>
             <div id="settingsTab" class="tab-content">
@@ -653,14 +655,36 @@
                 $('#' + $(this).data('target')).addClass('active');
             });
 
-            // URLパラメーターの変更（Cookieに保存して読み込み直す）
-            $('#applyEduParam').click(function() {
-                const id = $('#eduParamSelect').val();
-                const name = $('#eduParamSelect option:selected').text().trim();
-                document.cookie = `eduParam=${encodeURIComponent(id)}; path=/; max-age=31536000`;
+            // URLパラメーターの変更（ページは読み込み直さず、iframeのsrcだけ差し替える）
+            // 全パラメーターの値はサーバーがページに埋め込んでいるので、切り替え時の通信は不要
+            // （値の中の「<」は \u003c に置き換えて、スクリプトが途中で閉じてしまわないようにしている）
+            const eduParamData = <%- JSON.stringify(eduParamData).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029') %>;
+            const defaultParamName = <%- JSON.stringify(defaultParamName) %>;
+            let currentParamId = <%- JSON.stringify(currentParamId) %>;
+
+            $('#eduParamSelect').change(function() {
+                const id = $(this).val();
+                if (id === currentParamId) return;
+                const name = $(this).find(':selected').text().trim();
+                const param = eduParamData[id];
+
                 $('#controlPanel').removeClass('open');
-                showMessage(`URLパラメーターを${name}に変更します☑️`);
-                window.location.href = window.location.pathname;
+                if (!param) {
+                    $(this).val(currentParamId); // 値が無い時は元の選択に戻す
+                    showerrorMessage(`${name}のパラメーターを取得できていません`);
+                    return;
+                }
+                document.getElementById('eduFrame').src =
+                    `https://www.youtubeeducation.com/embed/${videoId}${param}&playlist=${videoId}`;
+                currentParamId = id;
+                document.cookie = `eduParam=${encodeURIComponent(id)}; path=/; max-age=31536000`;
+                $('#currentParamBadge').text(id === 'edurl' ? `${name}（${defaultParamName}）` : name);
+                showMessage(`URLパラメーターを${name}に変更しました☑️`);
+            });
+
+            // パラメーターをリセット (Default に戻す)
+            $('#eduParamReset').click(function() {
+                $('#eduParamSelect').val('edurl').trigger('change');
             });
 
             $('#saveSettings').click(function() {
