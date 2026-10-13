@@ -122,6 +122,20 @@ async function getChannel(id) {
   }
 }
 
+// LockupView の metadata_rows から表示テキスト(視聴回数・投稿日など)を順に集める
+function collectLockupTexts(item) {
+  const texts = [];
+  for (const row of (item.metadata?.metadata?.metadata_rows || [])) {
+    for (const part of (row?.metadata_parts || [])) {
+      const t = part?.text?.text;
+      if (t) texts.push(String(t));
+    }
+    // metadata_parts が無い場合は行自体の text を試す
+    if (row?.text?.text) texts.push(String(row.text.text));
+  }
+  return texts;
+}
+
 // youtubei.js v17 のチャンネルアイテムを統一フォーマットに正規化
 function normalizeChannelItem(raw, tabName) {
   if (!raw) return null;
@@ -134,8 +148,10 @@ function normalizeChannelItem(raw, tabName) {
 
   // ── ShortsLockupView (ショート) ──────────────────────────
   if (type === 'ShortsLockupView') {
-    // entity_id は "shorts-shelf-item-{videoId}" 形式なのでプレフィックスを除去
-    const id = (item.entity_id || '').replace(/^shorts-shelf-item-/, '');
+    // 遷移先(reelWatchEndpoint)の videoId を優先し、無ければ
+    // entity_id("shorts-shelf-item-{videoId}")からプレフィックスを除去して使う
+    const id = item.on_tap_endpoint?.payload?.videoId
+            || (item.entity_id || '').replace(/^shorts-shelf-item-/, '');
     if (!id) return null;
     const om = item.overlay_metadata || {};
     const title = om.primary_text?.text
@@ -147,11 +163,20 @@ function normalizeChannelItem(raw, tabName) {
 
   // ── LockupView (動画/ライブ/リリース/再生リスト) ────────────
   if (type === 'LockupView') {
-    const id = item.content_id || '';
+    const contentType = item.content_type || 'VIDEO';
+    const id = item.content_id
+            || (contentType === 'SHORT' ? item.renderer_context?.command_context?.on_tap?.payload?.videoId : '')
+            || '';
     if (!id) return null;
 
-    const contentType = item.content_type || 'VIDEO';
     const title = item.metadata?.title?.text || '';
+
+    // ショート: 下の「VIDEO 以外は再生リスト扱い」に落ちると /wkt/p/{id} へ飛んでしまうため、
+    // ここで先に short として返す(遷移先は通常の動画ページ /wkt/watch/{id})。
+    if (contentType === 'SHORT') {
+      const views = collectLockupTexts(item).find(t => /回|view/i.test(t)) || '';
+      return { itemType: 'short', id, title, views };
+    }
 
     // チャンネルの推薦カード（アバターは content_image ではなく metadata.image 側）
     if (contentType === 'CHANNEL') {
@@ -180,17 +205,7 @@ function normalizeChannelItem(raw, tabName) {
     }
 
     // 視聴回数・投稿日時 → metadata_rows から収集
-    const rows = item.metadata?.metadata?.metadata_rows || [];
-    const allTexts = [];
-    for (const row of rows) {
-      const parts = row?.metadata_parts || [];
-      for (const part of parts) {
-        const t = part?.text?.text;
-        if (t) allTexts.push(String(t));
-      }
-      // metadata_parts が無い場合は行自体の text を試す
-      if (row?.text?.text) allTexts.push(String(row.text.text));
-    }
+    const allTexts = collectLockupTexts(item);
 
     let views = '', published = '';
     for (const t of allTexts) {
