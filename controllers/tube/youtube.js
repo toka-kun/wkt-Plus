@@ -23,7 +23,7 @@ const fetchConfigs = [
   { id: "edurl_wool6",  name: "woolisbest4520-6", url: "https://raw.githubusercontent.com/wista-api-project/auto/refs/heads/main/edu/6.txt", type: "text" },
 ];
 
-// Default として使うパラメーターを指定するファイル（{ "name": "edurl_toka1" } の形式）
+// Default として使うパラメーターを指定するファイル（{ "id": "edurl_toka1" } の形式）
 const DEFAULT_KEY_URL = "https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/keys/defaultKey.json";
 // defaultKey.json が取得できない・不正な値だった時に使うパラメーター
 const FALLBACK_DEFAULT_ID = "edurl_toka1";
@@ -66,13 +66,14 @@ function findConfig(id) {
 
 // defaultKey.json を読んで、Default が指す実際のパラメーターの設定を返す
 async function getDefaultConfig() {
-  const name = await cached("defaultKey", async () => {
+  const targetId = await cached("defaultKey", async () => {
     const response = await axios.get(DEFAULT_KEY_URL, { timeout: 5000 });
-    const value = response.data && response.data.name;
-    if (typeof value !== "string" || !value) throw new Error("defaultKey.json に name がありません");
+    // name ではなく id を取得するように変更
+    const value = response.data && response.data.id;
+    if (typeof value !== "string" || !value) throw new Error("defaultKey.json に id がありません");
     return value;
   });
-  const target = fetchConfigs.find(c => !c.isDefault && (c.id === name || c.name === name));
+  const target = fetchConfigs.find(c => !c.isDefault && (c.id === targetId || c.name === targetId));
   return target || findConfig(FALLBACK_DEFAULT_ID);
 }
 
