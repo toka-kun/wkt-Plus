@@ -12,7 +12,7 @@
     "ytpl": "latest",
     "cookie-parser": "^1.4.7",
     "soundcloud-downloader": "^1.0.0",
-    "youtubei.js": "latest",
+    "youtubei.js": "18.1.0",
     "undici": "latest",
     "miniget": "^4.2.3",
     "cors": "^2.8.5",
