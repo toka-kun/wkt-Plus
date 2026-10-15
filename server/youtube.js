@@ -111,7 +111,8 @@ async function getChannel(id) {
     // こうしないと LockupView のリリース/再生リストが動画カード扱いになり、
     // サムネ404や /wkt/watch/{id} への誤リンクが発生する。
     const shelves = rawShelves.map(shelf => {
-      const rawItems = shelf.content?.items || shelf.content?.playlists || [];
+      // 通常の棚は content.items、ショート棚(ReelShelf)は棚の直下の items に入っている
+      const rawItems = shelf.content?.items || shelf.content?.playlists || shelf.items || [];
       const items = rawItems.map(i => normalizeChannelItem(i, 'home')).filter(Boolean);
       return { title: shelf.title, items };
     });
@@ -159,6 +160,12 @@ function normalizeChannelItem(raw, tabName) {
                || '';
     const views = om.secondary_text?.text || '';
     return { itemType: 'short', id, title, views };
+  }
+
+  // ── ReelItem (旧形式のショート。ホームのショート棚で使われることがある) ──
+  if (type === 'ReelItem') {
+    if (!item.id) return null;
+    return { itemType: 'short', id: item.id, title: item.title?.text || '', views: item.views?.text || '' };
   }
 
   // ── LockupView (動画/ライブ/リリース/再生リスト) ────────────
@@ -396,10 +403,35 @@ function normalizeWatchNextFeed(rawFeed) {
 // コラボ動画を含む全チャンネルを channels 配列として抽出する
 function extractChannels(Info) {
   const owner = Info.secondary_info?.owner;
+  const author = owner?.author;
 
-  if (owner?.author?.id === 'N/A') {
+  // コラボ動画は投稿者の id が無い。以前は 'N/A' のときだけ調べていたが、
+  // 実際の YouTube ではコラボ動画の id が空で返ってくるため、空の場合も調べる。
+  if (!author?.id || author.id === 'N/A') {
+    // "チャンネル名 • 登録者数" の形から登録者数だけを取り出す
+    const pickSubsc = (text) => text.includes('•')
+      ? text.split('•').slice(1).join('•').replace(/[\u200e\u200f\u2068\u2069]/g, '').trim()
+      : '';
+
+    // 1) youtubei.js が用意している Author#collaborators(v18 以降)
     try {
-      const listItems = owner.author?.endpoint?.payload
+      const channels = (author?.collaborators || []).map(item => {
+        const id   = item.renderer_context?.command_context?.on_tap?.payload?.browseId || '';
+        const name = item.title?.text || '';
+        if (!id || !name) return null;
+        return {
+          id,
+          name,
+          icon: item.leading_accessory?.image?.[0]?.url || '',
+          subsc: pickSubsc(item.subtitle?.text || '')
+        };
+      }).filter(Boolean);
+      if (channels.length > 0) return channels;
+    } catch (_) {}
+
+    // 2) 従来の方法(生のペイロードをたどる)
+    try {
+      const listItems = author?.endpoint?.payload
         ?.panelLoadingStrategy?.inlineContent?.dialogViewModel
         ?.customContent?.listViewModel?.listItems;
 
@@ -412,12 +444,7 @@ function extractChannels(Info) {
           const id   = lvm.title?.commandRuns?.[0]?.onTap?.innertubeCommand
                          ?.browseEndpoint?.browseId || '';
           const icon = lvm.leadingAccessory?.avatarViewModel?.image?.sources?.[0]?.url || '';
-
-          const rawSubtitle = lvm.subtitle?.content || '';
-          const subsc = rawSubtitle.includes('•')
-            ? rawSubtitle.split('•').slice(1).join('•')
-                .replace(/[\u200e\u200f\u2068\u2069]/g, '').trim()
-            : '';
+          const subsc = pickSubsc(lvm.subtitle?.content || '');
 
           if (!id || !name) return null;
           return { id, name, icon, subsc };
@@ -437,49 +464,108 @@ function extractChannels(Info) {
   return [primary];
 }
 
-// YouTube v17 では動画が PlaylistVideo ではなく LockupView で返る。
-// page_contents → ItemSection → LockupView[] を直接取得して正規化する。
+// 再生リストの1件を共通形式に変換する(動画以外・未対応の形式は null)
+function toPlaylistEntry(item) {
+  if (!item) return null;
+  const type = item.type || '';
+
+  // 新形式(LockupView)
+  if (type === 'LockupView') {
+    const ct = item.content_type;
+    if (ct !== 'VIDEO' && ct !== 'SHORT') return null;
+    const videoId = item.content_id
+                 || item.renderer_context?.command_context?.on_tap?.payload?.videoId
+                 || '';
+    if (!videoId) return null;
+    const title = item.metadata?.title?.text || '';
+
+    // ショートは行の並びが違うので、視聴回数だけ拾う
+    if (ct === 'SHORT') {
+      const views = collectLockupTexts(item).find(t => /回視聴|\bviews?\b/i.test(t)) || '';
+      return { id: videoId, title, duration: '', views, published: '', channelName: '', channelId: '' };
+    }
+
+    // 再生時間 → content_image.overlays のバッジ
+    let duration = '';
+    for (const overlay of (item.content_image?.overlays || [])) {
+      for (const badge of (overlay.badges || [])) {
+        if (badge.text && /^\d/.test(badge.text)) { duration = badge.text; break; }
+      }
+      if (duration) break;
+    }
+
+    // row0 = チャンネル名、row1 = [視聴回数, 投稿日時]
+    const rows        = item.metadata?.metadata?.metadata_rows || [];
+    const channelName = rows[0]?.metadata_parts?.[0]?.text?.text || '';
+    const row1parts   = rows[1]?.metadata_parts || [];
+    const views       = row1parts[0]?.text?.text || '';
+    const published   = row1parts[1]?.text?.text || '';
+
+    // チャンネルID → metadata.image の renderer_context
+    const channelId = item.metadata?.image?.renderer_context
+      ?.command_context?.on_tap?.payload?.browseId || '';
+
+    return { id: videoId, title, duration, views, published, channelName, channelId };
+  }
+
+  // 旧形式
+  if (type === 'PlaylistVideo') {
+    if (!item.id) return null;
+    const authorId = item.author?.id;
+    return {
+      id: item.id,
+      title: item.title?.text || '',
+      duration: item.duration?.text || '',
+      views: '',
+      published: '',
+      channelName: item.author?.name || '',
+      channelId: (authorId && authorId !== 'N/A') ? authorId : ''
+    };
+  }
+
+  // ショート(「人気のショート動画」などの再生リスト)
+  // 注意: この形式の entity_id は動画IDではなくハッシュ値なので、遷移先の videoId を使う
+  if (type === 'ShortsLockupView') {
+    const videoId = item.on_tap_endpoint?.payload?.videoId || '';
+    if (!videoId) return null;
+    return {
+      id: videoId,
+      title: item.overlay_metadata?.primary_text?.text
+          || (item.accessibility_text || '').split(',')[0].trim(),
+      duration: '',
+      views: item.overlay_metadata?.secondary_text?.text || '',
+      published: '', channelName: '', channelId: ''
+    };
+  }
+
+  return null;
+}
+
 async function getPlaylist(id) {
   try {
     const pl = await client.getPlaylist(id);
 
-    const rawItems = [];
+    // 取り出し方を2通り試し、どちらかで取れなくてももう一方で補う:
+    //  1) page_contents を直接たどる(従来の方法。ショートの再生リストでは空になる)
+    //  2) youtubei.js が用意している pl.items(LockupView / PlaylistVideo / ショート)
+    const candidates = [];
     for (const section of (pl.page_contents?.contents || [])) {
-      for (const inner of (section.contents || [])) {
-        if (inner?.type === 'LockupView' && inner.content_type === 'VIDEO') {
-          rawItems.push(inner);
-        }
-      }
+      for (const inner of (section.contents || [])) candidates.push(inner);
+    }
+    try {
+      for (const it of Array.from(pl.items || [])) candidates.push(it);
+    } catch (e) {
+      // pl.items が使えない場合は 1) だけで続行
     }
 
-    const items = rawItems.map((item, idx) => {
-      const videoId = item.content_id || '';
-      if (!videoId) return null;
-
-      const title = item.metadata?.title?.text || '';
-
-      // 再生時間 → content_image.overlays のバッジ
-      let duration = '';
-      for (const overlay of (item.content_image?.overlays || [])) {
-        for (const badge of (overlay.badges || [])) {
-          if (badge.text && /^\d/.test(badge.text)) { duration = badge.text; break; }
-        }
-        if (duration) break;
-      }
-
-      // row0 = チャンネル名、row1 = [視聴回数, 投稿日時]
-      const rows     = item.metadata?.metadata?.metadata_rows || [];
-      const channelName = rows[0]?.metadata_parts?.[0]?.text?.text || '';
-      const row1parts   = rows[1]?.metadata_parts || [];
-      const views       = row1parts[0]?.text?.text || '';
-      const published   = row1parts[1]?.text?.text || '';
-
-      // チャンネルID → metadata.image の renderer_context
-      const channelId = item.metadata?.image?.renderer_context
-        ?.command_context?.on_tap?.payload?.browseId || '';
-
-      return { id: videoId, title, duration, views, published, channelName, channelId, index: idx + 1 };
-    }).filter(Boolean);
+    const seen = new Set();
+    const items = [];
+    for (const c of candidates) {
+      const entry = toPlaylistEntry(c);
+      if (!entry || seen.has(entry.id)) continue;
+      seen.add(entry.id);
+      items.push({ ...entry, index: items.length + 1 });
+    }
 
     return { info: pl.info, items, has_continuation: pl.has_continuation };
   } catch (err) {
