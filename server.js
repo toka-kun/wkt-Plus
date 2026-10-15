@@ -41,6 +41,7 @@ app.get('/app', (req, res) => {
 });
 
 app.use("/wkt", require("./routes/wakametube"));
+app.use("/wkt-debug", require("./routes/debug-yt")); // 一時的な確認用ページ(使い終わったら削除)
 app.use("/game", require("./routes/game"));
 app.use("/tools", require("./routes/tools"));
 app.use("/other", require("./routes/other"));
