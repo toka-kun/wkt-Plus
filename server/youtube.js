@@ -137,6 +137,32 @@ function collectLockupTexts(item) {
   return texts;
 }
 
+// ── LockupView の表示テキスト(チャンネル名・視聴回数・投稿日時)を、中身で見分ける ──
+// 何行目・何番目かで決めつけると、コラボ動画で崩れる。実際の YouTube では行の並びが違う:
+//   通常(一覧)        : [チャンネル名] / [視聴回数, 投稿日時]
+//   チャンネルのタブ   : [視聴回数, 投稿日時]
+//   コラボ(一覧)      : [チャンネル名, "、チャンネル名2"] / [視聴回数, 投稿日時]
+//   コラボ(タブ)      : [チャンネル名, "、チャンネル名2", 視聴回数, 投稿日時]   ← 1行にまとまる
+// 視聴回数は "103万" "794" のように、単位が付かないこともある。
+const RE_VIEWS_TEXT = /^[\d,.]+\s*(?:万|億|千|[KMB])?\s*(?:回視聴|人が視聴中|人が視聴|人が待機中|views?|watching|waiting)?$/i;
+const RE_DATE_TEXT  = /(?:秒|分|時間|日|週間|週|か月|ヶ月|年)\s*前$|\bago$|公開予定|配信済み|プレミア公開|Streamed|Premiered|Scheduled|^\d{4}\/\d{1,2}\/\d{1,2}/i;
+
+function parseLockupMeta(item) {
+  const names = [];
+  let views = '', published = '';
+  for (const t of collectLockupTexts(item)) {
+    if (RE_VIEWS_TEXT.test(t))     views = t;       // 複数あれば後ろのものを採用
+    else if (RE_DATE_TEXT.test(t)) published = t;
+    else                           names.push(t);   // 残りはチャンネル名(コラボは複数に分かれる)
+  }
+  return { channelName: names.join(''), views, published };
+}
+
+// 視聴回数に単位が無いとき("103万" など)は「回視聴」を付ける。"1424 人が視聴中" はそのまま。
+function withViewsUnit(text) {
+  return text && !/視聴|views?|watching|待機/i.test(text) ? text + '回視聴' : text;
+}
+
 // youtubei.js v17 のチャンネルアイテムを統一フォーマットに正規化
 function normalizeChannelItem(raw, tabName) {
   if (!raw) return null;
@@ -181,7 +207,7 @@ function normalizeChannelItem(raw, tabName) {
     // ショート: 下の「VIDEO 以外は再生リスト扱い」に落ちると /wkt/p/{id} へ飛んでしまうため、
     // ここで先に short として返す(遷移先は通常の動画ページ /wkt/watch/{id})。
     if (contentType === 'SHORT') {
-      const views = collectLockupTexts(item).find(t => /回|view/i.test(t)) || '';
+      const views = withViewsUnit(parseLockupMeta(item).views);
       return { itemType: 'short', id, title, views };
     }
 
@@ -211,18 +237,11 @@ function normalizeChannelItem(raw, tabName) {
       if (duration) break;
     }
 
-    // 視聴回数・投稿日時 → metadata_rows から収集
-    const allTexts = collectLockupTexts(item);
-
-    let views = '', published = '';
-    for (const t of allTexts) {
-      if (!views && /回|view/i.test(t))                              views     = t;
-      else if (!published && /ago|前|年|ヶ月|週|日|時間|秒/i.test(t)) published = t;
-      else if (!published && !views)                                  published = t;
-    }
+    // 視聴回数・投稿日時 → 並び順ではなく中身で見分ける(コラボ動画はチャンネル名が混ざる)
+    const meta = parseLockupMeta(item);
 
     const itemType = tabName === 'shorts' ? 'short' : 'video';
-    return { itemType, id, title, duration, views, published };
+    return { itemType, id, title, duration, views: withViewsUnit(meta.views), published: meta.published };
   }
 
   // ── 旧形式動画 (GridVideo / CompactVideo / Video) ──────────
@@ -234,7 +253,7 @@ function normalizeChannelItem(raw, tabName) {
       id,
       title:     item.title?.text || (typeof item.title === 'string' ? item.title : '') || '',
       duration:  item.duration?.text || (typeof item.duration === 'string' ? item.duration : '') || '',
-      views:     item.short_view_count?.text || item.view_count?.text || '',
+      views:     item.view_count?.text || '',
       published: item.published?.text || (typeof item.published === 'string' ? item.published : '') || ''
     };
   }
@@ -356,14 +375,11 @@ function normalizeWatchNextFeed(rawFeed) {
     if (item.type !== 'LockupView') return item;
     if (item.content_type !== 'VIDEO') return null;
 
-    const rows = item.metadata?.metadata?.metadata_rows || [];
-    const channelName = rows[0]?.metadata_parts?.[0]?.text?.text || '';
-    const rawViewCount = rows[1]?.metadata_parts?.[0]?.text?.text || '';
-    const publishedText = rows[1]?.metadata_parts?.[1]?.text?.text || '';
-
-    const viewCountText = rawViewCount && !rawViewCount.includes('視聴')
-      ? rawViewCount + '回視聴'
-      : rawViewCount;
+    // チャンネル名・視聴回数・投稿日時は、並び順ではなく中身で見分ける(コラボ動画は行の並びが違う)
+    const meta = parseLockupMeta(item);
+    const channelName = meta.channelName;
+    const publishedText = meta.published;
+    const viewCountText = withViewsUnit(meta.views);
     const videoId = item.content_id
       || item.renderer_context?.command_context?.on_tap?.payload?.videoId
       || null;
@@ -394,7 +410,7 @@ function normalizeWatchNextFeed(rawFeed) {
         thumbnails: channelThumbUrl ? [{ url: channelThumbUrl }] : []
       },
       duration: durationText ? { text: durationText } : null,
-      short_view_count: { text: viewCountText },
+      view_count: { text: viewCountText },
       published: publishedText ? { text: publishedText } : null
     };
   }).filter(Boolean);
@@ -481,7 +497,7 @@ function toPlaylistEntry(item) {
 
     // ショートは行の並びが違うので、視聴回数だけ拾う
     if (ct === 'SHORT') {
-      const views = collectLockupTexts(item).find(t => /回視聴|\bviews?\b/i.test(t)) || '';
+      const views = withViewsUnit(parseLockupMeta(item).views);
       return { id: videoId, title, duration: '', views, published: '', channelName: '', channelId: '' };
     }
 
@@ -494,18 +510,14 @@ function toPlaylistEntry(item) {
       if (duration) break;
     }
 
-    // row0 = チャンネル名、row1 = [視聴回数, 投稿日時]
-    const rows        = item.metadata?.metadata?.metadata_rows || [];
-    const channelName = rows[0]?.metadata_parts?.[0]?.text?.text || '';
-    const row1parts   = rows[1]?.metadata_parts || [];
-    const views       = row1parts[0]?.text?.text || '';
-    const published   = row1parts[1]?.text?.text || '';
+    // チャンネル名・視聴回数・投稿日時は、並び順ではなく中身で見分ける(コラボ動画は行の並びが違う)
+    const meta = parseLockupMeta(item);
 
     // チャンネルID → metadata.image の renderer_context
     const channelId = item.metadata?.image?.renderer_context
       ?.command_context?.on_tap?.payload?.browseId || '';
 
-    return { id: videoId, title, duration, views, published, channelName, channelId };
+    return { id: videoId, title, duration, views: withViewsUnit(meta.views), published: meta.published, channelName: meta.channelName, channelId };
   }
 
   // 旧形式
