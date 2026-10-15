@@ -279,7 +279,10 @@ router.get('/comment/:id', async (req, res) => {
 router.get('/next/:id', async (req, res) => {
     const id = req.params.id;
     try {
-        const videoInfo = await serverYt.infoGet(id);
+        const info = await serverYt.infoGet(id);
+        // 生の関連動画は新形式(LockupView)で返ってくるため、そのまま渡すと next.ejs は1件も表示できない。
+        // 動画ページと同じ変換済みの関連動画を渡す。
+        const videoInfo = { watch_next_feed: serverYt.normalizeWatchNextFeed(info.watch_next_feed) };
         res.render('tube/back/next', { videoInfo });
    } catch (error) {
         res.status(500).render('error', { 
