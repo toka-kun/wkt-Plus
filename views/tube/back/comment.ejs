@@ -1,18 +1,66 @@
 <html>
 <script src="/js/tailwindcss.js"></script>
 <body class="bg-gray-900 text-white">
+  <%
+    // コメントが取得できなかった(null)・作者や本文が欠けている場合でも落ちないようにする
+    const threads = (cm && Array.isArray(cm.contents)) ? cm.contents.filter(c => c && c.comment) : [];
+    // 本文はそのまま HTML として出力するとコメントに書かれたタグが実行されてしまうため、先にエスケープする
+    const esc = (t) => String(t)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    // "0" や空は表示しない
+    const shown = (v) => (v && String(v) !== '0') ? String(v) : '';
+  %>
   <div class="mt-4 p-4 bg-gray-800 rounded-lg shadow-lg">
     <div class="mt-2 space-y-4">
-      <% cm.contents.filter(c => c.comment).forEach(CommentThread => { %>   
+      <% if (threads.length === 0) { %>
+        <p class="text-gray-400">コメントを表示できません(コメントが無効、または取得に失敗しました)</p>
+      <% } %>
+      <% threads.forEach(CommentThread => {
+           const c = CommentThread.comment;
+           const avatar = c.author?.thumbnails?.[0]?.url || '';
+           const authorId = c.author?.id && c.author.id !== 'N/A' ? c.author.id : '';
+           const authorName = c.author?.name || "(Unable to parse author name)";
+           const body = c.content?.text || "(Unable to parse comment)";
+           const likes = shown(c.like_count);
+           const replies = shown(c.reply_count);
+      %>
         <div class="flex items-start bg-gray-700 p-4 rounded-lg transition-transform transform hover:scale-101">
-          <img loading="lazy" src="<%= CommentThread.comment?.author.thumbnails[0].url %>" class="w-10 h-10 rounded-full">
-          <div class="ml-3">
-            <p class="text-lg font-semibold">
-              <a href="/wkt/c/<%= CommentThread.comment?.author.id %>" target="_blank" class="text-blue-400 hover:underline"><%= CommentThread.comment?.author.name || "(Unable to parse author name)" %></a>
+          <% if (avatar) { %>
+          <img loading="lazy" src="<%= avatar %>" class="w-10 h-10 rounded-full flex-shrink-0">
+          <% } else { %>
+          <div class="w-10 h-10 rounded-full bg-gray-600 flex-shrink-0"></div>
+          <% } %>
+          <div class="ml-3 min-w-0">
+            <% if (c.is_pinned) { %>
+            <p class="text-xs text-yellow-300 mb-1">📌 固定されたコメント</p>
+            <% } %>
+            <p class="text-lg font-semibold flex flex-wrap items-center gap-x-2 gap-y-1">
+              <% if (authorId) { %>
+              <a href="/wkt/c/<%= authorId %>" target="_blank" class="text-blue-400 hover:underline"><%= authorName %></a>
+              <% } else { %>
+              <span class="text-blue-400"><%= authorName %></span>
+              <% } %>
+              <% if (c.author_is_channel_owner) { %>
+              <span class="text-xs font-normal bg-gray-500 rounded px-2 py-0.5">投稿者</span>
+              <% } %>
+              <% if (c.is_member) { %>
+              <span class="text-xs font-normal bg-green-700 rounded px-2 py-0.5">メンバー</span>
+              <% } %>
+              <% if (c.published_time) { %>
+              <span class="text-sm font-normal text-gray-400"><%= c.published_time %></span>
+              <% } %>
             </p>
-            <p class="text-gray-300 text-lg mt-1">
-              <%- (CommentThread.comment?.content.text || "(Unable to parse comment)").replace(/\n/g, "<br>") %>
+            <p class="text-gray-300 text-lg mt-1 break-words">
+              <%- esc(body).replace(/\n/g, "<br>") %>
             </p>
+            <% if (likes || c.is_hearted || replies) { %>
+            <p class="text-sm text-gray-400 mt-2 flex flex-wrap gap-x-4 gap-y-1">
+              <% if (likes) { %><span>👍 <%= likes %></span><% } %>
+              <% if (c.is_hearted) { %><span class="text-red-400">❤ 投稿者がいいね</span><% } %>
+              <% if (replies) { %><span>💬 返信 <%= replies %>件</span><% } %>
+            </p>
+            <% } %>
           </div>
         </div>
       <% }); %>
