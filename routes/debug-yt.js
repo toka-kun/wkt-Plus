@@ -450,7 +450,26 @@ const PARTS = {
         description_length: String(i.secondary_info?.description?.text || "").length,
         owner_name: i.secondary_info?.owner?.author?.name,
         owner_id: i.secondary_info?.owner?.author?.id ?? null,
-        "コラボ動画の手がかり": { collaborators: collab, author_endpoint_command: endpointCommand },
+        "コラボ動画の手がかり": (() => {
+          const os = i.secondary_info?.owner;
+          const tap = os?.avatar_stack?.renderer_context?.command_context?.on_tap;
+          let items = null;
+          try { items = Array.from(tap?.command?.inline_content?.custom_content?.items || []).length; } catch (e) { items = "取得エラー: " + e.message; }
+          return {
+            collaborators: collab,
+            author_endpoint_command: endpointCommand,
+            owner_keys: os ? Object.keys(os) : null,
+            owner_endpoint: os?.endpoint?.name ?? null,
+            "avatar_stack(コラボ動画のアイコンの束)": os?.avatar_stack ? {
+              avatars: os.avatar_stack.avatars?.length,
+              text: os.avatar_stack.text?.text,
+              on_tap: tap?.name ?? null,
+              on_tap_command: tap?.command?.type ?? null,
+              解析済みの一覧の件数: items,
+              生の一覧の件数: tap?.payload?.panelLoadingStrategy?.inlineContent?.dialogViewModel?.customContent?.listViewModel?.listItems?.length ?? null,
+            } : null,
+          };
+        })(),
       },
       "■ 動画ページに渡される値(controllers と同じ作り方)": { videoInfo: { ...videoInfo, description: "(" + videoInfo.description.length + "文字)" }, 空になった項目: empty },
       "■ チャンネル一覧(コラボ対応。extractChannels)": channelsError ? "エラー: " + channelsError : channels,
@@ -525,7 +544,18 @@ const PARTS = {
         youtubeからの結果: raw ? "取得できた" : (rawError ? "エラー: " + rawError : "null"),
         thread_count: threads.length,
         with_comment: withComment.length,
-        first_comment_keys: withComment[0] ? Object.keys(withComment[0].comment).slice(0, 20) : null,
+        first_comment_keys: withComment[0] ? Object.keys(withComment[0].comment).slice(0, 40) : null,
+        "先頭5件の項目(コメント機能の追加用)": withComment.slice(0, 5).map((t) => {
+          const cm = t.comment;
+          return {
+            like_count: cm.like_count, published_time: cm.published_time, is_pinned: cm.is_pinned,
+            author_is_channel_owner: cm.author_is_channel_owner, is_member: cm.is_member, is_hearted: cm.is_hearted,
+            reply_count: cm.reply_count, reply_level: cm.reply_level, content_length: String(cm.content?.text || "").length,
+            thread_keys: Object.keys(t).slice(0, 15), thread_has_replies: t.has_replies, thread_replies: Array.isArray(t.replies) ? t.replies.length : (t.replies ? "あり" : null),
+          };
+        }),
+        "コメント欄のヘッダー": raw?.header ? { keys: Object.keys(raw.header).slice(0, 15), count_text: raw.header.comments_count?.text ?? null } : null,
+        続きの読み込み: typeof raw?.getContinuation === "function" ? "getContinuation あり" : "なし",
       },
       "■ コメント欄(back/comment.ejs)での扱い": {
         サイトの取得結果: sr.error ? "エラー: " + sr.error : site ? "取得できた" : "null(修正前の comment.ejs は cm.contents でエラーになる)",
