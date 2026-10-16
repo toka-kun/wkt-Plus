@@ -429,9 +429,9 @@ function extractChannels(Info) {
       ? text.split('•').slice(1).join('•').replace(/[\u200e\u200f\u2068\u2069]/g, '').trim()
       : '';
 
-    // 1) youtubei.js が用意している Author#collaborators(v18 以降)
+    // 0) youtubei.js が用意している Author#collaborators(使えれば一番簡単)
     try {
-      const channels = (author?.collaborators || []).map(item => {
+      const channels = Array.from(author?.collaborators || []).map(item => {
         const id   = item.renderer_context?.command_context?.on_tap?.payload?.browseId || '';
         const name = item.title?.text || '';
         if (!id || !name) return null;
@@ -445,30 +445,63 @@ function extractChannels(Info) {
       if (channels.length > 0) return channels;
     } catch (_) {}
 
-    // 2) 従来の方法(生のペイロードをたどる)
-    try {
-      const listItems = author?.endpoint?.payload
-        ?.panelLoadingStrategy?.inlineContent?.dialogViewModel
-        ?.customContent?.listViewModel?.listItems;
+    // 共同投稿者の一覧が入っている「遷移先」の候補。YouTube や youtubei.js の版によって
+    // 置き場所が違う(実データでは author.endpoint が空だった)ため、全部調べる:
+    //   author.endpoint(以前の場所) / owner.endpoint / owner.avatar_stack のタップ先(コラボ動画で使われる)
+    const endpoints = [
+      author?.endpoint,
+      owner?.endpoint,
+      owner?.avatar_stack?.renderer_context?.command_context?.on_tap
+    ].filter(Boolean);
 
-      if (Array.isArray(listItems) && listItems.length > 0) {
-        const channels = listItems.map(item => {
-          const lvm = item?.listItemViewModel;
-          if (!lvm) return null;
-
-          const name = lvm.title?.content || '';
-          const id   = lvm.title?.commandRuns?.[0]?.onTap?.innertubeCommand
-                         ?.browseEndpoint?.browseId || '';
-          const icon = lvm.leadingAccessory?.avatarViewModel?.image?.sources?.[0]?.url || '';
-          const subsc = pickSubsc(lvm.subtitle?.content || '');
-
+    for (const ep of endpoints) {
+      // (a) youtubei.js が解析済みの一覧(ListItemView)
+      try {
+        const channels = Array.from(ep.command?.inline_content?.custom_content?.items || []).map(item => {
+          const id = item.renderer_context?.command_context?.on_tap?.payload?.browseId
+                  || item.title?.runs?.[0]?.endpoint?.payload?.browseId
+                  || item.title?.endpoint?.payload?.browseId
+                  || '';
+          const name = item.title?.text || '';
           if (!id || !name) return null;
-          return { id, name, icon, subsc };
+          return {
+            id,
+            name,
+            icon: item.leading_accessory?.image?.[0]?.url || '',
+            subsc: pickSubsc(item.subtitle?.text || '')
+          };
         }).filter(Boolean);
-
         if (channels.length > 0) return channels;
-      }
-    } catch (_) {}
+      } catch (_) {}
+
+      // (b) 生のペイロードをたどる(解析済みの一覧が使えない場合)
+      try {
+        const listItems = ep.payload
+          ?.panelLoadingStrategy?.inlineContent?.dialogViewModel
+          ?.customContent?.listViewModel?.listItems;
+
+        if (Array.isArray(listItems) && listItems.length > 0) {
+          const channels = listItems.map(item => {
+            const lvm = item?.listItemViewModel;
+            if (!lvm) return null;
+
+            const name = lvm.title?.content || '';
+            const id   = lvm.title?.commandRuns?.[0]?.onTap?.innertubeCommand
+                           ?.browseEndpoint?.browseId
+                      || lvm.rendererContext?.commandContext?.onTap?.innertubeCommand
+                           ?.browseEndpoint?.browseId
+                      || '';
+            const icon = lvm.leadingAccessory?.avatarViewModel?.image?.sources?.[0]?.url || '';
+            const subsc = pickSubsc(lvm.subtitle?.content || '');
+
+            if (!id || !name) return null;
+            return { id, name, icon, subsc };
+          }).filter(Boolean);
+
+          if (channels.length > 0) return channels;
+        }
+      } catch (_) {}
+    }
   }
 
   const primary = {
