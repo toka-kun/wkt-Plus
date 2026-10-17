@@ -84,10 +84,38 @@ async function infoGet(id) {
   return await client.getInfo(id);
 }
 
+// 検索結果の再生リストは、従来の Playlist ではなく新形式(LockupView)で返ってくることがある。
+// 検索ページは従来形式の Playlist を前提に作られているため、ここで従来形式に直す。
+// (実データ: 1行目 ["チャンネル名","プレイリスト"]、バッジ "2,580 本の動画"、遷移先の videoId = 先頭の動画)
+function toSearchResult(item) {
+  if (item?.type !== 'LockupView' || item.content_type !== 'PLAYLIST' || !item.content_id) return item;
+
+  const rows = item.metadata?.metadata?.metadata_rows || [];
+  const ci = item.content_image;
+  const badgeTexts = [...(ci?.overlays || []), ...(ci?.primary_thumbnail?.overlays || [])]
+    .flatMap(o => (o?.badges || []).map(b => b?.text).filter(Boolean));
+  const count = badgeTexts.map(t => (String(t).match(/[\d,]+/) || [])[0]).find(Boolean) || '';
+
+  return {
+    type: 'Playlist',
+    id: item.content_id,
+    title: { text: item.metadata?.title?.text || '' },
+    author: {
+      id: item.metadata?.image?.renderer_context?.command_context?.on_tap?.payload?.browseId || '',
+      name: rows[0]?.metadata_parts?.[0]?.text?.text || ''
+    },
+    endpoint: { payload: { videoId: item.renderer_context?.command_context?.on_tap?.payload?.videoId || '' } },
+    first_videos: [],
+    video_count: { text: count }
+  };
+}
+
 async function search(q, page, limit) {
   if (!q) return;
   try {
-    return await client.search(q, {type: "all"});
+    const res = await client.search(q, {type: "all"});
+    // 画面が使うのは results だけ
+    return { results: Array.from(res?.results || []).map(toSearchResult) };
   } catch (error) {
     return null;
   }
