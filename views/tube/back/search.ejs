@@ -39,6 +39,27 @@
                             </div>
                         </div>
                     </div>
+                  <% } else if (video.type && video.type.endsWith("Playlist")) { %>
+                    <% const plThumbId = video.endpoint?.payload?.videoId || video.first_videos?.[0]?.id; %>
+                    <div class="result-item bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition duration-200">
+                        <a href="/wkt/p/<%= video.id %>" class="block relative group" target="_top">
+                            <% if (plThumbId) { %>
+                            <img loading="lazy" src="/wkt/back/vi/<%= plThumbId %>/mqdefault.jpg" alt="<%= video.title?.text || '' %>" class="w-full h-auto rounded aspect-video object-cover">
+                            <% } else { %>
+                            <div class="w-full aspect-video rounded bg-gray-700"></div>
+                            <% } %>
+                            <span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium">プレイリスト<% if (video.video_count?.text) { %> • <%= video.video_count.text %>本<% } %></span>
+                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
+                        </a>
+                        <div class="mt-3">
+                            <a href="/wkt/p/<%= video.id %>" target="_top">
+                                <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= video.title?.text || '' %></p>
+                            </a>
+                            <% if (video.author?.name) { %>
+                            <p class="text-gray-400 text-xs"><%= video.author.name %></p>
+                            <% } %>
+                        </div>
+                    </div>
                   <% } else if (video.type && video.type.endsWith("Channel")) { %>
                     <div class="result-item bg-gray-600 p-4 rounded">
                       <a href="/wkt/c/<%= video.author?.id || video.id %>" target="_top">
