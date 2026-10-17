@@ -86,7 +86,7 @@
                         <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= item.title %></p>
                     </a>
                     <% if (item.channelName) { %>
-                    <a href="/wkt/c/<%= item.channelId || '' %>" class="text-gray-400 text-xs hover:text-gray-200 transition"><%= item.channelName %></a>
+                    <a href="<%= item.channelId ? '/wkt/c/' + item.channelId : '/wkt/watch/' + item.id + '?list=' + playlistId %>" class="text-gray-400 text-xs hover:text-gray-200 transition"><%= item.channelName %></a>
                     <% } %>
                     <% const meta = [item.views, item.published].filter(Boolean).join(' • '); %>
                     <% if (meta) { %>
