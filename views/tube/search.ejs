@@ -70,13 +70,21 @@
                     </div>
                 </div>
               <% } else if (video.type.endsWith("Playlist")) { %>
+                <% const plThumbId = video?.endpoint?.payload?.videoId || video.first_videos?.[0]?.id; %>
                 <div class="result-item bg-gray-600 p-4 rounded">
                   <a href="/wkt/p/<%= video.id %>">
-                    <img src="/vi/<%= video?.endpoint?.payload?.videoId || video.first_videos[0]?.id %>/mqdefault.jpg" alt="<%= video.title.text %>" class="w-full h-auto rounded">
+                    <% if (plThumbId) { %>
+                    <img src="/vi/<%= plThumbId %>/mqdefault.jpg" alt="<%= video.title?.text %>" class="w-full h-auto rounded">
+                    <% } %>
                   </a>
                     <div class="mt-2">
-                        <p class="text-sm text-gray-400"><a href="/wkt/u/<%= video.author.id %>"><%= video.author.name %></a></p>
-                        <p class="text-lg font-bold">プレイリスト(<%= video.video_count?.text %>本以上の動画)</p>
+                        <a href="/wkt/p/<%= video.id %>"><p class="text-base font-bold leading-snug"><%= video.title?.text %></p></a>
+                        <% if (video.author?.name) { %>
+                        <p class="text-sm text-gray-400">
+                          <% if (video.author?.id) { %><a href="/wkt/u/<%= video.author.id %>"><%= video.author.name %></a><% } else { %><%= video.author.name %><% } %>
+                        </p>
+                        <% } %>
+                        <p class="text-sm text-gray-300">プレイリスト<% if (video.video_count?.text) { %>(<%= video.video_count.text %>本以上の動画)<% } %></p>
                     </div>
                 </div>
               <% } else if (video.type.endsWith("Channel")) { %>
