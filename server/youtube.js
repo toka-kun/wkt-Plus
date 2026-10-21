@@ -84,10 +84,44 @@ async function infoGet(id) {
   return await client.getInfo(id);
 }
 
+// 再生リストは、従来の Playlist ではなく新形式(LockupView)で返ってくることがある(検索結果・関連動画)。
+// 画面は従来形式の Playlist を前提に作られているため、ここで従来形式に直す。
+// (実データ: 1行目 ["チャンネル名","プレイリスト"]、バッジ "2,580 本の動画"、遷移先の videoId = 先頭の動画)
+function toSearchResult(item) {
+  if (item?.type !== 'LockupView' || item.content_type !== 'PLAYLIST' || !item.content_id) return item;
+
+  const rows = item.metadata?.metadata?.metadata_rows || [];
+  const ci = item.content_image;
+  const badgeTexts = [...(ci?.overlays || []), ...(ci?.primary_thumbnail?.overlays || [])]
+    .flatMap(o => (o?.badges || []).map(b => b?.text).filter(Boolean));
+  const count = badgeTexts.map(t => (String(t).match(/[\d,]+/) || [])[0]).find(Boolean) || '';
+
+  return {
+    type: 'Playlist',
+    id: item.content_id,
+    title: { text: item.metadata?.title?.text || '' },
+    author: {
+      id: item.metadata?.image?.renderer_context?.command_context?.on_tap?.payload?.browseId || '',
+      name: rows[0]?.metadata_parts?.[0]?.text?.text || ''
+    },
+    endpoint: { payload: { videoId: item.renderer_context?.command_context?.on_tap?.payload?.videoId || '' } },
+    first_videos: [],
+    video_count: { text: count }
+  };
+}
+
+// 従来形式の動画がライブ配信中なら、画面が使う isLive の印を付ける
+function markClassicLive(item) {
+  if (item && /Video$/.test(item.type || '') && classicIsLive(item)) item.isLive = true;
+  return item;
+}
+
 async function search(q, page, limit) {
   if (!q) return;
   try {
-    return await client.search(q, {type: "all"});
+    const res = await client.search(q, {type: "all"});
+    // 画面が使うのは results だけ
+    return { results: Array.from(res?.results || []).map(toSearchResult).map(markClassicLive) };
   } catch (error) {
     return null;
   }
@@ -156,6 +190,33 @@ function parseLockupMeta(item) {
     else                           names.push(t);   // 残りはチャンネル名(コラボは複数に分かれる)
   }
   return { channelName: names.join(''), views, published };
+}
+
+// ── ライブ配信の判定 ──────────────────────────────────────────
+// 新形式(LockupView)では、サムネイルの「動画の長さ」の位置に、配信中なら「ライブ」、
+// 配信予定なら「配信予定」というバッジが付く(実データ)。ここでは配信中だけを判定する。
+function lockupIsLive(item) {
+  const ci = item.content_image;
+  for (const overlay of [...(ci?.overlays || []), ...(ci?.primary_thumbnail?.overlays || [])]) {
+    for (const badge of (overlay?.badges || [])) {
+      if (/^(ライブ|LIVE)$/i.test(String(badge?.text || '').trim())) return true;
+    }
+  }
+  // バッジが無いときの予備: 「1424 人が視聴中」は配信中の動画にだけ付く
+  return collectLockupTexts(item).some(t => /人が視聴中|\bwatching\b/i.test(t));
+}
+
+// 従来形式の動画(Video / CompactVideo など)の判定。
+// youtubei.js の is_live は、サムネイルの情報が無いと「ライブ」と答えてしまうため使わない。
+function classicIsLive(v) {
+  try {
+    const byBadge = Array.from(v.badges || []).some(b =>
+      b?.style === 'BADGE_STYLE_TYPE_LIVE_NOW' || /^(LIVE|ライブ)$/i.test(String(b?.label || '').trim()));
+    if (byBadge) return true;
+    return Array.from(v.thumbnail_overlays || []).some(o => o?.type === 'ThumbnailOverlayTimeStatus' && o.style === 'LIVE');
+  } catch (_) {
+    return false;
+  }
 }
 
 // 視聴回数に単位が無いとき("103万" など)は「回視聴」を付ける。"1424 人が視聴中" はそのまま。
@@ -241,7 +302,8 @@ function normalizeChannelItem(raw, tabName) {
     const meta = parseLockupMeta(item);
 
     const itemType = tabName === 'shorts' ? 'short' : 'video';
-    return { itemType, id, title, duration, views: withViewsUnit(meta.views), published: meta.published };
+    return { itemType, id, title, duration, views: withViewsUnit(meta.views), published: meta.published,
+             ...(lockupIsLive(item) ? { isLive: true } : {}) };
   }
 
   // ── 旧形式動画 (GridVideo / CompactVideo / Video) ──────────
@@ -254,7 +316,8 @@ function normalizeChannelItem(raw, tabName) {
       title:     item.title?.text || (typeof item.title === 'string' ? item.title : '') || '',
       duration:  item.duration?.text || (typeof item.duration === 'string' ? item.duration : '') || '',
       views:     item.view_count?.text || '',
-      published: item.published?.text || (typeof item.published === 'string' ? item.published : '') || ''
+      published: item.published?.text || (typeof item.published === 'string' ? item.published : '') || '',
+      ...(classicIsLive(item) ? { isLive: true } : {})
     };
   }
 
@@ -354,7 +417,7 @@ async function getChannelTab(id, tab, sort) {
 }
 
 // watch_next_feed を正規化する共通関数
-// CompactAutoplay を展開し、LockupView を CompactVideo 互換形式に変換する
+// CompactAutoplay を展開し、LockupView を CompactVideo 互換形式(再生リストは Playlist 形式)に変換する
 function normalizeWatchNextFeed(rawFeed) {
   const feed = Array.isArray(rawFeed) ? rawFeed : [];
 
@@ -372,7 +435,19 @@ function normalizeWatchNextFeed(rawFeed) {
 
   return expanded.map(item => {
     if (!item || !item.type) return null;
-    if (item.type !== 'LockupView') return item;
+    if (item.type !== 'LockupView') {
+      if (classicIsLive(item)) item.isLive = true;
+      return item;
+    }
+
+    // 再生リスト: 従来の Playlist と同じ形に直して、画面に出す。
+    // ミックス("RD…")は /wkt/p/ で開けないので出さない。
+    if (item.content_type === 'PLAYLIST') {
+      if (/^RD/.test(item.content_id || '')) return null;
+      const playlist = toSearchResult(item);
+      return playlist && playlist.type === 'Playlist' ? playlist : null;
+    }
+
     if (item.content_type !== 'VIDEO') return null;
 
     // チャンネル名・視聴回数・投稿日時は、並び順ではなく中身で見分ける(コラボ動画は行の並びが違う)
@@ -411,7 +486,8 @@ function normalizeWatchNextFeed(rawFeed) {
       },
       duration: durationText ? { text: durationText } : null,
       view_count: { text: viewCountText },
-      published: publishedText ? { text: publishedText } : null
+      published: publishedText ? { text: publishedText } : null,
+      ...(lockupIsLive(item) ? { isLive: true } : {})
     };
   }).filter(Boolean);
 }
@@ -429,9 +505,9 @@ function extractChannels(Info) {
       ? text.split('•').slice(1).join('•').replace(/[\u200e\u200f\u2068\u2069]/g, '').trim()
       : '';
 
-    // 1) youtubei.js が用意している Author#collaborators(v18 以降)
+    // 0) youtubei.js が用意している Author#collaborators(使えれば一番簡単)
     try {
-      const channels = (author?.collaborators || []).map(item => {
+      const channels = Array.from(author?.collaborators || []).map(item => {
         const id   = item.renderer_context?.command_context?.on_tap?.payload?.browseId || '';
         const name = item.title?.text || '';
         if (!id || !name) return null;
@@ -445,30 +521,63 @@ function extractChannels(Info) {
       if (channels.length > 0) return channels;
     } catch (_) {}
 
-    // 2) 従来の方法(生のペイロードをたどる)
-    try {
-      const listItems = author?.endpoint?.payload
-        ?.panelLoadingStrategy?.inlineContent?.dialogViewModel
-        ?.customContent?.listViewModel?.listItems;
+    // 共同投稿者の一覧が入っている「遷移先」の候補。YouTube や youtubei.js の版によって
+    // 置き場所が違う(実データでは author.endpoint が空だった)ため、全部調べる:
+    //   author.endpoint(以前の場所) / owner.endpoint / owner.avatar_stack のタップ先(コラボ動画で使われる)
+    const endpoints = [
+      author?.endpoint,
+      owner?.endpoint,
+      owner?.avatar_stack?.renderer_context?.command_context?.on_tap
+    ].filter(Boolean);
 
-      if (Array.isArray(listItems) && listItems.length > 0) {
-        const channels = listItems.map(item => {
-          const lvm = item?.listItemViewModel;
-          if (!lvm) return null;
-
-          const name = lvm.title?.content || '';
-          const id   = lvm.title?.commandRuns?.[0]?.onTap?.innertubeCommand
-                         ?.browseEndpoint?.browseId || '';
-          const icon = lvm.leadingAccessory?.avatarViewModel?.image?.sources?.[0]?.url || '';
-          const subsc = pickSubsc(lvm.subtitle?.content || '');
-
+    for (const ep of endpoints) {
+      // (a) youtubei.js が解析済みの一覧(ListItemView)
+      try {
+        const channels = Array.from(ep.command?.inline_content?.custom_content?.items || []).map(item => {
+          const id = item.renderer_context?.command_context?.on_tap?.payload?.browseId
+                  || item.title?.runs?.[0]?.endpoint?.payload?.browseId
+                  || item.title?.endpoint?.payload?.browseId
+                  || '';
+          const name = item.title?.text || '';
           if (!id || !name) return null;
-          return { id, name, icon, subsc };
+          return {
+            id,
+            name,
+            icon: item.leading_accessory?.image?.[0]?.url || '',
+            subsc: pickSubsc(item.subtitle?.text || '')
+          };
         }).filter(Boolean);
-
         if (channels.length > 0) return channels;
-      }
-    } catch (_) {}
+      } catch (_) {}
+
+      // (b) 生のペイロードをたどる(解析済みの一覧が使えない場合)
+      try {
+        const listItems = ep.payload
+          ?.panelLoadingStrategy?.inlineContent?.dialogViewModel
+          ?.customContent?.listViewModel?.listItems;
+
+        if (Array.isArray(listItems) && listItems.length > 0) {
+          const channels = listItems.map(item => {
+            const lvm = item?.listItemViewModel;
+            if (!lvm) return null;
+
+            const name = lvm.title?.content || '';
+            const id   = lvm.title?.commandRuns?.[0]?.onTap?.innertubeCommand
+                           ?.browseEndpoint?.browseId
+                      || lvm.rendererContext?.commandContext?.onTap?.innertubeCommand
+                           ?.browseEndpoint?.browseId
+                      || '';
+            const icon = lvm.leadingAccessory?.avatarViewModel?.image?.sources?.[0]?.url || '';
+            const subsc = pickSubsc(lvm.subtitle?.content || '');
+
+            if (!id || !name) return null;
+            return { id, name, icon, subsc };
+          }).filter(Boolean);
+
+          if (channels.length > 0) return channels;
+        }
+      } catch (_) {}
+    }
   }
 
   const primary = {
@@ -517,7 +626,8 @@ function toPlaylistEntry(item) {
     const channelId = item.metadata?.image?.renderer_context
       ?.command_context?.on_tap?.payload?.browseId || '';
 
-    return { id: videoId, title, duration, views: withViewsUnit(meta.views), published: meta.published, channelName: meta.channelName, channelId };
+    return { id: videoId, title, duration, views: withViewsUnit(meta.views), published: meta.published, channelName: meta.channelName, channelId,
+             ...(lockupIsLive(item) ? { isLive: true } : {}) };
   }
 
   // 旧形式
