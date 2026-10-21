@@ -75,7 +75,7 @@
                          src="/wkt/back/vi/<%= item.id %>/mqdefault.jpg"
                          alt="<%= item.title %>"
                          class="w-full h-auto rounded aspect-video object-cover">
-                    <% if (item.duration) { %>
+                    <% if (item.isLive) { %><span class="absolute bottom-1 right-1 bg-red-600 bg-opacity-90 text-white text-xs px-1.5 py-0.5 rounded font-medium">ライブ</span><% } else if (item.duration) { %>
                     <span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium"><%= item.duration %></span>
                     <% } %>
                     <span class="absolute top-1 left-1 bg-black bg-opacity-60 text-white text-xs px-1.5 py-0.5 rounded"><%= item.index %></span>
@@ -86,7 +86,7 @@
                         <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition"><%= item.title %></p>
                     </a>
                     <% if (item.channelName) { %>
-                    <a href="/wkt/c/<%= item.channelId || '' %>" class="text-gray-400 text-xs hover:text-gray-200 transition"><%= item.channelName %></a>
+                    <a href="<%= item.channelId ? '/wkt/c/' + item.channelId : '/wkt/watch/' + item.id + '?list=' + playlistId %>" class="text-gray-400 text-xs hover:text-gray-200 transition"><%= item.channelName %></a>
                     <% } %>
                     <% const meta = [item.views, item.published].filter(Boolean).join(' • '); %>
                     <% if (meta) { %>
