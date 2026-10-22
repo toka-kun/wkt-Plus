@@ -186,6 +186,7 @@ pinned: false
 - 2026/10/14 - いろいろ改善
 - 2026/10/15 - youtubei.js周辺を改善
 - 2026/10/21 - youtubei.js周辺を改善
+- 2026/10/22 - 微調整
 
 ---
 
@@ -219,7 +220,7 @@ pinned: false
   - YouTube Plus+ 開発
 - [@banana-coco](https://github.com/banana-coco) [@kuru-bana](https://github.com/kuru-bana)
   - Vercel & CodeSandbox デプロイ対応
-- [@woolisbest-4520](https://github.com/woolisbest-4520)
+- [@woolisbest-4520](https://github.com/woolisbest-4520) [@woolisbest-honke](https://github.com/woolisbest-honke) [@wl-unblock](https://github.com/wl-unblock)
   - Wista 開発
   - Wista Stream API（廃止）
   - Educationパラメーター
