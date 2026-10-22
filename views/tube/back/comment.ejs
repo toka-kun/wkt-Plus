@@ -2,8 +2,12 @@
 <script src="/js/tailwindcss.js"></script>
 <body class="bg-gray-900 text-white">
   <%
-    // コメントが取得できなかった(null)・作者や本文が欠けている場合でも落ちないようにする
-    const threads = (cm && Array.isArray(cm.contents)) ? cm.contents.filter(c => c && c.comment) : [];
+    // コメントが取得できなかった(null)ときは、わざとエラーにする。
+    // 画面側(watch.ejs など)は、サーバーがエラーを返すと「コメントの取得に失敗しました」と
+    // 「再試行」ボタンを出す。案内文を正常な応答として返すと、そのエラー表示と再試行ボタンが出ない。
+    if (!cm || !Array.isArray(cm.contents)) throw new Error('コメントを取得できません');
+    // 作者や本文が欠けているコメントがあっても落ちないようにする
+    const threads = cm.contents.filter(c => c && c.comment);
     // 本文はそのまま HTML として出力するとコメントに書かれたタグが実行されてしまうため、先にエスケープする
     const esc = (t) => String(t)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -13,9 +17,6 @@
   %>
   <div class="mt-4 p-4 bg-gray-800 rounded-lg shadow-lg">
     <div class="mt-2 space-y-4">
-      <% if (threads.length === 0) { %>
-        <p class="text-gray-400">コメントを表示できません(コメントが無効、または取得に失敗しました)</p>
-      <% } %>
       <% threads.forEach(CommentThread => {
            const c = CommentThread.comment;
            const avatar = c.author?.thumbnails?.[0]?.url || '';
