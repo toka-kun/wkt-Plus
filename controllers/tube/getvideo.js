@@ -10,7 +10,7 @@ const user_agent = process.env.USER_AGENT || "Mozilla/5.0 (Windows NT 10.0; Win6
 const serverUrls = ['invidious', 'acethinker', 'freemake', 'siawaseok', 'min-tube2-api'];
 
 // ▼▼▼ メモリキャッシュを確認する専用の順番 ▼▼▼
-const memoryCacheCheckOrder = ['siawaseok', 'invidious', 'acethinker', 'freemake', 'min-tube2-api'];
+const memoryCacheCheckOrder = ['siawaseok', 'freemake', 'invidious', 'acethinker', 'min-tube2-api'];
 
 // ▼▼▼ APIごとのキャッシュ生存期間 (秒) ▼▼▼
 const apiTtlSettings = {
