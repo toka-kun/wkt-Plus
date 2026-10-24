@@ -10,8 +10,29 @@
 let client = null;        // 準備ができたクライアント
 let clientPromise = null; // 準備中の「約束」(同時に何人来ても、準備は1回だけ)
 
-// 1回のアクセスが、準備の完了を待つ最大時間(ミリ秒)。
-const INIT_WAIT_MS = 20000;
+// ─────────────────────────────────────────────────────────────
+// 1回のアクセスが、準備の完了を待つ最大時間(ミリ秒)
+//
+// サーバーレスは、関数の制限時間を過ぎると強制終了されてエラーも返せない。
+// そこで「制限時間 − 余裕(3秒)」まで待ち、それでも終わらなければ自分でエラーを返す。
+//   ・Netlify … 同期関数の制限は60秒
+//   ・Vercel  … Fluid Compute有効時は300秒(Hobbyの既定・上限)
+//   ・Render/Railwayなどの常駐サーバー … 制限がないので20秒
+// ※ Vercelの制限が違う場合(古いプロジェクトでFluid Computeが無効など)は、
+//   環境変数 YT_INIT_WAIT_MS(単位: ミリ秒)で好きな値を指定できる。
+// ─────────────────────────────────────────────────────────────
+const SAFETY_MARGIN_MS = 3000;
+
+function detectInitWaitMs() {
+  const manual = Number(process.env.YT_INIT_WAIT_MS);
+  if (Number.isFinite(manual) && manual > 0) return manual;
+  // Netlifyの関数の実行中は SITE_ID などが入っている(NETLIFY はビルド時のみ)
+  if (process.env.NETLIFY || process.env.SITE_ID) return 60000 - SAFETY_MARGIN_MS;
+  if (process.env.VERCEL) return 300000 - SAFETY_MARGIN_MS;
+  return 20000;
+}
+
+const INIT_WAIT_MS = detectInitWaitMs();
 
 // キャッシュの読み書きに失敗しても、動画の取得そのものは止めないための包み。
 class SafeCache {
@@ -785,6 +806,7 @@ module.exports = {
   infoGet,
   setClient,
   getClient,
+  initWaitMs: INIT_WAIT_MS,
   search,
   getComments,
   getChannel,
