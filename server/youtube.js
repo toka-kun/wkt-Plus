@@ -1,7 +1,86 @@
-let client = null;
+// ─────────────────────────────────────────────────────────────
+// YouTubeクライアント(youtubei.js)の管理
+//
+// ・準備(Innertube.create)は重いので、1回だけ行って使い回す
+// ・準備中にアクセスが来たら、失敗させずに「準備が終わるまで待たせる」
+// ・準備に失敗したら、次のアクセスで自動的にやり直す
+// ・セッション情報とプレイヤーJSは一時フォルダにキャッシュし、
+//   同じサーバー(インスタンス)が生きている間は次回の準備を省く
+// ─────────────────────────────────────────────────────────────
+let client = null;        // 準備ができたクライアント
+let clientPromise = null; // 準備中の「約束」(同時に何人来ても、準備は1回だけ)
 
+// 1回のアクセスが、準備の完了を待つ最大時間(ミリ秒)。
+const INIT_WAIT_MS = 20000;
+
+// キャッシュの読み書きに失敗しても、動画の取得そのものは止めないための包み。
+class SafeCache {
+  constructor(inner) {
+    this.inner = inner;
+  }
+  get cache_dir() {
+    return this.inner.cache_dir;
+  }
+  async get(key) {
+    try { return await this.inner.get(key); } catch (e) { return undefined; }
+  }
+  async set(key, value) {
+    try { await this.inner.set(key, value); } catch (e) { /* 保存できなくても続行 */ }
+  }
+  async remove(key) {
+    try { await this.inner.remove(key); } catch (e) { /* 無視 */ }
+  }
+}
+
+async function createClient() {
+  const { Innertube, UniversalCache } = await import("youtubei.js");
+  return Innertube.create({
+    lang: "ja",
+    location: "JP",
+    // false = 一時フォルダ(/tmp)に保存。Vercel/Netlifyでも書き込める場所。
+    // (true にすると node_modules の中に保存しようとして、書き込めずに失敗する)
+    cache: new SafeCache(new UniversalCache(false))
+  });
+}
+
+// 準備を始める(すでに始まっていれば、その「約束」をそのまま返す)
+function startInit() {
+  if (!clientPromise) {
+    clientPromise = createClient()
+      .then((c) => {
+        client = c;
+        return c;
+      })
+      .catch((e) => {
+        clientPromise = null; // 失敗したので、次のアクセスでやり直せるようにする
+        throw e;
+      });
+  }
+  return clientPromise;
+}
+
+// クライアントを受け取る。準備中なら終わるまで待つ。
+async function getClient() {
+  if (client) return client;
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(
+      () => reject(new Error("YouTubeクライアントの準備が時間内に終わりませんでした。")),
+      INIT_WAIT_MS
+    );
+  });
+  try {
+    // 時間切れになっても、準備そのものは裏で続く(次のアクセスが同じ準備を待てる)
+    return await Promise.race([startInit(), timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// 互換用: 外から作ったクライアントを直接セットする場合
 function setClient(newClient) {
   client = newClient;
+  clientPromise = Promise.resolve(newClient);
 }
 
 // YouTube CDN の直リンクを /wkt/back 経由のプロキシリンクに変換する
@@ -81,7 +160,8 @@ async function infoGet(id) {
   // 呼び出し元は全て try/catch で囲われているので、ここでは握りつぶさず
   // そのまま投げて、各所の catch（動画を取得できませんでした 等）に
   // 委ねる。
-  return await client.getInfo(id);
+  const yt = await getClient();
+  return await yt.getInfo(id);
 }
 
 // 再生リストは、従来の Playlist ではなく新形式(LockupView)で返ってくることがある(検索結果・関連動画)。
@@ -119,7 +199,8 @@ function markClassicLive(item) {
 async function search(q, page, limit) {
   if (!q) return;
   try {
-    const res = await client.search(q, {type: "all"});
+    const yt = await getClient();
+    const res = await yt.search(q, {type: "all"});
     // 画面が使うのは results だけ
     return { results: Array.from(res?.results || []).map(toSearchResult).map(markClassicLive) };
   } catch (error) {
@@ -130,7 +211,8 @@ async function search(q, page, limit) {
 async function getComments(id) {
   if (!id) return;
   try {
-    return await client.getComments(id);
+    const yt = await getClient();
+    return await yt.getComments(id);
   } catch (error) {
     return null;
   }
@@ -138,7 +220,8 @@ async function getComments(id) {
 
 async function getChannel(id) {
   try {
-    const channel = await client.getChannel(id);
+    const yt = await getClient();
+    const channel = await yt.getChannel(id);
     const rawShelves = channel.shelves || [];
     // ホームタブのシェルフも各タブ取得と同じ正規化関数を通し、
     // itemType(video/playlist/short/channel) を統一しておく。
@@ -354,7 +437,8 @@ function normalizeChannelItem(raw, tabName) {
 
 // チャンネルの各タブを取得（AJAX用）
 async function getChannelTab(id, tab, sort) {
-  const ch = await client.getChannel(id);
+  const yt = await getClient();
+  const ch = await yt.getChannel(id);
   let t = null;
   let rawContents = [];
 
@@ -665,7 +749,8 @@ function toPlaylistEntry(item) {
 
 async function getPlaylist(id) {
   try {
-    const pl = await client.getPlaylist(id);
+    const yt = await getClient();
+    const pl = await yt.getPlaylist(id);
 
     // 取り出し方を2通り試し、どちらかで取れなくてももう一方で補う:
     //  1) page_contents を直接たどる(従来の方法。ショートの再生リストでは空になる)
@@ -699,6 +784,7 @@ async function getPlaylist(id) {
 module.exports = {
   infoGet,
   setClient,
+  getClient,
   search,
   getComments,
   getChannel,
