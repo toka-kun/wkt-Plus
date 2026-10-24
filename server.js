@@ -8,8 +8,6 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
 const app = express();
-let client;
-let YouTubeJS;
 
 app.use(compression());
 app.use(express.static(path.join(__dirname, "public")));
@@ -82,22 +80,25 @@ app.use((req, res) => {
 });
 app.on("error", console.error);
 
-async function initInnerTube() {
-  try {
-    YouTubeJS = await import("youtubei.js");
-    client = await YouTubeJS.Innertube.create({ lang: "ja", location: "JP" });
-    serverYt.setClient(client);
-    console.log("YouTube client initialized successfully");
-  } catch (e) {
-    // ★変更: causeも出力して原因を特定しやすくする
-    console.error("YouTube client initialization failed:", e.message, "cause:", e.cause);
-    console.log("Server running without YouTube features. Retrying in 30s...");
-    setTimeout(initInnerTube, 30000);
-  }
+// 起動と同時にYouTubeクライアントの準備を始めておく(ここでは待たない)。
+// アクセスが来たときは server/youtube.js 側が「準備が終わるまで待つ」ので、
+// 準備中のアクセスで失敗することはない。
+function warmUpYouTube() {
+  serverYt.getClient()
+    .then(() => console.log("YouTube client initialized successfully"))
+    .catch((e) => {
+      console.error("YouTube client initialization failed:", e.message, "cause:", e.cause);
+      if (require.main === module) {
+        // 常駐サーバー(Render/Railwayなど)では、30秒後に準備をやり直す
+        console.log("Retrying YouTube client initialization in 30s...");
+        setTimeout(warmUpYouTube, 30000);
+      }
+      // サーバーレス(Vercel/Netlify)では、次のアクセス時に自動でやり直される
+    });
 }
 
 process.on("unhandledRejection", console.error);
-initInnerTube();
+warmUpYouTube();
 
 module.exports = app;
 
