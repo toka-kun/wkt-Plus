@@ -102,7 +102,10 @@
 
         // データを地域(Region)ごとに整理
         const groupedData = {};
+        // HLSのURL・動画ID・再生リストIDがすべて空の項目(再生できないチャンネル)は一覧に含めない
+        const hasValue = (v) => typeof v === 'string' && v.trim() !== '';
         for (const [key, item] of Object.entries(tvData)) {
+            if (!item || !(hasValue(item.hlsUrl) || hasValue(item.fallbackVideoId) || hasValue(item.playlistId))) continue;
             const regionCode = key.split('/')[0];
             if (!groupedData[regionCode]) {
                 groupedData[regionCode] = [];
@@ -180,7 +183,7 @@
                     updateActiveRegionBtn(regionCode);
 
                     currentSelectedItem = item;
-                    playMedia(item.hlsUrl, item.fallbackVideoId);
+                    playMedia(item.hlsUrl, item.fallbackVideoId, item.playlistId);
                     currentBtn.blur(); 
                 };
                 channelList.appendChild(btn);
@@ -246,7 +249,7 @@
             localStorage.setItem('tv_play_mode', mode);
             updatePlayModeUI();
             if (currentSelectedItem) {
-                playMedia(currentSelectedItem.hlsUrl, currentSelectedItem.fallbackVideoId);
+                playMedia(currentSelectedItem.hlsUrl, currentSelectedItem.fallbackVideoId, currentSelectedItem.playlistId);
             }
         }
 
@@ -269,14 +272,17 @@
         updatePlayModeUI();
 
         // 動画再生のロジック
-        async function playMedia(hlsUrl, fallbackVideoId) {
+        async function playMedia(hlsUrl, fallbackVideoId, playlistId) {
             if (currentPlayer) {
                 currentPlayer.destroy();
                 currentPlayer = null;
             }
 
             const hasHls = hlsUrl && hlsUrl.trim() !== "";
-            const hasFallback = fallbackVideoId && fallbackVideoId.trim() !== "";
+            const videoId = (fallbackVideoId || "").trim();
+            const listId = (playlistId || "").trim();
+            // 動画IDか再生リストIDのどちらか(または両方)があればYouTube再生できる
+            const hasFallback = videoId !== "" || listId !== "";
 
             let useHls = false;
             let useFallback = false;
@@ -372,7 +378,27 @@
                     console.error("Failed to fetch YouTube URL parameters:", error);
                 }
 
-                const embedUrl = `https://www.youtubeeducation.com/embed/${fallbackVideoId}${paramText.trim()}&playlist=${fallbackVideoId}`;
+                // 動画ID・再生リストIDの組み合わせでURLを作る
+                //  - 動画IDのみ   : /embed/動画ID?...&playlist=動画ID (従来どおり)
+                //  - 再生リストのみ: /embed/videoseries?...&list=再生リストID
+                //  - 両方          : /embed/動画ID?...&list=再生リストID (その動画から再生リストを続けて再生)
+                let embedPath;
+                let extraParam;
+                if (videoId && listId) {
+                    embedPath = encodeURIComponent(videoId);
+                    extraParam = `list=${encodeURIComponent(listId)}`;
+                } else if (videoId) {
+                    embedPath = encodeURIComponent(videoId);
+                    extraParam = `playlist=${encodeURIComponent(videoId)}`;
+                } else {
+                    embedPath = 'videoseries';
+                    extraParam = `list=${encodeURIComponent(listId)}`;
+                }
+
+                // サーバーから受け取ったパラメーターは加工せずそのまま使う(先頭の ? や & だけ除く)
+                const baseQuery = paramText.trim().replace(/^[?&]+/, '');
+                const query = baseQuery ? `${baseQuery}&${extraParam}` : extraParam;
+                const embedUrl = `https://www.youtubeeducation.com/embed/${embedPath}?${query}`;
                 
                 playerContainer.innerHTML = `
                     <iframe 
