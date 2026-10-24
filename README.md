@@ -187,6 +187,7 @@ pinned: false
 - 2026/10/15 - youtubei.js周辺を改善
 - 2026/10/21 - youtubei.js周辺を改善
 - 2026/10/22 - 微調整
+- 2026/10/24 - Vercel/Netlifyでyoutubei.jsの動作が不安定だったのを改善
 
 ---
 
