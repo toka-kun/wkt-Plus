@@ -24,15 +24,8 @@ router.get("/tv", async (req, res) => {
       const response = await fetch(GITHUB_RAW_URL);
       const jsonData = await response.json();
 
-      // hlsUrlもfallbackVideoIdもない項目をフィルタリングして削除
-      const filteredData = {};
-      for (const [key, item] of Object.entries(jsonData)) {
-        if (item.hlsUrl || item.fallbackVideoId) {
-          filteredData[key] = item;
-        }
-      }
-
-      tvCache = { data: filteredData, timestamp: now };
+      // hlsUrls.json はフィルタリングせず、そのままキャッシュする
+      tvCache = { data: jsonData, timestamp: now };
     } catch (error) {
       console.error("HLS Data fetch error:", error);
       // フェッチ失敗時は既存のキャッシュを使用するか、空のデータを渡す
@@ -45,7 +38,7 @@ router.get("/tv", async (req, res) => {
   // stale-while-revalidate=86400 : キャッシュ切れでも次の1日は古いキャッシュを返しつつ、裏で非同期更新する
   res.setHeader("Cache-Control", "public, max-age=0, s-maxage=86400, stale-while-revalidate=86400");
 
-  // 取得・フィルタリング済みのデータをEJSに渡す
+  // 取得した hlsUrls.json をそのままEJSに渡す
   res.render("other/tv/home", { tvData: JSON.stringify(tvCache.data) });
 });
 
