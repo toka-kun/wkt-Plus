@@ -41,11 +41,11 @@ pinned: false
 
 ## 対応しているデプロイサービス
 
-1. [Render](#-renderでのデプロイ手順)
+1. [Render](#-renderでのデプロイ手順) （現在は非推奨）
 2. [Railway](https://railway.com/dashboard) （PORTを入力する必要がある場合は8080にして下さい）
 3. [Koyeb](https://app.koyeb.com/) （Dockerfileを選択して下さい）
-4. [Vercel](https://vercel.com/) （サーバーレスのためエラーが起きたりする）
-5. [Netlify](https://app.netlify.com/) （サーバーレスのためエラーが起きたりする）
+4. [Vercel](https://vercel.com/)
+5. [Netlify](https://app.netlify.com/)
 6. [StackHost](https://www.stackhost.org/) （環境変数に手動で PORT 3000 を入れて下さい）
 7. [SnapDeploy](https://snapdeploy.dev/dashboard)
 8. [Replit](https://replit.com/)
