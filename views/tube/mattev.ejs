@@ -48,7 +48,7 @@
                 
                 <% if (typeof details === 'string' && details.includes('Cannot read')) { %>
                     <p class="text-center text-lg mb-6">通常再生を選択中です</p>
-                    <p class="text-center text-lg mb-6">おそらくサーバーレス環境のため、YouTubeから動画情報をうまく取得できませんでした。<br>時間をおいて試してみて下さい。</p>
+                    <p class="text-center text-lg mb-6">YouTubeから動画情報をうまく取得できませんでした。<br>時間をおいて試してみて下さい。</p>
                 <% } %>
 
                 <p class="text-center text-lg mb-6">現在のサーバー: <strong><%= typeof baseUrl !== 'undefined' ? baseUrl.replace('https://', '').replace('.glitch.me', '') : '未設定' %></strong></p>
@@ -65,7 +65,7 @@
                 <p class="text-center text-lg mb-6 mt-6">サーバーは上から順番に試して下さい。デフォルトでInvidiousを使っているので、無理だった場合はAceThinkerから試してみてね</p>
             <% } else { %>
                 <p class="text-center text-lg mb-6">埋め込み再生を選択中です</p>
-                <p class="text-center text-lg mb-6">おそらくサーバーレス環境のため、YouTubeから動画情報をうまく取得できませんでした。<br>時間をおいて試してみて下さい。</p>
+                <p class="text-center text-lg mb-6">YouTubeから動画情報をうまく取得できませんでした。<br>時間をおいて試してみて下さい。</p>
             <% } %>
         </div>
     </div>
