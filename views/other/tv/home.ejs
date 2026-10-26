@@ -378,16 +378,12 @@
                     console.error("Failed to fetch YouTube URL parameters:", error);
                 }
 
-                // 動画ID・再生リストIDの組み合わせでURLを作る
-                //  - 動画IDのみ   : /embed/動画ID?...&playlist=動画ID (従来どおり)
-                //  - 再生リストのみ: /embed/videoseries?...&list=再生リストID
-                //  - 両方          : /embed/動画ID?...&list=再生リストID (その動画から再生リストを続けて再生)
+                // 動画IDがあれば動画IDだけを使い、無いときだけ再生リストIDを使う
+                //  - 動画IDあり(再生リストIDの有無は問わない): /embed/動画ID?...&playlist=動画ID
+                //  - 動画IDなし・再生リストIDのみ          : /embed/videoseries?...&list=再生リストID
                 let embedPath;
                 let extraParam;
-                if (videoId && listId) {
-                    embedPath = encodeURIComponent(videoId);
-                    extraParam = `list=${encodeURIComponent(listId)}`;
-                } else if (videoId) {
+                if (videoId) {
                     embedPath = encodeURIComponent(videoId);
                     extraParam = `playlist=${encodeURIComponent(videoId)}`;
                 } else {
