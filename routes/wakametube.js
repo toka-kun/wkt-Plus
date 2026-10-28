@@ -3,6 +3,7 @@ const router = express.Router();
 const fs = require("fs");
 const path = require("path");
 const ytsr = require("ytsr");
+const ytpl = require("ytpl");
 const serverYt = require("../server/youtube.js");
 
 const limit = process.env.LIMIT || 50;
@@ -128,18 +129,37 @@ router.get("/ss", (req, res) => {
     res.redirect((req.baseUrl || "") + "/s" + (qs ? "?" + qs : ""));
 });
 
+// ytpl で再生リストを取得して views/tube/opu/playlist.ejs を描画する(フォールバック用)
+async function renderYtplPlaylist(res, id) {
+    const result = await ytpl(id, { limit: 100, gl: "JP", hl: "ja" });
+    return renderToString(res, "tube/opu/playlist.ejs", {
+        res: result,
+        playlistId: id
+    });
+}
+
+// 再生リストページ
+// views/tube/playlist.ejs が失敗したら、ytpl の views/tube/opu/playlist.ejs にフォールバックする
 router.get("/p/:id", async (req, res) => {
+  const id = req.params.id;
+
+  // 1. 通常: youtubei.js の結果を views/tube/playlist.ejs で表示
   try {
-    const data = await serverYt.getPlaylist(req.params.id);
-    if (!data) {
-      return res.status(404).render("error.ejs", {
-        title: "再生リストが見つかりません",
-        content: "再生リスト情報を取得できませんでした。"
-      });
+    const data = await serverYt.getPlaylist(id);
+    if (data && data.items && data.items.length > 0) {
+      const html = await renderToString(res, "tube/playlist.ejs", { ...data, playlistId: id });
+      return res.send(html);
     }
-    res.render("tube/playlist.ejs", { ...data, playlistId: req.params.id });
+    console.warn("playlist.ejs: 再生リストが取得できなかったため、ytpl にフォールバックします", id);
   } catch (err) {
-    console.error("Failed to fetch playlist", req.params.id, err);
+    console.error("playlist.ejs が失敗したため、ytpl にフォールバックします:", id, err);
+  }
+
+  // 2. 失敗したら: ytpl の結果を views/tube/opu/playlist.ejs で表示
+  try {
+    res.send(await renderYtplPlaylist(res, id));
+  } catch (err) {
+    console.error("Failed to fetch playlist", id, err);
     res.status(500).render("error.ejs", {
       title: "エラー",
       content: "再生リストの取得に失敗しました:\n" + err.toString()
