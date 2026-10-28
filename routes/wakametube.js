@@ -59,26 +59,53 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/s", async (req, res) => {
-    let query = req.query.q;
-    let page = Number(req.query.p || 1);
-    try {
-        // 先に検索結果を変数に入れる
-        const searchResult = await serverYt.search(query, limit, page);
-        
-        // 検索結果が null、results が無い、または 0件 の場合
-        if (!searchResult || !searchResult.results || searchResult.results.length === 0) {
-            // 自動的に /ss (views/tube/opu/search.ejs を処理するルート) へリダイレクトする
-            const redirectUrl = (req.baseUrl || '') + `/ss?q=${encodeURIComponent(query)}&p=${page}`;
-            return res.redirect(redirectUrl);
-        }
+// ejs を文字列にして返す(描画で失敗したときも、呼び出し側で拾ってフォールバックできるようにする)
+function renderToString(res, view, data) {
+    return new Promise((resolve, reject) => {
+        res.render(view, data, (err, html) => (err ? reject(err) : resolve(html)));
+    });
+}
 
-        // 成功した場合は通常通り渡す
-        res.render("tube/search.ejs", {
-            res: searchResult,
-            query: query,
-            page
-        });
+// ytsr で検索して views/tube/opu/search.ejs を描画する(フォールバック用)
+async function renderYtsrSearch(res, query, page) {
+    const result = await ytsr(query, {
+        limit,
+        pages: page,
+        gl: "JP",
+        hl: "ja"
+    });
+    return renderToString(res, "tube/opu/search.ejs", {
+        res: result,
+        query: query,
+        page
+    });
+}
+
+// 検索ページ(2ページ目以降も、ここ → views/tube/search.ejs)
+// views/tube/search.ejs が失敗したら、ytsr の views/tube/opu/search.ejs にフォールバックする
+router.get("/s", async (req, res) => {
+    const query = req.query.q;
+    const page = Math.max(1, Math.floor(Number(req.query.p)) || 1);
+
+    // 1. 通常: youtubei.js の結果を views/tube/search.ejs で表示
+    try {
+        const searchResult = await serverYt.search(query, page);
+        if (searchResult && searchResult.results && searchResult.results.length > 0) {
+            const html = await renderToString(res, "tube/search.ejs", {
+                res: searchResult,
+                query: query,
+                page
+            });
+            return res.send(html);
+        }
+        console.warn("search.ejs: 検索結果が取得できなかったため、ytsr にフォールバックします");
+    } catch (error) {
+        console.error("search.ejs が失敗したため、ytsr にフォールバックします:", error);
+    }
+
+    // 2. 失敗したら: ytsr の結果を views/tube/opu/search.ejs で表示
+    try {
+        res.send(await renderYtsrSearch(res, query, page));
     } catch (error) {
         console.error(error);
         try {
@@ -92,27 +119,13 @@ router.get("/s", async (req, res) => {
     }
 });
 
-router.get("/ss", async (req, res) => {
-        let query = req.query.q;
-        let page = Number(req.query.p || 3);
-    try {
-                res.render("tube/opu/search.ejs", {
-                        res: await ytsr(query, {
-                          limit,
-                          pages: page,
-                          gl: "JP",
-                          hl: "ja"
-                        }),
-                        query: query,
-                        page
-                });
-        } catch (error) {
-                console.error(error);
-                res.status(500).render("error.ejs", {
-                        title: "ytsr Error",
-                        content: error
-                });
-        }
+// 旧URL /wkt/ss は /wkt/s に飛ばす(検索語・ページ番号はそのまま引き継ぐ)
+router.get("/ss", (req, res) => {
+    const params = new URLSearchParams();
+    if (req.query.q !== undefined) params.set("q", String(req.query.q));
+    if (req.query.p !== undefined) params.set("p", String(req.query.p));
+    const qs = params.toString();
+    res.redirect((req.baseUrl || "") + "/s" + (qs ? "?" + qs : ""));
 });
 
 router.get("/p/:id", async (req, res) => {
