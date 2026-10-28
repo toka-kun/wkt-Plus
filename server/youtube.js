@@ -217,13 +217,27 @@ function markClassicLive(item) {
   return item;
 }
 
-async function search(q, page, limit) {
+// 検索結果の最大ページ数(p=9999 のような指定で、取得を延々と繰り返さないための上限)
+const MAX_SEARCH_PAGES = 10;
+
+// page ページ目までの検索結果を、まとめて返す。
+// 「もっと読み込む」を押すたびに、前のページの結果も含めて件数が増えていく形。
+// (2ページ目以降は、youtubei.js の「次のページ」を順にたどって取得する)
+// 取得に失敗したときは null を返す(呼び出し側で ytsr にフォールバックする)。
+async function search(q, page = 1) {
   if (!q) return;
   try {
     const yt = await getClient();
-    const res = await yt.search(q, {type: "all"});
+    const pages = Math.min(Math.max(1, Math.floor(Number(page)) || 1), MAX_SEARCH_PAGES);
+    let res = await yt.search(q, {type: "all"});
+    let items = Array.from(res?.results || []);
+    for (let i = 1; i < pages; i++) {
+      if (!res.has_continuation) break; // もう次のページが無い
+      res = await res.getContinuation();
+      items = items.concat(Array.from(res?.results || []));
+    }
     // 画面が使うのは results だけ
-    return { results: Array.from(res?.results || []).map(toSearchResult).map(markClassicLive) };
+    return { results: items.map(toSearchResult).map(markClassicLive) };
   } catch (error) {
     return null;
   }
