@@ -862,9 +862,14 @@
         const proxyToggle = document.getElementById('proxyToggle');
         const DEFAULT_PROXY_URL = 'https://publer-media-downloader.kalemi-code4806.workers.dev/?noDownload=true&url='; // 再生用のデフォルト
         // ダウンロード用のデフォルト (選択式。先頭が一番上の選択肢)
-        const DEFAULT_DL_PROXY_URLS = [
+        // 1・2番目 (freemaker.org / freemake.com) は、後ろにURLをそのまま付ける
+        const DEFAULT_DL_PROXY_RAW_URLS = [
             'https://redirector-cf.freemaker.org/download/',
             'https://redirector-cf.freemake.com/download/'
+        ];
+        const DEFAULT_DL_PROXY_URLS = [
+            ...DEFAULT_DL_PROXY_RAW_URLS,
+            'https://publer-media-downloader.kalemi-code4806.workers.dev/?noDownload=false&url=' // 3番目: URLはエンコードして付ける
         ];
 
         function getProxyUrl() {
@@ -891,8 +896,8 @@
             if (!url) return url;
             if (!isDlProxyEnabled()) return url;
             const proxy = getDlProxyUrl();
-            // デフォルト(freemaker.org / freemake.com)は、後ろにURLをそのまま付ける。自分のプロキシは再生用と同じく、エンコードして付ける
-            return DEFAULT_DL_PROXY_URLS.includes(proxy) ? proxy + url : proxy + encodeURIComponent(url);
+            // freemaker.org / freemake.com は、後ろにURLをそのまま付ける。3番目のデフォルトと自分のプロキシは、エンコードして付ける
+            return DEFAULT_DL_PROXY_RAW_URLS.includes(proxy) ? proxy + url : proxy + encodeURIComponent(url);
         }
         // 初期状態を反映
         proxyToggle.checked = isProxyEnabled();
