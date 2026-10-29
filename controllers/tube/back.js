@@ -344,7 +344,7 @@ router.get("/search", async (req, res) => {
         let page = Number(req.query.p || 1);
     try {
                 res.render("tube/back/search.ejs", {
-                        res: await serverYt.search(query),
+                        res: await serverYt.search(query, page),
                         query: query,
                         page
                 });
