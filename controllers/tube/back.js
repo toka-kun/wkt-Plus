@@ -341,7 +341,7 @@ router.get('/stream/api/:id', async (req, res) => {
 
 router.get("/search", async (req, res) => {
         let query = req.query.q;
-        let page = Number(req.query.p || 1);
+        let page = Math.min(Math.max(1, Math.floor(Number(req.query.p)) || 1), 10); // 10ページまで
     try {
                 res.render("tube/back/search.ejs", {
                         res: await serverYt.search(query, page),
