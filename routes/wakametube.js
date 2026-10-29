@@ -8,6 +8,9 @@ const serverYt = require("../server/youtube.js");
 
 const limit = process.env.LIMIT || 50;
 
+// 検索ページは10ページまで(server/youtube.js の MAX_SEARCH_PAGES と同じ値)
+const pageOf = (q) => Math.min(Math.max(1, Math.floor(Number(q.p)) || 1), 10);
+
 router.use("/watch", require("../controllers/tube/getvideo"));
 router.use("/w", require("../controllers/tube/getvideo"));
 router.use("/live", require("../controllers/tube/live"));
@@ -77,7 +80,7 @@ function fallbackTo(req, res, path) {
 // 失敗したら /wkt/ss にフォールバックする
 router.get("/s", async (req, res) => {
     const query = req.query.q;
-    const page = Math.max(1, Math.floor(Number(req.query.p)) || 1);
+    const page = pageOf(req.query);
     try {
         const searchResult = await serverYt.search(query, page);
         if (searchResult?.results?.length > 0) {
@@ -91,7 +94,7 @@ router.get("/s", async (req, res) => {
 // ytsr の検索ページ(views/tube/opu/search.ejs)
 router.get("/ss", async (req, res) => {
     const query = req.query.q;
-    const page = Math.max(1, Math.floor(Number(req.query.p)) || 1);
+    const page = pageOf(req.query);
     try {
         const result = await ytsr(query, { limit, pages: page, gl: "JP", hl: "ja" });
         res.render("tube/opu/search.ejs", { res: result, query, page });
