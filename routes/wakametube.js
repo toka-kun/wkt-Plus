@@ -67,99 +67,60 @@ function renderToString(res, view, data) {
     });
 }
 
-// ytsr で検索して views/tube/opu/search.ejs を描画する(フォールバック用)
-async function renderYtsrSearch(res, query, page) {
-    const result = await ytsr(query, {
-        limit,
-        pages: page,
-        gl: "JP",
-        hl: "ja"
-    });
-    return renderToString(res, "tube/opu/search.ejs", {
-        res: result,
-        query: query,
-        page
-    });
+// 失敗したとき、同じ検索語・ページ番号のまま別URL(/ss, /pp)へ飛ばす
+function fallbackTo(req, res, path) {
+    const i = req.url.indexOf("?");
+    res.redirect(req.baseUrl + path + (i < 0 ? "" : req.url.slice(i)));
 }
 
-// 検索ページ(2ページ目以降も、ここ → views/tube/search.ejs)
-// views/tube/search.ejs が失敗したら、ytsr の views/tube/opu/search.ejs にフォールバックする
+// 検索ページ(2ページ目以降もviews/tube/search.ejs のみ)
+// 失敗したら /wkt/ss にフォールバックする
 router.get("/s", async (req, res) => {
     const query = req.query.q;
     const page = Math.max(1, Math.floor(Number(req.query.p)) || 1);
-
-    // 1. 通常: youtubei.js の結果を views/tube/search.ejs で表示
     try {
         const searchResult = await serverYt.search(query, page);
-        if (searchResult && searchResult.results && searchResult.results.length > 0) {
-            const html = await renderToString(res, "tube/search.ejs", {
-                res: searchResult,
-                query: query,
-                page
-            });
+        if (searchResult?.results?.length > 0) {
+            const html = await renderToString(res, "tube/search.ejs", { res: searchResult, query, page });
             return res.send(html);
         }
-        console.warn("search.ejs: 検索結果が取得できなかったため、ytsr にフォールバックします");
-    } catch (error) {
-        console.error("search.ejs が失敗したため、ytsr にフォールバックします:", error);
-    }
+    } catch {}
+    fallbackTo(req, res, "/ss");
+});
 
-    // 2. 失敗したら: ytsr の結果を views/tube/opu/search.ejs で表示
+// ytsr の検索ページ(views/tube/opu/search.ejs)
+router.get("/ss", async (req, res) => {
+    const query = req.query.q;
+    const page = Math.max(1, Math.floor(Number(req.query.p)) || 1);
     try {
-        res.send(await renderYtsrSearch(res, query, page));
+        const result = await ytsr(query, { limit, pages: page, gl: "JP", hl: "ja" });
+        res.render("tube/opu/search.ejs", { res: result, query, page });
     } catch (error) {
-        console.error(error);
-        try {
-            res.status(500).render("error.ejs", {
-                title: "ytsr Error",
-                content: error
-            });
-        } catch (error) {
-            console.error(error);
-        }
+        res.status(500).render("error.ejs", { title: "ytsr Error", content: error });
     }
 });
 
-// 旧URL /wkt/ss は /wkt/s に飛ばす(検索語・ページ番号はそのまま引き継ぐ)
-router.get("/ss", (req, res) => {
-    const params = new URLSearchParams();
-    if (req.query.q !== undefined) params.set("q", String(req.query.q));
-    if (req.query.p !== undefined) params.set("p", String(req.query.p));
-    const qs = params.toString();
-    res.redirect((req.baseUrl || "") + "/s" + (qs ? "?" + qs : ""));
-});
-
-// ytpl で再生リストを取得して views/tube/opu/playlist.ejs を描画する(フォールバック用)
-async function renderYtplPlaylist(res, id) {
-    const result = await ytpl(id, { limit: 100, gl: "JP", hl: "ja" });
-    return renderToString(res, "tube/opu/playlist.ejs", {
-        res: result,
-        playlistId: id
-    });
-}
-
-// 再生リストページ
-// views/tube/playlist.ejs が失敗したら、ytpl の views/tube/opu/playlist.ejs にフォールバックする
+// 再生リストページ(views/tube/playlist.ejs のみ)
+// 失敗したら /wkt/pp/:id にフォールバックする
 router.get("/p/:id", async (req, res) => {
   const id = req.params.id;
-
-  // 1. 通常: youtubei.js の結果を views/tube/playlist.ejs で表示
   try {
     const data = await serverYt.getPlaylist(id);
-    if (data && data.items && data.items.length > 0) {
+    if (data?.items?.length > 0) {
       const html = await renderToString(res, "tube/playlist.ejs", { ...data, playlistId: id });
       return res.send(html);
     }
-    console.warn("playlist.ejs: 再生リストが取得できなかったため、ytpl にフォールバックします", id);
-  } catch (err) {
-    console.error("playlist.ejs が失敗したため、ytpl にフォールバックします:", id, err);
-  }
+  } catch {}
+  res.redirect(req.baseUrl + "/pp/" + encodeURIComponent(id));
+});
 
-  // 2. 失敗したら: ytpl の結果を views/tube/opu/playlist.ejs で表示
+// ytpl の再生リストページ(views/tube/opu/playlist.ejs)
+router.get("/pp/:id", async (req, res) => {
+  const id = req.params.id;
   try {
-    res.send(await renderYtplPlaylist(res, id));
+    const result = await ytpl(id, { limit: 100, gl: "JP", hl: "ja" });
+    res.render("tube/opu/playlist.ejs", { res: result, playlistId: id });
   } catch (err) {
-    console.error("Failed to fetch playlist", id, err);
     res.status(500).render("error.ejs", {
       title: "エラー",
       content: "再生リストの取得に失敗しました:\n" + err.toString()
