@@ -6,6 +6,21 @@
     <title>稼働状況一覧</title>
     <script src="/js/tailwindcss.js"></script>
     <link rel="stylesheet" href="/css/page.css">
+    <style>
+        /* page.css の word-break: break-all を、このページのカード内だけ通常の折り返しに戻す */
+        .stats-card, .stats-card * { word-break: normal; overflow-wrap: anywhere; }
+
+        /* ツールチップ: ホバー・キーボードフォーカス・タップのどれでも開く */
+        .day-tooltip { display: none; }
+        .day-bar-group:hover .day-tooltip,
+        .day-bar-group:focus-visible .day-tooltip,
+        .day-tooltip.is-open { display: block; }
+
+        /* 動きを減らす設定の人にはアニメーションを止める */
+        @media (prefers-reduced-motion: reduce) {
+            .stats-card, .stats-card * { transition: none !important; }
+        }
+    </style>
 </head>
 <body class="bg-gray-900 font-sans min-h-screen flex flex-col m-0 p-0 overflow-hidden">
 
@@ -21,28 +36,29 @@
     <div class="flex-grow w-full h-screen pt-20 pb-4 px-4 box-border overflow-y-auto">
 
         <!-- ステータスボード用コンテナ -->
-        <div class="w-full max-w-5xl mx-auto bg-white rounded-2xl shadow-lg border-none min-h-full p-6 lg:p-10 flex flex-col mb-10">
+        <div class="w-full max-w-5xl mx-auto bg-white rounded-2xl shadow-lg border-none min-h-full p-4 sm:p-6 lg:p-10 flex flex-col mb-10">
 
             <!-- 全体ステータス -->
             <div class="mb-8">
-                <h1 class="text-3xl font-bold text-gray-800 text-center">サーバー稼働状況一覧</h1>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center">サーバー稼働状況一覧</h1>
+                <p class="text-sm text-gray-500 text-center mt-1">直近90日間の稼働データ</p>
 
-                <div id="overall-status" class="flex items-center justify-center gap-2 text-lg font-medium mt-4 py-3 rounded-md shadow-sm transition-all duration-500">
-                    Loading...
+                <div id="overall-status" role="status" class="flex items-center justify-center gap-3 text-base sm:text-lg font-semibold mt-5 py-4 px-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-600 transition-all duration-500">
+                    読み込み中...
                 </div>
 
                 <!-- サマリーカード -->
-                <div id="summary-cards" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5"></div>
+                <div id="summary-cards" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4"></div>
             </div>
 
             <!-- フィルタタブ -->
-            <div id="filter-tabs" class="flex flex-wrap gap-2 mb-6"></div>
+            <div id="filter-tabs" role="group" aria-label="稼働状況で絞り込み" class="flex flex-wrap gap-2 mb-4"></div>
 
             <!-- 日別バーの凡例 -->
-            <div id="legend" class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-500 mb-6 pb-4 border-b border-gray-100"></div>
+            <div id="legend" class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-600 mb-6 py-3 px-4 rounded-lg bg-gray-50"></div>
 
             <!-- モニターリスト -->
-            <div id="monitors-list" class="flex flex-col space-y-10">
+            <div id="monitors-list" class="flex flex-col gap-4">
                 <!-- ここにJavaScriptで動的に要素が追加されます -->
             </div>
 
@@ -60,6 +76,17 @@
             // サーバーから渡されたデータをJSONとして受け取る
             const data = <%- JSON.stringify(monitorData || null) %>;
 
+            // ステータスごとの表示（色だけに頼らず、文字とアイコンの形でも区別する）
+            const STATUS = {
+                success: { text: '正常', badge: 'bg-green-100 text-green-800' },
+                danger: { text: 'ダウン', badge: 'bg-red-100 text-red-800' },
+                paused: { text: '一時停止', badge: 'bg-gray-200 text-gray-700' },
+            };
+            const STATUS_FALLBACK = { text: '未確認', badge: 'bg-gray-100 text-gray-700' };
+
+            // 日別バーのラベルを日本語に（凡例と同じ表記）
+            const DAY_LABELS = { excellent: '正常', good: '良好', fair: '注意', poor: '障害', black: 'データなし' };
+
             if (data && data.status === 'ok' && Array.isArray(data.data)) {
                 const monitors = data.data;
                 const counts = getCounts(monitors, data.statistics);
@@ -73,15 +100,18 @@
                 monitors.forEach(monitor => container.appendChild(createMonitorElement(monitor)));
             } else {
                 overallStatus.innerHTML = '';
-                overallStatus.appendChild(makeStatusIcon('unknown', 'w-6 h-6'));
+                overallStatus.appendChild(makeStatusIcon('unknown', 'w-7 h-7'));
                 overallStatus.appendChild(document.createTextNode('稼働状況データの取得に失敗しました。'));
-                overallStatus.className = 'flex items-center justify-center gap-2 text-lg font-medium mt-4 py-3 rounded-md bg-gray-100 text-gray-600 shadow-sm';
+                overallStatus.className = 'flex items-center justify-center gap-3 text-base sm:text-lg font-semibold mt-5 py-4 px-4 rounded-xl border border-gray-200 bg-gray-100 text-gray-700';
             }
 
-            // タップ中のツールチップ以外は閉じる（タッチ端末対応）
+            // タップ中のツールチップ以外は閉じる（タッチ端末対応）／Escapeでも閉じる
             document.addEventListener('click', (e) => {
                 if (e.target.closest && e.target.closest('.day-tooltip, .day-bar-group')) return;
                 closeAllTooltips();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeAllTooltips();
             });
 
             // ---- 集計 ----
@@ -100,31 +130,39 @@
             function renderOverallStatus(el, counts) {
                 el.innerHTML = '';
                 const allOk = counts.down === 0;
-                el.appendChild(makeStatusIcon(allOk ? 'success' : 'danger', 'w-6 h-6'));
+                el.appendChild(makeStatusIcon(allOk ? 'success' : 'danger', 'w-7 h-7'));
                 const text = document.createElement('span');
                 text.textContent = allOk
                     ? '全てのサーバーが正常に稼働しています'
                     : counts.down + '件のサーバーで問題が発生しています';
                 el.appendChild(text);
-                el.className = 'flex items-center justify-center gap-2 text-lg font-medium mt-4 py-3 rounded-md shadow-sm ' +
-                    (allOk ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700');
+                el.className = 'flex items-center justify-center gap-3 text-base sm:text-lg font-semibold mt-5 py-4 px-4 rounded-xl border transition-all duration-500 ' +
+                    (allOk ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800');
             }
 
             // ---- サマリーカード ----
             function renderSummaryCards(el, counts) {
                 const cards = [
-                    { label: '総モニター数', value: counts.total, theme: 'bg-gray-50 text-gray-700' },
-                    { label: '正常稼働', value: counts.up, theme: 'bg-green-50 text-green-700' },
-                    { label: 'ダウン中', value: counts.down, theme: 'bg-red-50 text-red-700' },
-                    { label: '一時停止', value: counts.paused || 0, theme: 'bg-gray-100 text-gray-500' },
+                    { label: '総モニター数', value: counts.total, theme: 'bg-gray-50 border-gray-200 text-gray-800' },
+                    { label: '正常稼働', value: counts.up, theme: 'bg-green-50 border-green-200 text-green-800' },
+                    { label: 'ダウン中', value: counts.down, theme: 'bg-red-50 border-red-200 text-red-800' },
+                    { label: '一時停止', value: counts.paused || 0, theme: 'bg-gray-100 border-gray-200 text-gray-700' },
                 ];
                 el.innerHTML = '';
                 cards.forEach(c => {
                     const card = document.createElement('div');
-                    card.className = 'rounded-xl p-4 text-center ' + c.theme;
-                    card.innerHTML =
-                        '<div class="text-2xl font-bold">' + c.value + '</div>' +
-                        '<div class="text-xs font-medium mt-1">' + c.label + '</div>';
+                    card.className = 'rounded-xl border p-4 text-center ' + c.theme;
+
+                    const value = document.createElement('div');
+                    value.className = 'text-3xl font-bold leading-none';
+                    value.textContent = c.value;
+
+                    const label = document.createElement('div');
+                    label.className = 'text-xs font-medium mt-2';
+                    label.textContent = c.label;
+
+                    card.appendChild(value);
+                    card.appendChild(label);
                     el.appendChild(card);
                 });
             }
@@ -138,18 +176,30 @@
                     { color: '#f87171', label: '障害 (poor)' },
                     { color: '#d1d5db', label: 'データなし' },
                 ];
-                el.innerHTML = '<span class="font-semibold text-gray-600">日別バーの色:</span>';
+                el.innerHTML = '';
+                const title = document.createElement('span');
+                title.className = 'font-semibold text-gray-700';
+                title.textContent = '日別バーの色:';
+                el.appendChild(title);
+
                 items.forEach(i => {
                     const span = document.createElement('span');
                     span.className = 'inline-flex items-center gap-1.5';
-                    span.innerHTML = '<span class="w-2.5 h-2.5 rounded-sm inline-block" style="background:' + i.color + '"></span>' + i.label;
+
+                    const swatch = document.createElement('span');
+                    swatch.className = 'w-3 h-3 rounded-sm inline-block';
+                    swatch.style.background = i.color;
+                    swatch.setAttribute('aria-hidden', 'true');
+
+                    span.appendChild(swatch);
+                    span.appendChild(document.createTextNode(i.label));
                     el.appendChild(span);
                 });
             }
 
             // ---- フィルタタブ ----
             function renderFilterTabs(el, monitors, onSelect) {
-                const labelMap = { success: '正常', danger: 'ダウン', notchecked: '未確認' };
+                const labelMap = { success: '正常', danger: 'ダウン', paused: '一時停止', notchecked: '未確認' };
                 const seen = {};
                 monitors.forEach(m => { seen[m.statusClass] = (seen[m.statusClass] || 0) + 1; });
 
@@ -185,8 +235,8 @@
             }
 
             function tabButtonClass(isActive) {
-                return 'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ' +
-                    (isActive ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200');
+                return 'min-h-[44px] px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ' +
+                    (isActive ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200');
             }
 
             function applyFilter(container, key) {
@@ -196,19 +246,31 @@
                 });
             }
 
+            // 稼働率の値に応じた色（数字の文字も一緒に表示するので色だけに頼らない）
+            function ratioTheme(value) {
+                const n = parseFloat(value);
+                if (isNaN(n)) return 'bg-gray-100 text-gray-700';
+                if (n >= 99) return 'bg-green-100 text-green-800';
+                if (n >= 95) return 'bg-yellow-100 text-yellow-800';
+                return 'bg-red-100 text-red-800';
+            }
+
             // ---- モニターごとのUIコンポーネントを生成する関数 ----
             function createMonitorElement(monitor) {
+                const status = STATUS[monitor.statusClass] || STATUS_FALLBACK;
+
                 const wrapper = document.createElement('div');
-                wrapper.className = 'flex flex-col space-y-3';
+                wrapper.className = 'stats-card flex flex-col gap-3 rounded-xl border p-4 sm:p-5 transition-shadow duration-200 hover:shadow-md ' +
+                    (monitor.statusClass === 'danger' ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-white');
                 wrapper.dataset.statusClass = monitor.statusClass;
 
-                // --- 1. ヘッダー部（名前・種別・稼働率） ---
+                // --- 1. ヘッダー部（名前・状態・種別・稼働率） ---
                 const header = document.createElement('div');
                 header.className = 'flex justify-between items-start gap-3 flex-wrap';
 
                 const nameDiv = document.createElement('div');
-                nameDiv.className = 'flex items-start gap-2 min-w-0';
-                nameDiv.appendChild(makeStatusIcon(monitor.statusClass, 'w-5 h-5 mt-0.5'));
+                nameDiv.className = 'flex items-start gap-3 min-w-0';
+                nameDiv.appendChild(makeStatusIcon(monitor.statusClass, 'w-6 h-6 mt-0.5'));
 
                 const nameWrap = document.createElement('div');
                 nameWrap.className = 'min-w-0';
@@ -217,13 +279,18 @@
                 nameRow.className = 'flex items-center gap-2 flex-wrap';
 
                 const name = document.createElement('h2');
-                name.className = 'text-xl font-semibold text-gray-700';
+                name.className = 'text-lg sm:text-xl font-semibold text-gray-800';
                 name.textContent = monitor.name;
                 nameRow.appendChild(name);
 
+                const statusBadge = document.createElement('span');
+                statusBadge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ' + status.badge;
+                statusBadge.textContent = status.text;
+                nameRow.appendChild(statusBadge);
+
                 if (monitor.type) {
                     const typeBadge = document.createElement('span');
-                    typeBadge.className = 'text-[10px] font-semibold uppercase tracking-wide text-gray-400 bg-gray-100 px-2 py-0.5 rounded';
+                    typeBadge.className = 'text-[10px] font-semibold uppercase tracking-wide text-gray-600 bg-gray-100 px-2 py-0.5 rounded';
                     typeBadge.textContent = monitor.type;
                     nameRow.appendChild(typeBadge);
                 }
@@ -231,7 +298,7 @@
 
                 if (monitor.lastDowntime) {
                     const incident = document.createElement('p');
-                    incident.className = 'text-xs text-red-500 mt-0.5';
+                    incident.className = 'text-xs text-red-700 mt-1';
                     incident.textContent = '直近の障害: ' + formatIncidentDate(monitor.lastDowntime.date) +
                         '（' + formatDuration(monitor.lastDowntime.duration) + '）';
                     nameWrap.appendChild(incident);
@@ -240,64 +307,121 @@
                 nameDiv.appendChild(nameWrap);
 
                 // 右側の稼働率表示
-                const ratio = document.createElement('span');
-                ratio.className = 'text-sm font-bold text-gray-500 bg-gray-100 py-1 px-3 rounded-full whitespace-nowrap';
                 const ratioValue = monitor['90dRatio'] ? monitor['90dRatio'].ratio : 'N/A';
-                ratio.textContent = '90日間 ' + ratioValue + '%';
+                const ratio = document.createElement('span');
+                ratio.className = 'inline-flex items-baseline gap-1.5 py-1 px-3 rounded-full whitespace-nowrap ' + ratioTheme(ratioValue);
+
+                const ratioLabel = document.createElement('span');
+                ratioLabel.className = 'text-xs font-medium';
+                ratioLabel.textContent = '90日間';
+
+                const ratioNumber = document.createElement('span');
+                ratioNumber.className = 'text-sm font-bold';
+                ratioNumber.textContent = ratioValue + '%';
+
+                ratio.appendChild(ratioLabel);
+                ratio.appendChild(ratioNumber);
 
                 header.appendChild(nameDiv);
                 header.appendChild(ratio);
 
                 // --- 2. バー（棒グラフ）表示部 ---
-                const barsWrapper = document.createElement('div');
-                barsWrapper.className = 'flex gap-[1px] sm:gap-[2px] md:gap-1 h-12 w-full';
-
                 const days = monitor.dailyRatios || [];
 
-                days.forEach(day => {
+                const barsWrapper = document.createElement('div');
+                barsWrapper.className = 'flex gap-[1px] sm:gap-[2px] md:gap-1 h-14 w-full';
+                barsWrapper.setAttribute('role', 'group');
+                barsWrapper.setAttribute('aria-label', monitor.name + ' の日別稼働状況（矢印キーで日付を移動）');
+
+                const barGroups = [];
+
+                days.forEach((day, index) => {
+                    const dayLabel = DAY_LABELS[(day.label || '').toLowerCase()] ||
+                        (day.label ? day.label.charAt(0).toUpperCase() + day.label.slice(1) : '');
+                    // 「データなし」の日（監視開始前など）は 0% と表示せず、ラベルだけ出す
+                    const noData = (day.label || '').toLowerCase() === 'black';
+                    const dayText = noData ? dayLabel : day.ratio + '%' + (dayLabel ? '（' + dayLabel + '）' : '');
+                    const summary = day.date + ' ' + dayText;
+
                     const barGroup = document.createElement('div');
-                    barGroup.className = 'day-bar-group flex-grow min-w-0 relative group cursor-pointer';
+                    barGroup.className = 'day-bar-group flex-grow min-w-0 relative cursor-pointer rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1';
+                    barGroup.setAttribute('role', 'img');
+                    barGroup.setAttribute('aria-label', summary);
+                    // キーボードでは最新日(右端)だけTabで止まり、あとは矢印キーで移動する
+                    barGroup.tabIndex = index === days.length - 1 ? 0 : -1;
 
                     // 日ごとのバー
                     const bar = document.createElement('div');
-                    bar.className = 'w-full h-full rounded-sm opacity-80 group-hover:opacity-100 transition-opacity duration-200';
+                    bar.className = 'w-full h-full rounded-sm opacity-80 hover:opacity-100 transition-opacity duration-200';
                     bar.style.backgroundColor = getLighterColor(day.color);
 
-                    // ホバー／タップ時に表示されるツールチップ
+                    // ホバー／フォーカス／タップ時に表示されるツールチップ
+                    // 左右の端のバーは、画面外にはみ出さないよう寄せて表示する
+                    const edge = index < days.length * 0.2 ? 'left' : index > days.length * 0.8 ? 'right' : 'center';
                     const tooltip = document.createElement('div');
-                    tooltip.className = 'day-tooltip hidden group-hover:block absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs py-1 px-3 rounded shadow-lg whitespace-nowrap z-10';
+                    tooltip.className = 'day-tooltip pointer-events-none absolute bottom-full mb-2 bg-gray-800 text-white text-xs py-1.5 px-3 rounded-lg shadow-lg whitespace-nowrap z-10 ' +
+                        (edge === 'left' ? 'left-0' : edge === 'right' ? 'right-0' : 'left-1/2 transform -translate-x-1/2');
 
-                    const labelStr = day.label ? day.label.charAt(0).toUpperCase() + day.label.slice(1) : '';
-                    tooltip.innerHTML = '<span class="font-bold">' + day.date + '</span><br>' + day.ratio + '% (' + labelStr + ')';
+                    const dateLine = document.createElement('span');
+                    dateLine.className = 'font-bold';
+                    dateLine.textContent = day.date;
+                    tooltip.appendChild(dateLine);
+                    tooltip.appendChild(document.createElement('br'));
+                    tooltip.appendChild(document.createTextNode(dayText));
 
                     // ツールチップの下向きの矢印
                     const tooltipArrow = document.createElement('div');
-                    tooltipArrow.className = 'absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800';
+                    tooltipArrow.className = 'absolute top-full border-4 border-transparent border-t-gray-800 ' +
+                        (edge === 'left' ? 'left-2' : edge === 'right' ? 'right-2' : 'left-1/2 transform -translate-x-1/2');
                     tooltip.appendChild(tooltipArrow);
 
-                    // タッチ端末向け：タップでツールチップを開閉
+                    // タッチ端末向け：タップでツールチップを開閉（マウスはホバーで開くので対象外）
                     barGroup.addEventListener('click', (e) => {
+                        if (!window.matchMedia('(hover: none)').matches) return;
                         e.stopPropagation();
-                        const wasOpen = tooltip.style.display === 'block';
+                        const wasOpen = tooltip.classList.contains('is-open');
                         closeAllTooltips();
-                        tooltip.style.display = wasOpen ? '' : 'block';
+                        if (!wasOpen) tooltip.classList.add('is-open');
                     });
 
                     barGroup.appendChild(bar);
                     barGroup.appendChild(tooltip);
                     barsWrapper.appendChild(barGroup);
+                    barGroups.push(barGroup);
+                });
+
+                // キーボード操作: 矢印キー・Home・Endで日付を移動
+                barsWrapper.addEventListener('keydown', (e) => {
+                    const current = barGroups.indexOf(document.activeElement);
+                    if (current < 0) return;
+                    let next = current;
+                    if (e.key === 'ArrowLeft') next = Math.max(0, current - 1);
+                    else if (e.key === 'ArrowRight') next = Math.min(barGroups.length - 1, current + 1);
+                    else if (e.key === 'Home') next = 0;
+                    else if (e.key === 'End') next = barGroups.length - 1;
+                    else return;
+                    e.preventDefault();
+                    barGroups[current].tabIndex = -1;
+                    barGroups[next].tabIndex = 0;
+                    barGroups[next].focus();
                 });
 
                 // --- 3. フッター部（日付） ---
                 const footer = document.createElement('div');
-                footer.className = 'flex justify-between items-center text-xs text-gray-400 mt-1';
+                footer.className = 'flex justify-between items-center text-xs text-gray-500';
 
                 const startDate = days.length > 0 ? days[0].date : '90 days ago';
 
-                footer.innerHTML =
-                    '<span>' + startDate + '</span>' +
-                    '<span class="border-t border-gray-200 flex-grow mx-4"></span>' +
-                    '<span>Today</span>';
+                const startSpan = document.createElement('span');
+                startSpan.textContent = startDate;
+                const line = document.createElement('span');
+                line.className = 'border-t border-gray-200 flex-grow mx-4';
+                const endSpan = document.createElement('span');
+                endSpan.textContent = 'Today';
+
+                footer.appendChild(startSpan);
+                footer.appendChild(line);
+                footer.appendChild(endSpan);
 
                 wrapper.appendChild(header);
                 wrapper.appendChild(barsWrapper);
@@ -307,7 +431,7 @@
             }
 
             function closeAllTooltips() {
-                document.querySelectorAll('.day-tooltip').forEach(t => { t.style.display = ''; });
+                document.querySelectorAll('.day-tooltip.is-open').forEach(t => t.classList.remove('is-open'));
             }
 
             // --- 標準の色名を明るい色に変換する関数 ---
@@ -333,18 +457,22 @@
                 const wrap = document.createElement('span');
                 const isDanger = statusClass === 'danger';
                 const isSuccess = statusClass === 'success';
-                const bg = isDanger ? 'bg-red-400' : isSuccess ? 'bg-green-400' : 'bg-gray-300';
+                const isPaused = statusClass === 'paused';
+                const bg = isDanger ? 'bg-red-500' : isSuccess ? 'bg-green-500' : 'bg-gray-400';
                 wrap.className = (sizeClass || 'w-5 h-5') + ' rounded-full shadow-sm shrink-0 flex items-center justify-center ' + bg;
+                wrap.setAttribute('aria-hidden', 'true');
 
                 let path;
                 if (isDanger) {
                     path = '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />';
                 } else if (isSuccess) {
                     path = '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />';
+                } else if (isPaused) {
+                    path = '<path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6" />';
                 } else {
                     path = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 3h.01" />';
                 }
-                wrap.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">' + path + '</svg>';
+                wrap.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-3/5 w-3/5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">' + path + '</svg>';
                 return wrap;
             }
 
