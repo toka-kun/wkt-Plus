@@ -3,7 +3,6 @@ const router = express.Router();
 const fs = require("fs");
 const path = require("path");
 const ytsr = require("ytsr");
-const ytpl = require("ytpl");
 const serverYt = require("../server/youtube.js");
 
 const limit = process.env.LIMIT || 50;
@@ -104,7 +103,6 @@ router.get("/ss", async (req, res) => {
 });
 
 // 再生リストページ(views/tube/playlist.ejs のみ)
-// 失敗したら /wkt/pp/:id にフォールバックする
 router.get("/p/:id", async (req, res) => {
   const id = req.params.id;
   try {
@@ -114,22 +112,14 @@ router.get("/p/:id", async (req, res) => {
       return res.send(html);
     }
   } catch {}
-  res.redirect(req.baseUrl + "/pp/" + encodeURIComponent(id));
+  res.status(500).render("error.ejs", {
+    title: "エラー",
+    content: "再生リストの取得に失敗しました。"
+  });
 });
 
-// ytpl の再生リストページ(views/tube/opu/playlist.ejs)
-router.get("/pp/:id", async (req, res) => {
-  const id = req.params.id;
-  try {
-    const result = await ytpl(id, { limit: 100, gl: "JP", hl: "ja" });
-    res.render("tube/opu/playlist.ejs", { res: result, playlistId: id });
-  } catch (err) {
-    res.status(500).render("error.ejs", {
-      title: "エラー",
-      content: "再生リストの取得に失敗しました:\n" + err.toString()
-    });
-  }
-});
+// /wkt/pp/:id は /wkt/p/:id へ
+router.get("/pp/:id", (req, res) => res.redirect(req.baseUrl + "/p/" + encodeURIComponent(req.params.id)));
 
 router.get("/c/:id/tab/:tabName", async (req, res) => {
   const { id, tabName } = req.params;
