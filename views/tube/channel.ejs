@@ -44,6 +44,16 @@
                 <p class="text-gray-400 text-sm"><%- channel.header?.content?.metadata?.metadata_rows?.[0]?.metadata_parts?.[0]?.text || "" %>  -  <%- channel.header?.content?.metadata?.metadata_rows?.[1]?.metadata_parts?.[1]?.text || "" %></p>
                 <p class="text-gray-500 text-sm mt-2"><%- channel.header?.content?.metadata?.metadata_rows?.[1]?.metadata_parts?.[0]?.text || "" %></p>
             </div>
+            <%# 履歴・お気に入りに入れる内容。tube.js が読み取る %>
+            <button id="wktFavBtn" class="ml-auto flex-shrink-0 p-2 rounded-full bg-gray-500" aria-label="お気に入り" data-entry="<%= JSON.stringify({
+                type: 'channel',
+                channelId: channelId,
+                channelName: String(channel.metadata.title || ''),
+                channelIcon: String(channel.metadata.avatar?.[0]?.url || ''),
+                subsc: String(channel.header?.content?.metadata?.metadata_rows?.[1]?.metadata_parts?.[0]?.text || '')
+            }) %>">
+                <img src="https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png" alt="お気に入り" class="w-8 h-8">
+            </button>
         </div>
         <p class="text-gray-400 mt-4"><%- channel.metadata.description || "" %></p>
     </div>
