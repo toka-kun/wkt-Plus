@@ -29,7 +29,7 @@
         <a href="/wkt" class="text-gray-300 hover:text-white">ホーム</a>
         <a href="/wkt/trend" class="text-gray-300 hover:text-white">トレンド</a>
         <a href="/wkt/cl/fav" class="text-gray-300 hover:text-white">お気に入り</a>
-        <a href="/wkt/cl/history" class="text-gray-300 hover:text-white">再生履歴</a>
+        <a href="/wkt/cl/history" class="text-gray-300 hover:text-white">閲覧履歴</a>
     </nav>
 </header>
 
@@ -50,7 +50,8 @@
                 channelId: channelId,
                 channelName: String(channel.metadata.title || ''),
                 channelIcon: String(channel.metadata.avatar?.[0]?.url || ''),
-                subsc: String(channel.header?.content?.metadata?.metadata_rows?.[1]?.metadata_parts?.[0]?.text || '')
+                subsc: String(channel.header?.content?.metadata?.metadata_rows?.[1]?.metadata_parts?.[0]?.text || ''),
+                videos: String(channel.header?.content?.metadata?.metadata_rows?.[1]?.metadata_parts?.[1]?.text || '')
             }) %>">
                 <img src="https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png" alt="お気に入り" class="w-8 h-8">
             </button>
@@ -108,7 +109,7 @@
                                         <% } %>
                                     </a>
                                     <div class="mt-2">
-                                        <p class="text-lg font-bold"><%= v.title %></p>
+                                        <p class="text-lg font-bold"><a href="/wkt/c/<%= v.id %>" class="hover:underline"><%= v.title %></a></p>
                                         <% if (v.description) { %><p class="text-sm text-gray-400"><%= v.description %></p><% } %>
                                         <p class="text-xs text-gray-500"><%= v.subscribers %><% if (v.videos) { %> • <%= v.videos %><% } %></p>
                                     </div>
