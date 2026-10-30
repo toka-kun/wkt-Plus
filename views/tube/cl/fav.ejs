@@ -14,6 +14,7 @@
         .result-item {
             position: relative;
         }
+        .tab-btn { transition: all 0.2s; cursor: pointer; }
     </style>
 </head>
 <body class="bg-gray-900 text-white">
@@ -36,6 +37,12 @@
         <button id="clear-history" class="absolute top-0 right-0 m-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
             全て解除
         </button>
+        <div class="flex space-x-6 mb-6 border-b border-gray-700 text-lg overflow-x-auto whitespace-nowrap" id="tabs">
+            <button data-filter="all" class="tab-btn pb-2 text-white font-bold border-b-2 border-blue-500">全て</button>
+            <button data-filter="video" class="tab-btn pb-2 text-gray-400 font-bold hover:text-white">動画</button>
+            <button data-filter="playlist" class="tab-btn pb-2 text-gray-400 font-bold hover:text-white">再生リスト</button>
+            <button data-filter="channel" class="tab-btn pb-2 text-gray-400 font-bold hover:text-white">チャンネル</button>
+        </div>
         <p id="no-history" class="hidden">お気に入りはありません(´・ω・｀)</p>
         <div id="history-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
         <div class="flex justify-center mt-10 mb-6">
@@ -47,6 +54,7 @@
 <script>
 const FAVORITES_PAGE_SIZE = 20;
 const STORE_KEY = "wakametubefavorites";
+let currentFilter = "all";
 const REMOVE_LABEL = "お気に入りから解除";
 
 function getHistoryFromLocalStorage() {
@@ -64,8 +72,8 @@ function avatar(icon, name, cls) {
     let path = "";
     try { if (icon) path = new URL(icon, "https://yt3.ggpht.com").pathname; } catch (e) {}
     return path
-        ? `<img src="/wkt/back/yt3${path}" alt="${name}" class="${cls} rounded-full object-cover border border-gray-700">`
-        : `<div class="${cls} rounded-full border border-gray-700"></div>`;
+        ? `<img src="/wkt/back/yt3${path}" alt="${name}" class="${cls}">`
+        : `<div class="${cls}"></div>`;
 }
 
 // 保存されている文字は保存時にエスケープ済み。古い履歴には無い項目があるので、あるものだけ出す
@@ -79,7 +87,7 @@ const CARDS = {
                 <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
             </a>
             <div class="mt-3 flex items-start space-x-3">
-                <a href="${chLink}" class="flex-shrink-0">${avatar(v.channelIcon, v.channelName, "w-9 h-9 bg-gray-600")}</a>
+                <a href="${chLink}" class="flex-shrink-0">${avatar(v.channelIcon, v.channelName, "w-9 h-9 rounded-full object-cover bg-gray-600 border border-gray-700")}</a>
                 <div class="flex-1 min-w-0">
                     <a href="/wkt/watch/${v.videoId}">
                         <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition">${v.videoTitle}</p>
@@ -91,10 +99,10 @@ const CARDS = {
     },
     channel(v) {
         return `
-            <a href="/wkt/c/${v.channelId}" class="block">${avatar(v.channelIcon, v.channelName, "w-1/2 mx-auto aspect-square bg-gray-700")}</a>
-            <div class="mt-3 min-w-0">
-                <a href="/wkt/c/${v.channelId}"><p class="text-white font-bold text-base leading-snug line-clamp-2 mb-1 hover:underline">${v.channelName}</p></a>
-                ${v.subsc ? `<p class="text-xs text-gray-300 truncate">${v.subsc}</p>` : ""}
+            <a href="/wkt/c/${v.channelId}">${avatar(v.channelIcon, v.channelName, "w-full h-auto aspect-square object-cover rounded bg-gray-700")}</a>
+            <div class="mt-2">
+                <p class="text-lg font-bold"><a href="/wkt/c/${v.channelId}" class="hover:underline">${v.channelName}</a></p>
+                ${v.subsc || v.videos ? `<p class="text-xs text-gray-500">${[v.subsc, v.videos].filter(Boolean).join(" • ")}</p>` : ""}
             </div>`;
     },
     playlist(v) {
@@ -131,14 +139,13 @@ function removeItem(video, item) {
     localStorage.setItem(STORE_KEY, JSON.stringify(list));
     item.remove();
     showMessage(REMOVE_LABEL + "しました");
-    if (!list.length) {
+    if (!document.getElementById("history-list").children.length && document.getElementById("load-more-history").classList.contains("hidden")) {
         document.getElementById("no-history").classList.remove("hidden");
-        document.getElementById("load-more-history").classList.add("hidden");
     }
 }
 
 function displayHistory() {
-    const history = getHistoryFromLocalStorage().reverse();
+    const history = getHistoryFromLocalStorage().reverse().filter(v => currentFilter === "all" || (v.type || "video") === currentFilter);
     const historyList = document.getElementById("history-list");
     const noHistoryMsg = document.getElementById("no-history");
     const loadMoreButton = document.getElementById("load-more-history");
@@ -184,6 +191,19 @@ function clearHistory() {
 document.addEventListener("DOMContentLoaded", () => {
     displayHistory();
     document.getElementById("clear-history").addEventListener("click", clearHistory);
+    document.getElementById("tabs").addEventListener("click", e => {
+        const btn = e.target.closest("[data-filter]");
+        if (!btn) return;
+        currentFilter = btn.dataset.filter;
+        document.querySelectorAll("#tabs .tab-btn").forEach(t => {
+            const on = t === btn;
+            t.classList.toggle("text-white", on);
+            t.classList.toggle("border-b-2", on);
+            t.classList.toggle("border-blue-500", on);
+            t.classList.toggle("text-gray-400", !on);
+        });
+        displayHistory();
+    });
 });
   
 function showMessage(text) {
