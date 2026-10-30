@@ -269,8 +269,19 @@ async function getAceThinker(videoId) {
         if (isBlocked(instance)) continue; 
 
         try {
-            const apiUrl = `${instance}/api/dlapinewv2.php?url=https://www.youtube.com/watch?v=${videoId}`;
-            const response = await axios.get(apiUrl, { timeout: MAX_TIME }); 
+            const headers = {
+                "Accept": "application/json, text/javascript, */*; q=0.01",
+                "X-Requested-With": "XMLHttpRequest",
+                "Referer": `${instance}/downloader/`,
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+            };
+
+            try {
+                await axios.get(`${instance}/downloader/api/getip.php`, { headers, timeout: 5000 });
+            } catch (_) {}
+
+            const apiUrl = `${instance}/downloader/api/dlapinewv2.php?url=https://www.youtube.com/watch?v=${videoId}`;
+            const response = await axios.get(apiUrl, { headers, timeout: MAX_TIME }); 
             const resData = response.data.res_data;
             
             if (resData && resData.formats) {
