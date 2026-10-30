@@ -38,10 +38,10 @@
             履歴を削除
         </button>
         <div class="flex space-x-6 mb-6 border-b border-gray-700 text-lg overflow-x-auto whitespace-nowrap" id="tabs">
-            <button data-filter="all" class="tab-btn pb-2 text-white font-bold border-b-2 border-blue-500">全て</button>
-            <button data-filter="video" class="tab-btn pb-2 text-gray-400 font-bold hover:text-white">動画</button>
-            <button data-filter="playlist" class="tab-btn pb-2 text-gray-400 font-bold hover:text-white">再生リスト</button>
-            <button data-filter="channel" class="tab-btn pb-2 text-gray-400 font-bold hover:text-white">チャンネル</button>
+            <button data-filter="all" data-color="border-blue-500" class="tab-btn pb-2 text-white font-bold border-b-2 border-blue-500">全て</button>
+            <button data-filter="video" data-color="border-green-500" class="tab-btn pb-2 text-gray-400 font-bold hover:text-white">動画</button>
+            <button data-filter="playlist" data-color="border-red-500" class="tab-btn pb-2 text-gray-400 font-bold hover:text-white">再生リスト</button>
+            <button data-filter="channel" data-color="border-yellow-500" class="tab-btn pb-2 text-gray-400 font-bold hover:text-white">チャンネル</button>
         </div>
         <p id="no-history" class="hidden">最近見た動画・チャンネル・再生リストはありません(´・ω・｀)</p>
         <div id="history-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
@@ -199,7 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const on = t === btn;
             t.classList.toggle("text-white", on);
             t.classList.toggle("border-b-2", on);
-            t.classList.toggle("border-blue-500", on);
+            t.classList.toggle(t.dataset.color, on);
             t.classList.toggle("text-gray-400", !on);
         });
         displayHistory();
