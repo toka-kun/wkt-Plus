@@ -14,20 +14,6 @@
         .result-item {
             position: relative;
         }
-        .thumbnail {
-            position: relative;
-            display: inline-block;
-        }
-        .video-duration {
-            position: absolute;
-            bottom: 8px;
-            right: 8px;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 2px 4px;
-            border-radius: 2px;
-            font-size: 12px;
-        }
     </style>
 </head>
 <body class="bg-gray-900 text-white">
@@ -50,9 +36,8 @@
         <button id="clear-history" class="absolute top-0 right-0 m-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
             履歴を削除
         </button>
-        <div id="history-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            <p id="no-history" class="hidden">最近再生した動画はありません(´・ω・｀)</p>
-        </div>
+        <p id="no-history" class="hidden">最近見た動画・チャンネル・再生リストはありません(´・ω・｀)</p>
+        <div id="history-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
         <div class="flex justify-center mt-10 mb-6">
             <button id="load-more-history" class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow-md hover:bg-blue-700 transition hidden">
                 もっと読み込む
@@ -61,14 +46,94 @@
     </div>
 <script>
 const HISTORY_PAGE_SIZE = 20;
+const STORE_KEY = "wakametubehistory";
+const REMOVE_LABEL = "履歴から削除";
 
 function getHistoryFromLocalStorage() {
-    const historyData = localStorage.getItem("wakametubehistory");
+    const historyData = localStorage.getItem(STORE_KEY);
     try {
         return historyData ? JSON.parse(historyData) : [];
     } catch (error) {
         console.error('Error parsing history from localStorage:', error);
         return [];
+    }
+}
+
+// アイコンはプロキシ経由(検索ページと同じ)。アイコンが無い古い履歴は灰色の丸にする
+function avatar(icon, name, cls) {
+    let path = "";
+    try { if (icon) path = new URL(icon, "https://yt3.ggpht.com").pathname; } catch (e) {}
+    return path
+        ? `<img src="/wkt/back/yt3${path}" alt="${name}" class="${cls} rounded-full object-cover border border-gray-700">`
+        : `<div class="${cls} rounded-full border border-gray-700"></div>`;
+}
+
+// 保存されている文字は保存時にエスケープ済み。古い履歴には無い項目があるので、あるものだけ出す
+const CARDS = {
+    video(v) {
+        const chLink = (v.channelId && v.channelId !== "N/A") ? "/wkt/c/" + v.channelId : "/wkt/watch/" + v.videoId;
+        const sub = [v.viewCount, v.published].filter(Boolean).join(" • ");
+        return `
+            <a href="/wkt/watch/${v.videoId}" class="block relative group">
+                <img loading="lazy" src="/wkt/back/vi/${v.videoId}/mqdefault.jpg" alt="${v.videoTitle}" class="w-full h-auto rounded aspect-video object-cover">
+                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
+            </a>
+            <div class="mt-3 flex items-start space-x-3">
+                <a href="${chLink}" class="flex-shrink-0">${avatar(v.channelIcon, v.channelName, "w-9 h-9 bg-gray-600")}</a>
+                <div class="flex-1 min-w-0">
+                    <a href="/wkt/watch/${v.videoId}">
+                        <p class="text-white font-bold text-sm leading-snug line-clamp-2 mb-1 hover:text-blue-400 transition">${v.videoTitle}</p>
+                    </a>
+                    <a href="${chLink}" class="text-gray-400 text-xs hover:text-white transition mb-0.5 block truncate">${v.channelName}</a>
+                    ${sub ? `<p class="text-gray-500 text-xs">${sub}</p>` : ""}
+                </div>
+            </div>`;
+    },
+    channel(v) {
+        return `
+            <a href="/wkt/c/${v.channelId}" class="block">${avatar(v.channelIcon, v.channelName, "w-1/2 mx-auto aspect-square bg-gray-700")}</a>
+            <div class="mt-3 min-w-0">
+                <a href="/wkt/c/${v.channelId}"><p class="text-white font-bold text-base leading-snug line-clamp-2 mb-1 hover:underline">${v.channelName}</p></a>
+                ${v.subsc ? `<p class="text-xs text-gray-300 truncate">${v.subsc}</p>` : ""}
+            </div>`;
+    },
+    playlist(v) {
+        const chLink = v.channelId ? "/wkt/c/" + v.channelId : "/wkt/p/" + v.playlistId;
+        return `
+            <a href="/wkt/p/${v.playlistId}" class="block relative group">
+                ${v.thumbId
+                    ? `<img loading="lazy" src="/wkt/back/vi/${v.thumbId}/mqdefault.jpg" alt="${v.title}" class="w-full h-auto rounded aspect-video object-cover">`
+                    : `<div class="w-full aspect-video rounded bg-gray-700"></div>`}
+                <span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium">プレイリスト</span>
+                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
+            </a>
+            <div class="mt-3 flex items-start gap-3">
+                <a href="/wkt/p/${v.playlistId}" class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-gray-500 bg-gray-700 text-gray-200" aria-label="プレイリストを開く">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M4 10h12v2H4zm0-4h12v2H4zm0 8h8v2H4zm10 0v6l5-3z"/></svg>
+                </a>
+                <div class="flex-1 min-w-0">
+                    <a href="/wkt/p/${v.playlistId}"><p class="text-white font-bold text-base leading-snug line-clamp-2 mb-1 hover:underline">${v.title}</p></a>
+                    ${v.channelName ? `<a href="${chLink}" class="block truncate text-sm text-gray-200 hover:underline">${v.channelName}</a>` : ""}
+                    <p class="text-xs text-gray-300">プレイリスト${v.total ? " • " + v.total : ""}</p>
+                </div>
+            </div>`;
+    }
+};
+
+// 各カードの右上の削除ボタン(カードごとに1件だけ消す)
+const REMOVE_BTN = `<button type="button" data-remove title="${REMOVE_LABEL}" aria-label="${REMOVE_LABEL}" class="absolute top-5 right-5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black bg-opacity-70 text-white hover:bg-red-600 transition">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg>
+</button>`;
+
+// 保存分と画面のカードから1件だけ消す。全部なくなったら「ありません」を出す
+function removeItem(video, item) {
+    const list = getHistoryFromLocalStorage().filter(e => !wktSame(e, video));
+    localStorage.setItem(STORE_KEY, JSON.stringify(list));
+    item.remove();
+    showMessage(REMOVE_LABEL + "しました");
+    if (!list.length) {
+        document.getElementById("no-history").classList.remove("hidden");
+        document.getElementById("load-more-history").classList.add("hidden");
     }
 }
 
@@ -90,18 +155,11 @@ function displayHistory() {
         const nextItems = history.slice(displayedCount, displayedCount + HISTORY_PAGE_SIZE);
         nextItems.forEach((video) => {
             const item = document.createElement("div");
-            item.className = "result-item w-auto bg-gray-800 p-4 rounded relative";
-            item.innerHTML = `
-                <a href="/wkt/watch/${video.videoId}" class="thumbnail">
-                    <img loading="lazy" src="/wkt/back/vi/${video.videoId}/mqdefault.jpg" alt="${video.videoTitle}" class="w-full h-auto rounded">
-                </a>
-                <div class="mt-2 flex items-center justify-between">
-                    <a href="/wkt/c/${video.channelId}" class="flex items-center">
-                        <p class="text-sm text-gray-400">${video.channelName}</p>
-                    </a>
-                </div>
-                <p class="text-lg font-bold">${video.videoTitle}</p>
-            `;
+            const card = CARDS[video.type] || CARDS.video;
+            // チャンネル・再生リストは、検索ページと同じ bg-gray-600 のカード
+            item.className = "result-item relative p-4 " + (video.type ? "bg-gray-600 rounded" : "bg-gray-800 rounded-lg shadow hover:bg-gray-700 transition duration-200");
+            item.innerHTML = card(video) + REMOVE_BTN;
+            item.querySelector("[data-remove]").addEventListener("click", () => removeItem(video, item));
             historyList.appendChild(item);
         });
         displayedCount += nextItems.length;
@@ -117,7 +175,7 @@ function displayHistory() {
 
 function clearHistory() {
   if (confirm("本当に履歴を削除しますか？")) {
-    localStorage.removeItem("wakametubehistory");
+    localStorage.removeItem(STORE_KEY);
     showerrorMessage("履歴を削除しました");
     displayHistory();
   }
