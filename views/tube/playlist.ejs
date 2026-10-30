@@ -42,7 +42,21 @@
             <% } %>
             <%# メタ情報 %>
             <div class="flex-1 min-w-0">
-                <h1 class="text-3xl font-bold mb-3"><%- info.title || '' %></h1>
+                <div class="flex items-start justify-between gap-3 mb-3">
+                    <h1 class="text-3xl font-bold"><%- info.title || '' %></h1>
+                    <%# 履歴・お気に入りに入れる内容。tube.js が読み取る %>
+                    <button id="wktFavBtn" class="flex-shrink-0 p-2 rounded-full bg-gray-500" aria-label="お気に入り" data-entry="<%= JSON.stringify({
+                        type: 'playlist',
+                        playlistId: playlistId,
+                        title: String(info.title || ''),
+                        channelId: String(info.author?.id || ''),
+                        channelName: String(info.author?.name || ''),
+                        thumbId: items[0]?.id || '',
+                        total: String(info.total_items || '')
+                    }) %>">
+                        <img src="https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png" alt="お気に入り" class="w-8 h-8">
+                    </button>
+                </div>
                 <% if (info.author) { %>
                 <a href="/wkt/c/<%= info.author.id %>" class="flex items-center gap-3 mb-3 group w-fit">
                     <% if (info.author.thumbnails?.[0]?.url) { %>
