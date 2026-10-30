@@ -215,8 +215,16 @@
                         </ul>
                     <% } %>
                 </div>
-                <button id="favoriteBtn" class="flex-shrink-0 p-2 rounded-full bg-gray-500">
-                    <img id="favoriteIcon" src="https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png" alt="お気に入り" class="w-8 h-8">
+                <button id="wktFavBtn" class="flex-shrink-0 p-2 rounded-full bg-gray-500" aria-label="お気に入り" data-entry="<%= JSON.stringify({
+                    videoId: String(videoId),
+                    channelId: String(videoInfo.channelId ?? ''),
+                    channelName: String(videoInfo.channelName ?? ''),
+                    videoTitle: String(videoInfo.title ?? ''),
+                    channelIcon: String(videoInfo.channelIcon ?? ''),
+                    viewCount: String(videoInfo.viewCount ?? ''),
+                    published: String(videoInfo.published ?? '')
+                }) %>">
+                    <img src="https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png" alt="お気に入り" class="w-8 h-8">
                 </button>
             </div>
 
@@ -645,75 +653,7 @@
         $('#toggleToolbar').click(() => $('#toolbar').addClass('open'));
         $('#closeToolbar').click(() => $('#toolbar').removeClass('open'));
 
-        // 履歴
         const videoId = "<%= videoId %>";
-        const channelId = "<%= videoInfo.channelId %>";
-        const channelName = "<%= videoInfo.channelName %>";
-        const videoTitle = "<%= videoInfo.title %>";
-
-        function saveToHistory(videoId, channelId, channelName, videoTitle) {
-            let history = getHistoryFromLocalStorage();
-            const historyIndex = history.findIndex(track => track.videoId === videoId);
-            if (historyIndex !== -1) {
-                history.splice(historyIndex, 1);
-            }
-            if (history.length >= 100) {
-                history.shift();
-            }
-            history.push({ videoId, channelId, channelName, videoTitle });
-            localStorage.setItem("wakametubehistory", JSON.stringify(history));
-        }
-
-        function getHistoryFromLocalStorage() {
-            const historyData = localStorage.getItem("wakametubehistory");
-            try {
-                return historyData ? JSON.parse(historyData) : [];
-            } catch (error) {
-                console.error('Error parsing history from localStorage:', error);
-                return [];
-            }
-        }
-
-        //お気に入り
-        function getFavoritesFromLocalStorage() {
-            return JSON.parse(localStorage.getItem("wakametubefavorites") || "[]");
-        }
-
-        function saveToFavorites(videoId, channelId, channelName, videoTitle) {
-            let favorites = getFavoritesFromLocalStorage();
-            const favIcon = document.getElementById("favoriteIcon");
-            const favIndex = favorites.findIndex(track => track.videoId === videoId);
-            if (favIndex !== -1) {
-                favorites.splice(favIndex, 1);
-                showMessage(`${videoTitle}の<a href="/wkt/cl/fav" style='color: #60a5fa;'>お気に入り</a>を解除しました☑️`);
-            } else {
-                favorites.push({ videoId, channelId, channelName, videoTitle });
-                showMessage(`${videoTitle}を<a href="/wkt/cl/fav" style='color: #60a5fa;'>お気に入り</a>に追加しました☑️`);
-            }
-            localStorage.setItem("wakametubefavorites", JSON.stringify(favorites));
-        }
-        async function checkfav() {
-            const favBtn = document.getElementById("favoriteBtn");
-            const favIcon = document.getElementById("favoriteIcon");
-            let favorites = getFavoritesFromLocalStorage();
-            let isFavorited;
-            if (favorites) {
-                isFavorited = favorites.some(track => track.videoId === videoId);
-            }
-            favIcon.src = isFavorited ? "https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_1.png" : "https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png";
-        }
-        checkfav()
-        document.getElementById("favoriteBtn").addEventListener("click", function() {
-            saveToFavorites(videoId, channelId, channelName, videoTitle);
-            const favIcon = document.getElementById("favoriteIcon");
-            let updatedFavorites = getFavoritesFromLocalStorage();
-            let nowFavorited;
-            if (updatedFavorites) {
-                nowFavorited = updatedFavorites.some(track => track.videoId === videoId);
-            }
-            favIcon.src = nowFavorited ? "https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_1.png" : "https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png";
-        });
-
         // 概要
         function toggleDescription(button) {
             const description = button.closest('div').nextElementSibling;
@@ -733,7 +673,6 @@
             if (urlParams.get('tu') === 'true') {
                 showMessage("再生方法をNocookieに変更しました☑️");
             }
-            saveToHistory(videoId, channelId, channelName, videoTitle);
         });
 
         function showMessage(text) {
