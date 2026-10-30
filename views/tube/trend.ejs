@@ -44,7 +44,7 @@
       <nav class="space-x-4">
           <a href="/wkt" class="text-gray-300 hover:text-white">ホーム</a>
           <a href="/wkt/cl/fav" class="text-gray-300 hover:text-white">お気に入り</a>
-          <a href="/wkt/cl/history" class="text-gray-300 hover:text-white">再生履歴</a>
+          <a href="/wkt/cl/history" class="text-gray-300 hover:text-white">閲覧履歴</a>
           <a href="/wkt/cl/shistory" class="text-gray-300 hover:text-white">検索履歴</a>
       </nav>
   </header>
@@ -305,28 +305,6 @@
               containerElement.innerHTML += html;
           });
       }
-  });
-
-  /* -----------------------------------------------
-     2. 機能維持: jQuery Autocomplete (サジェスト)
-  ----------------------------------------------- */
-  $(function () {
-      $('#searchbox').autocomplete({
-          source: function (request, response) {
-              $.ajax({
-                  url: '/wkt/back/suggest',
-                  data: { keyword: request.term },
-                  success: function (data) {
-                      response(data);
-                  }
-              });
-          },
-          delay: 200,
-          select: function (event, ui) {
-              $('#searchbox').val(ui.item.value);
-              $('#searchForm').submit();
-          }
-      });
   });
   </script>
 
