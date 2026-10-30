@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ヘルプ</title>
   <script src="/js/tailwindcss.js"></script>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script src="/js/tube.js"></script>
 <style>
     .faq-content a {
       color: #60a5fa;
@@ -73,7 +76,7 @@
           </svg>
         </button>
         <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>ホーム画面の上に「🤫シークレット」というボタンがあるので、それがONになっているかを確認して下さい（デフォルトで既にONになっています。）。OFFになっていればそれを押してONにしましょう。</p>
+          <p>ホーム画面の上に「😎シークレット」というボタンがあるので、それがONになっているかを確認して下さい（デフォルトで既にONになっています。）。OFFになっていればそれを押してONにしましょう。</p>
         </div>
       </div>
 
@@ -97,7 +100,7 @@
           </svg>
         </button>
         <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p><strong>ありがとうございます！</strong>GitHubのリポジトリは<a href="https://github.com/toka-kun/wkt-Plus" target="_blank" rel="noopener noreferrer">https://github.com/toka-kun/wkt-Plus</a>にあるので、RemixしてRenderなどにデプロイしてみて下さい！</p>
+          <p><strong>ありがとうございます！</strong>GitHubのリポジトリは <a href="https://github.com/toka-kun/wkt-Plus" target="_blank" rel="noopener noreferrer">https://github.com/toka-kun/wkt-Plus</a> にあるので、ForkしてRenderなどにデプロイしてみて下さい！</p>
         </div>
       </div>
 
@@ -166,7 +169,7 @@
         <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
           <p><strong>画質選択のところには 「画質 (ファイル形式)」と入っています。</strong>これは使用したサーバーによって取得できる情報が違い、わかめtube Plusではできる限り全て表示させる方針を取っています。ちなみにm3u8の場合は言語も表示させています。<br><br>
           <strong>ファイル形式の違い↓</strong><br>
-          <strong>- 統合ストリーム</strong>: デフォルトの360pです。映像と音声が一緒なので音がずれません。360pでいいならこれが一番オススメ。<br>
+          <strong>- 統合</strong>: デフォルトの360pです。映像と音声が一緒なので音がずれません。360pでいいならこれが一番オススメ。<br>
           <strong>- m3u8</strong>: 使用するサーバーによって取得できるかどうかが異なります。映像と音声が一緒なので音がずれません。<br>
           <strong>- mp4</strong>: 1080p以下の全ての画質にあります。<br>
           <strong>- webm</strong>: 360pにしかなかったり全画質にあったりします。旧わかめtubeではwebmのみ取得されていました。<br><br>
@@ -200,10 +203,10 @@
         <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
           <p>わかめtube Plusでは、様々なAPIからストリーミングURLを取得できるようになっています。<br><br>
           <strong>- Invidious API</strong>: デフォルトでこのAPIを使用します。最も信頼でき、長年世界中の「YouTubeの追跡から逃れたい！」という人々の動画視聴を支え続けています。旧わかめtubeではdirectサーバーと呼ばれていました。<br>
-          <strong>- AceThinker API</strong>: AceThinker系列のダウンローダーのAPIです。Invidious級の安定感を誇ります。<br>
-          <strong>- Freemake API</strong>: 世界で最も使われているダウンローダーであるFreemakeのAPIです。InvidiousやAceThinkerで再生エラーが起こる場合でもこのAPIならうまく行ったりします。<br><br>
-          <strong>- MIN-Tube2 API</strong>: MIN-Tube2で使用されているAPIです。ただしこのAPI自体が動画情報をInvidousから取得しているので、これを使うのであればInvidious APIを推奨しています。<br><br>
-          <strong>- SiaTube API</strong>: しあtubeで使用されているAPIです。YuZuTube APIやKatuoTube APIよりもこちらを推奨。<br><br>
+          <strong>- AceThinker API</strong>: AceThinker系列のダウンローダーのAPIです。<br>
+          <strong>- Freemake API</strong>: 世界で最も使われているダウンローダーであるFreemakeのAPIで、最も安定しています。InvidiousやAceThinkerで再生エラーが起こる場合でもこのAPIならうまく行ったりします。<br><br>
+          <strong>- SiaTube API</strong>: しあtubeで使用されているAPIです。<br><br>
+          <strong>- MIN-Tube2 API</strong>: MIN-Tube2で使用されているAPIです。ただしこのAPI自体が動画情報をInvidousから取得しているので、これを使うのであればInvidious APIを推奨しています。
         </div>
       </div>
   
