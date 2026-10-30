@@ -269,19 +269,46 @@ async function getAceThinker(videoId) {
         if (isBlocked(instance)) continue; 
 
         try {
-            const headers = {
-                "Accept": "application/json, text/javascript, */*; q=0.01",
-                "X-Requested-With": "XMLHttpRequest",
-                "Referer": `${instance}/downloader/`,
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+            // yes.json が ".../downloader" 付きでも無しでも動くようにそろえる
+            const base = instance.replace(/\/downloader\/?$/, '') + '/downloader';
+
+            // ブラウザ(Chrome 156)の実通信(HAR)と同じヘッダー・同じ順番。
+            // ※accept と x-requested-with だけ getip.php と dlapinewv2.php で違う
+            const common = {
+                "accept-encoding": "gzip, deflate, br, zstd",
+                "accept-language": "ja,en;q=0.9,en-US;q=0.8,en-CA;q=0.7,en-AU;q=0.6,en-GB;q=0.5",
+                "cache-control": "no-cache",
+                "dnt": "1",
+                "pragma": "no-cache",
+                "priority": "u=1, i",
+                "referer": `${base}/`,
+                "sec-ch-ua": '"Not:A-Brand";v="8", "Chromium";v="156", "Google Chrome";v="156"',
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": '"Windows"',
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-origin",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
             };
 
+            // ① getip.php (ブラウザの jQuery $.getJSON と同じ)。結果は後続で使われないので失敗しても続行
             try {
-                await axios.get(`${instance}/downloader/api/getip.php`, { headers, timeout: 5000 });
+                await axios.get(`${base}/api/getip.php`, {
+                    headers: {
+                        "accept": "application/json, text/javascript, */*; q=0.01",
+                        ...common,
+                        "x-requested-with": "XMLHttpRequest"
+                    },
+                    timeout: 5000
+                });
             } catch (_) {}
 
-            const apiUrl = `${instance}/downloader/api/dlapinewv2.php?url=https://www.youtube.com/watch?v=${videoId}`;
-            const response = await axios.get(apiUrl, { headers, timeout: MAX_TIME }); 
+            // ② dlapinewv2.php (ブラウザの axios と同じ。url= はエンコードしない、Cookie・認証なし)
+            const apiUrl = `${base}/api/dlapinewv2.php?url=https://www.youtube.com/watch?v=${videoId}`;
+            const response = await axios.get(apiUrl, {
+                headers: { "accept": "application/json, text/plain, */*", ...common },
+                timeout: MAX_TIME
+            });
             const resData = response.data.res_data;
             
             if (resData && resData.formats) {
