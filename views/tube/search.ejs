@@ -37,7 +37,7 @@
             <a href="/wkt" class="text-gray-300 hover:text-white">ホーム</a>
             <a href="/wkt/trend" class="text-gray-300 hover:text-white">トレンド</a>
             <a href="/wkt/cl/fav" class="text-gray-300 hover:text-white">お気に入り</a>
-            <a href="/wkt/cl/history" class="text-gray-300 hover:text-white">再生履歴</a>
+            <a href="/wkt/cl/history" class="text-gray-300 hover:text-white">閲覧履歴</a>
         </nav>
     </header>
     
@@ -111,7 +111,7 @@
                     <img src="<%= video.author.thumbnails[0].url %>" alt="<%= video.author.name %>" class="w-full h-auto rounded">
                   </a>
                     <div class="mt-2">
-                        <p class="text-lg font-bold"><%= video.author.name %></p>
+                        <p class="text-lg font-bold"><a href="/wkt/c/<%= video.author.id %>" class="hover:underline"><%= video.author.name %></a></p>
                         <p class="text-sm text-gray-400"><%= video.description_snippet?.text %></p>
                         <p class="text-xs text-gray-500"><%= video.subscriber_count?.text %> • <%= video.videos?.text || video.video_count?.text %></p>
                     </div>
