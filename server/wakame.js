@@ -438,15 +438,6 @@ async function getFreemake(videoId) {
         
         const data = response.data;
 
-        if (!data || data.status !== 'Success') {
-            throw new Error("データが空か取得に失敗しました: " + JSON.stringify(data));
-        }
-
-        // 取得したvideoIdが空、またはリクエストしたvideoIdと違う場合はエラー
-        if (!data.videoId || data.videoId !== videoId) {
-            throw new Error("もう一度試してみて下さい。");
-        }
-
         console.log(`✅ 使用したAPI (Freemake): ${apiUrl}`);
         const qualities = data.qualities || [];
 
