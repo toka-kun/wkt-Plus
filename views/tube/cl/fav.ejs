@@ -67,10 +67,12 @@ function getHistoryFromLocalStorage() {
     }
 }
 
-// アイコンは保存されているURLをそのまま使う(プロキシなし)。アイコンが無い古い履歴は灰色の丸にする
+// アイコンはプロキシ経由(検索ページと同じ)。アイコンが無い古い履歴は灰色の丸にする
 function avatar(icon, name, cls) {
-    return icon
-        ? `<img src="${icon}" alt="${name}" class="${cls}">`
+    let path = "";
+    try { if (icon) path = new URL(icon, "https://yt3.ggpht.com").pathname; } catch (e) {}
+    return path
+        ? `<img src="/wkt/back/yt3${path}" alt="${name}" class="${cls}">`
         : `<div class="${cls}"></div>`;
 }
 
