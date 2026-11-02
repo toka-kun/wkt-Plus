@@ -205,7 +205,7 @@ async function getInvidious(videoId) {
     
     // 音声URL取得処理（bitrateから直接kbpsを算出。audioQuality等の分岐フォールバックは削除）
     const audioUrls = adaptiveFormats
-        .filter(stream => !stream.resolution && (stream.container === 'webm' || stream.container === 'm4a') && stream.url)
+        .filter(stream => !stream.resolution && stream.url)
         .map(stream => {
             // Invidious は bitrate を 1000 で割った値を kbps としてそのまま表示する。
             // 例: 1308765 -> 130.8765kbps
@@ -219,7 +219,7 @@ async function getInvidious(videoId) {
         });
 
     const videoStreams = adaptiveFormats
-        .filter(stream => (stream.container === 'webm' || stream.container === 'mp4') && stream.resolution && stream.url)
+        .filter(stream => stream.resolution && stream.url)
         .map(stream => ({
             url: stream.url,
             name: formatInvidiousQuality(stream),
@@ -242,7 +242,69 @@ async function getSiaTube(videoId) {
 }
 
 // =========================================
-// ③ AceThinker API からの取得
+// ③ Rapid API からの取得
+// =========================================
+const RAPIDAPI_HOSTS = ['yt-api.p.rapidapi.com', 'ytstream-download-youtube-videos.p.rapidapi.com'];
+
+async function getRapidApi(videoId) {
+    const keys = [
+        process.env.RAPIDAPI_KEY_DEFAULT,
+        process.env.RAPIDAPI_KEY_FALLBACK1,
+        process.env.RAPIDAPI_KEY_FALLBACK2,
+        process.env.RAPIDAPI_KEY_FALLBACK3
+    ].filter(Boolean);
+    if (keys.length === 0) throw new Error("RapidAPIのキー (RAPIDAPI_KEY_DEFAULT) が設定されていません");
+
+    // デフォルトキーで yt-api → ytstream、次にフォールバック1で yt-api → ytstream ... の順に、エラーの種類に関わらず試す
+    let data, lastError;
+    search: for (const key of keys) {
+        for (const host of RAPIDAPI_HOSTS) {
+            try {
+                const apiUrl = `https://${host}/dl?id=${videoId}&cgeo=JP&lang=ja&fields=formats[].*,adaptiveFormats[].*`;
+                const response = await axios.get(apiUrl, {
+                    headers: { 'X-RapidAPI-Key': key, 'X-RapidAPI-Host': host },
+                    timeout: MAX_TIME
+                });
+                if (response.data?.formats || response.data?.adaptiveFormats) {
+                    console.log(`✅ 使用したAPI (RapidAPI): ${apiUrl}`);
+                    data = response.data;
+                    break search;
+                }
+                lastError = new Error(`${host} の応答に formats がありません`);
+            } catch (error) {
+                lastError = error;
+                console.error(`❌ エラー: ${host} - ${error.message}`);
+            }
+        }
+    }
+    if (!data) throw new Error("RapidAPIで動画を取得できませんでした: " + lastError.message);
+
+    const container = f => String(f.mimeType || '').split(';')[0].split('/')[1] || 'mp4';
+    const quality = f => `${Math.min(Number(f.width), Number(f.height))}p${f.fps ?? ''}`; // 例: 344p29
+    const adaptive = (data.adaptiveFormats || []).filter(f => f.url);
+    const isDefaultTrack = f => Boolean(f.audioTrack?.audioIsDefault);
+
+    // formats は統合 / adaptiveFormats は 映像のみ・音声のみ
+    const combinedStreams = (data.formats || []).filter(f => f.url).map(f => ({
+        url: f.url, name: quality(f), container: COMBINED_CONTAINER
+    }));
+    const videoStreams = adaptive.filter(f => String(f.mimeType).startsWith('video/')).map(f => ({
+        url: f.url, name: quality(f), container: container(f)
+    }));
+    // 多言語音声は先頭 (デフォルトの音声トラック) を最初に並べる
+    const audioUrls = adaptive.filter(f => String(f.mimeType).startsWith('audio/'))
+        .sort((a, b) => isDefaultTrack(b) - isDefaultTrack(a))
+        .map(f => {
+            const kbps = f.bitrate ? `${f.bitrate / 1000}kbps` : 'Unknown'; // 四捨五入しない
+            const lang = f.audioTrack?.displayName;
+            return { url: f.url, name: lang ? `${lang} - ${kbps}` : kbps, container: container(f) };
+        });
+
+    return { audioUrls, streamUrls: [...combinedStreams, ...videoStreams] };
+}
+
+// =========================================
+// ④ AceThinker API からの取得
 // =========================================
 async function getAceThinkerApis() {
     const now = Date.now();
@@ -370,7 +432,7 @@ async function getAceThinker(videoId) {
 }
 
 // =========================================
-// ④ Freemake API からの取得
+// ⑤ Freemake API からの取得
 // =========================================
 async function getFreemake(videoId) {
     try {
@@ -474,7 +536,7 @@ async function getFreemake(videoId) {
 }
 
 // =========================================
-// ⑤ MIN-Tube2 API からの取得
+// ⑥ MIN-Tube2 API からの取得
 // =========================================
 async function getMinTube2Apis() {
     const now = Date.now();
@@ -550,6 +612,8 @@ async function getYouTube(videoId, apiType = 'invidious') {
     try {
         if (apiType === 'siawaseok') {
             result = await getSiaTube(videoId);
+        } else if (apiType === 'rapidapi') {
+            result = await getRapidApi(videoId);
         } else if (apiType === 'acethinker') {
             result = await getAceThinker(videoId);
         } else if (apiType === 'freemake') {
