@@ -18,7 +18,7 @@ $(function () {
         minLength: 0,
         select: function (event, ui) {
             $('#searchbox').val(ui.item.value);
-            $('#searchForm').submit();
+            $('#searchForm')[0].requestSubmit();
         }
     });
     function getSearchHistory() {
