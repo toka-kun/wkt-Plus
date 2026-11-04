@@ -19,10 +19,9 @@
             background-color: #2d3748;
         }
         .searchbox {
-            position: absolute;
-            transform: translate(-50%, 0%);
-            width: 80%;
-            max-width: 700px;
+            display: block;
+            margin: 0 auto;
+            width: min(80vw, 700px);
             padding: 0.75rem;
             font-size: 1.2rem;
             border-radius: 25px;
@@ -30,7 +29,7 @@
             background-color: rgba(255, 255, 255, 0.1);
             color: white;
             outline: none;
-            transition: all 0.3s ease;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
         .searchbox:focus {
             background-color: rgba(255, 255, 255, 0.3);
