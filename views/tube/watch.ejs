@@ -266,6 +266,15 @@
                                 <h2 class="text-lg font-bold"><a href="/wkt/c/<%= videoInfo.channels[0].id %>"><%= videoInfo.channels[0].name %></a></h2>
                                 <p class="text-sm text-gray-400"><%= videoInfo.channels[0].subsc %></p>
                             </div>
+                            <button class="wkt-ch-fav ml-auto flex-shrink-0 p-2 rounded-full bg-gray-500" aria-label="チャンネルをお気に入り" data-entry="<%= JSON.stringify({
+                                type: 'channel',
+                                channelId: String(videoInfo.channels[0].id ?? ''),
+                                channelName: String(videoInfo.channels[0].name ?? ''),
+                                channelIcon: String(videoInfo.channels[0].icon ?? ''),
+                                subsc: String(videoInfo.channels[0].subsc ?? '')
+                            }) %>">
+                                <img src="https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png" alt="チャンネルをお気に入り" class="w-8 h-8">
+                            </button>
                         </div>
                     <% } else { %>
                         <ul class="space-y-3">
@@ -286,39 +295,48 @@
                                         <% } %>
                                         <% if (ch.subsc) { %><p class="text-sm text-gray-400"><%= ch.subsc %></p><% } %>
                                     </div>
+                                    <% if (ch.id) { %>
+                                    <button class="wkt-ch-fav ml-auto flex-shrink-0 p-2 rounded-full bg-gray-500" aria-label="チャンネルをお気に入り" data-entry="<%= JSON.stringify({
+                                        type: 'channel',
+                                        channelId: String(ch.id ?? ''),
+                                        channelName: String(ch.name ?? ''),
+                                        channelIcon: String(ch.icon ?? ''),
+                                        subsc: String(ch.subsc ?? '')
+                                    }) %>">
+                                        <img src="https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png" alt="チャンネルをお気に入り" class="w-8 h-8">
+                                    </button>
+                                    <% } %>
                                 </li>
                             <% }); %>
                         </ul>
                     <% } %>
                 </div>
-                <button id="wktFavBtn" class="flex-shrink-0 p-2 rounded-full bg-gray-500" aria-label="お気に入り" data-entry="<%= JSON.stringify({
-                    videoId: String(videoId),
-                    channelId: String(videoInfo.channelId ?? ''),
-                    channelName: String(videoInfo.channelName ?? ''),
-                    videoTitle: String(videoInfo.title ?? ''),
-                    channelIcon: String(videoInfo.channelIcon ?? ''),
-                    viewCount: String(videoInfo.viewCount ?? ''),
-                    published: String(videoInfo.published ?? '')
-                }) %>">
-                    <img src="https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png" alt="お気に入り" class="w-8 h-8">
-                </button>
             </div>
 
             <div class="mt-4 p-4 bg-gray-800 rounded">
                 <div class="mt-2 text-gray-400 text-sm">
                     <p><%= videoInfo.viewCount %>  ・  <%= videoInfo.likeCount %>いいね  ・  <%= videoInfo.published %></p>
                 </div>
-                <div class="flex items-center justify-between">
-                    <h3 class="text-2xl font-bold">
-                        <a href="#mainContainer"><%= videoInfo.title %></a>
-                    </h3>
-                    <button class="ml-2 text-blue-500 hover:text-blue-300 text-sm" onclick="toggleDescription(this)">
-                        折りたたむ
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="text-2xl font-bold min-w-0 break-words"><%= videoInfo.title %></h3>
+                    <button id="wktFavBtn" class="flex-shrink-0 p-2 rounded-full bg-gray-500" aria-label="お気に入り" data-entry="<%= JSON.stringify({
+                        videoId: String(videoId),
+                        channelId: String(videoInfo.channelId ?? ''),
+                        channelName: String(videoInfo.channelName ?? ''),
+                        videoTitle: String(videoInfo.title ?? ''),
+                        channelIcon: String(videoInfo.channelIcon ?? ''),
+                        viewCount: String(videoInfo.viewCount ?? ''),
+                        published: String(videoInfo.published ?? '')
+                    }) %>">
+                        <img src="https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png" alt="お気に入り" class="w-8 h-8">
                     </button>
                 </div>
                 <div class="description mt-2">
                     <p class="text-base text-gray-300 mt-1"><%- (videoInfo.description || "").replace(/\n/g, "<br>") %></p>
                 </div>
+                <button class="mt-2 text-blue-500 hover:text-blue-300 text-sm" onclick="toggleDescription(this)">
+                    折りたたむ
+                </button>
             </div>
 
             <div class="mt-4 p-4 bg-gray-800 rounded">
@@ -1294,7 +1312,7 @@
         const videoId = "<%= videoId %>";
         // 概要
         function toggleDescription(button) {
-            const description = button.closest('div').nextElementSibling;
+            const description = button.parentElement.querySelector('.description');
 
             if (description.classList.contains('hidden')) {
                 description.classList.remove('hidden');
