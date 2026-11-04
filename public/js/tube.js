@@ -68,17 +68,16 @@ function wktToggleFav(entry) {
     return !was;
 }
 
-// #wktFavBtn(data-entry に保存する内容を JSON で持つ)があるページは、開いたときに履歴へ保存し、星でお気に入りを切り替える。
+// お気に入りボタン(data-entry に保存する内容を JSON で持つ)。星でお気に入りを切り替える。
+// saveHist が true のボタンだけ、開いたときに履歴へ保存する。
 // そのページに showMessage があれば(動画ページ)、切り替えたときに知らせる
-$(function () {
-    const btn = document.getElementById("wktFavBtn");
-    if (!btn) return;
+function wktBindFav(btn, saveHist) {
     try {
         const entry = JSON.parse(btn.dataset.entry);
         for (const k in entry) entry[k] = k === "type" ? entry[k] : wktEsc(entry[k]);
         const icon = btn.querySelector("img");
         const show = () => { icon.src = wktHas("wakametubefavorites", entry) ? WKT_STAR_ON : WKT_STAR_OFF; };
-        wktSaveHistory(entry);
+        if (saveHist) wktSaveHistory(entry);
         show();
         btn.addEventListener("click", () => {
             const now = wktToggleFav(entry);
@@ -89,4 +88,12 @@ $(function () {
             }
         });
     } catch (e) { console.error(e); }
+}
+
+// #wktFavBtn(動画・チャンネル・再生リスト本体のお気に入り。履歴にも保存する)と、
+// .wkt-ch-fav(動画ページにあるチャンネルのお気に入り。履歴には保存しない)
+$(function () {
+    const main = document.getElementById("wktFavBtn");
+    if (main) wktBindFav(main, true);
+    document.querySelectorAll(".wkt-ch-fav").forEach(b => wktBindFav(b, false));
 });
