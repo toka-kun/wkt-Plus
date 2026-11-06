@@ -53,9 +53,9 @@
             <% } %>
             <p class="text-lg font-semibold tracking-tight flex flex-wrap items-center gap-x-2 gap-y-1">
               <% if (authorId) { %>
-              <a href="/wkt/c/<%= authorId %>" target="_blank" class="text-blue-300 rounded underline-offset-2 hover:text-blue-200 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"><%= authorName %></a>
+              <a href="/wkt/c/<%= authorId %>" target="_blank" class="text-blue-400 rounded underline-offset-2 hover:text-blue-300 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"><%= authorName %></a>
               <% } else { %>
-              <span class="text-blue-300"><%= authorName %></span>
+              <span class="text-blue-400"><%= authorName %></span>
               <% } %>
               <% if (c.author_is_channel_owner) { %>
               <span class="<%= pill %> bg-gray-500/40 text-gray-100 ring-white/20"><%- ic('owner', 'w-3 h-3') %>投稿者</span>
