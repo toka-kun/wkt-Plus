@@ -40,11 +40,13 @@
            const replies = shown(c.reply_count);
       %>
         <div class="flex items-start bg-gray-700 p-4 rounded-lg ring-1 ring-white/5 transition duration-200 transform hover:scale-101 hover:ring-white/20 hover:shadow-md motion-reduce:transition-none motion-reduce:transform-none">
+          <% if (authorId) { %><a href="/wkt/c/<%= authorId %>" target="_blank" aria-label="<%= authorName %>のチャンネル" class="shrink-0 rounded-full transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"><% } %>
           <% if (avatar) { %>
           <img loading="lazy" src="<%= avatar %>" class="w-10 h-10 rounded-full shrink-0 object-cover ring-2 ring-gray-600">
           <% } else { %>
           <div class="w-10 h-10 rounded-full bg-gray-600 shrink-0 ring-2 ring-gray-600"></div>
           <% } %>
+          <% if (authorId) { %></a><% } %>
           <div class="ml-3 min-w-0">
             <% if (c.is_pinned) { %>
             <p class="mb-1.5"><span class="<%= pill %> bg-yellow-300/10 text-yellow-300"><%- ic('pin', 'w-3.5 h-3.5') %>固定されたコメント</span></p>
