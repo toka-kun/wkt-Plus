@@ -4,7 +4,6 @@ const path = require("path");
 const compression = require("compression");
 const bodyParser = require("body-parser");
 const serverYt = require("./server/youtube.js");
-const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
 const app = express();
@@ -14,16 +13,33 @@ app.use(express.static(path.join(__dirname, "public")));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors());
+
+// 他のサイトからの呼び出しを拒否する (他サイトのJavaScript、画像・iframeなどへの埋め込み)。
+// 他サイトのリンクからこのサイトのページを開く(GETのページ移動)ことだけは許可する。
+// CORSは使わないので、他サイトのJavaScriptはこのサイトの中身を読めない。
+function isCrossSite(req) {
+    const site = req.get("sec-fetch-site");
+    if (site) return site === "cross-site";
+    const origin = req.get("origin"); // Sec-Fetch-* を送らない古いブラウザ向けの確認
+    if (!origin) return false;
+    try { return new URL(origin).host !== req.get("host"); } catch (e) { return true; }
+}
+app.use((req, res, next) => {
+    const isPage = req.get("sec-fetch-mode") === "navigate" && req.get("sec-fetch-dest") === "document" && (req.method === "GET" || req.method === "HEAD");
+    if (isCrossSite(req) && !isPage) return res.status(403).json({ error: "forbidden" });
+    next();
+});
 app.set("trust proxy", 1);
 app.use(cookieParser());
 
+// ログイン確認: public配下のファイル(上の express.static)と /login だけは、ログインなしで使える。それ以外はすべてログインが必要
 app.use((req, res, next) => {
-    if (req.cookies.loginok !== 'ok' && !req.path.includes('login') && !req.path.includes('back')) {
-        return res.redirect('/login');
-    } else {
-        next();
-    }
+    if (req.cookies.loginok === "ok" || req.path === "/login" || req.path === "/login/") return next();
+    // アドレスバーなどで開いた(ページ移動)場合は /login へ。画面内の通信(fetch・画像など)には401を返す
+    const mode = req.get("sec-fetch-mode");
+    const navigating = mode ? mode === "navigate" : req.accepts(["json", "html"]) === "html";
+    if (navigating) return res.redirect("/login");
+    res.status(401).json({ error: "login required" });
 });
 
 app.get('/', (req, res) => {
