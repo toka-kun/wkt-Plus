@@ -14,6 +14,9 @@ router.get("/", (req, res) => {
   res.render("other/home");
 });
 
+// X
+router.use("/x", require("../controllers/other/x"));
+
 // TV専用ルーティング（キャッシュとデータフェッチ）
 router.get("/tv", async (req, res) => {
   const now = Date.now();
