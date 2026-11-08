@@ -78,6 +78,15 @@
     </div>
   </div>
   <script>
+    // ログイン済みの印(cookie)を作る。他のサイトのiframeに埋め込まれても保持されるように、HTTPSでは SameSite=None; Secure を付ける。
+    // Partitioned 版も併せて作る (ブラウザが第三者cookieを制限していても、埋め込み内で保存されやすい)
+    function setLoginCookie() {
+      const base = "loginok=ok; path=/; max-age=31536000";
+      if (location.protocol !== "https:") { document.cookie = base; return; }
+      document.cookie = base + "; SameSite=None; Secure";
+      document.cookie = base + "; SameSite=None; Secure; Partitioned";
+    }
+
     const correctPassword = "wakame";
 
     const lang = {
@@ -121,7 +130,7 @@
           touchId.classList.remove("hidden");
           spinner.classList.add("hidden");
           setTimeout(() => {
-            document.cookie = "loginok=ok; path=/; max-age=31536000";
+            setLoginCookie();
             document.getElementById("loginCard").classList.add("opacity-0");
             setTimeout(() => {
               window.location.href = "/wkt";
@@ -159,7 +168,7 @@
         } else {
           touchId.innerHTML = "<p>ログイン処理中...</p>";
           setTimeout(() => {
-            document.cookie = "loginok=ok; path=/; max-age=31536000";
+            setLoginCookie();
             loginCard.classList.add("opacity-0");
             setTimeout(() => {
               window.location.href = "/wkt";
