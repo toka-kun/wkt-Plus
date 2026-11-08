@@ -14,9 +14,9 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// 他のサイトからの呼び出しを拒否する (他サイトのJavaScript、画像・iframeなどへの埋め込み)。
-// 他サイトのリンクからこのサイトのページを開く(GETのページ移動)ことだけは許可する。
-// CORSは使わないので、他サイトのJavaScriptはこのサイトの中身を読めない。
+// ② 他のサイトからの呼び出しを拒否する (他サイトのJavaScript、画像・フォーム送信など)。
+//    他サイトからの「ページ移動」(リンクで開く・iframeに埋め込む。どちらもGET)だけは許可する。
+//    CORSは使わないので、他サイトのJavaScriptはこのサイトの中身を読めない。
 function isCrossSite(req) {
     const site = req.get("sec-fetch-site");
     if (site) return site === "cross-site";
@@ -25,14 +25,15 @@ function isCrossSite(req) {
     try { return new URL(origin).host !== req.get("host"); } catch (e) { return true; }
 }
 app.use((req, res, next) => {
-    const isPage = req.get("sec-fetch-mode") === "navigate" && req.get("sec-fetch-dest") === "document" && (req.method === "GET" || req.method === "HEAD");
+    const dest = req.get("sec-fetch-dest");
+    const isPage = req.get("sec-fetch-mode") === "navigate" && (dest === "document" || dest === "iframe" || dest === "frame") && (req.method === "GET" || req.method === "HEAD");
     if (isCrossSite(req) && !isPage) return res.status(403).json({ error: "forbidden" });
     next();
 });
 app.set("trust proxy", 1);
 app.use(cookieParser());
 
-// ログイン確認: public配下のファイル(上の express.static)と /login だけは、ログインなしで使える。それ以外はすべてログインが必要
+// ① ログイン確認: public配下のファイル(上の express.static)と /login だけは、ログインなしで使える。それ以外はすべてログインが必要
 app.use((req, res, next) => {
     if (req.cookies.loginok === "ok" || req.path === "/login" || req.path === "/login/") return next();
     // アドレスバーなどで開いた(ページ移動)場合は /login へ。画面内の通信(fetch・画像など)には401を返す
