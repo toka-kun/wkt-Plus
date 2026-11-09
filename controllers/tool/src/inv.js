@@ -1,8 +1,6 @@
 const axios = require("axios");
 const express = require("express");
 const router = express.Router();
-const path = require("path");
-const bodyParser = require("body-parser");
 
 const PORT = 3000;
 const MAX_API_WAIT_TIME = 5000;
@@ -12,35 +10,47 @@ router.use(express.urlencoded({ extended: true }));
 router.use(express.json());
 
 async function fetchStreamUrls(videoId, invidiousapis) {
-  let successUrls = [];
-  let errorUrls = [];
-
-  for (const instance of invidiousapis) {
+  // すべてのリクエストをPromiseの配列としてマッピング
+  const promises = invidiousapis.map(async (instance) => {
     try {
       const response = await axios.get(`${instance}/api/v1/videos/${videoId}`, { timeout: MAX_API_WAIT_TIME });
-      
       const data = response.data;
       
       if (data) {
         if (data.formatStreams && data.formatStreams.length > 0) {
           // formatStreamsがある場合
           let streamUrl = data.formatStreams.reverse().map(stream => stream.url)[0];
-          successUrls.push({ api: instance, streamUrl });
+          return { success: true, api: instance, streamUrl };
         } else if (data.adaptiveFormats && data.adaptiveFormats.length > 0) {
           // formatStreamsがなく、adaptiveFormatsがある場合
           let streamUrl = data.adaptiveFormats.reverse().map(stream => stream.url)[0];
-          successUrls.push({ api: instance, streamUrl });
+          return { success: true, api: instance, streamUrl };
         } else {
           // どちらも存在しない場合
           console.error(`ストリームが存在しない: ${instance}`);
-          errorUrls.push({ api: instance, reason: "formatStreams も adaptiveFormats も存在しません" });
+          return { success: false, api: instance, reason: "formatStreams も adaptiveFormats も存在しません" };
         }
       } else {
-        errorUrls.push({ api: instance, reason: "レスポンスデータが空です" });
+        return { success: false, api: instance, reason: "レスポンスデータが空です" };
       }
     } catch (error) {
       console.error(`エラー: ${instance} - ${error.message}`);
-      errorUrls.push({ api: instance, reason: error.message });
+      return { success: false, api: instance, reason: error.message };
+    }
+  });
+
+  // Promise.allで並列に全てのリクエストを処理して結果を待つ
+  const results = await Promise.all(promises);
+
+  // 成功したURLとエラーになったURLを振り分ける
+  const successUrls = [];
+  const errorUrls = [];
+
+  for (const result of results) {
+    if (result.success) {
+      successUrls.push({ api: result.api, streamUrl: result.streamUrl });
+    } else {
+      errorUrls.push({ api: result.api, reason: result.reason });
     }
   }
 
