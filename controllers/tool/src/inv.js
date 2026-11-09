@@ -53,7 +53,9 @@ router.post("/check", async (req, res) => {
     return res.status(400).json({ error: "APIのURLを入力してください。" });
   }
 
-  const invidiousapis = urls.map(url => url.match(/https?:\/\/[^\s]+/g)).filter(Boolean).flat();
+  // 正規表現 [^\s"',\]]+ を使い、JSON由来の記号などが混入してもURLだけを抽出する
+  const invidiousapis = urls.map(url => url.match(/https?:\/\/[^\s"',\]]+/g)).filter(Boolean).flat();
+  
   if (invidiousapis.length === 0) {
     return res.status(400).json({ error: "APIのURLを入力してください。" });
   }
