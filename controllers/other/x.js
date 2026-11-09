@@ -8,7 +8,7 @@ const TTL = 30 * 1000;
 const MAX_CACHE = 100;
 const user_agent = process.env.USER_AGENT || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36";
 
-// ponytail: メモリキャッシュのみ。Vercel/Netlifyでは再起動で消えるので効きは弱い。
+// メモリキャッシュのみ。Vercel/Netlifyでは再起動で消えるので効きは弱い。
 const cache = new Map();
 
 async function getJson(url) {
@@ -48,6 +48,13 @@ router.get("/api/search", (req, res) => {
   if (!p) return res.status(400).json({ error: "検索語を入力してください。" });
   const start = Math.min(Math.max(parseInt(req.query.start, 10) || 0, 0), 1000);
   send(res, `${API}/pagination?p=${encodeURIComponent(p)}&results=${PAGE_SIZE}&start=${start}`);
+});
+
+// ベストポスト (検索で一番注目されている投稿1件。md=h)
+router.get("/api/best", (req, res) => {
+  const p = String(req.query.p || "").trim().slice(0, 100);
+  if (!p) return res.status(400).json({ error: "検索語を入力してください。" });
+  send(res, `${API}/pagination?p=${encodeURIComponent(p)}&results=1&start=0&md=h`);
 });
 
 // ツイート詳細と返信
