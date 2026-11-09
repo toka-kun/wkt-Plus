@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="/css/page.css">
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+    
+    <!-- 戻るボタン -->
     <button class="back-button fixed top-5 left-5 z-50 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out flex items-center space-x-2" onclick="window.location.href='/tools'">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -15,20 +17,37 @@
         <span>戻る</span>
     </button>
   
-    <div class="w-full h-screen p-6">
+    <!-- メインコンテナ -->
+    <div class="w-full min-h-screen p-6 pt-20">
         <h1 class="text-3xl font-bold text-center py-4">APIチェックツール</h1>
-        <p class="text-gray-900 dark:text-gray-300 mt-2 leading-relaxed">InvidiousのURLを改行して入力してみてね。改行を入れたり整えたりするのにはAIを使うと楽かも。</p><br><br>
+        
+        <p class="text-gray-700 dark:text-gray-300 mt-2 mb-8 leading-relaxed text-center">
+            InvidiousのURLを改行して入力してみてね。<br class="hidden sm:block">
+            改行を入れたり整えたりするのにはAIを使うと楽かも。
+        </p>
+        
         <div class="w-full max-w-4xl mx-auto">
             <form id="apiForm" class="space-y-4">
-                <label for="urls" class="block text-gray-700 dark:text-gray-300 text-lg">試すAPIのURL（改行区切り）:</label>
-                <textarea name="urls" id="urls" rows="10" class="w-full p-4 border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"></textarea>
-                <button id="submitButton" type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition text-lg">チェック開始</button>
+                <label for="urls" class="block text-gray-700 dark:text-gray-300 text-lg font-medium">試すAPIのURL（改行区切り）:</label>
+                <textarea name="urls" id="urls" rows="10" class="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none dark:bg-gray-800 dark:text-white transition-colors" placeholder="https://...&#10;https://..."></textarea>
+                <button id="submitButton" type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all text-lg">チェック開始</button>
             </form>
-            <p id="loadingMessage" class="text-blue-500 mt-4 hidden text-center text-lg">APIをチェック中…<br>URLが多いほど、チェックに時間がかかります。<br>チェック中にこのページを閉じたり、ネットを切断したりしないで下さい。</p>
-            <p id="errorMessage" class="text-red-500 mt-4 hidden text-center text-lg"></p>
-            <div id="resultContainer" class="mt-6 hidden">
+            
+            <!-- ローディングメッセージのデザイン -->
+            <div id="loadingMessage" class="mt-6 hidden text-center">
+                <p class="text-blue-500 text-lg font-semibold animate-pulse">APIをチェック中…</p>
+                <p class="text-gray-500 dark:text-gray-400 text-sm mt-2">
+                    URLが多いほど、チェックに時間がかかります。<br>
+                    チェック中にこのページを閉じたり、ネットを切断したりしないで下さい。
+                </p>
+            </div>
+            
+            <p id="errorMessage" class="text-red-500 mt-4 hidden text-center text-lg font-semibold"></p>
+            
+            <div id="resultContainer" class="mt-8 hidden">
                 <h2 class="text-2xl font-semibold text-center mb-4">結果</h2>
-                <pre id="result" class="bg-gray-200 dark:bg-gray-800 p-4 rounded-lg shadow-md whitespace-pre-wrap"></pre>
+                <!-- HTMLを描画するため、<pre> を <div> に変更 -->
+                <div id="result" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700"></div>
             </div>
         </div>
     </div>
@@ -80,22 +99,22 @@
 
             const { successUrls, errorUrls } = await response.json();
 
-            let html = "<h2 class='text-xl font-semibold'>APIチェック結果</h2>";
+            let html = "";
 
             if (successUrls.length) {
-                html += "<h3 class='text-green-500 mt-4 font-bold'>正常に取得できたURL</h3><ul class='list-disc pl-5 mt-2'>";
+                html += "<h3 class='text-green-600 dark:text-green-400 text-lg font-bold border-b border-gray-200 dark:border-gray-700 pb-2'>正常に取得できたURL</h3><ul class='list-disc pl-5 mt-4 mb-6 space-y-2'>";
                 successUrls.forEach(({ api, streamUrl }) => {
-                    html += `<li class='mb-2'>${api}  -  <a href='${streamUrl}' target='_blank' class='text-blue-500 underline hover:text-blue-400'>再生できるか確かめる</a></li>`;
+                    html += `<li><span class='font-medium'>${api}</span> <span class='mx-2 text-gray-400'>-</span> <a href='${streamUrl}' target='_blank' class='text-blue-500 underline hover:text-blue-400'>再生できるか確かめる</a></li>`;
                 });
                 html += "</ul>";
             }
 
             if (errorUrls.length) {
-                html += "<h3 class='text-red-500 mt-6 font-bold'>エラーが出たURL</h3><ul class='list-disc pl-5 mt-2'>";
+                html += "<h3 class='text-red-500 dark:text-red-400 text-lg font-bold border-b border-gray-200 dark:border-gray-700 pb-2 mt-6'>エラーが出たURL</h3><ul class='list-disc pl-5 mt-4 space-y-3'>";
                 errorUrls.forEach(err => {
                     const api = err.api || err;
                     const reason = err.reason || "不明なエラー";
-                    html += `<li class='mb-3'>${api}<br><span class='text-sm text-red-500 dark:text-red-400'>理由: ${reason}</span></li>`;
+                    html += `<li><div class='font-medium'>${api}</div><div class='text-sm text-red-500 dark:text-red-400 mt-1'>理由: ${reason}</div></li>`;
                 });
                 html += "</ul>";
             }
