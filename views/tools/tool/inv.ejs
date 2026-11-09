@@ -17,7 +17,7 @@
   
     <div class="w-full h-screen p-6">
         <h1 class="text-3xl font-bold text-center py-4">APIチェックツール</h1>
-        <p class="text-gray-900 dark:text-gray-300 mt-2 leading-relaxed">invidiousのURLを改行して入力してみてね。改行を入れたり整えたりするのにはAIを使うと楽かも。</p><br><br>
+        <p class="text-gray-900 dark:text-gray-300 mt-2 leading-relaxed">InvidiousのURLを改行して入力してみてね。改行を入れたり整えたりするのにはAIを使うと楽かも。</p><br><br>
         <div class="w-full max-w-4xl mx-auto">
             <form id="apiForm" class="space-y-4">
                 <label for="urls" class="block text-gray-700 dark:text-gray-300 text-lg">試すAPIのURL（改行区切り）:</label>
@@ -52,20 +52,20 @@
         resultContainer.classList.add("hidden");
 
         try {
-            // 1. テキストエリアからURLを取得して整える
-            const rawUrls = urlsInput.value.split("\n")
-                .map(url => url.trim())
-                .filter(url => url);
+            // 1. テキストエリアの文字列からURL（http:// または https://）だけをすべて抽出
+            // JSONのダブルクォーテーション、シングルクォーテーション、カンマ、カッコ、空白を除外
+            const rawText = urlsInput.value;
+            const rawUrls = rawText.match(/https?:\/\/[^\s"',\]]+/g) || [];
 
             // 2. 重複したURLを排除する (Setを使用)
             const urls = [...new Set(rawUrls)];
 
-            // 3. テキストエリアの表示も、重複を消した最新の状態に更新する
+            // 3. テキストエリアの表示を、抽出したきれいな改行区切りに書き換える
             urlsInput.value = urls.join("\n");
 
             // URLが空っぽの場合はエラーを出して処理を中断
             if (urls.length === 0) {
-                throw new Error("URLを入力してください。");
+                throw new Error("有効なURLが見つかりませんでした。");
             }
 
             const response = await fetch("/tools/inv/check", {
@@ -83,17 +83,19 @@
             let html = "<h2 class='text-xl font-semibold'>APIチェック結果</h2>";
 
             if (successUrls.length) {
-                html += "<h3 class='text-green-500'>正常に取得できたURL</h3><ul class='list-disc pl-5'>";
+                html += "<h3 class='text-green-500 mt-4 font-bold'>正常に取得できたURL</h3><ul class='list-disc pl-5 mt-2'>";
                 successUrls.forEach(({ api, streamUrl }) => {
-                    html += `<li>${api}  -  <a href='${streamUrl}' target='_blank' class='text-blue-500 underline'>再生できるか確かめる</a></li><br>`;
+                    html += `<li class='mb-2'>${api}  -  <a href='${streamUrl}' target='_blank' class='text-blue-500 underline hover:text-blue-400'>再生できるか確かめる</a></li>`;
                 });
                 html += "</ul>";
             }
 
             if (errorUrls.length) {
-                html += "<h3 class='text-red-500'>エラーが出たURL</h3><ul class='list-disc pl-5'>";
-                errorUrls.forEach(api => {
-                    html += `<li>${api}</li>`;
+                html += "<h3 class='text-red-500 mt-6 font-bold'>エラーが出たURL</h3><ul class='list-disc pl-5 mt-2'>";
+                errorUrls.forEach(err => {
+                    const api = err.api || err;
+                    const reason = err.reason || "不明なエラー";
+                    html += `<li class='mb-3'>${api}<br><span class='text-sm text-red-500 dark:text-red-400'>理由: ${reason}</span></li>`;
                 });
                 html += "</ul>";
             }
@@ -104,7 +106,7 @@
             errorMessage.textContent = error.message;
             errorMessage.classList.remove("hidden");
         } finally {
-            // 結果が出たら（あるいはエラーが出たら）ボタンを再度有効化する
+            // 結果が出たらボタンを再度有効化する
             loadingMessage.classList.add("hidden");
             submitButton.disabled = false;
             submitButton.classList.remove("opacity-50", "cursor-not-allowed");
