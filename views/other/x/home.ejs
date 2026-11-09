@@ -156,10 +156,21 @@
         function fill(node, text) {
             let plain = "";
             const hl = [];
-            text.split(/\tSTART\t|\tEND\t/).forEach((part, i) => {
-                plain += part;
-                for (let k = 0; k < part.length; k++) hl.push(i % 2 === 1);
-            });
+            const add = (str, flag) => { plain += str; for (let k = 0; k < str.length; k++) hl.push(flag); };
+            const clean = (str) => str.replace(/\tSTART\t|\tEND\t/g, ""); // 対にならなかった印は、文字として出さずに捨てる
+            const PAIR = /\tSTART\t([\s\S]*?)\tEND\t/g;
+            let pos = 0, pm;
+            while ((pm = PAIR.exec(text))) {
+                add(clean(text.slice(pos, pm.index)), false);
+                add(clean(pm[1]), true);
+                pos = pm.index + pm[0].length;
+            }
+            add(clean(text.slice(pos)), false);
+            // 前後の空白は、印を外したあとで整理する (ハイライトの印も一緒にずらす)
+            const lead = plain.length - plain.trimStart().length;
+            plain = plain.trim();
+            hl.splice(0, lead);
+            hl.length = plain.length;
             const emit = (from, to) => {
                 for (let a = from, b; a < to; a = b) {
                     b = a + 1;
@@ -308,7 +319,7 @@
             const b = el("div", "mt-3 rounded-xl border border-gray-700 bg-gray-900/50 p-3 text-sm");
             b.appendChild(el("div", "font-semibold text-gray-200", t.name + "  @" + t.screenName));
             const qp = el("p", "mt-1 whitespace-pre-wrap leading-relaxed");
-            fill(qp, (t.displayTextBody || "").replace(T_CO, "").trim());
+            fill(qp, (t.displayTextBody || "").replace(T_CO, ""));
             b.appendChild(qp);
             if (t.media && t.media.length) b.appendChild(media(t.media));
             const href = safeUrl(t.url);
@@ -380,7 +391,7 @@
             }
 
             // 本文 (URLは本文から除かれているので、下にリンクカードで出す)
-            const text = (e.displayTextBody || e.displayText || "").replace(T_CO, "").trim(); // URLだけ取り除く(#タグと@名前は残す)
+            const text = (e.displayTextBody || e.displayText || "").replace(T_CO, ""); // URLだけ取り除く(#タグと@名前は残す)。※ここで trim すると、先頭の印(タブ)が消えてハイライトがずれる
             if (text.replace(/\tSTART\t|\tEND\t/g, "").trim()) {
                 const body = el("p", "mt-3 whitespace-pre-wrap text-base leading-relaxed text-gray-100");
                 fill(body, text);
