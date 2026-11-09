@@ -19,17 +19,28 @@ async function fetchStreamUrls(videoId, invidiousapis) {
     try {
       const response = await axios.get(`${instance}/api/v1/videos/${videoId}`, { timeout: MAX_API_WAIT_TIME });
       
-      if (response.data && response.data.formatStreams) {
-        const formatStreams = response.data.formatStreams || [];
-        let streamUrl = formatStreams.reverse().map(stream => stream.url)[0];
-        successUrls.push({ api: instance, streamUrl });
+      const data = response.data;
+      
+      if (data) {
+        if (data.formatStreams && data.formatStreams.length > 0) {
+          // formatStreamsがある場合
+          let streamUrl = data.formatStreams.reverse().map(stream => stream.url)[0];
+          successUrls.push({ api: instance, streamUrl });
+        } else if (data.adaptiveFormats && data.adaptiveFormats.length > 0) {
+          // formatStreamsがなく、adaptiveFormatsがある場合
+          let streamUrl = data.adaptiveFormats.reverse().map(stream => stream.url)[0];
+          successUrls.push({ api: instance, streamUrl });
+        } else {
+          // どちらも存在しない場合
+          console.error(`ストリームが存在しない: ${instance}`);
+          errorUrls.push({ api: instance, reason: "formatStreams も adaptiveFormats も存在しません" });
+        }
       } else {
-        console.error(`formatStreamsが存在しない: ${instance}`);
-        errorUrls.push(instance);
+        errorUrls.push({ api: instance, reason: "レスポンスデータが空です" });
       }
     } catch (error) {
       console.error(`エラー: ${instance} - ${error.message}`);
-      errorUrls.push(instance);
+      errorUrls.push({ api: instance, reason: error.message });
     }
   }
 
