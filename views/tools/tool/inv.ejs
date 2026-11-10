@@ -72,7 +72,6 @@
 
         try {
             // 1. テキストエリアの文字列からURL（http:// または https://）だけをすべて抽出
-            // JSONのダブルクォーテーション、シングルクォーテーション、カンマ、カッコ、空白を除外
             const rawText = urlsInput.value;
             const rawUrls = rawText.match(/https?:\/\/[^\s"',\]]+/g) || [];
 
@@ -102,7 +101,7 @@
             let html = "";
 
             if (successUrls.length) {
-                html += "<h3 class='text-green-600 dark:text-green-400 text-lg font-bold border-b border-gray-200 dark:border-gray-700 pb-2'>正常に取得できたURL</h3><ul class='list-disc pl-5 mt-4 mb-6 space-y-2'>";
+                html += "<h3 class='text-green-600 dark:text-green-400 text-lg font-bold border-b border-gray-200 dark:border-gray-700 pb-2'>正常に取得できたURL <span class='text-sm font-normal'>(" + successUrls.length + "件)</span></h3><ul class='list-disc pl-5 mt-4 mb-6 space-y-2'>";
                 successUrls.forEach(({ api, streamUrl }) => {
                     html += `<li><span class='font-medium'>${api}</span> <span class='mx-2 text-gray-400'>-</span> <a href='${streamUrl}' target='_blank' class='text-blue-500 underline hover:text-blue-400'>再生できるか確かめる</a></li>`;
                 });
@@ -110,13 +109,34 @@
             }
 
             if (errorUrls.length) {
-                html += "<h3 class='text-red-500 dark:text-red-400 text-lg font-bold border-b border-gray-200 dark:border-gray-700 pb-2 mt-6'>エラーが出たURL</h3><ul class='list-disc pl-5 mt-4 space-y-3'>";
+                html += "<h3 class='text-red-500 dark:text-red-400 text-lg font-bold border-b border-gray-200 dark:border-gray-700 pb-2 mt-6'>エラーが出たURL <span class='text-sm font-normal'>(" + errorUrls.length + "件)</span></h3>";
+                
+                // --- エラー理由ごとにグループ化する処理 ---
+                const groupedErrors = {};
                 errorUrls.forEach(err => {
                     const api = err.api || err;
                     const reason = err.reason || "不明なエラー";
-                    html += `<li><div class='font-medium'>${api}</div><div class='text-sm text-red-500 dark:text-red-400 mt-1'>理由: ${reason}</div></li>`;
+                    
+                    if (!groupedErrors[reason]) {
+                        groupedErrors[reason] = [];
+                    }
+                    groupedErrors[reason].push(api);
                 });
-                html += "</ul>";
+
+                html += "<div class='mt-4 space-y-6'>";
+                // グループ化されたエラーを展開してHTMLを生成
+                for (const [reason, apis] of Object.entries(groupedErrors)) {
+                    html += `<div>`;
+                    // エラーの理由を見出しとして表示
+                    html += `<h4 class='font-semibold text-gray-800 dark:text-gray-200 text-md mb-2 bg-red-50 dark:bg-red-900/30 px-3 py-2 rounded-md border-l-4 border-red-500'>理由: ${reason} <span class='text-sm font-normal text-gray-500 dark:text-gray-400 ml-1'>(${apis.length}件)</span></h4>`;
+                    // その理由に該当するURLのリストを表示
+                    html += `<ul class='list-disc pl-6 space-y-1 text-gray-700 dark:text-gray-300'>`;
+                    apis.forEach(api => {
+                        html += `<li>${api}</li>`;
+                    });
+                    html += `</ul></div>`;
+                }
+                html += "</div>";
             }
 
             result.innerHTML = html;
