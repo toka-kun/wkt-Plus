@@ -64,7 +64,10 @@ router.post("/check", async (req, res) => {
   }
 
   // 正規表現 [^\s"',\]]+ を使い、JSON由来の記号などが混入してもURLだけを抽出する
-  const invidiousapis = urls.map(url => url.match(/https?:\/\/[^\s"',\]]+/g)).filter(Boolean).flat();
+  // flat() の後に map で末尾スラッシュを削除し、Set で重複を排除する
+  const rawApis = urls.map(url => url.match(/https?:\/\/[^\s"',\]]+/g)).filter(Boolean).flat();
+  
+  const invidiousapis = [...new Set(rawApis.map(url => url.replace(/\/$/, '')))];
   
   if (invidiousapis.length === 0) {
     return res.status(400).json({ error: "APIのURLを入力してください。" });
