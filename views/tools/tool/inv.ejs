@@ -76,8 +76,11 @@
             const rawText = urlsInput.value;
             const rawUrls = rawText.match(/https?:\/\/[^\s"',\]]+/g) || [];
 
+            // URL末尾のスラッシュを削除して統一する
+            const normalizedUrls = rawUrls.map(url => url.replace(/\/$/, ''));
+
             // 2. 重複したURLを排除する (Setを使用)
-            const urls = [...new Set(rawUrls)];
+            const urls = [...new Set(normalizedUrls)];
 
             // 3. テキストエリアの表示を、抽出したきれいな改行区切りに書き換える
             urlsInput.value = urls.join("\n");
