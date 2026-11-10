@@ -72,6 +72,7 @@
 
         try {
             // 1. テキストエリアの文字列からURL（http:// または https://）だけをすべて抽出
+            // JSONのダブルクォーテーション、シングルクォーテーション、カンマ、カッコ、空白を除外
             const rawText = urlsInput.value;
             const rawUrls = rawText.match(/https?:\/\/[^\s"',\]]+/g) || [];
 
@@ -101,6 +102,9 @@
             let html = "";
 
             if (successUrls.length) {
+                // --- 正常に取得できたURLをABC順にソート ---
+                successUrls.sort((a, b) => a.api.localeCompare(b.api));
+
                 html += "<h3 class='text-green-600 dark:text-green-400 text-lg font-bold border-b border-gray-200 dark:border-gray-700 pb-2'>正常に取得できたURL <span class='text-sm font-normal'>(" + successUrls.length + "件)</span></h3><ul class='list-disc pl-5 mt-4 mb-6 space-y-2'>";
                 successUrls.forEach(({ api, streamUrl }) => {
                     html += `<li><span class='font-medium'>${api}</span> <span class='mx-2 text-gray-400'>-</span> <a href='${streamUrl}' target='_blank' class='text-blue-500 underline hover:text-blue-400'>再生できるか確かめる</a></li>`;
@@ -124,8 +128,17 @@
                 });
 
                 html += "<div class='mt-4 space-y-6'>";
+                
+                // --- エラーの「理由」自体をABC順（五十音順）にソート ---
+                const sortedReasons = Object.keys(groupedErrors).sort((a, b) => a.localeCompare(b));
+
                 // グループ化されたエラーを展開してHTMLを生成
-                for (const [reason, apis] of Object.entries(groupedErrors)) {
+                for (const reason of sortedReasons) {
+                    const apis = groupedErrors[reason];
+                    
+                    // --- その理由の中のURLもABC順にソート ---
+                    apis.sort((a, b) => a.localeCompare(b));
+
                     html += `<div>`;
                     // エラーの理由を見出しとして表示
                     html += `<h4 class='font-semibold text-gray-800 dark:text-gray-200 text-md mb-2 bg-red-50 dark:bg-red-900/30 px-3 py-2 rounded-md border-l-4 border-red-500'>理由: ${reason} <span class='text-sm font-normal text-gray-500 dark:text-gray-400 ml-1'>(${apis.length}件)</span></h4>`;
