@@ -124,7 +124,7 @@ const page = (view, fn) => async (req, res) => {
     console.error(`Twitch ${view} error:`, e.message);
     const status = e.status || 502;
     const message = status === 400 ? "指定が正しくありません。" : status === 404 ? "見つかりませんでした。" : "Twitchから取得できませんでした。しばらくしてからもう一度お試しください。";
-    res.status(status).render("other/twitch/error", { message });
+    res.status(status).render("error", { title: "エラー", content: message });
   }
 };
 
