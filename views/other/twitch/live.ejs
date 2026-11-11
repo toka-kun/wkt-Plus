@@ -32,7 +32,12 @@
         <div class="mt-6">
             <% if (isLive) { %>
             <div id="player" class="aspect-video w-full overflow-hidden rounded-lg bg-black"><div id="dplayer" class="h-full w-full"></div></div>
-            <p id="why" class="mt-2 hidden break-words text-xs text-gray-500"></p>
+            <p id="why" class="mt-2 hidden break-words text-sm text-red-300"></p>
+            <div class="checkbox-container mt-3 flex w-full items-center justify-center rounded bg-gray-700 py-2 hover:text-white">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z"/></svg>
+                <label for="proxyToggle" class="ml-2 cursor-pointer select-none">プロキシ経由で再生</label>
+                <input type="checkbox" id="proxyToggle" class="form-checkbox ml-2 text-green-500">
+            </div>
             <% } else { %>
             <div class="flex aspect-video w-full items-center justify-center rounded-lg bg-gray-800 text-gray-300">現在オフラインです。</div>
             <% } %>
@@ -54,32 +59,58 @@
     <script src="https://cdn.jsdelivr.net/gh/tsukumijima/DPlayer@master/dist/DPlayer.min.js"></script>
     <script>
         const src = <%- json(src) %>;
-        const embed = <%- json(embed) %>;
         const why = document.getElementById("why");
-        // 再生できない時は、Twitch公式の埋め込みプレイヤーに切り替える(原因は画面の下に小さく出す)
-        function useEmbed(reason) {
-            const box = document.getElementById("player");
-            box.textContent = "";
-            const f = document.createElement("iframe");
-            f.src = embed;
-            f.className = "h-full w-full";
-            f.allowFullscreen = true;
-            f.allow = "autoplay; fullscreen";
-            box.appendChild(f);
-            why.textContent = "再生できなかったため、Twitch公式の埋め込みプレイヤーに切り替えました。原因: " + reason;
-            why.classList.remove("hidden");
+        const proxyToggle = document.getElementById("proxyToggle");
+        let dp = null;
+
+        // プロキシ (watch.ejs と同じ仕組み。この機能用に別のキーで保存する)
+        function getProxyUrl() { return localStorage.getItem("ttvProxyUrl") || ""; }
+        function isProxyEnabled() { return localStorage.getItem("ttvProxyEnabled") === "true" && !!getProxyUrl(); }
+        function applyProxy(url) { return isProxyEnabled() ? getProxyUrl() + encodeURIComponent(url) : url; }
+        // ブラウザ標準のダイアログでURLを入力してもらう。使わない(キャンセル)なら null
+        function askProxy() {
+            let value = getProxyUrl();
+            for (;;) {
+                const input = prompt("プロキシ経由で再生\n\nTwitchの動画サーバーは他のサイトからの直接の読み込みを許可していないため、通常再生ができない場合の最終手段です。再生リストと映像データのすべてがプロキシを通るので、プロキシの通信量が大きくなります。\n\n使用するプロキシのURLを入力してください。（例: https://example.com/?url=）\n\n【キャンセル】プロキシを使用しない", value);
+                if (input === null) return null;
+                value = input.trim();
+                if (/^https?:\/\/\S+$/i.test(value)) return value;
+                alert("http:// または https:// から始まるURLを入力してください。");
+            }
         }
-        if (!src) {
-            useEmbed("再生用のURLがありません");
-        } else {
-            const dp = new DPlayer({ container: document.getElementById("dplayer"), live: true, autoplay: true, lang: "ja", video: { url: src, type: "hls" } });
+        function showWhy(text) { why.textContent = text; why.classList.remove("hidden"); }
+
+        function startPlayer() {
+            if (dp) dp.destroy();
+            why.classList.add("hidden");
+            if (!src) { showWhy("再生用のURLを取得できませんでした。Twitch側で拒否された可能性があります。"); return; }
+            dp = new DPlayer({
+                container: document.getElementById("dplayer"), live: true, autoplay: true, lang: "ja",
+                video: { url: src, type: "hls" },
+                // 再生リストも映像データも、すべての通信の送り先をプロキシ経由に書き換える(プロキシがオフなら元のまま)
+                pluginOptions: { hls: { xhrSetup: function (xhr, url) { xhr.open("GET", applyProxy(url), true); } } }
+            });
             if (dp.plugins.hls) {
                 dp.plugins.hls.on(Hls.Events.ERROR, function (_, d) {
                     console.warn("hls.js error", d);
-                    if (d.fatal) { dp.destroy(); useEmbed(d.type + " / " + d.details + (d.response ? " / HTTP " + d.response.code : "")); }
+                    if (d.fatal) showWhy("再生できませんでした。原因: " + d.type + " / " + d.details + (d.response ? " / HTTP " + d.response.code : "") + (isProxyEnabled() ? "（プロキシが再生リストや映像データを返せていない可能性があります）" : "（「プロキシ経由で再生」をオンにすると再生できることがあります）"));
                 });
             }
         }
+
+        proxyToggle.checked = isProxyEnabled();
+        proxyToggle.addEventListener("change", function () {
+            if (this.checked) {
+                const chosen = askProxy();
+                if (!chosen) { this.checked = false; localStorage.setItem("ttvProxyEnabled", "false"); return; }
+                localStorage.setItem("ttvProxyUrl", chosen);
+                localStorage.setItem("ttvProxyEnabled", "true");
+            } else {
+                localStorage.setItem("ttvProxyEnabled", "false");
+            }
+            startPlayer();
+        });
+        startPlayer();
     </script>
 <% } %>
 </body>
