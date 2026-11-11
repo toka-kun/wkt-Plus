@@ -32,6 +32,7 @@
         <div class="mt-6">
             <% if (isLive) { %>
             <div id="player" class="aspect-video w-full overflow-hidden rounded-lg bg-black"><div id="dplayer" class="h-full w-full"></div></div>
+            <p id="why" class="mt-2 hidden break-words text-xs text-gray-500"></p>
             <% } else { %>
             <div class="flex aspect-video w-full items-center justify-center rounded-lg bg-gray-800 text-gray-300">現在オフラインです。</div>
             <% } %>
@@ -54,8 +55,9 @@
     <script>
         const src = <%- json(src) %>;
         const embed = <%- json(embed) %>;
-        // 再生できない時は、Twitch公式の埋め込みプレイヤーに切り替える
-        function useEmbed() {
+        const why = document.getElementById("why");
+        // 再生できない時は、Twitch公式の埋め込みプレイヤーに切り替える(原因は画面の下に小さく出す)
+        function useEmbed(reason) {
             const box = document.getElementById("player");
             box.textContent = "";
             const f = document.createElement("iframe");
@@ -64,14 +66,17 @@
             f.allowFullscreen = true;
             f.allow = "autoplay; fullscreen";
             box.appendChild(f);
+            why.textContent = "再生できなかったため、Twitch公式の埋め込みプレイヤーに切り替えました。原因: " + reason;
+            why.classList.remove("hidden");
         }
         if (!src) {
-            useEmbed();
+            useEmbed("再生用のURLがありません");
         } else {
             const dp = new DPlayer({ container: document.getElementById("dplayer"), live: true, autoplay: true, lang: "ja", video: { url: src, type: "hls" } });
             if (dp.plugins.hls) {
                 dp.plugins.hls.on(Hls.Events.ERROR, function (_, d) {
-                    if (d.fatal && d.type === Hls.ErrorTypes.NETWORK_ERROR) { dp.destroy(); useEmbed(); }
+                    console.warn("hls.js error", d);
+                    if (d.fatal) { dp.destroy(); useEmbed(d.type + " / " + d.details + (d.response ? " / HTTP " + d.response.code : "")); }
                 });
             }
         }
