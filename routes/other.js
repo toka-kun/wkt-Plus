@@ -17,6 +17,9 @@ router.get("/", (req, res) => {
 // X
 router.use("/x", require("../controllers/other/x"));
 
+// Twitch
+router.use("/ttv", require("../controllers/other/twitch"));
+
 // TV専用ルーティング（キャッシュとデータフェッチ）
 router.get("/tv", async (req, res) => {
   const now = Date.now();
