@@ -197,13 +197,32 @@ router.get(["/ch/:u", "/ch/:u/:tab"], page("channel", async (req) => {
   };
 }));
 
+// m3u8(最初のプレイリスト)だけをサーバー経由で返す。
+// usherを、ブラウザ(このサイトとは別のオリジン)から直接読めないことへの対策。
+// 映像本体(セグメント)は中継しない。そこまで中継するとサーバーの転送量が大きくなるため。
+const m3u8 = (live) => async (req, res) => {
+  try {
+    const id = live ? need(login(str(req.params.u, 25))) : need(/^\d{1,15}$/.test(req.params.id) ? req.params.id : null);
+    const t = await token(live ? { login: id, isLive: true, vodID: "", isVod: false } : { login: "", isLive: false, vodID: id, isVod: true });
+    if (!t) throw fail(502);
+    const r = await fetch(usher(live ? `api/channel/hls/${id}` : `vod/${id}`, t), { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) {
+      console.error(`Twitch usher error: HTTP ${r.status} (${live ? "live" : "vod"} ${id})`);
+      throw fail(r.status === 404 ? 404 : 502);
+    }
+    res.set("Cache-Control", "no-store").type("application/vnd.apple.mpegurl").send(await r.text());
+  } catch (e) {
+    console.error("Twitch m3u8 error:", e.message);
+    res.status(e.status || 502).type("text/plain").send("error");
+  }
+};
+router.get("/m3u8/l/:u", m3u8(true));
+router.get("/m3u8/v/:id", m3u8(false));
+
 // ライブ再生
 router.get("/l/:u", page("live", async (req) => {
   const u = need(login(str(req.params.u, 25)));
-  const [[m, v], t] = await Promise.all([
-    gql([["StreamMetadataQuery", { channelLogin: u }], ["UseViewCountQuery", { channelLogin: u }]], 30 * 1000),
-    token({ login: u, isLive: true, vodID: "", isVod: false }),
-  ]);
+  const [m, v] = await gql([["StreamMetadataQuery", { channelLogin: u }], ["UseViewCountQuery", { channelLogin: u }]], 30 * 1000);
   if (!m.user) throw fail(404);
   const stream = m.user.stream;
   return {
@@ -214,7 +233,7 @@ router.get("/l/:u", page("live", async (req) => {
     game: stream && stream.game,
     isLive: !!stream,
     viewers: v.user && v.user.stream ? v.user.stream.viewersCount : null,
-    src: stream && t ? usher(`api/channel/hls/${u}`, t) : null,
+    src: stream ? `${BASE}/m3u8/l/${E(u)}` : null,
     embed: `https://player.twitch.tv/?channel=${u}&parent=${E(req.hostname)}`,
   };
 }));
@@ -223,10 +242,7 @@ router.get("/l/:u", page("live", async (req) => {
 router.get(["/v/:id", "/v/:id/:u"], page("vod", async (req) => {
   const id = need(/^\d{1,15}$/.test(req.params.id) ? req.params.id : null);
   const u = login(str(req.params.u, 25));
-  const [t, meta] = await Promise.all([
-    token({ login: "", isLive: false, vodID: id, isVod: true }),
-    u ? gql([["VideoMetadataQuery", { channelLogin: u, videoID: id }]]).then((r) => r[0]).catch(() => null) : null,
-  ]);
+  const meta = u ? await gql([["VideoMetadataQuery", { channelLogin: u, videoID: id }]]).then((r) => r[0]).catch(() => null) : null;
   const video = meta && meta.video;
   return {
     id, u,
@@ -236,7 +252,7 @@ router.get(["/v/:id", "/v/:id/:u"], page("vod", async (req) => {
     game: video && video.game,
     views: video ? video.viewCount : null,
     date: video ? day(video.publishedAt) : "",
-    src: t ? usher(`vod/${id}`, t) : null,
+    src: `${BASE}/m3u8/v/${id}`,
     embed: `https://player.twitch.tv/?video=v${id}&parent=${E(req.hostname)}`,
   };
 }));
