@@ -6,39 +6,108 @@
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#111827">
     <title>クリップ - Twitch</title>
+    <script>if (window.top === window.self) location.replace("/other/ttv?p=" + encodeURIComponent(location.pathname + location.search));</script>
     <script src="/js/tailwindcss.js"></script>
     <link rel="stylesheet" href="/css/page.css">
 </head>
 
 <body class="bg-gray-900 font-sans min-h-screen text-white">
-    <a href="<%= u ? '/other/ttv/ch/' + encodeURIComponent(u) + '/clips' : '/other/ttv' %>" class="back-button fixed top-5 left-5 z-40 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out flex items-center space-x-2">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-        </svg>
-        <span>戻る</span>
-    </a>
-
-    <main class="mx-auto max-w-6xl px-4 pb-20 pt-20">
-        <form action="/other/ttv/s" method="get" role="search" class="mx-auto flex max-w-2xl items-center gap-2">
-            <a href="/other/ttv" aria-label="ホーム" title="ホーム" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400">
-                <svg class="h-6 w-6 fill-current" viewBox="0 0 256 256" aria-hidden="true"><path d="M219.31,108.68l-80-80a16,16,0,0,0-22.62,0l-80,80A15.87,15.87,0,0,0,32,120v96a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8V160h32v56a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8V120A15.87,15.87,0,0,0,219.31,108.68ZM208,208H160V152a8,8,0,0,0-8-8H104a8,8,0,0,0-8,8v56H48V120l80-80,80,80Z"/></svg>
-            </a>
-            <label for="q" class="sr-only">検索</label>
-            <input id="q" name="q" type="text" value="" maxlength="100" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" placeholder="チャンネル・カテゴリー・動画を検索..." class="h-12 min-w-0 flex-1 rounded-full border-0 bg-white/10 px-5 text-[1.2rem] text-white placeholder-gray-400 outline-none transition-[background-color,box-shadow] duration-300 focus:bg-white/30 focus:shadow-[0_0_8px_rgba(255,255,255,0.5)]">
-            <button type="submit" aria-label="検索" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400">
-                <svg class="h-6 w-6 fill-current" viewBox="0 0 256 256" aria-hidden="true"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg>
-            </button>
-        </form>
-        <div class="mt-6">
+    <main class="mx-auto max-w-6xl px-4 pb-16 pt-4">
+        <div>
             <div id="player" class="aspect-video w-full overflow-hidden rounded-lg bg-black"><div id="dplayer" class="h-full w-full"></div></div>
-            <% if (u) { %>
-            <p class="mt-4"><a href="/other/ttv/ch/<%= encodeURIComponent(u) %>/clips" class="inline-block rounded-full bg-white/10 px-5 py-2 text-sm font-semibold hover:bg-white/20">チャンネルのクリップへ</a></p>
+            <p id="why" class="mt-2 hidden break-words text-sm text-red-300"></p>
+            <div class="checkbox-container mt-3 flex w-full items-center justify-center rounded bg-gray-700 py-2 hover:text-white">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z"/></svg>
+                <label for="proxyToggle" class="ml-2 cursor-pointer select-none">プロキシ経由で再生</label>
+                <input type="checkbox" id="proxyToggle" class="form-checkbox ml-2 text-green-500">
+            </div>
+            <%
+                // 詳細が取れなかった時でも、チャンネル名がURLにあればリンクを出す
+                const ch = info && info.channel ? info.channel : (u ? { login: u, name: u, avatar: '' } : null);
+            %>
+            <% if (info) { %>
+            <h1 class="mt-4 break-words text-lg font-bold"><%= info.title || '(無題)' %></h1>
+            <p class="mt-1 text-sm text-gray-400">
+                <%= Number(info.views || 0).toLocaleString('ja-JP') %>回視聴 ・ <%= info.date %> ・ <%= info.duration %>
+                <% if (info.curator) { %> ・ クリップ作成: <%= info.curator %><% } %>
+            </p>
+            <% } %>
+            <% if (ch || (info && info.game)) { %>
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+                <% if (ch) { %>
+                <a href="/other/ttv/ch/<%= encodeURIComponent(ch.login) %>" class="inline-flex items-center gap-2 rounded-full bg-white/10 py-1 pl-1 pr-4 text-sm font-semibold hover:bg-white/20">
+                    <% if (ch.avatar) { %><img src="<%= ch.avatar %>" alt="" referrerpolicy="no-referrer" class="h-8 w-8 rounded-full bg-gray-800 object-cover"><% } else { %><span class="w-3"></span><% } %>
+                    <span><%= ch.name %></span>
+                </a>
+                <a href="/other/ttv/ch/<%= encodeURIComponent(ch.login) %>/clips" class="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20">チャンネルのクリップ</a>
+                <% } %>
+                <% if (info && info.game) { %>
+                <a href="/other/ttv/cat/<%= encodeURIComponent(info.game.slug) %>" class="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20"><%= info.game.name %></a>
+                <% } %>
+            </div>
+            <% } %>
+            <% if (downloads.length) { %>
+            <h2 class="mb-2 mt-6 text-sm font-bold text-gray-300">ダウンロード</h2>
+            <div class="flex flex-wrap gap-2">
+                <% downloads.forEach(function (d) { %>
+                <a href="<%= d.url %>" target="_blank" rel="noopener noreferrer" download class="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20"><%= d.name %></a>
+                <% }) %>
+            </div>
+            <p class="mt-2 text-xs text-gray-500">新しいタブで開きます。保存されない場合は、動画を長押し(右クリック)して保存してください。</p>
             <% } %>
         </div>
     </main>
     <script src="https://cdn.jsdelivr.net/gh/tsukumijima/DPlayer@master/dist/DPlayer.min.js"></script>
     <script>
         const qualities = <%- json(qualities) %>;
+        const why = document.getElementById("why");
+        const proxyToggle = document.getElementById("proxyToggle");
+        let dp = null;
+
+        // プロキシ (watch.ejs と同じ仕組み。この機能用に別のキーで保存する)
+        function getProxyUrl() { return localStorage.getItem("ttvProxyUrl") || ""; }
+        function isProxyEnabled() { return localStorage.getItem("ttvProxyEnabled") === "true" && !!getProxyUrl(); }
+        function applyProxy(url) { return isProxyEnabled() ? getProxyUrl() + encodeURIComponent(url) : url; }
+        // ブラウザ標準のダイアログでURLを入力してもらう。使わない(キャンセル)なら null
+        function askProxy() {
+            let value = getProxyUrl();
+            for (;;) {
+                const input = prompt("プロキシ経由で再生\n\nTwitchの動画サーバーから直接再生できない場合の最終手段です。動画のすべてがプロキシを通るので、プロキシの通信量が大きくなります。\n\n使用するプロキシのURLを入力してください。（例: https://example.com/?url=）\n\n【キャンセル】プロキシを使用しない", value);
+                if (input === null) return null;
+                value = input.trim();
+                if (/^https?:\/\/\S+$/i.test(value)) return value;
+                alert("http:// または https:// から始まるURLを入力してください。");
+            }
+        }
+        function showWhy(text) { why.textContent = text; why.classList.remove("hidden"); }
+
+        function startPlayer(seek) {
+            if (dp) dp.destroy();
+            why.classList.add("hidden");
+            if (!qualities.length) { showWhy("再生用のURLを取得できませんでした。Twitch側で拒否された可能性があります。"); return; }
+            dp = new DPlayer({
+                container: document.getElementById("dplayer"), autoplay: true, lang: "ja",
+                video: { quality: qualities.map(function (q) { return { name: q.name, url: applyProxy(q.url), type: "auto" }; }), defaultQuality: 0, type: "auto" }
+            });
+            if (seek > 1) dp.video.addEventListener("loadedmetadata", function () { dp.seek(seek); }, { once: true });
+            dp.on("error", function () {
+                showWhy("再生できませんでした。" + (isProxyEnabled() ? "（プロキシが動画を返せていない可能性があります）" : "（「プロキシ経由で再生」をオンにすると再生できることがあります）"));
+            });
+        }
+
+        proxyToggle.checked = isProxyEnabled();
+        proxyToggle.addEventListener("change", function () {
+            if (this.checked) {
+                const chosen = askProxy();
+                if (!chosen) { this.checked = false; localStorage.setItem("ttvProxyEnabled", "false"); return; }
+                localStorage.setItem("ttvProxyUrl", chosen);
+                localStorage.setItem("ttvProxyEnabled", "true");
+            } else {
+                localStorage.setItem("ttvProxyEnabled", "false");
+            }
+            startPlayer(dp ? dp.video.currentTime : 0);
+        });
+        startPlayer(0);
     </script>
 </body>
 </html>
