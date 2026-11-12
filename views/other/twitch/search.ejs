@@ -6,30 +6,19 @@
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#111827">
     <title><%= (q ? q + ' の検索結果 - ' : '') + 'Twitch' %></title>
+    <script>if (window.top === window.self) location.replace("/other/ttv?p=" + encodeURIComponent(location.pathname + location.search));</script>
     <script src="/js/tailwindcss.js"></script>
     <link rel="stylesheet" href="/css/page.css">
 </head>
 
 <body class="bg-gray-900 font-sans min-h-screen text-white">
-    <a href="/other/ttv" class="back-button fixed top-5 left-5 z-40 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out flex items-center space-x-2">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-        </svg>
-        <span>戻る</span>
-    </a>
-
-    <main class="mx-auto max-w-6xl px-4 pb-20 pt-20">
-        <form action="/other/ttv/s" method="get" role="search" class="mx-auto flex max-w-2xl items-center gap-2">
-            <a href="/other/ttv" aria-label="ホーム" title="ホーム" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400">
-                <svg class="h-6 w-6 fill-current" viewBox="0 0 256 256" aria-hidden="true"><path d="M219.31,108.68l-80-80a16,16,0,0,0-22.62,0l-80,80A15.87,15.87,0,0,0,32,120v96a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8V160h32v56a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8V120A15.87,15.87,0,0,0,219.31,108.68ZM208,208H160V152a8,8,0,0,0-8-8H104a8,8,0,0,0-8,8v56H48V120l80-80,80,80Z"/></svg>
-            </a>
-            <label for="q" class="sr-only">検索</label>
-            <input id="q" name="q" type="text" value="<%= q %>" maxlength="100" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" placeholder="チャンネル・カテゴリー・動画を検索..." class="h-12 min-w-0 flex-1 rounded-full border-0 bg-white/10 px-5 text-[1.2rem] text-white placeholder-gray-400 outline-none transition-[background-color,box-shadow] duration-300 focus:bg-white/30 focus:shadow-[0_0_8px_rgba(255,255,255,0.5)]">
-            <button type="submit" aria-label="検索" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400">
-                <svg class="h-6 w-6 fill-current" viewBox="0 0 256 256" aria-hidden="true"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg>
-            </button>
-        </form>
-        <% if (q && !sections.length) { %><p class="mt-8 text-gray-400">「<%= q %>」に一致する結果はありません。</p><% } %>
+    <main class="mx-auto max-w-6xl px-4 pb-16 pt-4">
+        <% if (!q) { %>
+        <p class="mt-4 text-gray-400">上の検索バーにキーワードを入力してください。</p>
+        <% } else { %>
+        <h1 class="text-lg font-bold">「<%= q %>」の検索結果</h1>
+        <% if (!sections.length) { %><p class="mt-4 text-gray-400">一致する結果はありません。</p><% } %>
+        <% } %>
         <% sections.forEach(function (s) {
             // kind: wide(16:9) / game(縦長) / channel(丸アイコン)
             const cols = s.kind === 'game' ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6'
@@ -40,7 +29,7 @@
                 : 'aspect-video rounded-lg';
             const center = s.kind === 'channel' ? 'text-center' : '';
         %>
-        <h2 class="mb-3 mt-8 text-lg font-bold"><%= s.heading %></h2>
+        <h2 class="mb-3 mt-6 text-lg font-bold"><%= s.heading %></h2>
         <div class="grid gap-4 <%= cols %>">
             <% s.cards.forEach(function (c) { %>
             <a href="<%= c.href %>" class="result-item block min-w-0">
