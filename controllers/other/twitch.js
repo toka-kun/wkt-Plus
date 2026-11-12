@@ -11,7 +11,10 @@ const MAX_CACHE = 100;
 // メモリキャッシュのみ。Vercel/Netlifyでは再起動で消えるので効きは弱い。
 const cache = new Map();
 
-const fail = (status) => Object.assign(new Error("HTTP " + status), { status });
+const fail = (status, msg) => Object.assign(new Error("HTTP " + status), { status, msg });
+
+// 補助的な情報のクエリ用。取得に失敗してもページの表示は続けたいので、失敗したら null を返す
+const soft = (p) => p.catch((e) => { console.error("Twitch soft query error:", e.message); return null; });
 
 // list = [["クエリ名", 変数], ...]。1回の通信にまとめて送る。ttl=0 ならキャッシュしない(再生トークン用)
 async function gql(list, ttl = TTL) {
@@ -77,9 +80,9 @@ const clip = (c) => c && c.slug && {
   href: `${BASE}/c/${E(c.slug)}${c.broadcaster && c.broadcaster.login ? "/" + E(c.broadcaster.login) : ""}`,
   img: c.thumbnailURL,
   badge: dur(c.durationSeconds),
-  title: c.title,
+  title: c.title || c.clipTitle || "(無題)",
   sub: c.broadcaster ? c.broadcaster.displayName : "",
-  meta: `${fmt(c.viewCount)}回視聴 ・ ${day(c.createdAt)}`,
+  meta: `${fmt(c.viewCount != null ? c.viewCount : c.clipViewCount)}回視聴 ・ ${day(c.createdAt)}`,
 };
 const channel = (u) => u && u.login && {
   href: `${BASE}/ch/${E(u.login)}`,
@@ -108,6 +111,8 @@ async function token(vars) {
     return null;
   }
 }
+const signed = (url, t) => `${url}${url.includes("?") ? "&" : "?"}sig=${t.signature}&token=${E(t.value)}`;
+const httpUrl = (u) => /^https?:\/\//i.test(u || "");
 const usher = (path, t) =>
   `https://usher.ttvnw.net/${path}.m3u8?` +
   new URLSearchParams({
@@ -123,21 +128,57 @@ const page = (view, fn) => async (req, res) => {
   } catch (e) {
     console.error(`Twitch ${view} error:`, e.message);
     const status = e.status || 502;
-    const message = status === 400 ? "指定が正しくありません。" : status === 404 ? "見つかりませんでした。" : "Twitchから取得できませんでした。しばらくしてからもう一度お試しください。";
+    const message = e.msg || (status === 400 ? "指定が正しくありません。" : status === 404 ? "見つかりませんでした。" : "Twitchから取得できませんでした。しばらくしてからもう一度お試しください。");
     res.status(status).render("error", { title: "エラー", content: message });
   }
 };
 
-// ホーム (人気のカテゴリー)
-router.get("/", page("home", async (req) => {
-  const [d] = await gql([["BrowsePageAllDirectoriesQuery", { limit: 30, cursor: cursor(req), options: { sort: "VIEWER_COUNT", tags: [], requestID: "wkt" } }]], 5 * 60 * 1000);
-  const c = d.directoriesWithTags || {};
-  const edges = c.edges || [];
-  return {
-    cards: list(edges, game),
-    next: c.pageInfo && c.pageInfo.hasNextPage && edges.length ? qs({ cursor: edges[edges.length - 1].cursor }) : null,
-  };
-}));
+// チャンネルの存在確認。停止・削除されている時は、その理由つきで 404 にする。
+// 確認クエリ自体が失敗した時は null を返し、ページの表示は続ける(補助的な確認なので)。
+const REASONS = {
+  DEACTIVATED: "このチャンネルは無効化されています。",
+  DMCA: "著作権の申し立てにより、このチャンネルは利用できません。",
+  TOS_INDEFINITE: "このチャンネルは利用規約違反により、永久に停止されています。",
+  TOS_TEMPORARY: "このチャンネルは利用規約違反により、一時的に停止されています。",
+  UNKNOWN: "このチャンネルは利用できません。",
+};
+async function channelCheck(u) {
+  let o;
+  try {
+    o = (await gql([["ChannelShellQuery", { login: u }]]))[0].userOrError;
+  } catch (e) {
+    console.error("Twitch channel check error:", e.message);
+    return null;
+  }
+  if (o && o.reason) throw fail(404, REASONS[o.reason] || REASONS.UNKNOWN);
+  return o && o.userDoesNotExist === undefined && o.userError === undefined ? o : null;
+}
+
+// ホーム (検索バーと戻るボタンだけを持つ枠。中身は iframe で各ページを表示する)
+router.get("/", (req, res) => res.render("other/twitch/home"));
+
+// 検索候補(入力中に表示する。失敗したら空にして、画面側は検索履歴を出す)
+router.get("/suggest", async (req, res) => {
+  const q = str(req.query.q, 100);
+  if (!q) return res.json([]);
+  try {
+    const [d] = await gql([["SearchTraySearchSuggestionsQuery", { queryFragment: q, requestID: "wkt", withOfflineChannelContent: true }]], 60 * 1000);
+    const out = ((d.searchSuggestions && d.searchSuggestions.edges) || [])
+      .map((e) => e && e.node)
+      .filter((n) => n && n.text)
+      .slice(0, 8)
+      .map((n) => {
+        const c = n.content;
+        if (c && c.login) return { label: `${n.text}(チャンネル${c.isLive ? "・ライブ中" : ""})`, value: n.text, href: `${BASE}/${c.isLive ? "l" : "ch"}/${E(c.login)}` };
+        if (c && c.game && c.game.slug) return { label: `${n.text}(カテゴリー)`, value: n.text, href: `${BASE}/cat/${E(c.game.slug)}` };
+        return { label: n.text, value: n.text };
+      });
+    res.json(out);
+  } catch (e) {
+    console.error("Twitch suggest error:", e.message);
+    res.json([]);
+  }
+});
 
 // 検索
 router.get("/s", page("search", async (req) => {
@@ -155,11 +196,39 @@ router.get("/s", page("search", async (req) => {
   return { q, sections };
 }));
 
-// カテゴリー (そのカテゴリーのライブ一覧)
-router.get("/cat/:g", page("category", async (req) => {
+// カテゴリー: /cat = 人気のカテゴリー一覧、/cat/名前 = そのカテゴリーのライブ、/cat/名前/clips = そのカテゴリーのクリップ
+router.get(["/cat", "/cat/:g", "/cat/:g/:tab"], page("category", async (req) => {
+  const cur = cursor(req);
+  if (!req.params.g) {
+    const [d] = await gql([["BrowsePageAllDirectoriesQuery", { limit: 30, cursor: cur, options: { sort: "VIEWER_COUNT", tags: [], requestID: "wkt" } }]], 5 * 60 * 1000);
+    const c = d.directoriesWithTags || {};
+    const edges = c.edges || [];
+    return {
+      mode: "list", g: "", name: "",
+      cards: list(edges, game),
+      next: c.pageInfo && c.pageInfo.hasNextPage && edges.length ? qs({ cursor: edges[edges.length - 1].cursor }) : null,
+    };
+  }
   const g = need(slug(str(req.params.g, 100)));
+  if (req.params.tab && req.params.tab !== "clips") throw fail(404);
+
+  if (req.params.tab === "clips") {
+    const get = (filter) => gql([["ClipsCardsGameQuery", { categorySlug: g, limit: 24, cursor: cur, criteria: { filter } }]]).then((r) => r[0].game);
+    let gm = await get("LAST_WEEK");
+    // 直近1週間にクリップが無い小さなカテゴリーは、全期間にする
+    if (gm && !cur && !(gm.clips && gm.clips.edges && gm.clips.edges.length)) gm = (await get("ALL_TIME")) || gm;
+    if (!gm) throw fail(404);
+    const con = gm.clips || {};
+    const edges = con.edges || [];
+    return {
+      mode: "clips", g, name: gm.displayName,
+      cards: list(edges, clip),
+      next: con.pageInfo && con.pageInfo.hasNextPage && edges.length ? qs({ cursor: edges[edges.length - 1].cursor }) : null,
+    };
+  }
+
   const [d] = await gql([["DirectoryPageGameQuery", {
-    slug: g, limit: 30, cursor: cursor(req),
+    slug: g, limit: 30, cursor: cur,
     options: { sort: "VIEWER_COUNT", recommendationsContext: { platform: "web" }, requestID: "wkt", tags: [] },
     sortTypeIsRecency: false, imageWidth: 440, includeCostreaming: false,
   }]]);
@@ -167,42 +236,80 @@ router.get("/cat/:g", page("category", async (req) => {
   const st = d.game.streams || {};
   const edges = st.edges || [];
   return {
-    name: d.game.displayName,
+    mode: "live", g, name: d.game.displayName,
     cards: list(edges, (n) => live(n, n.broadcaster)),
     next: st.pageInfo && st.pageInfo.hasNextPage && edges.length ? qs({ cursor: edges[edges.length - 1].cursor }) : null,
   };
 }));
 
-// チャンネル (動画 / クリップ)
+// チャンネル: /ch/名前 = 棚(ホーム)、/ch/名前/videos = 動画、/ch/名前/clips = クリップ
+const SHELF_TITLES = {
+  LATEST_BROADCASTS: "最近の配信", LATEST_NON_BROADCASTS: "ハイライトとアップロード", TOP_CLIPS: "人気のクリップ",
+  ALL_VIDEOS: "すべての動画", LONG_VIDEOS: "長い動画", SHORT_VIDEOS: "短い動画",
+};
+const shelfItem = (i) => (i && i.slug ? clip(i) : vod(i));
+
 router.get(["/ch/:u", "/ch/:u/:tab"], page("channel", async (req) => {
   const u = need(login(str(req.params.u, 25)));
-  if (req.params.tab && req.params.tab !== "clips") throw fail(404);
-  const tab = req.params.tab === "clips" ? "clips" : "videos";
+  const t = req.params.tab;
+  if (t && t !== "videos" && t !== "clips") throw fail(404);
   const cur = cursor(req);
-  const second = tab === "clips"
-    ? ["ClipsCardsUserQuery", { login: u, limit: 24, cursor: cur, criteria: { filter: "ALL_TIME" } }]
-    : ["FilterableVideoTowerVideosQuery", { channelOwnerLogin: u, limit: 24, cursor: cur, broadcastType: null, videoSort: "TIME", options: {}, includePreviewBlur: false }];
-  const [m, l] = await gql([["StreamMetadataQuery", { channelLogin: u }], second]);
+
+  // 紹介欄と存在確認は補助。取得に失敗してもページは表示する
+  const [shell, about, [m]] = await Promise.all([
+    channelCheck(u),
+    soft(gql([["ChannelRootAboutPanelQuery", { channelLogin: u, skipSchedule: false }]])),
+    gql([["StreamMetadataQuery", { channelLogin: u }]]),
+  ]);
   if (!m.user) throw fail(404);
-  const con = l.user && (tab === "clips" ? l.user.clips : l.user.videos);
-  const edges = (con && con.edges) || [];
+
+  let tab = t || "home", shelves = [], cards = [], next = null;
+  if (tab === "home") {
+    const r = await soft(gql([["ChannelVideoShelvesQuery", { channelLogin: u, first: 6, cursor: null, options: null, includePreviewBlur: false }]]));
+    const edges = (r && r[0].user && r[0].user.videoShelves && r[0].user.videoShelves.edges) || [];
+    shelves = edges.map((e) => e && e.node).filter((n) => n && n.items && n.items.length)
+      .map((n) => ({ heading: SHELF_TITLES[n.type] || n.title, cards: n.items.map(shelfItem).filter(Boolean) }))
+      .filter((x) => x.cards.length);
+    if (!shelves.length) tab = "videos"; // 棚が取れない時は動画一覧にする
+  }
+  if (tab !== "home") {
+    const q = tab === "clips"
+      ? ["ClipsCardsUserQuery", { login: u, limit: 24, cursor: cur, criteria: { filter: "ALL_TIME" } }]
+      : ["FilterableVideoTowerVideosQuery", { channelOwnerLogin: u, limit: 24, cursor: cur, broadcastType: null, videoSort: "TIME", options: {}, includePreviewBlur: false }];
+    const [l] = await gql([q]);
+    const con = l.user && (tab === "clips" ? l.user.clips : l.user.videos);
+    const edges = (con && con.edges) || [];
+    cards = list(edges, tab === "clips" ? clip : vod);
+    next = con && con.pageInfo && con.pageInfo.hasNextPage && edges.length ? qs({ cursor: edges[edges.length - 1].cursor }) : null;
+  }
+
+  const au = about && about[0].user;
+  const ach = au && au.channel;
   return {
-    u, tab,
+    u, tab, shelves, cards, next,
     name: m.user.displayName,
     avatar: m.user.profileImageURL,
+    banner: shell && httpUrl(shell.bannerImageURL) ? shell.bannerImageURL : "",
     isLive: !!m.user.stream,
     game: m.user.stream && m.user.stream.game,
-    cards: list(edges, tab === "clips" ? clip : vod),
-    next: con && con.pageInfo && con.pageInfo.hasNextPage && edges.length ? qs({ cursor: edges[edges.length - 1].cursor }) : null,
+    description: (au && au.description) || "",
+    followers: au && au.followers ? au.followers.totalCount : null,
+    badge: au && au.roles ? (au.roles.isPartner ? "パートナー" : au.roles.isAffiliate ? "アフィリエイト" : "") : "",
+    team: au && au.primaryTeam ? au.primaryTeam.displayName : "",
+    lastGame: au && au.lastBroadcast && au.lastBroadcast.game ? au.lastBroadcast.game.displayName : "",
+    socials: ((ach && ach.socialMedias) || []).filter((x) => x && httpUrl(x.url)).map((x) => ({ title: x.title || x.name, url: x.url })),
+    nextStream: ach && ach.schedule && ach.schedule.nextSegment ? ach.schedule.nextSegment.startAt : null,
   };
 }));
 
 // ライブ再生
 router.get("/l/:u", page("live", async (req) => {
   const u = need(login(str(req.params.u, 25)));
-  const [[m, v], t] = await Promise.all([
+  const [[m, v], t, , lv] = await Promise.all([
     gql([["StreamMetadataQuery", { channelLogin: u }], ["UseViewCountQuery", { channelLogin: u }]], 30 * 1000),
     token({ login: u, isLive: true, vodID: "", isVod: false }),
+    channelCheck(u),
+    soft(gql([["UseLiveQuery", { channelLogin: u }]], 30 * 1000)),
   ]);
   if (!m.user) throw fail(404);
   const stream = m.user.stream;
@@ -214,6 +321,7 @@ router.get("/l/:u", page("live", async (req) => {
     game: stream && stream.game,
     isLive: !!stream,
     viewers: v.user && v.user.stream ? v.user.stream.viewersCount : null,
+    startedAt: lv && lv[0].user && lv[0].user.stream ? lv[0].user.stream.createdAt : null,
     src: stream && t ? usher(`api/channel/hls/${u}`, t) : null,
   };
 }));
@@ -239,20 +347,41 @@ router.get(["/v/:id", "/v/:id/:u"], page("vod", async (req) => {
   };
 }));
 
-// クリップ再生 (/c/クリップID/チャンネル名)
+// クリップ再生 (/c/クリップID。チャンネル名を付けても付けなくてもよい)
+const CLIP_TYPES = { SOURCE: "通常", RECOMPOSED: "縦向き", ENHANCED: "強化版" };
+const qname = (x) => (/p$/.test(x) ? x : x + "p");
 router.get(["/c/:id", "/c/:id/:u"], page("clip", async (req) => {
   const id = need(slug(str(req.params.id, 100)));
   const u = login(str(req.params.u, 25));
-  const [d] = await gql([["VideoAccessTokenClipQuery", { slug: id, platform: "web", supportedCodecs: ["AVC"] }]], 0);
+  // 再生に必要なのは1つ目だけ。詳細とダウンロードは補助なので、失敗してもページは表示する
+  const [[d], info, dl] = await Promise.all([
+    gql([["VideoAccessTokenClipQuery", { slug: id, platform: "web", supportedCodecs: ["AVC"] }]], 0),
+    soft(gql([["ShareClipRenderStatusQuery", { slug: id }]], 0)),
+    soft(gql([["ClipsDownloadButtonQuery", { slug: id }]], 0)),
+  ]);
   if (!d.clip) throw fail(404);
   const t = d.clip.playbackAccessToken;
   const qualities = d.clip.videoQualities && d.clip.videoQualities.length ? d.clip.videoQualities : (d.clip.assets && d.clip.assets[0] && d.clip.assets[0].videoQualities) || [];
+
+  const c = info && info[0].clip;
+  const dc = dl && dl[0].clip;
+  const dt = dc && dc.playbackAccessToken;
   return {
     id, u,
-    qualities: t ? qualities.map((x) => ({
-      name: /p$/.test(x.quality) ? x.quality : x.quality + "p",
-      url: `${x.sourceURL}${x.sourceURL.includes("?") ? "&" : "?"}sig=${t.signature}&token=${E(t.value)}`,
-    })) : [],
+    qualities: t ? qualities.map((x) => ({ name: qname(x.quality), url: signed(x.sourceURL, t) })) : [],
+    info: c && {
+      title: c.title || "",
+      views: c.viewCount,
+      date: day(c.createdAt),
+      duration: dur(c.durationSeconds),
+      game: c.game ? { name: c.game.displayName || c.game.name, slug: c.game.slug } : null,
+      channel: c.broadcaster ? { login: c.broadcaster.login, name: c.broadcaster.displayName, avatar: c.broadcaster.profileImageURL } : null,
+      curator: c.curator ? c.curator.displayName : "",
+    },
+    downloads: dt ? (dc.assets || []).flatMap((a) => (a.downloadQualities || []).filter((q) => httpUrl(q.sourceURL)).map((q) => ({
+      name: `${CLIP_TYPES[a.type] || a.type} ${qname(q.quality)}`,
+      url: signed(q.sourceURL, dt),
+    }))) : [],
   };
 }));
 
