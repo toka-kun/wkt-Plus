@@ -39,27 +39,6 @@
     <script src="https://cdn.jsdelivr.net/gh/tsukumijima/DPlayer@master/dist/DPlayer.min.js"></script>
     <script>
         const qualities = <%- json(qualities) %>;
-        const embed = <%- json(embed) %>;
-        // 再生できない時は、Twitch公式の埋め込みプレイヤーに切り替える
-        function useEmbed() {
-            const box = document.getElementById("player");
-            box.textContent = "";
-            const f = document.createElement("iframe");
-            f.src = embed;
-            f.className = "h-full w-full";
-            f.allowFullscreen = true;
-            f.allow = "autoplay; fullscreen";
-            box.appendChild(f);
-        }
-        if (!qualities.length) {
-            useEmbed();
-        } else {
-            const dp = new DPlayer({
-                container: document.getElementById("dplayer"), autoplay: true, lang: "ja",
-                video: { quality: qualities.map(function (q) { return { name: q.name, url: q.url, type: "auto" }; }), defaultQuality: 0, type: "auto" }
-            });
-            dp.on("error", function () { dp.destroy(); useEmbed(); });
-        }
     </script>
 </body>
 </html>
