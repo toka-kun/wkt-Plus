@@ -11,49 +11,50 @@
     <link rel="stylesheet" href="/css/page.css">
 </head>
 
-<body class="bg-gray-900 font-sans min-h-screen text-white">
-    <main class="mx-auto max-w-6xl px-4 pb-16 pt-4">
-        <div>
-            <div id="player" class="aspect-video w-full overflow-hidden rounded-lg bg-black"><div id="dplayer" class="h-full w-full"></div></div>
-            <p id="why" class="mt-2 hidden break-words text-sm text-red-300"></p>
-            <div class="checkbox-container mt-3 flex w-full items-center justify-center rounded bg-gray-700 py-2 hover:text-white">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z"/></svg>
-                <label for="proxyToggle" class="ml-2 cursor-pointer select-none">プロキシ経由で再生</label>
-                <input type="checkbox" id="proxyToggle" class="form-checkbox ml-2 text-green-500">
-            </div>
+<body class="min-h-screen bg-gray-900 font-sans text-white antialiased [word-break:normal] [overflow-wrap:anywhere]">
+    <main class="mx-auto max-w-6xl px-4 pb-16 pt-4 sm:pt-6">
+        <div class="mx-auto max-w-5xl">
+            <div id="player" class="aspect-video w-full overflow-hidden rounded-xl bg-black shadow-lg shadow-black/40 ring-1 ring-white/10"><div id="dplayer" class="h-full w-full"></div></div>
+            <p id="why" role="alert" class="mt-3 hidden break-words rounded-lg border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200"></p>
+            <label for="proxyToggle" class="mt-3 flex min-h-[44px] cursor-pointer select-none items-center justify-between gap-3 rounded-xl bg-white/10 px-4 py-2 transition-colors hover:bg-white/20 focus-within:ring-2 focus-within:ring-blue-400">
+                <span class="text-sm font-semibold">☁️ プロキシ経由で再生</span>
+                <input type="checkbox" id="proxyToggle" class="h-5 w-5 shrink-0 cursor-pointer accent-blue-500">
+            </label>
             <%
                 // 詳細が取れなかった時でも、チャンネル名がURLにあればリンクを出す
                 const ch = info && info.channel ? info.channel : (u ? { login: u, name: u, avatar: '' } : null);
             %>
             <% if (info) { %>
-            <h1 class="mt-4 break-words text-lg font-bold"><%= info.title || '(無題)' %></h1>
-            <p class="mt-1 text-sm text-gray-400">
-                <%= Number(info.views || 0).toLocaleString('ja-JP') %>回視聴 ・ <%= info.date %> ・ <%= info.duration %>
-                <% if (info.curator) { %> ・ クリップ作成: <%= info.curator %><% } %>
+            <h1 class="mt-5 break-words text-xl font-bold leading-snug sm:text-2xl"><%= info.title || '(無題)' %></h1>
+            <p class="mt-2 text-[13px] leading-relaxed text-gray-300 sm:text-sm">
+                <span class="inline-block"><%= Number(info.views || 0).toLocaleString('ja-JP') %>回視聴</span> ・ <span class="inline-block"><%= info.date %></span> ・ <span class="inline-block"><%= info.duration %></span>
+                <% if (info.curator) { %> ・ <span class="inline-block">クリップ作成: <%= info.curator %></span><% } %>
             </p>
             <% } %>
             <% if (ch || (info && info.game)) { %>
-            <div class="mt-3 flex flex-wrap items-center gap-2">
+            <div class="mt-4 flex flex-wrap items-center gap-2">
                 <% if (ch) { %>
-                <a href="/other/ttv/ch/<%= encodeURIComponent(ch.login) %>" class="inline-flex items-center gap-2 rounded-full bg-white/10 py-1 pl-1 pr-4 text-sm font-semibold hover:bg-white/20">
-                    <% if (ch.avatar) { %><img src="<%= ch.avatar %>" alt="" referrerpolicy="no-referrer" class="h-8 w-8 rounded-full bg-gray-800 object-cover"><% } else { %><span class="w-3"></span><% } %>
+                <a href="/other/ttv/ch/<%= encodeURIComponent(ch.login) %>" class="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-white/10 pl-1.5 pr-4 text-sm font-semibold text-gray-100 transition-colors hover:bg-white/20 motion-safe:active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900">
+                    <% if (ch.avatar) { %><img src="<%= ch.avatar %>" alt="" referrerpolicy="no-referrer" class="h-8 w-8 rounded-full bg-gray-800 object-cover"><% } else { %><span class="w-2"></span><% } %>
                     <span><%= ch.name %></span>
                 </a>
-                <a href="/other/ttv/ch/<%= encodeURIComponent(ch.login) %>/clips" class="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20">チャンネルのクリップ</a>
+                <a href="/other/ttv/ch/<%= encodeURIComponent(ch.login) %>/clips" class="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-white/10 px-4 text-sm font-semibold text-gray-100 transition-colors hover:bg-white/20 motion-safe:active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900">チャンネルのクリップ</a>
                 <% } %>
                 <% if (info && info.game) { %>
-                <a href="/other/ttv/cat/<%= encodeURIComponent(info.game.slug) %>" class="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20"><%= info.game.name %></a>
+                <a href="/other/ttv/cat/<%= encodeURIComponent(info.game.slug) %>" class="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-white/10 px-4 text-sm font-semibold text-gray-100 transition-colors hover:bg-white/20 motion-safe:active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"><%= info.game.name %></a>
                 <% } %>
             </div>
             <% } %>
             <% if (downloads.length) { %>
-            <h2 class="mb-2 mt-6 text-sm font-bold text-gray-300">ダウンロード</h2>
-            <div class="flex flex-wrap gap-2">
-                <% downloads.forEach(function (d) { %>
-                <a href="<%= d.url %>" target="_blank" rel="noopener noreferrer" download class="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20"><%= d.name %></a>
-                <% }) %>
-            </div>
-            <p class="mt-2 text-xs text-gray-500">新しいタブで開きます。保存されない場合は、動画を長押し(右クリック)して保存してください。</p>
+            <section class="mt-6 rounded-xl border border-white/10 bg-white/[0.04] p-4 sm:p-5" aria-labelledby="dl-title">
+                <h2 id="dl-title" class="text-sm font-bold text-gray-200">ダウンロード</h2>
+                <ul class="mt-3 flex flex-wrap gap-2">
+                    <% downloads.forEach(function (d) { %>
+                    <li><a href="<%= d.url %>" target="_blank" rel="noopener noreferrer" download class="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-white/10 px-4 text-sm font-semibold text-gray-100 transition-colors hover:bg-white/20 motion-safe:active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg><span><%= d.name %></span><span class="sr-only">(新しいタブで開く)</span></a></li>
+                    <% }) %>
+                </ul>
+                <p class="mt-3 text-[13px] leading-relaxed text-gray-400">新しいタブで開きます。保存されない場合は、動画を長押し(右クリック)して保存してください。</p>
+            </section>
             <% } %>
         </div>
     </main>
