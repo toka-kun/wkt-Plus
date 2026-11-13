@@ -268,7 +268,12 @@ router.get(["/ch/:u", "/ch/:u/:tab"], page("channel", async (req) => {
     const r = await soft(gql([["ChannelVideoShelvesQuery", { channelLogin: u, first: 6, cursor: null, options: null, includePreviewBlur: false }]]));
     const edges = (r && r[0].user && r[0].user.videoShelves && r[0].user.videoShelves.edges) || [];
     shelves = edges.map((e) => e && e.node).filter((n) => n && n.items && n.items.length)
-      .map((n) => ({ heading: SHELF_TITLES[n.type] || n.title, cards: n.items.map(shelfItem).filter(Boolean) }))
+      .map((n) => ({
+        heading: SHELF_TITLES[n.type] || n.title,
+        // 見出しの「すべて見る」の行き先(クリップの棚はクリップ、動画の棚は動画。それ以外はリンクなし)
+        more: n.type === "TOP_CLIPS" ? "clips" : /VIDEOS|BROADCASTS/.test(n.type) ? "videos" : "",
+        cards: n.items.map(shelfItem).filter(Boolean),
+      }))
       .filter((x) => x.cards.length);
     if (!shelves.length) tab = "videos"; // 棚が取れない時は動画一覧にする
   }
