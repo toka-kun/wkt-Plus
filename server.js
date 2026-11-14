@@ -14,9 +14,18 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// ② 他のサイトからの呼び出しを拒否する (他サイトのJavaScript、画像・フォーム送信など)。
-//    他サイトからの「ページ移動」(リンクで開く・iframeに埋め込む。どちらもGET)だけは許可する。
-//    CORSは使わないので、他サイトのJavaScriptはこのサイトの中身を読めない。
+// ② ログインなしで開けるページ。
+//    public 配下のファイル(css/js/robots.txt など)は上の express.static が先に返すので、ここに来るのは /login だけ。
+const PUBLIC_PATHS = new Set(["/login", "/login/", "/favicon.ico"]);
+
+function isPublicPath(p) {
+    // 末尾スラッシュや大文字小文字の揺れ(/Login)でもログイン画面を開けるようにする
+    return PUBLIC_PATHS.has(p) || PUBLIC_PATHS.has(p.toLowerCase()) || p.toLowerCase().replace(/\/+$/, "") === "/login";
+}
+
+// 他のサイトからの呼び出しを拒否する (他サイトのJavaScript、画像・フォーム送信など)。
+// 他サイトからの「ページ移動」(リンクで開く・iframeに埋め込む。どちらもGET)だけは許可する。
+// CORSは使わないので、他サイトのJavaScriptはこのサイトの中身を読めない。
 function isCrossSite(req) {
     const site = req.get("sec-fetch-site");
     if (site) return site === "cross-site";
@@ -25,6 +34,9 @@ function isCrossSite(req) {
     try { return new URL(origin).host !== req.get("host"); } catch (e) { return true; }
 }
 app.use((req, res, next) => {
+    // ログイン画面と public 配下は、他サイトからのリンク・iframe でも開けるようにする
+    // (ここを塞ぐと、ログインしていない人が /login すら開けず 403 forbidden になる)
+    if (isPublicPath(req.path)) return next();
     const dest = req.get("sec-fetch-dest");
     const isPage = req.get("sec-fetch-mode") === "navigate" && (dest === "document" || dest === "iframe" || dest === "frame") && (req.method === "GET" || req.method === "HEAD");
     if (isCrossSite(req) && !isPage) return res.status(403).json({ error: "forbidden" });
@@ -33,14 +45,32 @@ app.use((req, res, next) => {
 app.set("trust proxy", 1);
 app.use(cookieParser());
 
-// ① ログイン確認: public配下のファイル(上の express.static)と /login だけは、ログインなしで使える。それ以外はすべてログインが必要
+// 「アドレスバーで開いた」「リンクをクリックした」など、画面を表示するためのリクエストかどうか
+function isPageNavigation(req) {
+    if (req.get("sec-fetch-mode") === "navigate") return true; // ブラウザのページ移動
+    const dest = req.get("sec-fetch-dest");
+    if (dest === "document" || dest === "iframe" || dest === "frame") return true; // iframe 埋め込み
+    if (req.method !== "GET" && req.method !== "HEAD") return false;
+    if (req.get("x-requested-with") === "XMLHttpRequest") return false; // 古い fetch ライブラリ
+    // Sec-Fetch-* を送らない環境(古いブラウザ・bot・curl)は Accept で判断する。
+    // "*/*" はページ移動とも API とも取れるので、API 扱い(401)にする
+    return /\btext\/html\b/i.test(req.get("accept") || "");
+}
+
+// ① ログイン確認: 上の express.static が返す public 配下のファイルと /login だけは、ログインなしで使える。
+//    それ以外はすべてログインが必要で、未ログインなら /login へ飛ばす。
 app.use((req, res, next) => {
-    if (req.cookies.loginok === "ok" || req.path === "/login" || req.path === "/login/") return next();
-    // アドレスバーなどで開いた(ページ移動)場合は /login へ。画面内の通信(fetch・画像など)には401を返す
-    const mode = req.get("sec-fetch-mode");
-    const navigating = mode ? mode === "navigate" : req.accepts(["json", "html"]) === "html";
-    if (navigating) return res.redirect("/login");
-    res.status(401).json({ error: "login required" });
+    if (isPublicPath(req.path)) return next();
+    if (req.cookies.loginok === "ok") return next();
+
+    // リダイレクトや 401 をブラウザ/CDN にキャッシュさせない
+    res.set("Cache-Control", "no-store");
+
+    // 画面内の通信(fetch・画像・API)には 401 を返す (リダイレクトすると HTML が返って JSON 解析で壊れるため)
+    if (!isPageNavigation(req)) return res.status(401).json({ error: "login required" });
+
+    // ページを見ようとしている場合は /login へ (ログイン画面側は一切変更しない)
+    res.redirect(302, "/login");
 });
 
 app.get('/', (req, res) => {
