@@ -7,6 +7,10 @@ const T = () => (mod ||= import("twitch-gql-queries"));
 
 const BASE = "/other/ttv";
 const TTL = 60 * 1000;
+// twitch-gql-queries と同じ Client-Id。パッケージは headers を渡すと Client-Id を上書きして消すので、こちらで一緒に付ける。
+// User-Agent は streamlink と同じ。UA の無い通信は、Twitch に断られることがある。
+const CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko";
+const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:159.0) Gecko/20100101 Firefox/159.0";
 const MAX_CACHE = 100;
 // メモリキャッシュのみ。Vercel/Netlifyでは再起動で消えるので効きは弱い。
 const cache = new Map();
@@ -25,7 +29,7 @@ async function gql(list, ttl = TTL) {
   const q = await T();
   const res = await q.gqlRequest(
     list.map(([name, vars]) => q.getQuery(q[name], vars)),
-    { signal: AbortSignal.timeout(8000) }
+    { signal: AbortSignal.timeout(8000), headers: { "Client-Id": CLIENT_ID, "User-Agent": UA } }
   );
   const data = res.map((r) => {
     if (!r || !r.data) throw new Error((r && r.errors && r.errors[0] && r.errors[0].message) || "データがありません");
@@ -100,10 +104,11 @@ const str = (v, max) => String(v || "").trim().slice(0, max);
 const cursor = (req) => str(req.query.cursor, 300) || null;
 
 // ---- 再生 ----
-// 再生用トークンを取る。取れなかった(Twitch側の本人確認で弾かれた等)場合は null。その時は画面側で公式の埋め込みプレイヤーに切り替える
+// 再生用トークンを取る。取れなかった(Twitch側の本人確認で弾かれた等)場合は null。その時、画面は再生用のURLが無いというメッセージを出す
+// playerType / platform は streamlink(Twitchの再生URLを作る定番ツール)と同じ値
 async function token(vars) {
   try {
-    const [d] = await gql([["PlaybackAccessTokenQuery", { playerType: "site", platform: "web", ...vars }]], 0);
+    const [d] = await gql([["PlaybackAccessTokenQuery", { playerType: "embed", platform: "site", ...vars }]], 0);
     const t = d.streamPlaybackAccessToken || d.videoPlaybackAccessToken;
     return t && !(t.authorization && t.authorization.isForbidden) ? t : null;
   } catch (e) {
@@ -113,12 +118,16 @@ async function token(vars) {
 }
 const signed = (url, t) => `${url}${url.includes("?") ? "&" : "?"}sig=${t.signature}&token=${E(t.value)}`;
 const httpUrl = (u) => /^https?:\/\//i.test(u || "");
-const usher = (path, t) =>
+// 再生URL(usher)。streamlink の最新の作りに合わせている。
+// ライブは /api/v2/channel/hls/名前 に sig / token、VODは /vod/v2/ID に nauthsig / nauth(名前が違う)。
+// multigroup_video だけは、ブラウザの再生ライブラリ(hls.js)で扱いやすいよう false にしている
+const usher = (path, t, live) =>
   `https://usher.ttvnw.net/${path}.m3u8?` +
   new URLSearchParams({
-    player: "twitchweb", type: "any", p: Math.floor(Math.random() * 1e7),
-    allow_source: "true", allow_audio_only: "true", allow_spectre: "false",
-    sig: t.signature, token: t.value,
+    platform: "web", p: Math.floor(Math.random() * 999999),
+    allow_source: "true", allow_audio_only: "true", playlist_include_framerate: "true",
+    multigroup_video: "false", supported_codecs: "h264",
+    ...(live ? { sig: t.signature, token: t.value, fast_bread: "true" } : { nauthsig: t.signature, nauth: t.value }),
   });
 
 // ---- ページ ----
@@ -200,14 +209,10 @@ router.get("/s", page("search", async (req) => {
 router.get(["/cat", "/cat/:g", "/cat/:g/:tab"], page("category", async (req) => {
   const cur = cursor(req);
   if (!req.params.g) {
-    const [d] = await gql([["BrowsePageAllDirectoriesQuery", { limit: 30, cursor: cur, options: { sort: "VIEWER_COUNT", tags: [], requestID: "wkt" } }]], 5 * 60 * 1000);
+    // ホーム画面は、人気の上位30件だけを表示する(「もっと見る」は無い)
+    const [d] = await gql([["BrowsePageAllDirectoriesQuery", { limit: 30, cursor: null, options: { sort: "VIEWER_COUNT", tags: [], requestID: "wkt" } }]], 5 * 60 * 1000);
     const c = d.directoriesWithTags || {};
-    const edges = c.edges || [];
-    return {
-      mode: "list", g: "", name: "",
-      cards: list(edges, game),
-      next: c.pageInfo && c.pageInfo.hasNextPage && edges.length ? qs({ cursor: edges[edges.length - 1].cursor }) : null,
-    };
+    return { mode: "list", g: "", name: "", cards: list(c.edges, game), next: null };
   }
   const g = need(slug(str(req.params.g, 100)));
   if (req.params.tab && req.params.tab !== "clips") throw fail(404);
@@ -327,7 +332,7 @@ router.get("/l/:u", page("live", async (req) => {
     isLive: !!stream,
     viewers: v.user && v.user.stream ? v.user.stream.viewersCount : null,
     startedAt: lv && lv[0].user && lv[0].user.stream ? lv[0].user.stream.createdAt : null,
-    src: stream && t ? usher(`api/channel/hls/${u}`, t) : null,
+    src: stream && t ? usher(`api/v2/channel/hls/${u}`, t, true) : null,
   };
 }));
 
@@ -348,7 +353,7 @@ router.get(["/v/:id", "/v/:id/:u"], page("vod", async (req) => {
     game: video && video.game,
     views: video ? video.viewCount : null,
     date: video ? day(video.publishedAt) : "",
-    src: t ? usher(`vod/${id}`, t) : null,
+    src: t ? usher(`vod/v2/${id}`, t, false) : null,
   };
 }));
 
