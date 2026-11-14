@@ -18,6 +18,7 @@
             <div id="player" class="aspect-video w-full overflow-hidden rounded-xl bg-black shadow-lg shadow-black/40 ring-1 ring-white/10"><div id="dplayer" class="h-full w-full"></div></div>
             </div>
             <aside class="flex min-w-0 flex-col gap-4" aria-label="再生の設定とクリップの情報">
+            <% if (qualities.length) { %><a href="<%= qualities[0].url %>" target="_blank" rel="noopener noreferrer" class="flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 motion-safe:active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"><span>動画を新しいタブで開く</span><span aria-hidden="true">↗</span></a><% } %>
             <label for="proxyToggle" class="flex min-h-[44px] cursor-pointer select-none items-center justify-between gap-3 rounded-xl bg-white/10 px-4 py-2 transition-colors hover:bg-white/20 focus-within:ring-2 focus-within:ring-blue-400">
                 <span class="text-sm font-semibold">☁️ プロキシ経由で再生</span>
                 <input type="checkbox" id="proxyToggle" class="h-5 w-5 shrink-0 cursor-pointer accent-blue-500">
