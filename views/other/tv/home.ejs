@@ -18,6 +18,7 @@
         </svg>
         <span>戻る</span>
     </button>
+
     <button class="fixed top-5 right-5 z-50 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out flex items-center space-x-2" onclick="openModal()">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -25,20 +26,25 @@
         </svg>
         <span>再生方法</span>
     </button>
+
     <div class="flex-grow w-full h-screen pt-20 pb-4 px-4 box-border flex flex-col lg:flex-row gap-4">
         
         <div class="w-full lg:w-[75%] aspect-video lg:aspect-auto lg:h-full bg-black rounded-2xl shadow-lg border-none flex items-center justify-center overflow-hidden flex-shrink-0" id="player-container">
             <p class="text-gray-400 text-lg">リストからチャンネルを選択してください</p>
         </div>
+
         <div class="w-full lg:w-[25%] flex-grow lg:h-full bg-gray-800 rounded-2xl shadow-lg p-4 flex flex-col min-h-0">
             <h2 class="text-xl font-bold mb-3 border-b border-gray-600 pb-2 flex-shrink-0">チャンネル一覧</h2>
             
             <div id="region-nav" class="flex flex-wrap gap-2 mb-4 flex-shrink-0">
             </div>
+
             <div id="channel-list" class="space-y-4 overflow-y-auto flex-grow px-1 custom-scrollbar relative">
             </div>
         </div>
+
     </div>
+
     <div id="info-modal" class="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center hidden p-4">
         <div class="bg-gray-800 rounded-2xl max-w-md w-full max-h-[80vh] flex flex-col p-6 shadow-2xl border border-gray-700">
             <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-3">
@@ -57,6 +63,7 @@
                     <span class="font-bold text-white text-md">通常</span>
                     <span class="text-xs text-gray-400 mt-1 px-2 py-1 bg-gray-900 rounded inline-block w-max">通常のライブストリームURLを使用</span>
                 </button>
+
                 <button id="mode-btn-education" onclick="setPlayMode('education')" class="play-mode-option-btn w-full text-left bg-gray-700 hover:bg-gray-600 p-3 rounded-lg transition duration-200 flex flex-col mb-2">
                     <span class="font-bold text-white text-md">Education</span>
                     <span class="text-xs text-gray-400 mt-1 px-2 py-1 bg-gray-900 rounded inline-block w-max">YouTubeEducationを埋め込んで再生</span>
@@ -64,6 +71,7 @@
             </div>
         </div>
     </div>
+
     <script>
         // サーバーから渡されたJSONデータを取得
         const tvData = <%- tvData %>;
@@ -78,32 +86,33 @@
             "africa": "アフリカ",
             "oc": "オセアニア"
         };
+
         const genresMap = {
             "full": "全ジャンル",
             "tech": "テクノロジー・ビジネス",
             "optional": "その他"
         };
+
         const regionNav = document.getElementById('region-nav');
         const channelList = document.getElementById('channel-list');
         const playerContainer = document.getElementById('player-container');
         let currentPlayer = null; // DPlayerのインスタンス
         let currentSelectedItem = null; // 現在選択中のチャンネル情報
         let currentPlayMode = localStorage.getItem('tv_play_mode') || 'hls'; // 'hls' または 'education'
-        // YouTube IFrame API のロード状態
-        let ytApiReady = false;
-        let ytApiLoading = false;
+
         // データを地域(Region)ごとに整理
-        // HLSのURL・動画ID・再生リストID・チャンネルIDがすべて空の項目(再生できないチャンネル)は一覧に含めない
-        const hasValue = (v) => typeof v === 'string' && v.trim() !== '';
         const groupedData = {};
+        // HLSのURL・動画ID・再生リストIDがすべて空の項目(再生できないチャンネル)は一覧に含めない
+        const hasValue = (v) => typeof v === 'string' && v.trim() !== '';
         for (const [key, item] of Object.entries(tvData)) {
-            if (!item || !(hasValue(item.hlsUrl) || hasValue(item.fallbackVideoId) || hasValue(item.playlistId) || hasValue(item.channelId))) continue;
+            if (!item || !(hasValue(item.hlsUrl) || hasValue(item.fallbackVideoId) || hasValue(item.playlistId))) continue;
             const regionCode = key.split('/')[0];
             if (!groupedData[regionCode]) {
                 groupedData[regionCode] = [];
             }
             groupedData[regionCode].push(item);
         }
+
         // --- 地域ボタンの強調を更新する共通関数 ---
         function updateActiveRegionBtn(activeRegionCode) {
             document.querySelectorAll('.region-btn').forEach(b => {
@@ -116,6 +125,7 @@
                 }
             });
         }
+
         // 右側のリストとジャンプボタンを生成
         for (const [regionCode, items] of Object.entries(groupedData)) {
             const regionName = regionsMap[regionCode] || regionCode;
@@ -124,25 +134,28 @@
             const navBtn = document.createElement('button');
             navBtn.className = "region-btn text-xs bg-gray-600 hover:bg-gray-500 text-white py-1.5 px-3 rounded-full transition-colors duration-200";
             navBtn.textContent = regionName;
-            navBtn.dataset.region = regionCode;
+            navBtn.dataset.region = regionCode; // 識別用のデータ属性を追加
             
             navBtn.onclick = (e) => {
                 // 強調表示の更新
                 updateActiveRegionBtn(regionCode);
+
                 // スクロール処理
                 const targetHeader = document.getElementById(`region-${regionCode}`);
                 if (targetHeader) {
                     targetHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
-                e.currentTarget.blur();
+                e.currentTarget.blur(); 
             };
             regionNav.appendChild(navBtn);
+
             // --- 地域ヘッダーの作成 ---
             const regionHeader = document.createElement('h3');
-            regionHeader.id = `region-${regionCode}`;
+            regionHeader.id = `region-${regionCode}`; 
             regionHeader.className = `text-lg font-semibold text-blue-400 mb-2 ${channelList.children.length === 0 ? '' : 'mt-6'}`;
             regionHeader.textContent = regionName;
             channelList.appendChild(regionHeader);
+
             // --- チャンネルボタンの作成 ---
             items.forEach(item => {
                 const btn = document.createElement('button');
@@ -154,35 +167,44 @@
                     <span class="font-bold text-white text-md">${item.name}</span>
                     <span class="text-xs text-gray-400 mt-1 px-2 py-1 bg-gray-900 rounded inline-block w-max">${genreLabel}</span>
                 `;
+
                 btn.onclick = (e) => {
                     const currentBtn = e.currentTarget;
+
                     document.querySelectorAll('.channel-btn').forEach(b => {
                         b.classList.remove('bg-blue-600', 'hover:bg-blue-500', 'ring-2', 'ring-inset', 'ring-blue-400');
                         b.classList.add('bg-gray-700', 'hover:bg-gray-600');
                     });
+
                     currentBtn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
                     currentBtn.classList.add('bg-blue-600', 'hover:bg-blue-500', 'ring-2', 'ring-inset', 'ring-blue-400');
+
                     // チャンネルクリック時にも対象地域の地域ボタンを強調する
                     updateActiveRegionBtn(regionCode);
+
                     currentSelectedItem = item;
-                    playMedia(item.hlsUrl, item.fallbackVideoId, item.playlistId, item.channelId);
-                    currentBtn.blur();
+                    playMedia(item.hlsUrl, item.fallbackVideoId, item.playlistId);
+                    currentBtn.blur(); 
                 };
                 channelList.appendChild(btn);
             });
         }
+
         // 初期表示時：一番最初の地域ボタンを強調
         const initialRegion = Object.keys(groupedData)[0];
         if (initialRegion) {
             updateActiveRegionBtn(initialRegion);
         }
+
         // --- スクロールスパイ（スクロール位置に応じた地域ボタンの更新） ---
         channelList.addEventListener('scroll', () => {
             const containerRect = channelList.getBoundingClientRect();
             const headers = document.querySelectorAll('h3[id^="region-"]');
             let activeRegionCode = null;
+
             // リストの一番下までスクロールしきった場合の判定
             const isAtBottom = channelList.scrollHeight - channelList.scrollTop - channelList.clientHeight <= 10;
+
             if (isAtBottom && headers.length > 0) {
                 activeRegionCode = headers[headers.length - 1].id.replace('region-', '');
             } else {
@@ -196,38 +218,47 @@
                     }
                 }
             }
+
             // どれにも引っかからなかった場合（一番上にいる場合など）は最初の要素を選択
             if (!activeRegionCode && headers.length > 0) {
                 activeRegionCode = headers[0].id.replace('region-', '');
             }
+
             if (activeRegionCode) {
                 updateActiveRegionBtn(activeRegionCode);
             }
         });
+
         // --- 再生方法モーダルの操作 ---
         function openModal() {
             document.getElementById('info-modal').classList.remove('hidden');
         }
+
         function closeModal() {
             document.getElementById('info-modal').classList.add('hidden');
         }
+
         document.getElementById('info-modal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeModal();
             }
         });
+
         function setPlayMode(mode) {
             currentPlayMode = mode;
             localStorage.setItem('tv_play_mode', mode);
             updatePlayModeUI();
             if (currentSelectedItem) {
-                playMedia(currentSelectedItem.hlsUrl, currentSelectedItem.fallbackVideoId, currentSelectedItem.playlistId, currentSelectedItem.channelId);
+                playMedia(currentSelectedItem.hlsUrl, currentSelectedItem.fallbackVideoId, currentSelectedItem.playlistId);
             }
         }
+
         function updatePlayModeUI() {
             const btnHls = document.getElementById('mode-btn-hls');
             const btnEdu = document.getElementById('mode-btn-education');
+
             if (!btnHls || !btnEdu) return;
+
             if (currentPlayMode === 'education') {
                 btnHls.className = "play-mode-option-btn w-full text-left bg-gray-700 hover:bg-gray-600 p-3 rounded-lg transition duration-200 flex flex-col mb-2";
                 btnEdu.className = "play-mode-option-btn w-full text-left bg-blue-600 hover:bg-blue-500 ring-2 ring-inset ring-blue-400 p-3 rounded-lg transition duration-200 flex flex-col mb-2";
@@ -236,22 +267,26 @@
                 btnEdu.className = "play-mode-option-btn w-full text-left bg-gray-700 hover:bg-gray-600 p-3 rounded-lg transition duration-200 flex flex-col mb-2";
             }
         }
+
         // 初期表示時にUI選択状態を同期
         updatePlayModeUI();
+
         // 動画再生のロジック
-        async function playMedia(hlsUrl, fallbackVideoId, playlistId, channelId) {
+        async function playMedia(hlsUrl, fallbackVideoId, playlistId) {
             if (currentPlayer) {
                 currentPlayer.destroy();
                 currentPlayer = null;
             }
+
             const hasHls = hlsUrl && hlsUrl.trim() !== "";
             const videoId = (fallbackVideoId || "").trim();
             const listId = (playlistId || "").trim();
-            const chId = (channelId || "").trim();
-            // 動画IDか再生リストIDかチャンネルIDのどちらか(または両方)があればYouTube再生できる
-            const hasFallback = videoId !== "" || listId !== "" || chId !== "";
+            // 動画IDか再生リストIDのどちらか(または両方)があればYouTube再生できる
+            const hasFallback = videoId !== "" || listId !== "";
+
             let useHls = false;
             let useFallback = false;
+
             // 両方のソースがある場合は選択されたモードを優先、片方のみの場合は存在する方を採用
             if (hasHls && hasFallback) {
                 if (currentPlayMode === 'education') {
@@ -264,8 +299,10 @@
             } else if (hasFallback) {
                 useFallback = true;
             }
+
             if (useHls) {
                 playerContainer.innerHTML = `<div id="dplayer" class="w-full h-full"></div>`;
+
                 currentPlayer = new DPlayer({
                     container: document.getElementById('dplayer'),
                     live: true,
@@ -282,11 +319,13 @@
                         type: 'aribb24'
                     }
                 });
+
                 // --- DPlayerの字幕ボタンと hls.js の字幕/キャプショントラックを連動 ---
                 const dp = currentPlayer;
                 const hls = dp.plugins.hls;
                 const video = dp.video;
                 const isSubtitleOn = () => !!dp.user.get('subtitle');
+
                 const setSubtitle = (show) => {
                     if (hls) {
                         // マニフェスト内の字幕トラック(EXT-X-MEDIA TYPE=SUBTITLES)。未選択なら DEFAULT 指定、無ければ先頭を選ぶ
@@ -305,13 +344,16 @@
                         }
                     }
                 };
+
                 dp.on('subtitle_show', () => setSubtitle(true));
                 dp.on('subtitle_hide', () => setSubtitle(false));
+
                 // 字幕データがあるときだけ字幕ボタンを表示する
                 const subtitleBtn = dp.container.querySelector('.dplayer-subtitle-btn');
                 const hasSubtitle = () =>
                     !!(hls && hls.subtitleTracks && hls.subtitleTracks.length) ||
                     Array.from(video.textTracks).some((t) => t.kind === 'captions' || t.kind === 'subtitles');
+
                 // トラックは再生開始後に追加されるので、追加・更新のたびにボタンの表示とオン/オフ状態を反映し直す
                 const refreshSubtitle = () => {
                     if (subtitleBtn) subtitleBtn.style.display = hasSubtitle() ? '' : 'none';
@@ -325,204 +367,58 @@
                 }
                 refreshSubtitle();
             } else if (useFallback) {
-                // チャンネルID があればまず youtubeeducation.com の /embed/live_stream?channel=channelId を試し、
-                // ライブでなければ再生リスト/動画にフォールバック
-                if (chId) {
-                    await tryYouTubeChannelLive(chId, listId, videoId);
-                } else {
-                    let paramText = "";
+                let paramText = "";
                 
-                    try {
-                        const response = await fetch('/wkt/yt/edurl');
-                        if (response.ok) {
-                            paramText = await response.text();
-                        }
-                    } catch (error) {
-                        console.error("Failed to fetch YouTube URL parameters:", error);
+                try {
+                    const response = await fetch('/wkt/yt/edurl');
+                    if (response.ok) {
+                        paramText = await response.text();
                     }
-                    // 動画IDがあれば動画IDだけを使い、無いときだけ再生リストIDを使う
-                    //  - 動画IDあり(再生リストIDの有無は問わない): /embed/動画ID?...&playlist=動画ID
-                    //  - 動画IDなし・再生リストIDのみ          : /embed/videoseries?...&list=再生リストID
-                    let embedPath;
-                    let extraParam;
-                    if (videoId) {
-                        embedPath = encodeURIComponent(videoId);
-                        extraParam = `playlist=${encodeURIComponent(videoId)}`;
-                    } else {
-                        embedPath = 'videoseries';
-                        extraParam = `list=${encodeURIComponent(listId)}`;
-                    }
-                    // サーバーから受け取ったパラメーターは加工せずそのまま使う(先頭の ? や & だけ除く)
-                    const baseQuery = paramText.trim().replace(/^[?&]+/, '');
-                    const query = baseQuery ? `${baseQuery}&${extraParam}` : extraParam;
-                    const embedUrl = `https://www.youtubeeducation.com/embed/${embedPath}?${query}`;
-                    
-                    playerContainer.innerHTML = `
-                        <iframe 
-                            src="${embedUrl}" 
-                            class="w-full h-full rounded-2xl shadow-lg border-none bg-black"
-                            allow="fullscreen; autoplay"
-                            title="YouTube Education Video">
-                        </iframe>
-                    `;
+                } catch (error) {
+                    console.error("Failed to fetch YouTube URL parameters:", error);
                 }
-            } else {
-                playerContainer.innerHTML = `<p class="text-gray-400 text-lg">再生可能なメディアがありません。</p>`;
-            }
-        }
-        // YouTube IFrame API を動的にロード
-        function loadYouTubeIframeApi() {
-            if (ytApiReady) return Promise.resolve();
-            if (ytApiLoading) {
-                return new Promise(resolve => {
-                    const timer = setInterval(() => {
-                        if (ytApiReady) { clearInterval(timer); resolve(); }
-                    }, 100);
-                });
-            }
-            ytApiLoading = true;
-            return new Promise(resolve => {
-                window.onYouTubeIframeAPIReady = () => {
-                    ytApiReady = true;
-                    ytApiLoading = false;
-                    resolve();
-                };
-                const tag = document.createElement('script');
-                tag.src = 'https://www.youtube.com/iframe_api';
-                document.head.appendChild(tag);
-            });
-        }
-        // チャンネルのライブ配信を試し、ダメなら再生リスト/動画にフォールバック
-        async function tryYouTubeChannelLive(channelId, playlistId, videoId) {
-            // edurl パラメータを取得
-            let paramText = "";
-            try {
-                const response = await fetch('/wkt/yt/edurl');
-                if (response.ok) {
-                    paramText = await response.text();
+
+                // 動画IDがあれば動画IDだけを使い、無いときだけ再生リストIDを使う
+                //  - 動画IDあり(再生リストIDの有無は問わない): /embed/動画ID?...&playlist=動画ID
+                //  - 動画IDなし・再生リストIDのみ          : /embed/videoseries?...&list=再生リストID
+                let embedPath;
+                let extraParam;
+                if (videoId) {
+                    embedPath = encodeURIComponent(videoId);
+                    extraParam = `playlist=${encodeURIComponent(videoId)}`;
+                } else {
+                    embedPath = 'videoseries';
+                    extraParam = `list=${encodeURIComponent(listId)}`;
                 }
-            } catch (error) {
-                console.error("Failed to fetch YouTube URL parameters:", error);
-            }
-            const baseQuery = paramText.trim().replace(/^[?&]+/, '');
-            const channelQuery = baseQuery ? `${baseQuery}&channel=${encodeURIComponent(channelId)}` : `channel=${encodeURIComponent(channelId)}`;
-            playerContainer.innerHTML = `
-                <iframe id="yt-live-frame"
-                        src="https://www.youtubeeducation.com/embed/live_stream?${channelQuery}&enablejsapi=1&origin=${encodeURIComponent(location.origin)}"
-                        class="w-full h-full rounded-2xl shadow-lg border-none bg-black"
-                        allow="fullscreen; autoplay"
-                        title="YouTube Live Channel">
-                </iframe>
-            `;
-            await loadYouTubeIframeApi();
-            const player = new YT.Player('yt-live-frame', {
-                events: {
-                    onReady: () => {
-                        let decided = false;
-                        const startMs = Date.now();
-                        const MAX_WAIT_MS = 8000; // 8秒間ライブかどうかを観測
-                        const fallback = () => {
-                            if (decided) return;
-                            decided = true;
-                            try { player.destroy(); } catch {}
-                            if (videoId) {
-                                playYouTubeVideo(videoId, playlistId);
-                            } else if (playlistId) {
-                                playYouTubePlaylist(playlistId);
-                            } else {
-                                playerContainer.innerHTML = `<p class="text-gray-400 text-lg">このチャンネルは現在ライブ配信していません。</p>`;
-                            }
-                        };
-                        const checkAndDecide = () => {
-                            if (decided) return;
-                            try {
-                                const data = player.getVideoData();
-                                if (data && data.video_id) {
-                                    if (data.isLive === true) {
-                                        // ライブ配信中 → そのまま維持
-                                        decided = true;
-                                        return;
-                                    }
-                                    if (data.isLive === false) {
-                                        // 明確にライブでない → フォールバック
-                                        fallback();
-                                        return;
-                                    }
-                                }
-                            } catch (e) {
-                                // API まだ準備未完了
-                            }
-                            // タイムアウトチェック
-                            if (Date.now() - startMs >= MAX_WAIT_MS && !decided) {
-                                fallback();
-                            }
-                        };
-                        // 1秒ごとにポーリング
-                        const pollTimer = setInterval(() => {
-                            checkAndDecide();
-                        }, 1000);
-                        // 即座に1回チェック
-                        checkAndDecide();
-                        // 安全のため15秒で絶対にフォールバック
-                        setTimeout(() => {
-                            if (!decided) {
-                                fallback();
-                            }
-                        }, 15000);
-                    }
-                }
-            });
-        }
-        // YouTube 動画ID で再生（Education埋め込み）
-        function playYouTubeVideo(videoId, playlistId) {
-            const paramPromise = fetch('/wkt/yt/edurl')
-                .then(r => r.ok ? r.text() : "")
-                .catch(() => "");
-            paramPromise.then(paramText => {
+
+                // サーバーから受け取ったパラメーターは加工せずそのまま使う(先頭の ? や & だけ除く)
                 const baseQuery = paramText.trim().replace(/^[?&]+/, '');
-                const query = baseQuery ? `${baseQuery}&playlist=${encodeURIComponent(videoId)}` : `playlist=${encodeURIComponent(videoId)}`;
-                const embedUrl = `https://www.youtubeeducation.com/embed/${encodeURIComponent(videoId)}?${query}`;
+                const query = baseQuery ? `${baseQuery}&${extraParam}` : extraParam;
+                const embedUrl = `https://www.youtubeeducation.com/embed/${embedPath}?${query}`;
                 
                 playerContainer.innerHTML = `
-                    <iframe
-                        src="${embedUrl}"
+                    <iframe 
+                        src="${embedUrl}" 
                         class="w-full h-full rounded-2xl shadow-lg border-none bg-black"
                         allow="fullscreen; autoplay"
                         title="YouTube Education Video">
                     </iframe>
                 `;
-            });
-        }
-        // YouTube 再生リスト で再生（Education埋め込み）
-        function playYouTubePlaylist(playlistId) {
-            const paramPromise = fetch('/wkt/yt/edurl')
-                .then(r => r.ok ? r.text() : "")
-                .catch(() => "");
-            paramPromise.then(paramText => {
-                const baseQuery = paramText.trim().replace(/^[?&]+/, '');
-                const query = baseQuery ? `${baseQuery}&list=${encodeURIComponent(playlistId)}` : `list=${encodeURIComponent(playlistId)}`;
-                const embedUrl = `https://www.youtubeeducation.com/embed/videoseries?${query}`;
-                
-                playerContainer.innerHTML = `
-                    <iframe
-                        src="${embedUrl}"
-                        class="w-full h-full rounded-2xl shadow-lg border-none bg-black"
-                        allow="fullscreen; autoplay"
-                        title="YouTube Education Playlist">
-                    </iframe>
-                `;
-            });
+            } else {
+                playerContainer.innerHTML = `<p class="text-gray-400 text-lg">再生可能なメディアがありません。</p>`;
+            }
         }
     </script>
+
     <style>
         .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(31, 41, 55, 1);
+            background: rgba(31, 41, 55, 1); 
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: rgba(75, 85, 99, 1);
+            background-color: rgba(75, 85, 99, 1); 
             border-radius: 10px;
         }
     </style>
