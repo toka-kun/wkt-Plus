@@ -100,6 +100,18 @@
         let currentSelectedItem = null; // 現在選択中のチャンネル情報
         let currentPlayMode = localStorage.getItem('tv_play_mode') || 'hls'; // 'hls' または 'education'
 
+        // ページを開いたときに一度だけ取得し、このページ内のYouTube再生で共有する。
+        // ページを再読み込み／新規表示するとスクリプトが再実行され、最新値を取得し直す。
+        const youtubeParamPromise = fetch('/wkt/yt/edurl')
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.text();
+            })
+            .catch(error => {
+                console.error("Failed to fetch YouTube URL parameters:", error);
+                return "";
+            });
+
         // データを地域(Region)ごとに整理
         const groupedData = {};
         // HLSのURL・動画ID・再生リストIDがすべて空の項目(再生できないチャンネル)は一覧に含めない
@@ -367,16 +379,8 @@
                 }
                 refreshSubtitle();
             } else if (useFallback) {
-                let paramText = "";
-                
-                try {
-                    const response = await fetch('/wkt/yt/edurl');
-                    if (response.ok) {
-                        paramText = await response.text();
-                    }
-                } catch (error) {
-                    console.error("Failed to fetch YouTube URL parameters:", error);
-                }
+                // ページ表示時に開始した一度きりの取得結果を、再生のたびに再利用する。
+                const paramText = await youtubeParamPromise;
 
                 // 動画IDがあれば動画IDだけを使い、無いときだけ再生リストIDを使う
                 //  - 動画IDあり(再生リストIDの有無は問わない): /embed/動画ID?...&playlist=動画ID
