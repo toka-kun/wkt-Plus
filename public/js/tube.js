@@ -27,13 +27,13 @@ window.wktHeader = function () {
 (function () {
     const root = document.documentElement;
     const path = location.pathname.replace(/\/+$/, "") || "/";
-    // ホームと動画ページは、動画・本文の幅を優先して、いつも上に重ねて出す。それ以外は広い画面で開きっぱなしにできる
-    const overlayOnly = path === "/wkt" || /^\/wkt\/(watch|w|yt)(\/|$)/.test(path);
+    // 広い画面では、どのページでも開きっぱなしにできる。動画ページだけは、動画の幅を守るため、基準を少し広め(1280px)にする
+    const pinMin = /^\/wkt\/(watch|w|yt)(\/|$)/.test(path) ? 1280 : 1024;
     const KEY = "wktNavPinned"; // "0" なら、広い画面でも閉じておく
     const stored = () => { try { return localStorage.getItem(KEY); } catch (e) { return null; } };
-    const wide = matchMedia("(min-width:1024px)");
+    const wide = matchMedia(`(min-width:${pinMin}px)`);
     // 本文が描画される前に余白を空けて、がたつきを防ぐ(余白は CSS の min-width で広い画面だけ効く)
-    if (!overlayOnly && stored() !== "0") root.classList.add("wkt-pin");
+    if (stored() !== "0") root.classList.add("wkt-pin");
 
     const style = document.createElement("style");
     style.textContent = `
@@ -51,7 +51,7 @@ html.wkt-open{overflow:hidden}
 .wkt-nav-link[aria-current=page]{background:#374151;color:#fff;box-shadow:inset 3px 0 0 #3b82f6}
 .wkt-nav-sep{height:1px;background:#374151;margin:.5rem .75rem}
 #wktNav a:focus-visible,#wktNav button:focus-visible,#wktMenuBtn:focus-visible{outline:2px solid #60a5fa;outline-offset:-2px}
-@media (min-width:1024px){
+@media (min-width:${pinMin}px){
   html.wkt-pin body{padding-left:15rem}
   html.wkt-pin #wktNav{transform:none;transition:none;width:15rem;top:var(--wkt-h,4.5rem);z-index:20}
   html.wkt-pin .wkt-nav-head{display:none}
@@ -109,10 +109,12 @@ html.wkt-open{overflow:hidden}
         const hrefs = ITEMS.filter(Boolean).map(i => i[0]);
         h.querySelectorAll("a").forEach(a => { if (hrefs.includes(a.getAttribute("href"))) a.style.display = "none"; });
 
-        // 開きっぱなしのとき、サイドバーをヘッダーの真下から始める
-        if (h.classList.contains("fixed") && window.ResizeObserver) {
-            new ResizeObserver(() => root.style.setProperty("--wkt-h", h.offsetHeight + "px")).observe(h);
-        }
+        // 開きっぱなしのとき、サイドバーをヘッダーの真下から始める。ヘッダーがページと一緒に流れて見えなくなったら、上端まで上がる
+        const place = () => root.style.setProperty("--wkt-h", Math.max(0, h.getBoundingClientRect().bottom) + "px");
+        place();
+        window.addEventListener("scroll", place, { passive: true });
+        window.addEventListener("resize", place);
+        if (window.ResizeObserver) new ResizeObserver(place).observe(h);
 
         // 見えていない間は、Tab キーで中に入れないようにする
         const sync = () => {
@@ -123,10 +125,10 @@ html.wkt-open{overflow:hidden}
         const close = () => { root.classList.remove("wkt-open"); sync(); btn.focus(); };
 
         btn.addEventListener("click", () => {
-            if (wide.matches && !overlayOnly) { // 広い画面: 開きっぱなしの入/切(覚えておく)
+            if (wide.matches) { // 広い画面: 開きっぱなしの入/切(覚えておく)
                 try { localStorage.setItem(KEY, root.classList.toggle("wkt-pin") ? "1" : "0"); } catch (e) { root.classList.toggle("wkt-pin"); }
                 sync();
-            } else { // 狭い画面・ホーム・動画ページ: 上に重ねて出す
+            } else { // 狭い画面: 上に重ねて出す
                 root.classList.toggle("wkt-open");
                 sync();
                 if (root.classList.contains("wkt-open")) nav.querySelector(".wkt-nav-link").focus();
