@@ -53,12 +53,9 @@ html.wkt-open{overflow:hidden}
 #wktNav a:focus-visible,#wktNav button:focus-visible,#wktMenuBtn:focus-visible{outline:2px solid #60a5fa;outline-offset:-2px}
 @media (min-width:${pinMin}px){
   html.wkt-pin body{padding-left:15rem}
-  html.wkt-pin .wkt-hdr-static{margin-left:-15rem}
   html.wkt-pin #wktNav{transform:none;transition:none;width:15rem;top:var(--wkt-h,4.5rem);z-index:20}
   html.wkt-pin .wkt-nav-head{display:none}
-  html.wkt-pin.wkt-hdr-out .wkt-nav-head{display:flex}
 }
-#wktNav:focus{outline:none}
 @media (prefers-reduced-motion:reduce){#wktNav{transition:none}}`;
     document.head.appendChild(style);
 
@@ -90,8 +87,7 @@ html.wkt-open{overflow:hidden}
         const nav = document.createElement("nav");
         nav.id = "wktNav";
         nav.setAttribute("aria-label", "メインメニュー");
-        nav.tabIndex = -1;
-        nav.innerHTML = `<div class="wkt-nav-head"><span>わかめtube Plus</span><button type="button" class="wkt-nav-x" aria-label="メニューを閉じる">${svg(ICON.x)}</button></div>`
+        nav.innerHTML = `<div class="wkt-nav-head"><span>わかめtube</span><button type="button" class="wkt-nav-x" aria-label="メニューを閉じる">${svg(ICON.x)}</button></div>`
             + ITEMS.map(i => i
                 ? `<a class="wkt-nav-link" href="${i[0]}"${i[0] === path ? ' aria-current="page"' : ""}>${svg(ICON[i[2]])}<span>${i[1]}</span></a>`
                 : '<div class="wkt-nav-sep"></div>').join("");
@@ -107,19 +103,14 @@ html.wkt-open{overflow:hidden}
         btn.innerHTML = svg(ICON.menu, 24);
         h.prepend(btn);
         h.style.paddingLeft = "3.5rem"; // ☰ の分だけ、ヘッダーの中身を右にずらす
-        const isFixed = h.classList.contains("fixed");
-        if (!isFixed) { h.style.position = "relative"; h.classList.add("wkt-hdr-static"); }
+        if (!h.classList.contains("fixed")) h.style.position = "relative";
 
         // ヘッダーにあった文字リンクのうち、サイドバーと同じものは隠す
         const hrefs = ITEMS.filter(Boolean).map(i => i[0]);
         h.querySelectorAll("a").forEach(a => { if (hrefs.includes(a.getAttribute("href"))) a.style.display = "none"; });
 
         // 開きっぱなしのとき、サイドバーをヘッダーの真下から始める。ヘッダーがページと一緒に流れて見えなくなったら、上端まで上がる
-        const place = () => {
-            const b = Math.max(0, h.getBoundingClientRect().bottom);
-            root.style.setProperty("--wkt-h", b + "px");
-            root.classList.toggle("wkt-hdr-out", b === 0); // ヘッダー(☰)が見えない間は、サイドバーの上端に見出しと「×」を出す
-        };
+        const place = () => root.style.setProperty("--wkt-h", Math.max(0, h.getBoundingClientRect().bottom) + "px");
         place();
         window.addEventListener("scroll", place, { passive: true });
         window.addEventListener("resize", place);
@@ -131,24 +122,20 @@ html.wkt-open{overflow:hidden}
             nav.inert = !shown;
             btn.setAttribute("aria-expanded", String(shown));
         };
-        const close = () => { root.classList.remove("wkt-open"); sync(); btn.focus({ preventScroll: true }); };
-        const save = v => { try { localStorage.setItem(KEY, v); } catch (e) {} };
+        const close = () => { root.classList.remove("wkt-open"); sync(); btn.focus(); };
 
         btn.addEventListener("click", () => {
             if (wide.matches) { // 広い画面: 開きっぱなしの入/切(覚えておく)
-                save(root.classList.toggle("wkt-pin") ? "1" : "0");
+                try { localStorage.setItem(KEY, root.classList.toggle("wkt-pin") ? "1" : "0"); } catch (e) { root.classList.toggle("wkt-pin"); }
                 sync();
             } else { // 狭い画面: 上に重ねて出す
                 root.classList.toggle("wkt-open");
                 sync();
-                if (root.classList.contains("wkt-open")) nav.focus({ preventScroll: true }); // 先頭のリンクではなく、メニュー全体にフォーカス(青い枠が出ない)
+                if (root.classList.contains("wkt-open")) nav.querySelector(".wkt-nav-link").focus();
             }
         });
         scrim.addEventListener("click", close);
-        nav.querySelector(".wkt-nav-x").addEventListener("click", () => {
-            if (root.classList.contains("wkt-pin") && wide.matches) { root.classList.remove("wkt-pin"); save("0"); sync(); } // 開きっぱなしのとき: 閉じて覚える
-            else close();
-        });
+        nav.querySelector(".wkt-nav-x").addEventListener("click", close);
         document.addEventListener("keydown", e => { if (e.key === "Escape" && root.classList.contains("wkt-open")) close(); });
         wide.addEventListener("change", () => { root.classList.remove("wkt-open"); sync(); });
         sync();
