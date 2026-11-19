@@ -53,10 +53,8 @@ html.wkt-open{overflow:hidden}
 #wktNav a:focus-visible,#wktNav button:focus-visible,#wktMenuBtn:focus-visible{outline:2px solid #60a5fa;outline-offset:-2px}
 @media (min-width:${pinMin}px){
   html.wkt-pin body{padding-left:15rem}
-  html.wkt-pin .wkt-hdr-static{margin-left:-15rem}
-  html.wkt-pin #wktNav{transform:none;transition:none;width:15rem;top:var(--wkt-h,4.5rem);z-index:20}
-  html.wkt-pin .wkt-nav-head{display:none}
-  html.wkt-pin.wkt-hdr-out .wkt-nav-head{display:flex}
+  html.wkt-pin header.fixed{left:15rem;width:calc(100% - 15rem)}
+  html.wkt-pin #wktNav{transform:none;transition:none;width:15rem;z-index:20}
 }
 #wktNav:focus{outline:none}
 @media (prefers-reduced-motion:reduce){#wktNav{transition:none}}`;
@@ -107,23 +105,11 @@ html.wkt-open{overflow:hidden}
         btn.innerHTML = svg(ICON.menu, 24);
         h.prepend(btn);
         h.style.paddingLeft = "3.5rem"; // ☰ の分だけ、ヘッダーの中身を右にずらす
-        const isFixed = h.classList.contains("fixed");
-        if (!isFixed) { h.style.position = "relative"; h.classList.add("wkt-hdr-static"); }
+        if (!h.classList.contains("fixed")) h.style.position = "relative";
 
         // ヘッダーにあった文字リンクのうち、サイドバーと同じものは隠す
         const hrefs = ITEMS.filter(Boolean).map(i => i[0]);
         h.querySelectorAll("a").forEach(a => { if (hrefs.includes(a.getAttribute("href"))) a.style.display = "none"; });
-
-        // 開きっぱなしのとき、サイドバーをヘッダーの真下から始める。ヘッダーがページと一緒に流れて見えなくなったら、上端まで上がる
-        const place = () => {
-            const b = Math.max(0, h.getBoundingClientRect().bottom);
-            root.style.setProperty("--wkt-h", b + "px");
-            root.classList.toggle("wkt-hdr-out", b === 0); // ヘッダー(☰)が見えない間は、サイドバーの上端に見出しと「×」を出す
-        };
-        place();
-        window.addEventListener("scroll", place, { passive: true });
-        window.addEventListener("resize", place);
-        if (window.ResizeObserver) new ResizeObserver(place).observe(h);
 
         // 見えていない間は、Tab キーで中に入れないようにする
         const sync = () => {
