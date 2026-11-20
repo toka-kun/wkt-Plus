@@ -1,7 +1,7 @@
 // ===== 共通ヘッダー(☰・サイト名・検索欄) =====
 // 使い方: ページの header タグ一式の代わりに、同じ場所へ script タグを1つ置き、中身を wktHeader() だけにする
 //   検索語があるページは、そのタグに属性 data-q を付けて、ejs の検索語(<%= ... %>)を入れる
-//   動画ページは、属性 data-tool を付ける(検索欄のすぐ右に、「ツール」ボタンが付く)
+//   動画ページは、属性 data-tool を付ける(ヘッダーの右端に、「ツール」ボタンが付く)
 // 検索語は ejs が HTML エスケープして属性に入れるので、script の中身には書かない(書くと危ない)
 // ☰ とサイト名は、このあとのサイドバーの処理が、左の枠(wkt-hdr-left)に足す
 window.wktHeader = function () {
@@ -14,9 +14,8 @@ window.wktHeader = function () {
             <input type="text" name="q" id="searchbox" placeholder="検索" aria-label="検索" class="searchbox w-full bg-gray-700 text-white" style="height:2.5rem;padding:0 5.25rem 0 1rem;border-radius:9999px">
             <button type="button" id="clearBtn" aria-label="検索欄を消す" class="absolute top-1/2 -translate-y-1/2 flex items-center justify-center h-6 w-6 rounded-full hover:bg-gray-400 text-white text-lg leading-none hidden" style="right:2.75rem">×</button>
             <button type="submit" class="wkt-search-btn" aria-label="検索"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
-        </form>${tool ? `
-        <button id="toggleToolbar" type="button" class="wkt-tool-btn" aria-controls="toolbar" title="この動画のツール(サムネのダウンロード・ほかのサイトで視聴)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/></svg><span>ツール</span></button>` : ""}
-        <div class="wkt-hdr-right"></div>
+        </form>
+        <div class="wkt-hdr-right">${tool ? `<button id="toggleToolbar" type="button" class="wkt-tool-btn" aria-controls="toolbar" title="この動画のツール(サムネのダウンロード・ほかのサイトで視聴)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/></svg><span>ツール</span></button>` : ""}</div>
     </header>`);
     const box = document.getElementById("searchbox"), clear = document.getElementById("clearBtn");
     box.value = s.dataset.q || "";
@@ -46,31 +45,34 @@ window.wktHeader = function () {
 
     const style = document.createElement("style");
     style.textContent = `
+:root{--wkt-t:.3s cubic-bezier(.2,0,0,1)}
 .wkt-hdr{position:fixed;top:0;left:0;width:100%;height:3.5rem;box-sizing:border-box;z-index:10;display:flex;align-items:center;gap:.75rem;padding:0 1rem 0 .5rem;background:#1f2937;color:#fff}
 .wkt-hdr-left{flex:none;display:flex;align-items:center;gap:.25rem}
 .wkt-hdr-right{flex:none;margin-left:auto;display:flex;align-items:center;gap:.25rem}
 .wkt-hdr form{flex:0 1 50%;min-width:0}
 .wkt-search-btn{position:absolute;right:.25rem;top:50%;transform:translateY(-50%);width:2.25rem;height:2.25rem;display:flex;align-items:center;justify-content:center;border:0;border-radius:9999px;background:none;color:#d1d5db;cursor:pointer;padding:0}
 .wkt-search-btn:hover{background:#4b5563;color:#fff}
-.wkt-hdr .wkt-tool-btn{flex:none;display:inline-flex;align-items:center;gap:.5rem;height:2.5rem;padding:0 1rem;border:0;border-radius:.5rem;background:#3b82f6;color:#fff;font-size:.95rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background-color .2s ease}
-.wkt-hdr .wkt-tool-btn:hover{background:#2563eb}
+.wkt-hdr .wkt-tool-btn{flex:none;display:inline-flex;align-items:center;gap:.5rem;height:2.5rem;padding:0 1rem;border:0;border-radius:.5rem;background:#2563eb;color:#fff;font-size:.95rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background-color .2s ease}
+.wkt-hdr .wkt-tool-btn:hover{background:#1d4ed8}
 .wkt-hdr .wkt-tool-btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .wkt-brand{flex:none;padding:0 .5rem;color:#fff;font-weight:700;font-size:1.125rem;line-height:1;text-decoration:none;white-space:nowrap}
 html.wkt-flow body{padding-top:3.5rem}
 #wktMenuBtn{flex:none;width:2.75rem;height:2.75rem;display:flex;align-items:center;justify-content:center;border:0;border-radius:.5rem;background:none;color:#d1d5db;cursor:pointer;padding:0}
 #wktMenuBtn:hover,.wkt-nav-x:hover{background:#374151;color:#fff}
-#wktNav{position:fixed;left:0;top:0;bottom:0;width:min(80vw,15rem);box-sizing:border-box;z-index:60;background:#1f2937;border-right:1px solid #374151;padding:.5rem 0;overflow-y:auto;overscroll-behavior:contain;transform:translateX(-100%);transition:transform .2s ease,width .2s ease;word-break:normal}
+#wktNav{position:fixed;left:0;top:0;bottom:0;width:min(80vw,15rem);box-sizing:border-box;z-index:60;background:#1f2937;border-right:1px solid #374151;padding:.5rem 0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;transform:translateX(-100%);transition:transform .2s ease,width var(--wkt-t);word-break:normal}
 #wktScrim{position:fixed;inset:0;z-index:59;background:rgba(0,0,0,.6);opacity:0;visibility:hidden;transition:opacity .2s ease,visibility .2s}
 html.wkt-open #wktNav{transform:none}
 html.wkt-open #wktScrim{opacity:1;visibility:visible}
 html.wkt-open{overflow:hidden}
 .wkt-nav-head{display:flex;align-items:center;justify-content:space-between;padding:0 .5rem 0 1.25rem;color:#fff;font-weight:600}
 .wkt-nav-x{width:2.75rem;height:2.75rem;display:flex;align-items:center;justify-content:center;border:0;border-radius:.5rem;background:none;color:#d1d5db;cursor:pointer;padding:0}
-.wkt-nav-link{display:flex;align-items:center;gap:.75rem;min-height:2.75rem;padding:0 1.25rem;border-radius:0;color:#d1d5db;text-decoration:none;font-size:.95rem;transition:opacity .1s ease}
-html.wkt-swap .wkt-nav-link{opacity:0}
+.wkt-nav-link{position:relative;display:block;height:2.75rem;border-radius:0;color:#d1d5db;text-decoration:none;font-size:.95rem}
+.wkt-nav-link svg{position:absolute;left:1.25rem;top:50%;width:1.25rem;height:1.25rem;transform:translate(0,-50%)}
+.wkt-nav-link span{position:absolute;left:3.25rem;top:50%;width:max-content;max-width:calc(100% - 4rem);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.2;transform:translate(0,-50%)}
+.wkt-nav-link,.wkt-nav-link svg,.wkt-nav-link span{transition:height var(--wkt-t),font-size var(--wkt-t),left var(--wkt-t),top var(--wkt-t),width var(--wkt-t),max-width var(--wkt-t),transform var(--wkt-t)}
 .wkt-nav-link:hover{background:#374151;color:#fff}
 .wkt-nav-link[aria-current=page]{background:#374151;color:#fff;box-shadow:inset 3px 0 0 #3b82f6}
-.wkt-nav-sep{height:1px;background:#374151;margin:.5rem 1.25rem}
+.wkt-nav-sep{height:1px;background:#374151;margin:.5rem 1.25rem;transition:margin var(--wkt-t)}
 #wktNav:focus{outline:none}
 #wktNav a:focus-visible,#wktNav button:focus-visible,#wktMenuBtn:focus-visible,.wkt-search-btn:focus-visible{outline:2px solid #60a5fa;outline-offset:-2px}
 @media (max-width:639px){
@@ -79,17 +81,17 @@ html.wkt-swap .wkt-nav-link{opacity:0}
   .wkt-brand{display:none}
 }
 @media (min-width:1024px){
-  html.wkt-pin body{padding-left:15rem;transition:padding-left .2s ease}
+  html.wkt-pin body{padding-left:15rem;transition:padding-left var(--wkt-t)}
   html.wkt-pin.wkt-mini body{padding-left:4.5rem}
   html.wkt-pin #wktNav{transform:none;top:3.5rem;width:15rem;z-index:20}
   html.wkt-pin.wkt-mini #wktNav{width:4.5rem}
   html.wkt-pin .wkt-nav-head{display:none}
-  html.wkt-pin.wkt-mini .wkt-nav-link{flex-direction:column;justify-content:center;gap:.25rem;min-height:4rem;padding:.5rem 0;font-size:.625rem;line-height:1.2;text-align:center}
-  html.wkt-pin.wkt-mini .wkt-nav-link svg{width:1.5rem;height:1.5rem}
-  html.wkt-pin.wkt-mini .wkt-nav-link span{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  html.wkt-pin.wkt-mini .wkt-nav-link{height:4rem;font-size:.625rem}
+  html.wkt-pin.wkt-mini .wkt-nav-link svg{left:50%;top:.625rem;width:1.5rem;height:1.5rem;transform:translate(-50%,0)}
+  html.wkt-pin.wkt-mini .wkt-nav-link span{left:50%;top:2.5rem;max-width:calc(100% - .25rem);transform:translate(-50%,0)}
   html.wkt-pin.wkt-mini .wkt-nav-sep{margin:.5rem .75rem}
 }
-@media (prefers-reduced-motion:reduce){#wktNav,#wktScrim,.wkt-nav-link,html.wkt-pin body,.wkt-hdr .wkt-tool-btn{transition:none}}`;
+@media (prefers-reduced-motion:reduce){#wktNav,#wktScrim,.wkt-nav-link,.wkt-nav-link svg,.wkt-nav-link span,.wkt-nav-sep,html.wkt-pin body,.wkt-hdr .wkt-tool-btn{transition:none}}`;
     document.head.appendChild(style);
 
     const ICON = {
@@ -154,9 +156,8 @@ html.wkt-swap .wkt-nav-link{opacity:0}
 
         btn.addEventListener("click", () => {
             if (wide.matches) { // 広い画面: 「広い」と「細い帯」の切り替え(覚えておく)
-                const flip = () => { save(root.classList.toggle("wkt-mini") ? "1" : "0"); root.classList.remove("wkt-swap"); sync(); };
-                if (matchMedia("(prefers-reduced-motion:reduce)").matches) flip();
-                else if (!root.classList.contains("wkt-swap")) { root.classList.add("wkt-swap"); setTimeout(flip, 100); } // 切り替え中の連打は無視
+                save(root.classList.toggle("wkt-mini") ? "1" : "0");
+                sync();
             } else { // 狭い画面: 上に重ねて出す
                 root.classList.toggle("wkt-open");
                 sync();
