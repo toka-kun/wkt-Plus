@@ -401,17 +401,19 @@
                               </div>
                             </div>
                             <% } else if (video.type.endsWith("Channel")) { %>
+                                <%# search.ejs と同じチャンネルカード(アイコン画像だけは、直接アクセスがブロックされることがあるため、プロキシ経由) %>
                                 <div class="result-item bg-gray-600 p-4 rounded">
-                                    <a href="/wkt/c/<%= video.author.id %>">
-                                        <% if (video.author?.thumbnails?.length) { %>
-                                            <img src="<%= video.author.thumbnails[0].url %>" alt="<%= video.author.name %>" class="w-full h-auto rounded">
-                                        <% } %>
-                                    </a>
-                                    <div class="mt-2">
-                                        <p class="text-lg font-bold"><%= video.author.name %></p>
-                                        <p class="text-sm text-gray-400"><%= video.description_snippet?.text %></p>
-                                        <p class="text-xs text-gray-500"><%= video.subscriber_count?.text %> • <%= video.videos?.text || video.video_count?.text %></p>
-                                    </div>
+                                  <a href="/wkt/c/<%= video.author.id %>">
+                                    <% if (video.author?.thumbnails?.length) { %>
+                                    <% let chThumb = video.author.thumbnails[0].url; try { chThumb = '/wkt/back/yt3' + (new URL(chThumb)).pathname; } catch (e) {} %>
+                                    <img src="<%= chThumb %>" alt="<%= video.author.name %>" class="w-full h-auto rounded">
+                                    <% } %>
+                                  </a>
+                                  <div class="mt-2">
+                                    <p class="text-lg font-bold"><a href="/wkt/c/<%= video.author.id %>" class="hover:underline"><%= video.author.name %></a></p>
+                                    <p class="text-sm text-gray-400"><%= video.description_snippet?.text %></p>
+                                    <p class="text-xs text-gray-500"><%= video.subscriber_count?.text %> • <%= video.videos?.text || video.video_count?.text %></p>
+                                  </div>
                                 </div>
                             <% } %>
                         <% }); %>
@@ -698,18 +700,19 @@
                                       </div>
                                     </div>
                                 <% } else if (video.type.endsWith("Channel")) { %>
-                                    <div class="bg-gray-800 p-2 rounded">
-                                        <a href="/wkt/c/<%= video.author.id %>">
-                                            <% if (video.author?.thumbnails?.length) { %>
-                                                <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="チャンネルアイコン" class="w-16 h-16 rounded-full mx-auto">
-                                            <% } %>
-                                        </a>
-                                        <p class="text-sm font-bold mt-1 text-center">
-                                            <a href="/wkt/c/<%= video.author.id %>" target="_top"><%= video.author.name %></a>
-                                        </p>
-                                        <p class="text-xs text-gray-400 text-center">
-                                            登録者数: <%= video.subscriber_count?.text %>
-                                        </p>
+                                    <%# search.ejs と同じチャンネルカード(アイコン画像だけは、直接アクセスがブロックされることがあるため、プロキシ経由) %>
+                                    <div class="result-item bg-gray-600 p-4 rounded">
+                                      <a href="/wkt/c/<%= video.author.id %>">
+                                        <% if (video.author?.thumbnails?.length) { %>
+                                        <% let chThumb = video.author.thumbnails[0].url; try { chThumb = '/wkt/back/yt3' + (new URL(chThumb)).pathname; } catch (e) {} %>
+                                        <img src="<%= chThumb %>" alt="<%= video.author.name %>" class="w-full h-auto rounded">
+                                        <% } %>
+                                      </a>
+                                      <div class="mt-2">
+                                        <p class="text-lg font-bold"><a href="/wkt/c/<%= video.author.id %>" class="hover:underline"><%= video.author.name %></a></p>
+                                        <p class="text-sm text-gray-400"><%= video.description_snippet?.text %></p>
+                                        <p class="text-xs text-gray-500"><%= video.subscriber_count?.text %> • <%= video.videos?.text || video.video_count?.text %></p>
+                                      </div>
                                     </div>
                                 <% } %>
                             </div>
@@ -791,18 +794,19 @@
                                 </div>
                             <% } else if (video.type.endsWith("Channel")) { %>
                                 <% hasValidVideo = true; %>
-                                <div class="bg-gray-800 p-2 rounded">
-                                    <a href="/wkt/c/<%= video.author.id %>">
-                                        <% if (video.author?.thumbnails?.length) { %>
-                                            <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="<%= video.author.name %> のチャンネルアイコン" class="w-16 h-16 rounded-full mx-auto">
-                                        <% } %>
-                                    </a>
-                                    <p class="text-sm font-bold mt-1 text-center">
-                                        <a href="/wkt/c/<%= video.author.id %>"><%= video.author.name %></a>
-                                    </p>
-                                    <p class="text-xs text-gray-400 text-center">
-                                        登録者数: <%= video.subscriber_count?.text || '非公開' %>
-                                    </p>
+                                <%# search.ejs と同じチャンネルカード(アイコン画像だけは、直接アクセスがブロックされることがあるため、プロキシ経由) %>
+                                <div class="result-item bg-gray-600 p-4 rounded">
+                                  <a href="/wkt/c/<%= video.author.id %>">
+                                    <% if (video.author?.thumbnails?.length) { %>
+                                    <% let chThumb = video.author.thumbnails[0].url; try { chThumb = '/wkt/back/yt3' + (new URL(chThumb)).pathname; } catch (e) {} %>
+                                    <img src="<%= chThumb %>" alt="<%= video.author.name %>" class="w-full h-auto rounded">
+                                    <% } %>
+                                  </a>
+                                  <div class="mt-2">
+                                    <p class="text-lg font-bold"><a href="/wkt/c/<%= video.author.id %>" class="hover:underline"><%= video.author.name %></a></p>
+                                    <p class="text-sm text-gray-400"><%= video.description_snippet?.text %></p>
+                                    <p class="text-xs text-gray-500"><%= video.subscriber_count?.text %> • <%= video.videos?.text || video.video_count?.text %></p>
+                                  </div>
                                 </div>
                             <% } %>
                         <% }); %>
