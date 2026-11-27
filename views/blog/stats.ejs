@@ -1,482 +1,499 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ヘルプ</title>
-  <script src="/js/tailwindcss.js"></script>
-  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-  <script src="/js/tube.js"></script>
-<style>
-    .faq-content a {
-      color: #60a5fa;
-      text-decoration: underline;
-      transition: color 0.3s ease;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>稼働状況一覧</title>
+    <script src="/js/tailwindcss.js"></script>
+    <link rel="stylesheet" href="/css/page.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="/js/tube.js"></script>
+    <style>
+        /* page.css の word-break: break-all を、このページのカード内だけ通常の折り返しに戻す */
+        .stats-card, .stats-card * { word-break: normal; overflow-wrap: anywhere; }
 
-    .faq-content a:hover {
-      color: #2563eb;
-    }
-</style>
+        /* ツールチップ: ホバー・キーボードフォーカス・タップのどれでも開く */
+        .day-tooltip { display: none; }
+        .day-bar-group:hover .day-tooltip,
+        .day-bar-group:focus-visible .day-tooltip,
+        .day-tooltip.is-open { display: block; }
+
+        /* 動きを減らす設定の人にはアニメーションを止める */
+        @media (prefers-reduced-motion: reduce) {
+            .stats-card, .stats-card * { transition: none !important; }
+        }
+    </style>
 </head>
-<body class="bg-gray-900 text-white font-sans">
-    <script data-q="<%= typeof query !== 'undefined' ? query : '' %>">wktHeader()</script>
+<body class="bg-gray-900 font-sans min-h-screen flex flex-col m-0 p-0 overflow-hidden">
 
-  <div class="max-w-4xl mx-auto py-12 px-6 mt-20">
-    <h1 class="text-4xl font-bold mb-4 text-center">ヘルプページ</h1>
-  <div class="flex justify-center mt-6">
-    <input type="text" id="search" placeholder="ヘルプを検索..."
-      class="w-full max-w-md p-2 border rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
-  </div>
-    <p class="text-center text-gray-400 text-lg mb-8">
-      使い方を書いてるよ。
-    </p>
-    
-    <div class="space-y-4" id="app-list">
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">基本的な使い方について</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>まずは<a href="/wkt">ホーム</a>に移動してみて。それで、検索バーにキーワードを入力して検索！<br>
-          動画が出てくるから、見たい動画のサムネイル(画像)を押してね。再生ページに移動するよ。  <div class="bg-yellow-600 text-white p-3 rounded-lg mt-4">
-        <h3 class="font-semibold text-xl">⚠️ 動画を連打しないでください！</h3>
-          <p>動画ページにすぐに移動しなくても、<strong>連打しないで下さい</strong>。サーバーに余計な負荷がかかってしまいます...。あまりにも負荷が大きい場合、アクセスを拒否させていただきます。</p>
-        </div><div class="bg-blue-600 text-white p-3 rounded-lg mt-4">
-           <h3 class="font-semibold text-xl">ℹ️ 初回再生時にチュートリアルが表示されます</h3>
-            <p>あなたの端末がYouTubeの埋め込みを制限していない場合、通常の再生方法よりも埋め込みで視聴した方が良いです。確認してみてね</p>
-        </div>
-          </p>
-        </div>
-      </div>
+    <!-- ヘッダー(検索欄と ☰ のサイドバーは tube.js が出す) -->
+    <script>wktHeader()</script>
+    <!-- メインコンテンツ -->
+    <div class="flex-grow w-full h-screen pt-20 pb-4 px-4 box-border overflow-y-auto">
 
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">履歴を隠したい</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>ホーム画面の上に「😎シークレット」というボタンがあるので、それがONになっているかを確認して下さい（デフォルトで既にONになっています。）。OFFになっていればそれを押してONにしましょう。</p>
-        </div>
-      </div>
+        <!-- ステータスボード用コンテナ -->
+        <div class="w-full max-w-5xl mx-auto bg-white rounded-2xl shadow-lg border-none min-h-full p-4 sm:p-6 lg:p-10 flex flex-col mb-10">
 
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">ショート動画が見たい</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p><strong>わかめtube Plus自体はショート動画には対応していません。</strong>ですが搭載されている<a href="/other/xerox#/shorts">XeroxYT-NT</a>にはショート動画が実装されているのでこちらを使って下さい！</p>
-        </div>
-      </div>
+            <!-- 全体ステータス -->
+            <div class="mb-8">
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center">サーバー稼働状況一覧</h1>
+                <p class="text-sm text-gray-500 text-center mt-1">直近90日間の稼働データ</p>
 
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">わかめtube Plusを作ってみたい</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p><strong>ありがとうございます！</strong>GitHubのリポジトリは <a href="https://github.com/toka-kun/wkt-Plus" target="_blank" rel="noopener noreferrer">https://github.com/toka-kun/wkt-Plus</a> にあるので、ForkしてRenderなどにデプロイしてみて下さい！</p>
-        </div>
-      </div>
+                <div id="overall-status" role="status" class="flex items-center justify-center gap-3 text-base sm:text-lg font-semibold mt-5 py-4 px-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-600 transition-all duration-500">
+                    読み込み中...
+                </div>
 
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">動画の再生方法について</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>動画の再生方法には、通常、Education、Nocookieの３種類があります。<br><br>
-          <strong>- 通常</strong>: 通常通りストリームURLを取得して再生を行います<br>
-          <strong>- Education</strong>: YouTubeEducationを埋め込んで再生を行います<br>
-          <strong>- Nocookie</strong>: YouTube-Nocookieを埋め込んで再生を行います<br><br>
-          埋め込みの方が圧倒的に良いパフォーマンスをするので、規制されないのであれば埋め込みで見ることをお勧めします。</p>
-        </div>
-      </div>
+                <!-- サマリーカード -->
+                <div id="summary-cards" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4"></div>
+            </div>
 
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">おすすめの使い方</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>動画再生ページに移動できたら、右側にある「サイドバーを隠す」を押してみて下さい。見やすいかも</p>
-        </div>
-      </div>
+            <!-- フィルタタブ -->
+            <div id="filter-tabs" role="group" aria-label="稼働状況で絞り込み" class="flex flex-wrap gap-2 mb-4"></div>
 
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">通常再生: 「☁️ プロキシ経由で再生」って何？</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>通常再生でさえブロックされてしまう人用の最終手段で、自分で作ったプロキシを使用することも可能です。<br>プロキシを使用することで視聴できない特定の動画が見れるようになるということはなく、再生が不安定になるため、使用する必要がない場合は非推奨です。</p>
-        </div>
-      </div>
+            <!-- 日別バーの凡例 -->
+            <div id="legend" class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-600 mb-6 py-3 px-4 rounded-lg bg-gray-50"></div>
 
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">通常再生: 画質・音質を変更したい</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>サイドバー（非表示にしている場合は動画の下）にある<strong>「コントロール」</strong>ボタンをクリックしてください。画質や音質を変更するオプションが表示されます。  <div class="bg-red-500 text-white p-3 rounded-lg mt-4">
-       <h3 class="font-semibold text-xl">❗ 音がずれてしまう場合</h3>
-         <p>統合ストリームとm3u8以外の再生は、<strong>動画と音声を別々で</strong>読み込んで再生しています。音がずれていると感じた場合は、一度再生を停止して、少し待ってから再び再生して下さい。どうしてもズレている場合は音質を変更して下さい。</p>
-       </div></p>
-        </div>
-      </div>
+            <!-- モニターリスト -->
+            <div id="monitors-list" class="flex flex-col gap-4">
+                <!-- ここにJavaScriptで動的に要素が追加されます -->
+            </div>
 
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">通常再生: 各画質・音質の違いがわからない！</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p><strong>画質選択のところには 「画質 (ファイル形式)」と入っています。</strong>これは使用したサーバーによって取得できる情報が違い、わかめtube Plusではできる限り全て表示させる方針を取っています。ちなみにm3u8の場合は言語も表示させています。<br><br>
-          <strong>ファイル形式の違い↓</strong><br>
-          <strong>- 統合</strong>: デフォルトの360pです。映像と音声が一緒なので音がずれません。360pでいいならこれが一番オススメ。<br>
-          <strong>- m3u8</strong>: 使用するサーバーによって取得できるかどうかが異なります。映像と音声が一緒なので音がずれません。<br>
-          <strong>- mp4</strong>: 1080p以下の全ての画質にあります。<br>
-          <strong>- webm</strong>: 360pにしかなかったり全画質にあったりします。旧わかめtubeではwebmのみ取得されていました。<br><br>
-          <strong>音声選択のところには「音質 - 言語 (ファイル形式)」と入っています。</strong>これは使用したサーバーによって取得できる情報が違い、わかめtube Plusではできる限り全て表示させる方針を取っています。<br><br>
-          <strong>ファイル形式の違い↓</strong><br>
-          <strong>- m4a</strong>: 高ビットレートに最適で、元の音に極めて近い高音質を出せます。<br>
-          <strong>- webm</strong>: 低ビットレートでも音質劣化が少なく非常に優秀です。通信量を抑えたい用途に最適。<br>
-          基本的にはビットレートの数字が大きいほど高音質という理解でOKです。</p>
         </div>
-      </div>
-  
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">通常再生: サーバーを変更したい</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>サイドバーにある<strong>「コントロール」</strong>ボタン、もしくは<strong>「設定」</strong>ボタンををクリックしてください。サーバーを変更するオプションが表示されます。</p>
-        </div>
-      </div>
-  
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">通常再生: 各サーバーの違いがわからない！</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>わかめtube Plusでは、様々なAPIからストリーミングURLを取得できるようになっています。<br><br>
-          <strong>- Invidious API</strong>: デフォルトでこのAPIを使用します。最も信頼でき、長年世界中の「YouTubeの追跡から逃れたい！」という人々の動画視聴を支え続けています。旧わかめtubeではdirectサーバーと呼ばれていました。<br>
-          <strong>- AceThinker API</strong>: AceThinker系列のダウンローダーのAPIです。<br>
-          <strong>- Freemake API</strong>: 世界で最も使われているダウンローダーであるFreemakeのAPIで、最も安定しています。InvidiousやAceThinkerで再生エラーが起こる場合でもこのAPIならうまく行ったりします。<br><br>
-          <strong>- SiaTube API</strong>: しあtubeで使用されているAPIです。<br><br>
-          <strong>- MIN-Tube2 API</strong>: MIN-Tube2で使用されているAPIです。ただしこのAPI自体が動画情報をInvidousから取得しているので、これを使うのであればInvidious APIを推奨しています。
-        </div>
-      </div>
-  
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">通常再生: 「エラー: Request failed with status code 503」と出てきた。</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>動画を取得できない、動画を再生できない状態です。サーバーを変更したり再読み込みしたりしてみてください。それでも上手くいかない場合、時間をおいて試してみて下さいね。<div class="bg-yellow-600 text-white p-3 rounded-lg mt-4">
-        <h3 class="font-semibold text-xl">⚠️ 再読み込みを連打しないでください！</h3>
-          <p>再生できなくても連続で再読み込みを行わないで下さい。サーバーに余計な負荷がかかってしまいます...。あまりにも負荷が大きい場合、アクセスを拒否させていただきます。</p>
-        </div></p>
-        </div>
-      </div>
-  
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">通常再生: 「エラー: Request failed with status code 403」と出てきた。</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>リクエスト過多でそのサイトが上手く動かなくなっている可能性があります。別のわかめtubeを使ってみてください。</p>
-        </div>
-      </div>
-  
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">通常再生: 「エラー: timeout of なんちゃらms exceeded」と出てきた。</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>サーバーが応答しなかったことを意味します。サーバーを変更してお試しください。<div class="bg-yellow-600 text-white p-3 rounded-lg mt-4">
-        <h3 class="font-semibold text-xl">⚠️ 再読み込みを連打しないでください！</h3>
-          <p>再生できなくても連続で再読み込みを行わないで下さい。サーバーに余計な負荷がかかってしまいます...。あまりにも負荷が大きい場合、アクセスを拒否させていただきます。</p>
-        </div></p>
-        </div>
-      </div>
-  
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">通常再生: 動画が00:00になって再生できない</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>まずはコントロールから画質や音質を変更してみて下さい。それでも無理なら再読み込み、どうしても無理ならサーバーを変更してみてください。</p>
-        </div>
-      </div>
-
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">Education、Nocookie再生: 動画が再生できない</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>「この動画には年齢制限が設けられており、YouTube でのみご視聴いただけます。」<br>
-          「動画を再生できません 他のウェブサイトでの再生は、動画の所有者によって無効にされています」<br>
-          再生しようとしている動画が埋め込みに対応していないだけのため、その動画のみ通常再生にして下さい。<br>
-          また、この再生方法は地域によっては普通に規制されてるので、規制画面や画面が暗いという場合は、再生方法を通常にしてお楽しみください。</p>
-        </div>
-      </div>
-
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">Education再生: 「エラーコード: 152-5」が表示される</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>Toka_Kun_追記: EducationのURLパラメーターをToka_Kun_のものに変更したため、エラーコードは出なくなりました。Educationで再生を行っている時、エラーコード:152-5と表示されて動画が再生できなくなることがあります。これは一時的なものなので、少し待ってからお試し下さい。</p>
-        </div>
-      </div>
-
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">Nocookie再生: さっきまで普通に使えてたのに急にログインをするように求めてきた</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>Nocookieで何時間も視聴しているとそうなります。一旦目を休めよう。</p>
-        </div>
-      </div>
-  
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">関連動画が表示されません</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>Toka_Kun_追記: 2025/03/26に復活させました。</p>
-        </div>
-      </div>
-  
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">サイドバーが消えてしまった</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>動画再生ページの右下にある「サイドバーを開く」ボタンをクリックしてみてください。サイドバーを開くことができます。</p>
-        </div>
-      </div>
-      
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">トレンドページ</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p><a href="/wkt/trend">トレンドページ</a>は、日本で伸びている動画をリアルタイムで更新します。現在はsiawaseokさんのもの（ライブ配信はInvidious）を使用していますが、かつてはわかめtube内でよく再生されている動画が表示されていました。</p>
-        </div>
-      </div>
-      
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">再生履歴</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p><a href="/wkt/cl/history">再生履歴</a>はブラウザのローカルストレージに保存されるため、履歴情報はサーバーに保存されません。削除された履歴の復元は不可能です。Toka_Kun_追記: いくらでも保存されるようにしました。</p>
-        </div>
-      </div>
-
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">検索履歴</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p><a href="/wkt/cl/shistory">検索履歴</a>はブラウザのローカルストレージに保存されるため、履歴情報はサーバーに保存されません。検索ページで「検索履歴をサジェストに表示」をONにすることでサジェストに履歴が表示されるようになります。</p>
-        </div>
-      </div>
-
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">お気に入り</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p><a href="/wkt/cl/fav">お気に入り</a>はブラウザのローカルストレージに保存されるため、お気に入り情報はサーバーに保存されません。削除されたお気に入りの復元は不可能です。何件でも登録できます。再生ページのチャンネルの横の星ボタンを押すことで登録できるよ。</p>
-        </div>
-      </div>
-
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">正直わかめtube Plusよりも好きなYouTubeサイトがある</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>それなら<a href="/other">他のYouTubeサイト</a>に行ってみて下さい。見つかるかも？</p>
-        </div>
-      </div>
-
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">Proxyが欲しい</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>Toka_Kun_追記: <a href="/tools">プロキシ＆ツールページ</a>にあります。</p>
-        </div>
-      </div>
-  
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">ゲームを増やして</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>Toka_Kun_追記: 2026/03/29に増やしました。</p>
-        </div>
-      </div>
-  
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">前のバージョンと何が変わりましたか？</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>UIが大幅に変わったように見えますが、それ以上にバックエンドが強化されています。あなたには非常に多くの選択肢があります:)</p>
-        </div>
-      </div>
-  
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">起動が遅いです</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>起動時に日本語用のクライアントの設定を行うため、起動に時間がかかります。しゃーない。起動してしまえば早くなるよ。</p>
-        </div>
-      </div>
-  
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">問い合わせがしたい</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>わかめtube Plusに関する問い合わせは<a href="/blog/b/form">こちら</a>からお願いします。</p>
-        </div>
-      </div>
-  
-      <div class="faq-item bg-gray-800 rounded-lg shadow-md">
-        <button class="faq-btn w-full text-left px-6 py-4 flex justify-between items-center text-lg font-medium text-gray-200 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <span class="faq-title">問い合わせたのに返ってきません</span>
-          <svg class="h-6 w-6 transform transition-transform duration-200 faq-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div class="faq-content px-6 py-4 hidden bg-gray-700 text-gray-300">
-          <p>あなたのScratchやPadletのアカウントのリンクがないと、そもそも返信できません。あなたのScratchやPadletのアカウントのリンクを添えてもう一度送ってみて下さい。
-          <br>また、「みれない」「使えない」とだけ書いて送られてきたり、ヘルプを読めば分かることを聞かれてもこっちはどうしようもないのでご了承下さい。</p>
-        </div>
-      </div>
-
     </div>
-  </div>
 
-<script>
-    $(document).ready(function() {
-      $('.faq-btn').click(function() {
-        const content = $(this).next('.faq-content');
-        const icon = $(this).find('.faq-icon');
-        content.toggleClass('hidden');
-        icon.toggleClass('rotate-180');
-      });
-    });
-    const searchInput = document.getElementById('search');
-    const toolList = document.getElementById('app-list');
-    const tools = document.querySelectorAll('.faq-item');
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('monitors-list');
+            const overallStatus = document.getElementById('overall-status');
+            const summaryCards = document.getElementById('summary-cards');
+            const filterTabs = document.getElementById('filter-tabs');
+            const legend = document.getElementById('legend');
 
-    searchInput.addEventListener('input', function() {
-        const searchText = searchInput.value.toLowerCase();
-        tools.forEach(tool => {
-            const title = tool.querySelector('.faq-title').textContent.toLowerCase();
-            const description = tool.querySelector('.faq-content').textContent.toLowerCase();
-            if (title.includes(searchText) || description.includes(searchText)) {
-                tool.style.display = '';
+            // サーバーから渡されたデータをJSONとして受け取る
+            const data = <%- JSON.stringify(monitorData || null) %>;
+
+            // ステータスごとの表示（色だけに頼らず、文字とアイコンの形でも区別する）
+            const STATUS = {
+                success: { text: '正常', badge: 'bg-green-100 text-green-800' },
+                danger: { text: 'ダウン', badge: 'bg-red-100 text-red-800' },
+                paused: { text: '一時停止', badge: 'bg-gray-200 text-gray-700' },
+            };
+            const STATUS_FALLBACK = { text: '未確認', badge: 'bg-gray-100 text-gray-700' };
+
+            // 日別バーのラベルを日本語に（凡例と同じ表記）
+            const DAY_LABELS = { excellent: '正常', good: '良好', fair: '注意', poor: '障害', black: 'データなし' };
+
+            if (data && data.status === 'ok' && Array.isArray(data.data)) {
+                const monitors = data.data;
+                const counts = getCounts(monitors, data.statistics);
+
+                renderOverallStatus(overallStatus, counts);
+                renderSummaryCards(summaryCards, counts);
+                renderLegend(legend);
+                renderFilterTabs(filterTabs, monitors, (statusClass) => applyFilter(container, statusClass));
+
+                container.innerHTML = '';
+                monitors.forEach(monitor => container.appendChild(createMonitorElement(monitor)));
             } else {
-                tool.style.display = 'none';
+                overallStatus.innerHTML = '';
+                overallStatus.appendChild(makeStatusIcon('unknown', 'w-7 h-7'));
+                overallStatus.appendChild(document.createTextNode('稼働状況データの取得に失敗しました。'));
+                overallStatus.className = 'flex items-center justify-center gap-3 text-base sm:text-lg font-semibold mt-5 py-4 px-4 rounded-xl border border-gray-200 bg-gray-100 text-gray-700';
+            }
+
+            // タップ中のツールチップ以外は閉じる（タッチ端末対応）／Escapeでも閉じる
+            document.addEventListener('click', (e) => {
+                if (e.target.closest && e.target.closest('.day-tooltip, .day-bar-group')) return;
+                closeAllTooltips();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeAllTooltips();
+            });
+
+            // ---- 集計 ----
+            function getCounts(monitors, statistics) {
+                if (statistics && statistics.counts) return statistics.counts;
+                return monitors.reduce((acc, m) => {
+                    if (m.statusClass === 'success') acc.up++;
+                    else if (m.statusClass === 'danger') acc.down++;
+                    else acc.paused++;
+                    acc.total++;
+                    return acc;
+                }, { up: 0, down: 0, paused: 0, total: 0 });
+            }
+
+            // ---- 全体ステータスバナー ----
+            function renderOverallStatus(el, counts) {
+                el.innerHTML = '';
+                const allOk = counts.down === 0;
+                el.appendChild(makeStatusIcon(allOk ? 'success' : 'danger', 'w-7 h-7'));
+                const text = document.createElement('span');
+                text.textContent = allOk
+                    ? '全てのサーバーが正常に稼働しています'
+                    : counts.down + '件のサーバーで問題が発生しています';
+                el.appendChild(text);
+                el.className = 'flex items-center justify-center gap-3 text-base sm:text-lg font-semibold mt-5 py-4 px-4 rounded-xl border transition-all duration-500 ' +
+                    (allOk ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800');
+            }
+
+            // ---- サマリーカード ----
+            function renderSummaryCards(el, counts) {
+                const cards = [
+                    { label: '総モニター数', value: counts.total, theme: 'bg-gray-50 border-gray-200 text-gray-800' },
+                    { label: '正常稼働', value: counts.up, theme: 'bg-green-50 border-green-200 text-green-800' },
+                    { label: 'ダウン中', value: counts.down, theme: 'bg-red-50 border-red-200 text-red-800' },
+                    { label: '一時停止', value: counts.paused || 0, theme: 'bg-gray-100 border-gray-200 text-gray-700' },
+                ];
+                el.innerHTML = '';
+                cards.forEach(c => {
+                    const card = document.createElement('div');
+                    card.className = 'rounded-xl border p-4 text-center ' + c.theme;
+
+                    const value = document.createElement('div');
+                    value.className = 'text-3xl font-bold leading-none';
+                    value.textContent = c.value;
+
+                    const label = document.createElement('div');
+                    label.className = 'text-xs font-medium mt-2';
+                    label.textContent = c.label;
+
+                    card.appendChild(value);
+                    card.appendChild(label);
+                    el.appendChild(card);
+                });
+            }
+
+            // ---- 日別バーの凡例 ----
+            function renderLegend(el) {
+                const items = [
+                    { color: '#4ade80', label: '正常 (excellent)' },
+                    { color: '#60a5fa', label: '良好 (good)' },
+                    { color: '#facc15', label: '注意 (fair)' },
+                    { color: '#f87171', label: '障害 (poor)' },
+                    { color: '#d1d5db', label: 'データなし' },
+                ];
+                el.innerHTML = '';
+                const title = document.createElement('span');
+                title.className = 'font-semibold text-gray-700';
+                title.textContent = '日別バーの色:';
+                el.appendChild(title);
+
+                items.forEach(i => {
+                    const span = document.createElement('span');
+                    span.className = 'inline-flex items-center gap-1.5';
+
+                    const swatch = document.createElement('span');
+                    swatch.className = 'w-3 h-3 rounded-sm inline-block';
+                    swatch.style.background = i.color;
+                    swatch.setAttribute('aria-hidden', 'true');
+
+                    span.appendChild(swatch);
+                    span.appendChild(document.createTextNode(i.label));
+                    el.appendChild(span);
+                });
+            }
+
+            // ---- フィルタタブ ----
+            function renderFilterTabs(el, monitors, onSelect) {
+                const labelMap = { success: '正常', danger: 'ダウン', paused: '一時停止', notchecked: '未確認' };
+                const seen = {};
+                monitors.forEach(m => { seen[m.statusClass] = (seen[m.statusClass] || 0) + 1; });
+
+                const tabs = [{ key: 'all', label: 'すべて (' + monitors.length + ')' }].concat(
+                    Object.keys(seen).map(key => ({
+                        key: key,
+                        label: (labelMap[key] || key) + ' (' + seen[key] + ')',
+                    }))
+                );
+
+                el.innerHTML = '';
+                let active = 'all';
+                const buttons = [];
+                tabs.forEach(tab => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.textContent = tab.label;
+                    btn.dataset.key = tab.key;
+                    btn.setAttribute('aria-pressed', String(tab.key === active));
+                    btn.className = tabButtonClass(tab.key === active);
+                    btn.addEventListener('click', () => {
+                        active = tab.key;
+                        buttons.forEach(b => {
+                            const isActive = b.dataset.key === active;
+                            b.className = tabButtonClass(isActive);
+                            b.setAttribute('aria-pressed', String(isActive));
+                        });
+                        onSelect(active);
+                    });
+                    buttons.push(btn);
+                    el.appendChild(btn);
+                });
+            }
+
+            function tabButtonClass(isActive) {
+                return 'min-h-[44px] px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ' +
+                    (isActive ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200');
+            }
+
+            function applyFilter(container, key) {
+                Array.from(container.children).forEach(el => {
+                    const match = key === 'all' || el.dataset.statusClass === key;
+                    el.style.display = match ? '' : 'none';
+                });
+            }
+
+            // 稼働率の値に応じた色（数字の文字も一緒に表示するので色だけに頼らない）
+            function ratioTheme(value) {
+                const n = parseFloat(value);
+                if (isNaN(n)) return 'bg-gray-100 text-gray-700';
+                if (n >= 99) return 'bg-green-100 text-green-800';
+                if (n >= 95) return 'bg-yellow-100 text-yellow-800';
+                return 'bg-red-100 text-red-800';
+            }
+
+            // ---- モニターごとのUIコンポーネントを生成する関数 ----
+            function createMonitorElement(monitor) {
+                const status = STATUS[monitor.statusClass] || STATUS_FALLBACK;
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'stats-card flex flex-col gap-3 rounded-xl border p-4 sm:p-5 transition-shadow duration-200 hover:shadow-md ' +
+                    (monitor.statusClass === 'danger' ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-white');
+                wrapper.dataset.statusClass = monitor.statusClass;
+
+                // --- 1. ヘッダー部（名前・状態・種別・稼働率） ---
+                const header = document.createElement('div');
+                header.className = 'flex justify-between items-start gap-3 flex-wrap';
+
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'flex items-start gap-3 min-w-0';
+                nameDiv.appendChild(makeStatusIcon(monitor.statusClass, 'w-6 h-6 mt-0.5'));
+
+                const nameWrap = document.createElement('div');
+                nameWrap.className = 'min-w-0';
+
+                const nameRow = document.createElement('div');
+                nameRow.className = 'flex items-center gap-2 flex-wrap';
+
+                const name = document.createElement('h2');
+                name.className = 'text-lg sm:text-xl font-semibold text-gray-800';
+                name.textContent = monitor.name;
+                nameRow.appendChild(name);
+
+                const statusBadge = document.createElement('span');
+                statusBadge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ' + status.badge;
+                statusBadge.textContent = status.text;
+                nameRow.appendChild(statusBadge);
+
+                if (monitor.type) {
+                    const typeBadge = document.createElement('span');
+                    typeBadge.className = 'text-[10px] font-semibold uppercase tracking-wide text-gray-600 bg-gray-100 px-2 py-0.5 rounded';
+                    typeBadge.textContent = monitor.type;
+                    nameRow.appendChild(typeBadge);
+                }
+                nameWrap.appendChild(nameRow);
+
+                if (monitor.lastDowntime) {
+                    const incident = document.createElement('p');
+                    incident.className = 'text-xs text-red-700 mt-1';
+                    incident.textContent = '直近の障害: ' + formatIncidentDate(monitor.lastDowntime.date) +
+                        '（' + formatDuration(monitor.lastDowntime.duration) + '）';
+                    nameWrap.appendChild(incident);
+                }
+
+                nameDiv.appendChild(nameWrap);
+
+                // 右側の稼働率表示
+                const ratioValue = monitor['90dRatio'] ? monitor['90dRatio'].ratio : 'N/A';
+                const ratio = document.createElement('span');
+                ratio.className = 'inline-flex items-baseline gap-1.5 py-1 px-3 rounded-full whitespace-nowrap ' + ratioTheme(ratioValue);
+
+                const ratioLabel = document.createElement('span');
+                ratioLabel.className = 'text-xs font-medium';
+                ratioLabel.textContent = '90日間';
+
+                const ratioNumber = document.createElement('span');
+                ratioNumber.className = 'text-sm font-bold';
+                ratioNumber.textContent = ratioValue + '%';
+
+                ratio.appendChild(ratioLabel);
+                ratio.appendChild(ratioNumber);
+
+                header.appendChild(nameDiv);
+                header.appendChild(ratio);
+
+                // --- 2. バー（棒グラフ）表示部 ---
+                const days = monitor.dailyRatios || [];
+
+                const barsWrapper = document.createElement('div');
+                barsWrapper.className = 'flex gap-[1px] sm:gap-[2px] md:gap-1 h-14 w-full';
+                barsWrapper.setAttribute('role', 'group');
+                barsWrapper.setAttribute('aria-label', monitor.name + ' の日別稼働状況（矢印キーで日付を移動）');
+
+                const barGroups = [];
+
+                days.forEach((day, index) => {
+                    const dayLabel = DAY_LABELS[(day.label || '').toLowerCase()] ||
+                        (day.label ? day.label.charAt(0).toUpperCase() + day.label.slice(1) : '');
+                    // 「データなし」の日（監視開始前など）は 0% と表示せず、ラベルだけ出す
+                    const noData = (day.label || '').toLowerCase() === 'black';
+                    const dayText = noData ? dayLabel : day.ratio + '%' + (dayLabel ? '（' + dayLabel + '）' : '');
+                    const summary = day.date + ' ' + dayText;
+
+                    const barGroup = document.createElement('div');
+                    barGroup.className = 'day-bar-group flex-grow min-w-0 relative cursor-pointer rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1';
+                    barGroup.setAttribute('role', 'img');
+                    barGroup.setAttribute('aria-label', summary);
+                    // キーボードでは最新日(右端)だけTabで止まり、あとは矢印キーで移動する
+                    barGroup.tabIndex = index === days.length - 1 ? 0 : -1;
+
+                    // 日ごとのバー
+                    const bar = document.createElement('div');
+                    bar.className = 'w-full h-full rounded-sm opacity-80 hover:opacity-100 transition-opacity duration-200';
+                    bar.style.backgroundColor = getLighterColor(day.color);
+
+                    // ホバー／フォーカス／タップ時に表示されるツールチップ
+                    // 左右の端のバーは、画面外にはみ出さないよう寄せて表示する
+                    const edge = index < days.length * 0.2 ? 'left' : index > days.length * 0.8 ? 'right' : 'center';
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'day-tooltip pointer-events-none absolute bottom-full mb-2 bg-gray-800 text-white text-xs py-1.5 px-3 rounded-lg shadow-lg whitespace-nowrap z-10 ' +
+                        (edge === 'left' ? 'left-0' : edge === 'right' ? 'right-0' : 'left-1/2 transform -translate-x-1/2');
+
+                    const dateLine = document.createElement('span');
+                    dateLine.className = 'font-bold';
+                    dateLine.textContent = day.date;
+                    tooltip.appendChild(dateLine);
+                    tooltip.appendChild(document.createElement('br'));
+                    tooltip.appendChild(document.createTextNode(dayText));
+
+                    // ツールチップの下向きの矢印
+                    const tooltipArrow = document.createElement('div');
+                    tooltipArrow.className = 'absolute top-full border-4 border-transparent border-t-gray-800 ' +
+                        (edge === 'left' ? 'left-2' : edge === 'right' ? 'right-2' : 'left-1/2 transform -translate-x-1/2');
+                    tooltip.appendChild(tooltipArrow);
+
+                    // タッチ端末向け：タップでツールチップを開閉（マウスはホバーで開くので対象外）
+                    barGroup.addEventListener('click', (e) => {
+                        if (!window.matchMedia('(hover: none)').matches) return;
+                        e.stopPropagation();
+                        const wasOpen = tooltip.classList.contains('is-open');
+                        closeAllTooltips();
+                        if (!wasOpen) tooltip.classList.add('is-open');
+                    });
+
+                    barGroup.appendChild(bar);
+                    barGroup.appendChild(tooltip);
+                    barsWrapper.appendChild(barGroup);
+                    barGroups.push(barGroup);
+                });
+
+                // キーボード操作: 矢印キー・Home・Endで日付を移動
+                barsWrapper.addEventListener('keydown', (e) => {
+                    const current = barGroups.indexOf(document.activeElement);
+                    if (current < 0) return;
+                    let next = current;
+                    if (e.key === 'ArrowLeft') next = Math.max(0, current - 1);
+                    else if (e.key === 'ArrowRight') next = Math.min(barGroups.length - 1, current + 1);
+                    else if (e.key === 'Home') next = 0;
+                    else if (e.key === 'End') next = barGroups.length - 1;
+                    else return;
+                    e.preventDefault();
+                    barGroups[current].tabIndex = -1;
+                    barGroups[next].tabIndex = 0;
+                    barGroups[next].focus();
+                });
+
+                // --- 3. フッター部（日付） ---
+                const footer = document.createElement('div');
+                footer.className = 'flex justify-between items-center text-xs text-gray-500';
+
+                const startDate = days.length > 0 ? days[0].date : '90 days ago';
+
+                const startSpan = document.createElement('span');
+                startSpan.textContent = startDate;
+                const line = document.createElement('span');
+                line.className = 'border-t border-gray-200 flex-grow mx-4';
+                const endSpan = document.createElement('span');
+                endSpan.textContent = 'Today';
+
+                footer.appendChild(startSpan);
+                footer.appendChild(line);
+                footer.appendChild(endSpan);
+
+                wrapper.appendChild(header);
+                wrapper.appendChild(barsWrapper);
+                wrapper.appendChild(footer);
+
+                return wrapper;
+            }
+
+            function closeAllTooltips() {
+                document.querySelectorAll('.day-tooltip.is-open').forEach(t => t.classList.remove('is-open'));
+            }
+
+            // --- 標準の色名を明るい色に変換する関数 ---
+            function getLighterColor(colorName) {
+                if (!colorName) return '#d1d5db'; // 色がない場合は明るいグレー
+
+                // Tailwind CSS の 400 番台付近の目に優しい色合いを定義
+                const colorMap = {
+                    'green': '#4ade80',  // 明るい緑
+                    'red': '#f87171',    // 明るい赤
+                    'yellow': '#facc15', // 明るい黄色
+                    'blue': '#60a5fa',   // 明るい青（good）
+                    'grey': '#d1d5db',   // 明るいグレー
+                    'gray': '#d1d5db',
+                    'black': '#9ca3af'   // 真っ黒ではなく濃いめのグレーに
+                };
+
+                return colorMap[colorName.toLowerCase()] || colorName;
+            }
+
+            // ステータスクラスに応じたアイコン付きバッジを返す（色だけに頼らないための形状差）
+            function makeStatusIcon(statusClass, sizeClass) {
+                const wrap = document.createElement('span');
+                const isDanger = statusClass === 'danger';
+                const isSuccess = statusClass === 'success';
+                const isPaused = statusClass === 'paused';
+                const bg = isDanger ? 'bg-red-500' : isSuccess ? 'bg-green-500' : 'bg-gray-400';
+                wrap.className = (sizeClass || 'w-5 h-5') + ' rounded-full shadow-sm shrink-0 flex items-center justify-center ' + bg;
+                wrap.setAttribute('aria-hidden', 'true');
+
+                let path;
+                if (isDanger) {
+                    path = '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />';
+                } else if (isSuccess) {
+                    path = '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />';
+                } else if (isPaused) {
+                    path = '<path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6" />';
+                } else {
+                    path = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 3h.01" />';
+                }
+                wrap.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-3/5 w-3/5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">' + path + '</svg>';
+                return wrap;
+            }
+
+            // 秒数を「◯時間◯分◯秒」表記に変換（秒まで常に表示）
+            function formatDuration(sec) {
+                if (sec == null) return '';
+                sec = Math.max(0, Math.floor(sec));
+                const h = Math.floor(sec / 3600);
+                const m = Math.floor((sec % 3600) / 60);
+                const s = sec % 60;
+                let str = '';
+                if (h > 0) str += h + '時間';
+                if (h > 0 || m > 0) str += m + '分';
+                str += s + '秒';
+                return str;
+            }
+
+            // "YYYY-MM-DD HH:MM:SS" を年・秒まで省略せず "YYYY/MM/DD HH:MM:SS" に整形
+            function formatIncidentDate(dateStr) {
+                if (!dateStr) return '';
+                return dateStr.replace(/-/g, '/');
             }
         });
-    });
-</script>
-
-
+    </script>
 </body>
 </html>
