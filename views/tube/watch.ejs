@@ -176,31 +176,16 @@
     </style>
 </head>
 <body class="bg-gray-900 text-white">
-    <header class="bg-gray-800 p-4 flex justify-between items-center">
-        <form action="/wkt/s" method="get" class="w-1/2 relative" id="searchForm">
-            <input type="text" name="q" id="searchbox" placeholder="検索" class="searchbox w-full p-2 pr-10 rounded bg-gray-700 text-white">
-            <button type="button" id="clearBtn" class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center h-6 w-6 rounded-full hover:bg-gray-400 text-white text-lg leading-none hidden">
-                ×
-            </button>
-        </form>
-        <button id="toggleToolbar" class="toggle-btn w-1/5">ツール</button>
-    </header>
+    <script data-tool>wktHeader()</script>
 
     <div class="toolbar w-1/2 ml-4" id="toolbar">
         <button id="closeToolbar" class="toggle-btn w-2/3 bg-gray-700 py-2 hover:text-white p-2 rounded mb-2 absolute top-4 right-4">閉じる</button>
         <nav class="mt-12">
-            <button onclick="window.location.href='/wkt'" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">ホーム</button>
-            <button onclick="window.location.href='/wkt/trend'" class="w-full bg-gray-700 py-2 hover:text-white rounded mb-2">トレンド</button>
-            <button onclick="window.location.href='/wkt/cl/fav'" class="w-full bg-gray-700 py-2 hover:text-white rounded mb-2">お気に入り</button>
-            <button onclick="window.location.href='/wkt/cl/history'" class="w-full bg-gray-700 py-2 hover:text-white rounded mb-2">閲覧履歴</button>
             <button onclick="window.open('/wkt/back/vi/<%= videoId %>/maxresdefault.jpg', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">サムネをダウンロード</button>
             <button onclick="window.open('/other/xerox#/watch/<%= videoId %>', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">XeroxYT-NTで視聴</button>
             <button onclick="window.open('/other/labo5#/watch?v=<%= videoId %>', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">Re: LABO5で視聴</button>
             <button onclick="window.open('/other/player#?v=<%= videoId %>&playlist=<%= videoId %>', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">YouTube 埋め込み再生ツールで視聴</button>
             <button onclick="window.open('/other/player#?v=<%= videoId %>&list=<%= videoInfo.channelId %>', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">YouTube 埋め込み再生ツールでチャンネルの動画を視聴</button>
-        </nav>
-        <nav class="mt-4">
-            <button onclick="window.location.href='/blog/b/wkthelp'" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">ヘルプ</button>
         </nav>
     </div>
 
@@ -416,17 +401,19 @@
                               </div>
                             </div>
                             <% } else if (video.type.endsWith("Channel")) { %>
+                                <%# search.ejs と同じチャンネルカード(アイコン画像だけは、直接アクセスがブロックされることがあるため、プロキシ経由) %>
                                 <div class="result-item bg-gray-600 p-4 rounded">
-                                    <a href="/wkt/c/<%= video.author.id %>">
-                                        <% if (video.author?.thumbnails?.length) { %>
-                                            <img src="<%= video.author.thumbnails[0].url %>" alt="<%= video.author.name %>" class="w-full h-auto rounded">
-                                        <% } %>
-                                    </a>
-                                    <div class="mt-2">
-                                        <p class="text-lg font-bold"><%= video.author.name %></p>
-                                        <p class="text-sm text-gray-400"><%= video.description_snippet?.text %></p>
-                                        <p class="text-xs text-gray-500"><%= video.subscriber_count?.text %> • <%= video.videos?.text || video.video_count?.text %></p>
-                                    </div>
+                                  <a href="/wkt/c/<%= video.author.id %>">
+                                    <% if (video.author?.thumbnails?.length) { %>
+                                    <% let chThumb = video.author.thumbnails[0].url; try { chThumb = '/wkt/back/yt3' + (new URL(chThumb)).pathname; } catch (e) {} %>
+                                    <img src="<%= chThumb %>" alt="<%= video.author.name %>" class="w-full h-auto rounded">
+                                    <% } %>
+                                  </a>
+                                  <div class="mt-2">
+                                    <p class="text-lg font-bold"><a href="/wkt/c/<%= video.author.id %>" class="hover:underline"><%= video.author.name %></a></p>
+                                    <p class="text-sm text-gray-400"><%= video.description_snippet?.text %></p>
+                                    <p class="text-xs text-gray-500"><%= video.subscriber_count?.text %> • <%= video.videos?.text || video.video_count?.text %></p>
+                                  </div>
                                 </div>
                             <% } %>
                         <% }); %>
@@ -684,28 +671,48 @@
                                         </div>
                                     </div>
                                 <% } else if (video.type.endsWith("Playlist")) { %>
-                                    <div class="bg-gray-800 p-2 rounded">
-                                        <a href="/wkt/p/<%= video.id %>">
-                                            <img src="/wkt/back/vi/<%= video?.endpoint?.payload?.videoId || video.first_videos?.[0]?.id %>/mqdefault.jpg" alt="サムネ" class="w-full h-auto rounded">
+                                    <%# search.ejs と同じ再生リストカード %>
+                                    <% const plThumbId = video?.endpoint?.payload?.videoId || video.first_videos?.[0]?.id; %>
+                                    <% const plAuthorLink = video.author?.id ? '/wkt/c/' + video.author.id : '/wkt/p/' + video.id; %>
+                                    <div class="result-item bg-gray-600 p-4 rounded">
+                                      <a href="/wkt/p/<%= video.id %>" class="block relative group">
+                                        <% if (plThumbId) { %>
+                                        <img loading="lazy" src="/wkt/back/vi/<%= plThumbId %>/mqdefault.jpg" alt="<%= video.title?.text || '' %>" class="w-full h-auto rounded aspect-video object-cover">
+                                        <% } else { %>
+                                        <div class="w-full aspect-video rounded bg-gray-700"></div>
+                                        <% } %>
+                                        <span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium">プレイリスト<% if (video.video_count?.text) { %> • <%= video.video_count.text %>本<% } %></span>
+                                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
+                                      </a>
+                                      <div class="mt-3 flex items-start gap-3">
+                                        <a href="/wkt/p/<%= video.id %>" class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-gray-500 bg-gray-700 text-gray-200" aria-label="プレイリストを開く">
+                                          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M4 10h12v2H4zm0-4h12v2H4zm0 8h8v2H4zm10 0v6l5-3z"/></svg>
                                         </a>
-                                        <p class="text-sm font-bold mt-1">
-                                            <a href="/wkt/p/<%= video.id %>"><%= video.title?.text || 'プレイリスト' %></a>
-                                        </p>
-                                        <p class="text-xs text-gray-400">動画数: <%= video.video_count?.text %></p>
+                                        <div class="flex-1 min-w-0">
+                                          <a href="/wkt/p/<%= video.id %>">
+                                            <p class="text-white font-bold text-base leading-snug line-clamp-2 mb-1 hover:underline"><%= video.title?.text || '' %></p>
+                                          </a>
+                                          <% if (video.author?.name) { %>
+                                          <a href="<%= plAuthorLink %>" class="block truncate text-sm text-gray-200 hover:underline"><%= video.author.name %></a>
+                                          <% } %>
+                                          <p class="text-xs text-gray-300">プレイリスト<% if (video.video_count?.text) { %> • <%= video.video_count.text %>本の動画<% } %></p>
+                                        </div>
+                                      </div>
                                     </div>
                                 <% } else if (video.type.endsWith("Channel")) { %>
-                                    <div class="bg-gray-800 p-2 rounded">
-                                        <a href="/wkt/c/<%= video.author.id %>">
-                                            <% if (video.author?.thumbnails?.length) { %>
-                                                <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="チャンネルアイコン" class="w-16 h-16 rounded-full mx-auto">
-                                            <% } %>
-                                        </a>
-                                        <p class="text-sm font-bold mt-1 text-center">
-                                            <a href="/wkt/c/<%= video.author.id %>" target="_top"><%= video.author.name %></a>
-                                        </p>
-                                        <p class="text-xs text-gray-400 text-center">
-                                            登録者数: <%= video.subscriber_count?.text %>
-                                        </p>
+                                    <%# search.ejs と同じチャンネルカード(アイコン画像だけは、直接アクセスがブロックされることがあるため、プロキシ経由) %>
+                                    <div class="result-item bg-gray-600 p-4 rounded">
+                                      <a href="/wkt/c/<%= video.author.id %>">
+                                        <% if (video.author?.thumbnails?.length) { %>
+                                        <% let chThumb = video.author.thumbnails[0].url; try { chThumb = '/wkt/back/yt3' + (new URL(chThumb)).pathname; } catch (e) {} %>
+                                        <img src="<%= chThumb %>" alt="<%= video.author.name %>" class="w-full h-auto rounded">
+                                        <% } %>
+                                      </a>
+                                      <div class="mt-2">
+                                        <p class="text-lg font-bold"><a href="/wkt/c/<%= video.author.id %>" class="hover:underline"><%= video.author.name %></a></p>
+                                        <p class="text-sm text-gray-400"><%= video.description_snippet?.text %></p>
+                                        <p class="text-xs text-gray-500"><%= video.subscriber_count?.text %> • <%= video.videos?.text || video.video_count?.text %></p>
+                                      </div>
                                     </div>
                                 <% } %>
                             </div>
@@ -757,29 +764,49 @@
                                 </div>
                             <% } else if (video.type.endsWith("Playlist")) { %>
                                 <% hasValidVideo = true; %>
-                                <div class="bg-gray-800 p-2 rounded">
-                                    <a href="/wkt/p/<%= video.id %>">
-                                        <img src="/wkt/back/vi/<%= video?.endpoint?.payload?.videoId || video.first_videos?.[0]?.id || 'default' %>/mqdefault.jpg" alt="<%= video.title?.text || 'プレイリスト' %> のサムネイル" class="w-full h-24 rounded">
+                                <%# search.ejs と同じ再生リストカード %>
+                                <% const plThumbId = video?.endpoint?.payload?.videoId || video.first_videos?.[0]?.id; %>
+                                <% const plAuthorLink = video.author?.id ? '/wkt/c/' + video.author.id : '/wkt/p/' + video.id; %>
+                                <div class="result-item bg-gray-600 p-4 rounded">
+                                  <a href="/wkt/p/<%= video.id %>" class="block relative group">
+                                    <% if (plThumbId) { %>
+                                    <img loading="lazy" src="/wkt/back/vi/<%= plThumbId %>/mqdefault.jpg" alt="<%= video.title?.text || '' %>" class="w-full h-auto rounded aspect-video object-cover">
+                                    <% } else { %>
+                                    <div class="w-full aspect-video rounded bg-gray-700"></div>
+                                    <% } %>
+                                    <span class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium">プレイリスト<% if (video.video_count?.text) { %> • <%= video.video_count.text %>本<% } %></span>
+                                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded"></div>
+                                  </a>
+                                  <div class="mt-3 flex items-start gap-3">
+                                    <a href="/wkt/p/<%= video.id %>" class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-gray-500 bg-gray-700 text-gray-200" aria-label="プレイリストを開く">
+                                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M4 10h12v2H4zm0-4h12v2H4zm0 8h8v2H4zm10 0v6l5-3z"/></svg>
                                     </a>
-                                    <p class="text-sm font-bold mt-1">
-                                        <a href="/wkt/p/<%= video.id %>"><%= video.title?.text || 'プレイリスト' %></a>
-                                    </p>
-                                    <p class="text-xs text-gray-400">動画数: <%= video.video_count?.text || '不明' %></p>
+                                    <div class="flex-1 min-w-0">
+                                      <a href="/wkt/p/<%= video.id %>">
+                                        <p class="text-white font-bold text-base leading-snug line-clamp-2 mb-1 hover:underline"><%= video.title?.text || '' %></p>
+                                      </a>
+                                      <% if (video.author?.name) { %>
+                                      <a href="<%= plAuthorLink %>" class="block truncate text-sm text-gray-200 hover:underline"><%= video.author.name %></a>
+                                      <% } %>
+                                      <p class="text-xs text-gray-300">プレイリスト<% if (video.video_count?.text) { %> • <%= video.video_count.text %>本の動画<% } %></p>
+                                    </div>
+                                  </div>
                                 </div>
                             <% } else if (video.type.endsWith("Channel")) { %>
                                 <% hasValidVideo = true; %>
-                                <div class="bg-gray-800 p-2 rounded">
-                                    <a href="/wkt/c/<%= video.author.id %>">
-                                        <% if (video.author?.thumbnails?.length) { %>
-                                            <img src="/wkt/back/yt3<%- (new URL(video.author.thumbnails[0].url)).pathname %>" alt="<%= video.author.name %> のチャンネルアイコン" class="w-16 h-16 rounded-full mx-auto">
-                                        <% } %>
-                                    </a>
-                                    <p class="text-sm font-bold mt-1 text-center">
-                                        <a href="/wkt/c/<%= video.author.id %>"><%= video.author.name %></a>
-                                    </p>
-                                    <p class="text-xs text-gray-400 text-center">
-                                        登録者数: <%= video.subscriber_count?.text || '非公開' %>
-                                    </p>
+                                <%# search.ejs と同じチャンネルカード(アイコン画像だけは、直接アクセスがブロックされることがあるため、プロキシ経由) %>
+                                <div class="result-item bg-gray-600 p-4 rounded">
+                                  <a href="/wkt/c/<%= video.author.id %>">
+                                    <% if (video.author?.thumbnails?.length) { %>
+                                    <% let chThumb = video.author.thumbnails[0].url; try { chThumb = '/wkt/back/yt3' + (new URL(chThumb)).pathname; } catch (e) {} %>
+                                    <img src="<%= chThumb %>" alt="<%= video.author.name %>" class="w-full h-auto rounded">
+                                    <% } %>
+                                  </a>
+                                  <div class="mt-2">
+                                    <p class="text-lg font-bold"><a href="/wkt/c/<%= video.author.id %>" class="hover:underline"><%= video.author.name %></a></p>
+                                    <p class="text-sm text-gray-400"><%= video.description_snippet?.text %></p>
+                                    <p class="text-xs text-gray-500"><%= video.subscriber_count?.text %> • <%= video.videos?.text || video.video_count?.text %></p>
+                                  </div>
                                 </div>
                             <% } %>
                         <% }); %>
@@ -1056,19 +1083,6 @@
         });
 
         //けんさく
-        const searchBox = document.getElementById('searchbox');
-        const clearBtn = document.getElementById('clearBtn');
-
-        function toggleClearButton() {
-            clearBtn.style.display = searchBox.value ? 'block' : 'none';
-        }
-        searchBox.addEventListener('input', toggleClearButton);
-        clearBtn.addEventListener('click', () => {
-            searchBox.value = '';
-            searchBox.focus();
-            toggleClearButton();
-        });
-
         document.getElementById('umekomisearchForm').addEventListener('submit', function(event) {
             event.preventDefault();
             const searchValue = document.getElementById('searchInput').value;
