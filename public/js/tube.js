@@ -69,10 +69,9 @@ html.wkt-open{overflow:hidden}
 .wkt-nav-link{position:relative;display:block;height:2.75rem;border-radius:0;color:#d1d5db;text-decoration:none;font-size:.95rem}
 .wkt-nav-link svg{position:absolute;left:1.25rem;top:50%;width:1.25rem;height:1.25rem;transform:translate(0,-50%)}
 .wkt-nav-link span{position:absolute;left:3.25rem;top:50%;width:max-content;max-width:calc(100% - 4rem);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.2;transform:translate(0,-50%)}
-.wkt-nav-link,.wkt-nav-link svg,.wkt-nav-link span{transition:height var(--wkt-t),font-size var(--wkt-t),left var(--wkt-t),top var(--wkt-t),width var(--wkt-t),max-width var(--wkt-t),transform var(--wkt-t)}
 .wkt-nav-link:hover{background:#374151;color:#fff}
 .wkt-nav-link[aria-current=page]{background:#374151;color:#fff;box-shadow:inset 3px 0 0 #3b82f6}
-.wkt-nav-sep{height:1px;background:#374151;margin:.5rem 1.25rem;transition:margin var(--wkt-t)}
+.wkt-nav-sep{height:1px;background:#374151;margin:.5rem 1.25rem}
 #wktNav:focus{outline:none}
 #wktNav a:focus-visible,#wktNav button:focus-visible,#wktMenuBtn:focus-visible,.wkt-search-btn:focus-visible{outline:2px solid #60a5fa;outline-offset:-2px}
 @media (max-width:639px){
@@ -86,12 +85,14 @@ html.wkt-open{overflow:hidden}
   html.wkt-pin #wktNav{transform:none;top:3.5rem;width:15rem;z-index:20}
   html.wkt-pin.wkt-mini #wktNav{width:4.5rem}
   html.wkt-pin .wkt-nav-head{display:none}
+  html.wkt-pin .wkt-nav-link span{max-width:11rem}
   html.wkt-pin.wkt-mini .wkt-nav-link{height:4rem;font-size:.625rem}
-  html.wkt-pin.wkt-mini .wkt-nav-link svg{left:50%;top:.625rem;width:1.5rem;height:1.5rem;transform:translate(-50%,0)}
-  html.wkt-pin.wkt-mini .wkt-nav-link span{left:50%;top:2.5rem;max-width:calc(100% - .25rem);transform:translate(-50%,0)}
+  /* 4.5rem の帯の中央: (4.5 - 1.5) / 2 = 1.5rem。幅に依存しない固定値 */
+  html.wkt-pin.wkt-mini .wkt-nav-link svg{left:1.5rem;top:.625rem;width:1.5rem;height:1.5rem;transform:none}
+  html.wkt-pin.wkt-mini .wkt-nav-link span{left:0;top:2.5rem;width:4.5rem;max-width:4.5rem;padding:0 .125rem;box-sizing:border-box;text-align:center;transform:none}
   html.wkt-pin.wkt-mini .wkt-nav-sep{margin:.5rem .75rem}
 }
-@media (prefers-reduced-motion:reduce){#wktNav,#wktScrim,.wkt-nav-link,.wkt-nav-link svg,.wkt-nav-link span,.wkt-nav-sep,html.wkt-pin body,.wkt-hdr .wkt-tool-btn{transition:none}}`;
+@media (prefers-reduced-motion:reduce){#wktNav,#wktScrim,html.wkt-pin body,.wkt-hdr .wkt-tool-btn{transition:none}}`;
     document.head.appendChild(style);
 
     const ICON = {
@@ -152,8 +153,8 @@ html.wkt-open{overflow:hidden}
             nav.inert = !(open || wide.matches);
             btn.setAttribute("aria-expanded", String(wide.matches ? !root.classList.contains("wkt-mini") : open));
         };
-        const close = () => { root.classList.remove("wkt-open"); sync(); btn.focus({ preventScroll: true }); };
 
+        const close = () => { root.classList.remove("wkt-open"); sync(); btn.focus({ preventScroll: true }); };
         btn.addEventListener("click", () => {
             if (wide.matches) { // 広い画面: 「広い」と「細い帯」の切り替え(覚えておく)
                 save(root.classList.toggle("wkt-mini") ? "1" : "0");
