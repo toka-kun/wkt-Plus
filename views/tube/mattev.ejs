@@ -24,28 +24,65 @@
         .tab-content.active {
             display: block;
          }
+        /* ツールパネル(動画ページと同じ。右から出る) */
+        .toolbar {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: min(100%, 28rem);
+            box-sizing: border-box;
+            background: rgba(51, 51, 51, 0.95);
+            transition: right 0.2s;
+            padding: 20px;
+            z-index: 10;
+        }
+        .toolbar.open { right: 0; }
+        /* 再生方法の設定ウィンドウ */
+        .playback-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1002;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.6);
+        }
+        .playback-modal[hidden] { display: none; }
+        .playback-card {
+            position: relative;
+            width: min(100%, 28rem);
+            max-height: 100%;
+            overflow-y: auto;
+        }
+        @media (prefers-reduced-motion: reduce) { .toolbar { transition: none; } }
 </style>
 </head>
 <body class="bg-gray-900 text-white">
-    <header class="bg-gray-800 p-4 flex justify-between items-center fixed top-0 left-0 w-full z-10">
-        <form action="/wkt/s" method="get" class="w-1/2 relative" id="searchForm">
-            <input type="text" name="q" id="searchbox" placeholder="検索" value="<%= typeof query !== 'undefined' ? query : '' %>" class="searchbox w-full p-2 pr-10 rounded bg-gray-700 text-white">
-            <button type="button" id="clearBtn" class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center h-6 w-6 rounded-full hover:bg-gray-400 text-white text-lg leading-none hidden">
-             ×
-            </button>
-        </form>
-        <nav class="space-x-4">
-            <a href="/wkt" class="text-gray-300 hover:text-white">ホーム</a>
-            <a href="/wkt/trend" class="text-gray-300 hover:text-white">トレンド</a>
-            <a href="/wkt/cl/fav" class="text-gray-300 hover:text-white">お気に入り</a>
-            <a href="/wkt/cl/history" class="text-gray-300 hover:text-white">閲覧履歴</a>
+    <script data-q="<%= typeof query !== 'undefined' ? query : '' %>" data-tool>wktHeader()</script>
+
+    <div class="toolbar" id="toolbar">
+        <button id="closeToolbar" type="button" class="w-2/3 bg-gray-700 py-2 hover:text-white p-2 rounded mb-2 absolute top-4 right-4 cursor-pointer">閉じる</button>
+        <nav class="mt-12">
+            <button type="button" onclick="window.open('/wkt/back/vi/<%= videoId %>/maxresdefault.jpg', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">サムネをダウンロード</button>
+            <button type="button" onclick="window.open('/other/xerox#/watch/<%= videoId %>', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">XeroxYT-NTで視聴</button>
+            <button type="button" onclick="window.open('/other/labo5#/watch?v=<%= videoId %>', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">Re: LABO5で視聴</button>
+            <button type="button" onclick="window.open('/other/player#?v=<%= videoId %>&playlist=<%= videoId %>', '_blank');" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">YouTube 埋め込み再生ツールで視聴</button>
         </nav>
-    </header>
-    <div class="max-w-4xl mx-auto p-6 bg-gray-800 rounded-lg shadow-lg mt-20">
+    </div>
+
+    <div class="max-w-4xl mx-4 md:mx-auto p-6 bg-gray-800 rounded-lg shadow-lg my-8">
         <h1 class="text-3xl font-bold text-center mb-6">動画を取得できません</h1>
         <p class="text-center text-lg mb-6">エラー: <%= details %></p>
         <div class="flex w-full justify-center mb-6">
             <img src="/wkt/back/vi/<%= videoId %>/mqdefault.jpg" class="rounded-lg shadow-md max-w-full">
+        </div>
+
+        <div class="flex justify-center mb-6">
+            <button id="openPlaybackSettings" type="button" aria-haspopup="dialog" class="inline-flex items-center gap-2 px-5 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4"/></svg>
+                再生方法を変更
+            </button>
         </div>
         
         <div class="text-center">
@@ -72,6 +109,40 @@
                 <p class="text-center text-lg mb-6">埋め込み再生を選択中です</p>
                 <p class="text-center text-lg mb-6">YouTubeから動画情報をうまく取得できませんでした。<br>時間をおいて試してみて下さい。</p>
             <% } %>
+        </div>
+    </div>
+
+    <div id="playbackModal" class="playback-modal" role="dialog" aria-modal="true" aria-labelledby="playbackTitle" hidden>
+        <div class="playback-card bg-gray-900 text-white p-6 rounded-lg shadow-lg border border-gray-700">
+            <button id="closePlayback" type="button" aria-label="閉じる" class="absolute top-2 right-2 text-gray-400 hover:text-white text-2xl">×</button>
+            <h2 id="playbackTitle" class="text-lg font-semibold mb-3">再生方法の変更</h2>
+            <p class="mb-4 text-gray-300">動画のデフォルトの再生方法を設定できます。埋め込みで見れるなら埋め込みで見た方が良いですよ。</p>
+            <p class="mb-4 text-gray-300">現在の再生方法: <span id="currentMode" class="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-sm font-semibold">通常</span></p>
+            <div class="mb-4">
+                <div class="flex flex-col gap-1">
+                    <label class="flex items-start gap-2 py-1 px-1.5 -mx-1.5 rounded-md cursor-pointer transition-colors has-[:checked]:bg-blue-500/10 has-[:checked]:ring-1 has-[:checked]:ring-blue-500">
+                        <input type="radio" name="playbackMode" value="normal" class="mt-1 accent-blue-500" checked>
+                        <div>
+                            <strong>通常</strong> - ストリームURLを用いて再生します。最初のデフォルト設定で、ほとんどの人が使用できます。
+                        </div>
+                    </label>
+                    <label class="flex items-start gap-2 py-1 px-1.5 -mx-1.5 rounded-md cursor-pointer transition-colors has-[:checked]:bg-blue-500/10 has-[:checked]:ring-1 has-[:checked]:ring-blue-500">
+                        <input type="radio" name="playbackMode" value="edu" class="mt-1 accent-blue-500">
+                        <div>
+                            <strong>Education</strong> - YouTubeEducationを埋め込んで再生を行います。一部の人が使用できます。
+                            <a href="/wkt/yt/edu/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
+                        </div>
+                    </label>
+                    <label class="flex items-start gap-2 py-1 px-1.5 -mx-1.5 rounded-md cursor-pointer transition-colors has-[:checked]:bg-blue-500/10 has-[:checked]:ring-1 has-[:checked]:ring-blue-500">
+                        <input type="radio" name="playbackMode" value="nocookie" class="mt-1 accent-blue-500">
+                        <div>
+                            <strong>Nocookie</strong> - YouTube-Nocookieを埋め込んで再生を行います。こちらも一部の人が使用できます。
+                            <a href="/wkt/yt/nocookie/<%= videoId %>" class="text-blue-500 underline" target="_blank">再生できるか確かめる</a>。
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <button id="saveSettings" type="button" class="w-full bg-gray-700 py-2 hover:text-white p-2 rounded mb-2">💾 設定を保存</button>
         </div>
     </div>
 
@@ -127,6 +198,41 @@ function showerrorMessage(text) {
         setTimeout(() => alertMessage.remove(), 1000);
     }, 4000);
 }
+// ツールパネル
+const toolbarEl = document.getElementById('toolbar');
+document.getElementById('toggleToolbar').addEventListener('click', () => toolbarEl.classList.add('open'));
+document.getElementById('closeToolbar').addEventListener('click', () => toolbarEl.classList.remove('open'));
+
+// 再生方法の設定
+const playbackModal = document.getElementById('playbackModal');
+const openPlaybackBtn = document.getElementById('openPlaybackSettings');
+const MODE_NAMES = { normal: '通常', edu: 'Education', nocookie: 'Nocookie' };
+function closePlaybackModal() {
+    playbackModal.hidden = true;
+    openPlaybackBtn.focus();
+}
+openPlaybackBtn.addEventListener('click', () => {
+    const m = (document.cookie.match(/(?:^|; )playbackMode=([^;]*)/) || [])[1];
+    const mode = MODE_NAMES[m] ? m : 'normal';
+    document.querySelector(`input[name="playbackMode"][value="${mode}"]`).checked = true;
+    document.getElementById('currentMode').textContent = MODE_NAMES[mode];
+    playbackModal.hidden = false;
+    document.querySelector('input[name="playbackMode"]:checked').focus();
+});
+document.getElementById('closePlayback').addEventListener('click', closePlaybackModal);
+playbackModal.addEventListener('click', (e) => { if (e.target === playbackModal) closePlaybackModal(); });
+document.getElementById('saveSettings').addEventListener('click', () => {
+    const mode = document.querySelector('input[name="playbackMode"]:checked').value;
+    document.cookie = `playbackMode=${mode}; path=/; max-age=31536000`;
+    showMessage(`再生方法を${mode}に変更します☑️`);
+    window.location.href = `/wkt/redirect/mode/<%= videoId %>?mode=${mode}`;
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (!playbackModal.hidden) closePlaybackModal();
+    else toolbarEl.classList.remove('open');
+});
+
 window.addEventListener("load", function() {
     if (!localStorage.getItem('tutorialCompleted')) {
        showTutorial();
@@ -232,19 +338,5 @@ async function showPlaybackSettings(iframeurl, mode) {
 }
     </script>
 
-<script>
-const searchBox = document.getElementById('searchbox');
-const clearBtn = document.getElementById('clearBtn');
-function toggleClearButton() {
-    clearBtn.style.display = searchBox.value ? 'block' : 'none';
-}
-searchBox.addEventListener('input', toggleClearButton);
-clearBtn.addEventListener('click', () => {
-   searchBox.value = '';
-   searchBox.focus();
-   toggleClearButton();
-});
-toggleClearButton();
-</script>
 </body>
 </html>
