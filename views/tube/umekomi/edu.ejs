@@ -225,7 +225,7 @@
             </div>
 
             <div class="mt-4 p-4 bg-gray-800 rounded">
-                <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center justify-between gap-3">
                     <h1 class="text-xl sm:text-2xl font-bold leading-snug text-balance min-w-0 break-words"><%= videoInfo.title %></h1>
                     <button id="wktFavBtn" class="flex-shrink-0 p-2 rounded-full bg-gray-500" aria-label="お気に入り" data-entry="<%= JSON.stringify({
                         videoId: String(videoId),
@@ -241,7 +241,7 @@
                 </div>
                 <%# 再生回数・高評価数・公開日のバッジ。値が空(取得できなかった)ものは出さない %>
                 <% if (videoInfo.viewCount || videoInfo.likeCount || videoInfo.published) { %>
-                <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
+                <div class="mt-4 flex flex-wrap items-center gap-2 text-sm">
                     <% if (videoInfo.viewCount) { %>
                     <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-700 ring-1 ring-gray-600 px-3 py-1 text-gray-200"><svg class="w-4 h-4 flex-shrink-0 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg><span class="sr-only">再生回数: </span><%= videoInfo.viewCount %></span>
                     <% } %>
@@ -439,7 +439,7 @@
             <button id="toggleControlPanel" class="mt-4 w-full bg-gray-700 py-2 rounded">コントロール</button>
             <%# サイドバーの検索バー。見た目はヘッダーの検索バー(tube.js)と同じ。結果は関連動画の代わりにサイドバー内へ出す (サイドバーを閉じている間は、サイドバームごと隠れる) %>
             <form id="umekomisearchForm" role="search" class="relative mt-4">
-                <input type="text" name="q" id="searchInput" placeholder="検索" aria-label="動画を検索" enterkeyhint="search" autocomplete="off" class="w-full bg-gray-700 text-white" style="height:2.5rem;padding:0 5.25rem 0 1rem;border-radius:9999px">
+                <input type="text" name="q" id="searchInput" data-wkt-suggest placeholder="検索" aria-label="動画を検索" enterkeyhint="search" autocomplete="off" class="w-full bg-gray-700 text-white" style="height:2.5rem;padding:0 5.25rem 0 1rem;border-radius:9999px">
                 <button type="button" id="sidebarClearBtn" aria-label="検索欄を消す" class="absolute top-1/2 -translate-y-1/2 flex items-center justify-center h-6 w-6 rounded-full hover:bg-gray-400 text-white text-lg leading-none hidden" style="right:2.75rem">×</button>
                 <button type="submit" class="wkt-search-btn" aria-label="検索"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
             </form>
@@ -586,6 +586,7 @@
 
             form.addEventListener('submit', function (event) {
                 event.preventDefault();
+                sync(); // サジェストで選んだ語は input イベントが出ないので、×の表示をここで合わせる
                 const q = input.value.trim();
                 if (!q) { showRelated(); return; }
                 showMessage("検索結果を取得します☑️");
