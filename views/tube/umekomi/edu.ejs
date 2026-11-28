@@ -232,22 +232,8 @@
             </div>
 
             <div class="mt-4 p-4 bg-gray-800 rounded">
-                <%# 再生回数・高評価数・公開日のバッジ。値が空(取得できなかった)ものは出さない %>
-                <% if (videoInfo.viewCount || videoInfo.likeCount || videoInfo.published) { %>
-                <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
-                    <% if (videoInfo.viewCount) { %>
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-700 ring-1 ring-gray-600 px-3 py-1 text-gray-200"><svg class="w-4 h-4 flex-shrink-0 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg><span class="sr-only">再生回数: </span><%= videoInfo.viewCount %></span>
-                    <% } %>
-                    <% if (videoInfo.likeCount) { %>
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-700 ring-1 ring-gray-600 px-3 py-1 text-gray-200"><svg class="w-4 h-4 flex-shrink-0 text-pink-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/></svg><span class="sr-only">高評価: </span><%= videoInfo.likeCount %></span>
-                    <% } %>
-                    <% if (videoInfo.published) { %>
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-700 ring-1 ring-gray-600 px-3 py-1 text-gray-200"><svg class="w-4 h-4 flex-shrink-0 text-emerald-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span class="sr-only">公開日: </span><%= videoInfo.published %></span>
-                    <% } %>
-                </div>
-                <% } %>
                 <div class="flex items-start justify-between gap-3">
-                    <h3 class="text-2xl font-bold min-w-0 break-words"><%= videoInfo.title %></h3>
+                    <h1 class="text-xl sm:text-2xl font-bold leading-snug text-balance min-w-0 break-words"><%= videoInfo.title %></h1>
                     <button id="wktFavBtn" class="flex-shrink-0 p-2 rounded-full bg-gray-500" aria-label="お気に入り" data-entry="<%= JSON.stringify({
                         videoId: String(videoId),
                         channelId: String(videoInfo.channelId ?? ''),
@@ -260,12 +246,45 @@
                         <img src="https://wsrv.nl/?url=https://kotonohaworks.com/free-icons/wp-content/uploads/kkrn_icon_hoshi_4.png" alt="お気に入り" class="w-8 h-8">
                     </button>
                 </div>
-                <div class="description mt-2">
-                    <p class="text-base text-gray-300 mt-1"><%- (videoInfo.description || "").replace(/\n/g, "<br>") %></p>
+                <%# 再生回数・高評価数・公開日のバッジ。値が空(取得できなかった)ものは出さない %>
+                <% if (videoInfo.viewCount || videoInfo.likeCount || videoInfo.published) { %>
+                <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
+                    <% if (videoInfo.viewCount) { %>
+                    <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-700 ring-1 ring-gray-600 px-3 py-1 text-gray-200"><svg class="w-4 h-4 flex-shrink-0 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg><span class="sr-only">再生回数: </span><%= videoInfo.viewCount %></span>
+                    <% } %>
+                    <% if (videoInfo.likeCount) { %>
+                    <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-700 ring-1 ring-gray-600 px-3 py-1 text-gray-200"><svg class="w-4 h-4 flex-shrink-0 text-pink-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/></svg><span class="sr-only">高評価: </span><%= videoInfo.likeCount %></span>
+                    <% } %>
+                    <% if (videoInfo.published) { %>
+                    <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-700 ring-1 ring-gray-600 px-3 py-1 text-gray-200"><svg class="w-4 h-4 flex-shrink-0 text-emerald-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span class="sr-only">公開日: </span><%= videoInfo.published %></span>
+                    <% } %>
                 </div>
-                <button class="mt-2 text-blue-500 hover:text-blue-300 text-sm" onclick="toggleDescription(this)">
-                    折りたたむ
-                </button>
+                <% } %>
+                <%
+                    // 概要欄: まず HTML として解釈されないようにエスケープし、そのあとで URL と改行だけをタグにする
+                    const descEsc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+                    const descText = String(videoInfo.description || '').trim();
+                    const descHtml = descEsc(descText)
+                        .replace(/https?:\/\/(?:[A-Za-z0-9\-._~:\/?#\[\]@!$'()*+,;=%]|&amp;)+/g, (u) => {
+                            const tail = (u.match(/[.,;:!?)\]]+$/) || [''])[0]; // 文末の句読点はリンクに含めない
+                            const url = tail ? u.slice(0, -tail.length) : u;
+                            return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="!text-blue-400 hover:!text-blue-300 underline underline-offset-2 break-all">' + url + '</a>' + tail;
+                        })
+                        .replace(/\n/g, '<br>');
+                    // ponytail: 「長い」かは文字数と改行数の目安だけで判定(本当の行数は画面幅次第)。長い時だけ4行に省略してボタンを出す
+                    const descLong = descText.length > 240 || (descText.match(/\n/g) || []).length >= 4;
+                -%>
+                <% if (descText) { %>
+                <div class="mt-4 pt-4 border-t border-gray-700">
+                    <div id="videoDescription" class="text-sm sm:text-base leading-relaxed text-gray-300 break-words<%= descLong ? ' line-clamp-4' : '' %>"><%- descHtml %></div>
+                    <% if (descLong) { %>
+                    <button type="button" id="descToggle" class="mt-1 -ml-2 inline-flex items-center gap-1 min-h-[44px] rounded-md px-2 text-sm font-semibold text-blue-400 hover:text-blue-300 hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400" aria-expanded="false" aria-controls="videoDescription" onclick="toggleDescription(this)">
+                        <span data-label>もっと見る</span>
+                        <svg class="w-4 h-4 transition-transform motion-reduce:transition-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <% } %>
+                </div>
+                <% } %>
             </div>
 
             <div class="mt-4 p-4 bg-gray-800 rounded">
@@ -773,15 +792,11 @@
         const videoId = "<%= videoId %>";
         // 概要
         function toggleDescription(button) {
-            const description = button.parentElement.querySelector('.description');
-
-            if (description.classList.contains('hidden')) {
-                description.classList.remove('hidden');
-                button.textContent = '折りたたむ';
-            } else {
-                description.classList.add('hidden');
-                button.textContent = '表示する';
-            }
+            const description = document.getElementById('videoDescription');
+            const expanded = !description.classList.toggle('line-clamp-4'); // 4行に省略している間は false
+            button.setAttribute('aria-expanded', String(expanded));
+            button.querySelector('[data-label]').textContent = expanded ? '折りたたむ' : 'もっと見る';
+            button.querySelector('svg').style.transform = expanded ? 'rotate(180deg)' : '';
         }
 
         // ページ読み込み
