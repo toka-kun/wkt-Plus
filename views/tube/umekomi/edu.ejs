@@ -437,11 +437,11 @@
         <div class="sidebar w-1/4 ml-4" id="sidebar">
             <button id="hideSidebar" class="w-full bg-gray-700 py-2 rounded">▶ サイドバーを隠す</button>
             <button id="toggleControlPanel" class="mt-4 w-full bg-gray-700 py-2 rounded">コントロール</button>
-            <%# サイドバーの検索バー。結果は関連動画の代わりにサイドバー内へ出す (サイドバーを閉じている間は、サイドバームごと隠れる) %>
+            <%# サイドバーの検索バー。見た目はヘッダーの検索バー(tube.js)と同じ。結果は関連動画の代わりにサイドバー内へ出す (サイドバーを閉じている間は、サイドバームごと隠れる) %>
             <form id="umekomisearchForm" role="search" class="relative mt-4">
-                <label for="searchInput" class="sr-only">動画を検索</label>
-                <input type="search" name="q" id="searchInput" placeholder="検索" enterkeyhint="search" autocomplete="off" class="w-full min-h-[44px] rounded bg-gray-700 py-2 pl-3 pr-11 text-white placeholder-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400">
-                <button type="submit" aria-label="検索" class="absolute right-0 top-0 flex h-full w-11 items-center justify-center rounded-r text-gray-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></button>
+                <input type="text" name="q" id="searchInput" placeholder="検索" aria-label="動画を検索" enterkeyhint="search" autocomplete="off" class="w-full bg-gray-700 text-white" style="height:2.5rem;padding:0 5.25rem 0 1rem;border-radius:9999px">
+                <button type="button" id="sidebarClearBtn" aria-label="検索欄を消す" class="absolute top-1/2 -translate-y-1/2 flex items-center justify-center h-6 w-6 rounded-full hover:bg-gray-400 text-white text-lg leading-none hidden" style="right:2.75rem">×</button>
+                <button type="submit" class="wkt-search-btn" aria-label="検索"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
             </form>
             <div id="searchResults" class="mt-4 hidden"></div>
             <div class="mt-4" id="sidebarRelated">
@@ -570,6 +570,13 @@
             const input = document.getElementById('searchInput');
             const related = document.getElementById('sidebarRelated');
             const results = document.getElementById('searchResults');
+            const clear = document.getElementById('sidebarClearBtn');
+
+            // ×ボタン: ヘッダーの検索バーと同じ (入力があるときだけ出して、押すと空にして入力欄に戻る)
+            const sync = () => { clear.style.display = input.value ? 'block' : 'none'; };
+            input.addEventListener('input', sync);
+            clear.addEventListener('click', () => { input.value = ''; input.focus(); sync(); });
+            sync();
 
             function showRelated() {
                 results.classList.add('hidden');
